@@ -1,7 +1,7 @@
 """
 core.py: `light' implementation of the Document Object Model (core) level 1.
 
-Reference: http://www.w3.org/TR/WD-DOM/level-one-core
+Reference: http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/
 
 Deviations from the specs:
 
@@ -252,7 +252,7 @@ class Node:
         # Convert the list of _nodeData instances into a list of
         # the appropriate Node subclasses
         for i in range(len(L)):
-            L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self._document)
+            L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self.get_ownerDocument() )
         return NodeList(L)
 
     def get_firstChild(self):
@@ -261,7 +261,7 @@ class Node:
 
         if self._node.children:
             n = self._node.children[0]
-            return NODE_CLASS[ n.type ] (n, self, self._document)
+            return NODE_CLASS[ n.type ] (n, self, self.get_ownerDocument() )
         else:
             return None
 
@@ -361,6 +361,10 @@ class Node:
         raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
+        """Replaces the child node oldChild with newChild in the list of
+        children, and returns the oldChild node. If the newChild is
+        already in the tree, it is first removed."""
+        
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
@@ -392,6 +396,9 @@ class Node:
         raise NotFoundException("oldChild not a child of this node")
 
     def removeChild(self, oldChild):
+        """Removes the child node indicated by oldChild from the list of
+        children, and returns it."""
+
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
 
@@ -403,13 +410,24 @@ class Node:
             raise NotFoundException("oldChild is not a child of this node")
 
     def appendChild(self, newChild):
+        """Adds the node newChild to the end of the list of children of
+        this node. If the newChild is already in the tree, it is
+        first removed."""
+
         self.insertBefore(newChild,None)
         return
 
     def hasChildNodes(self):
+        """Return true if the node has any children, false if the node has
+        no children."""
+
         return len(self._node.children) > 0
 
     def cloneNode(self, deep):
+        """Returns a duplicate of this node, i.e., serves as a generic
+        copy constructor for nodes. The duplicate node has no parent
+        (parentNode returns null.)."""
+        
         import copy
         d = _nodeData( self._node.type )
         for key, value in self._node.__dict__.items():
@@ -426,14 +444,17 @@ class Node:
 class CharacterData(Node):
     # Attributes
     def get_data(self):
+        "Return the character data of the node."
         return self._node.value
     
     def set_data(self, data):
+        "Set the character data of the node to a new value"
         if self.readonly:
             raise NoModificationAllowedException("Read-only object")
         self._node.value = data
         
     def __len__(self):
+        "Return the length of the node's character data."
         return len(self._node.value)
     get_length = __len__
 
@@ -516,13 +537,21 @@ class CharacterData(Node):
 class Attr(Node):
     childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
     
-    def __init__(self, node, parent = None):
-        Node.__init__(self, node, parent, None)
+    def __init__(self, node, parent = None, document = None):
+        Node.__init__(self, node, None, document)
 
     def __repr__(self):
-        return '<Attribute node %s, %s>' % (repr(self._node.name),
-                                            repr(self._node.value))
+        return '<Attribute node %s>' % (repr(self._node.name),)
 
+    def toxml(self):
+        s = ""
+        for c in self._node.children:
+            if c.type == TEXT_NODE:
+                s = s + c.value
+            elif c.type == ENTITY_REFERENCE_NODE:
+                s = s + '&' + c.name + ';'
+        return s
+    
     def get_name(self):
         return self._node.name
 
@@ -534,15 +563,18 @@ class Attr(Node):
             if n.type == TEXT_NODE:
                 s = s + n.value
             else:
-                # It must be an EntityReference node
-                n = NODE_CLASS[ child.type ] (child, self, self._document)
-                s = s + n.toxml()
+                # Must be an EntityReference
+                s = s + '&' + n.name + ';'
         return s
 
     def set_value(self, value):
         if self.readonly:
             raise NoModificationAllowedException("Read-only object")
-        self._node.value = value
+        t = _nodeData(TEXT_NODE)
+        t.name = "#text"
+        t.value = value
+        self._node.value = None
+        self._node.children[0:] = [ t ]
         self._node.specified = 1
 
     def get_specified(self):
@@ -564,8 +596,17 @@ class Element(Node):
 
     def toxml(self):
         s = "<" + self._node.name
-        for name, value in self._node.attributes.items():
-            s = s + " %s='%s'" % (name, value)
+        for attr, attrnode in self._node.attributes.items():
+            s = s + " %s='" % (attr,)
+            for value in attrnode.children:
+                print value.__dict__
+                if value.type == TEXT_NODE:
+                    s = s + escape(value.value) 
+                else:
+                    n = NODE_CLASS[ value.type ] (value, None, self._document)
+                    s = s + value.toxml()
+            s = s + "'"
+            
         if len(self._node.children) == 0:
             return s + "/>"
         s = s + '>'
@@ -585,33 +626,42 @@ class Element(Node):
     def getAttribute(self, name):
         if self._node.attributes.has_key(name):
             n = self._node.attributes[name]
-            if n.type == TEXT_NODE: return n.value
-            else:
-                n = NODE_CLASS[ n.type ] (n, self, self._document)
-                return n.toxml()
+            assert n.type == ATTRIBUTE_NODE
+            n = Attr(n, None, self._document)
+            return n.toxml()
         else:
             return ""
     
     def setAttribute(self, name, value):
-        d = _nodeData(TEXT_NODE)
-        d.name = "#text"
-        d.value = value
-        self._node.attributes[name] = d
+        if isinstance(value, Node):
+            raise ValueError, "setAttribute() method expects a string value"
+        t = _nodeData(TEXT_NODE)
+        t.name = "#text"
+        t.value = value
+        a = _nodeData(ATTRIBUTE_NODE)
+        a.name = name
+        a.children.append( t )
+        self._node.attributes[name] = a
 
     def removeAttribute(self, name):
         if self._node.attributes.has_key(name):
             del self._node.attributes[name]
 
     def getAttributeNode(self, name):
-        if not self._node.attributes.has_key[ name ]:
+        if not self._node.attributes.has_key( name ):
             return None
         d = self._node.attributes[name]
-        return Attr(d, None)
+        assert d.type == ATTRIBUTE_NODE
+        return Attr(d, None, self._document)
 
     def setAttributeNode(self, newAttr):
+        if not isinstance(newAttr, Attr):
+            raise ValueError, "setAttributeNode() requires an Attr node as argument"
         name = newAttr._node.name
-        if self._node.attributes.has_key[ name ]:
-            retval = Attr(self._node.attributes[ name ], None)
+        if self._node.attributes.has_key( name ):
+            attr = self._node.attributes[ name ]
+            assert attr.type == ATTRIBUTE_NODE
+            retval = Attr(attr, None, self._document )
         else: retval = None
 
         self._node.attributes[ name ] = newAttr._node
@@ -620,8 +670,9 @@ class Element(Node):
     def removeAttributeNode(self, oldAttr):
         # XXX this needs to know about DTDs to restore a default value
         name = oldAttr._node.name
-        if self._node.attributes.has_key[ name ]:
-            retval = Attr(self._node.attributes[name], None)
+        if self._node.attributes.has_key( name ):
+            retval = Attr(self._node.attributes[name], None,
+                          self._document )
             del self._node.attributes[ name ]
             return retval
         else: return None
@@ -746,7 +797,10 @@ class EntityReference(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
                       ENTITY_REFERENCE_NODE]
-        
+
+    def toxml(self):
+        return '&' + self._node.name + ';'
+    
 class ProcessingInstruction(Node):
     childNodeTypes = []
     
@@ -804,7 +858,8 @@ class Document(Node):
         d.name = "#text"
         d.value = data
         return Text(d, None, self)
-
+    createText = createTextNode
+    
     def createComment(self, data):
         d = _nodeData(COMMENT_NODE)
         d.name = "#comment"
@@ -920,6 +975,10 @@ class Document(Node):
         raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
+        """Replaces the child node oldChild with newChild in the list of
+        children, and returns the oldChild node. If the newChild is
+        already in the tree, it is first removed."""
+
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
@@ -956,7 +1015,7 @@ class DocumentFragment(Node):
 
 NODE_CLASS = {
 ELEMENT_NODE                : Element,
-ATTRIBUTE_NODE              : Attr, 
+## ATTRIBUTE_NODE              : Attr, 
 TEXT_NODE                   : Text, 
 CDATA_SECTION_NODE          : CDATASection,
 ENTITY_REFERENCE_NODE       : EntityReference,
