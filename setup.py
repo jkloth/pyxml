@@ -84,7 +84,7 @@ expat_prefix = get_expat_prefix()
 
 sources = ['extensions/pyexpat.c']
 if expat_prefix:
-    define_macros = [('HAVE_EXPAT_H', None), ('HAVE_PYMEMCOMPAT_H', None)]
+    define_macros = [('HAVE_EXPAT_H', None)]
     include_dirs = [os.path.join(expat_prefix, "include")]
     libraries = ['expat']
     library_dirs = [os.path.join(expat_prefix, "lib")]
@@ -114,7 +114,6 @@ else:
         ('XML_DTD', '1'),
         ('XML_BYTE_ORDER', xmlbo),
         ('XML_CONTEXT_BYTES','1024'),
-        ('HAVE_PYMEMCOMPAT_H', None),
         ]
     include_dirs = ['extensions/expat/lib']
     sources.extend([
