@@ -3,41 +3,19 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.6.5 of the Python/XML distribution is now available.  It
+Version 0.6.6 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://download.sourceforge.net/pyxml/PyXML-0.6.5.tar.gz
-http://download.sourceforge.net/pyxml/PyXML-0.6.5.win32-py1.5.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.5.win32-py2.0.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.5-1.5.2.i386.rpm
-http://download.sourceforge.net/pyxml/PyXML-0.6.5-2.0.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6.tar.gz
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6.win32-py1.5.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6.win32-py2.0.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6-1.5.2.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6-2.0.i386.rpm
 
-Changes in this version, compared to 0.6.4:
+This is a pure bugfix release only. Changes in this version, 
+compared to 0.6.5:
 
-	* setup supports two command line options, --with-libexpat and
-	  --ldflags to specify an alternative Expat installation.
-
-	* Fourthought has contributed a new type xml.utils.boolean to
-	  distinguish boolean from integral values.
-
-	* The scripts xmlproc_parse and xmlproc_val, which allow
-	  command-line interaction with xmlproc, are now included.
-
-	* The WDDX marshalling now supports a "strict" and a "loose"
-	  mode of operation.
-
-	* minidom now supports the DocumentFragment interface, and
-	  correctly sets the ownerDocument property.
-
-	* A SAX exception now retrieves line number information when
-	  it is created, not when it is printed.
-
-	* Invoking sax2lib.ValidatingReaderFactory.make_parser creates
-	  a reader object that is already set to validating mode.
-
-	* A number of callback errors in the SAX2 xmlproc driver have
-	  been corrected.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
