@@ -17,8 +17,10 @@ This avoids all the overhead of SAX and pulldom to gain performance.
 #
 #   -  .character_data_handler() has an extra case in which continuing
 #      data is appended to an existing Text node; this can be a
-#      substantial speedup since Expat seems to break data at every
-#      newline.
+#      speedup since pyexpat can break up character data into multiple
+#      callbacks even though we set the buffer_text attribute on the
+#      parser.  This also gives us the advantage that we don't need a
+#      separate normalization pass.
 #
 #   -  Determining that a node exists is done using an identity comparison
 #      with None rather than a truth test; this avoids searching for and
@@ -42,11 +44,28 @@ XMLNS_NS = "http://www.w3.org/2000/xmlns/"
 
 
 # teeny tiny performance hack!
+# XXX this needs to disappear once None is a keyword in Python.
 None = None
 
 
 def _intern(builder, s):
     return builder._intern_setdefault(s, s)
+
+def _parse_ns_name(builder, name):
+    assert ' ' in name
+    parts = name.split(' ')
+    intern = builder._intern_setdefault
+    if len(parts) == 3:
+        uri, localname, prefix = parts
+        prefix = intern(prefix, prefix)
+        s = "%s:%s" % (prefix, localname)
+        qname = intern(s, s)
+        localname = intern(localname, localname)
+    else:
+        uri, localname = parts
+        prefix = None
+        qname = localname = intern(localname, localname)
+    return intern(uri, uri), localname, prefix, qname
 
 
 class ExpatBuilder:
@@ -302,6 +321,9 @@ class ExpatBuilder:
             node.parentNode.removeChild(node)
             node.unlink()
 
+    # If this ever changes, Namespaces.end_element_handler() needs to
+    # be changed to match.
+    #
     def end_element_handler(self, name):
         curNode = self.curNode
         self.curNode = curNode.parentNode
@@ -689,7 +711,9 @@ class Namespaces:
 
     def createParser(self):
         """Create a new namespace-handling parser."""
-        return expat.ParserCreate(namespace_separator=" ")
+        parser = expat.ParserCreate(namespace_separator=" ")
+        parser.namespace_prefixes = 1
+        return parser
 
     def install(self, parser):
         """Insert the namespace-handlers onto the parser."""
@@ -747,14 +771,7 @@ class Namespaces:
 
     def start_element_handler(self, name, attributes):
         if ' ' in name:
-            uri, localname = name.split(' ')
-            localname = _intern(self, localname)
-            uri = _intern(self, uri)
-            prefix = self._nsmap[uri]
-            if prefix:
-                qname = _intern(self, "%s:%s" % (prefix, localname))
-            else:
-                qname = localname
+            uri, localname, prefix, qname = _parse_ns_name(self, name)
         else:
             uri = EMPTY_NAMESPACE
             qname = name
@@ -796,17 +813,9 @@ class Namespaces:
                 aname = attributes[i]
                 value = attributes[i+1]
                 if ' ' in aname:
-                    uri, localname = aname.split(' ')
-                    prefix = self._nsmap[uri]
-                    uri = _intern(self, uri)
-                    if prefix:
-                        qualifiedname = _intern(self,
-                                                '%s:%s' % (prefix, localname))
-                        a = minidom.Attr(qualifiedname, uri, localname, prefix)
-                        _attrs[qualifiedname] = a
-                    else:
-                        a = minidom.Attr(localname, uri, localname, prefix)
-                        _attrs[localname] = a
+                    uri, localname, prefix, qname = _parse_ns_name(self, aname)
+                    a = minidom.Attr(qname, uri, localname, prefix)
+                    _attrs[localname] = a
                     _attrsNS[(uri, localname)] = a
                 else:
                     a = minidom.Attr(aname, EMPTY_NAMESPACE, aname, None)
@@ -817,20 +826,27 @@ class Namespaces:
                 d['value'] = d['nodeValue'] = value
                 d['ownerElement'] = node
 
-    def end_element_handler(self, name):
-        curNode = self.curNode
-        if ' ' in name:
-            uri, localname = name.split(' ')
-            assert (curNode.namespaceURI == uri
-                    and curNode.localName == localname), \
-                    "element stack messed up! (namespace)"
-        else:
-            assert curNode.nodeName == name, \
-                   "element stack messed up - bad nodeName"
-            assert curNode.namespaceURI == EMPTY_NAMESPACE, \
-                   "element stack messed up - bad namespaceURI"
-        self.curNode = curNode.parentNode
-        self._finish_end_element(curNode)
+    if __debug__:
+        # This only adds some asserts to the original
+        # end_element_handler(), so we only define this when -O is not
+        # used.  If changing one, be sure to check the other to see if
+        # it needs to be changed as well.
+        #
+        def end_element_handler(self, name):
+            curNode = self.curNode
+            if ' ' in name:
+                uri, localname, prefix, qname = _parse_ns_name(name)
+                assert (curNode.namespaceURI == uri
+                        and curNode.localName == localname
+                        and curNode.prefix == prefix), \
+                        "element stack messed up! (namespace)"
+            else:
+                assert curNode.nodeName == name, \
+                       "element stack messed up - bad nodeName"
+                assert curNode.namespaceURI == EMPTY_NAMESPACE, \
+                       "element stack messed up - bad namespaceURI"
+            self.curNode = curNode.parentNode
+            self._finish_end_element(curNode)
 
 
 class ExpatBuilderNS(Namespaces, ExpatBuilder):
