@@ -34,7 +34,9 @@ class Bookmarks:
             del self.folder_stack[-1]
 
     def dump_xbel(self,out=sys.stdout):
-        out.write("<XBEL>\n")
+        out.write("""<?xml version="1.0"?>
+        <!DOCTYPE xbel SYSTEM "xbel.dtd">
+        <XBEL>\n""")
         if hasattr(self, 'owner'):
             out.write('  <INFO>\n')
             out.write('    <OWNER>%s</OWNER>\n' % (self.owner,) )
@@ -42,7 +44,7 @@ class Bookmarks:
 
         for folder in self.folders:
             folder.dump_xbel(out)
-        out.write("<XBEL>")
+        out.write("</XBEL>\n")
 
     def dump_adr(self,out=sys.stdout):
         out.write("Opera Hotlist version 2.0\n\n")
@@ -146,3 +148,4 @@ class Bookmark(Node):
 
     def dump_netscape(self,out):
         out.write("    <DT><A HREF=\"%s\">%s</A>\n" % (self.url,self.name))
+
