@@ -43,11 +43,7 @@ class Transformer:
 	simple_map = {}
 
 	def __init__(self, factory=None):
-		if factory:
-			self.dom_factory = factory
-		else:
-			self.dom_factory = DOMFactory()
-
+		pass
 
 	def transform(self, x):
 		'Tranform document or subtree.'
@@ -95,7 +91,7 @@ class Transformer:
 		l.reverse()
 		new_node = None
 		for tag in l:
-			new_new_node = self.dom_factory.createElement(tag, {})
+			new_new_node = self.documentElement.createElement(tag, {})
 			if new_node:
 				new_node.insertBefore(new_new_node, None)
 			else:
