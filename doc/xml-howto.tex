@@ -1,12 +1,11 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.15 2002/05/15 15:09:46 akuchling Exp $
+% $Id: xml-howto.tex,v 1.16 2002/05/15 15:14:04 akuchling Exp $
 
 % TODO:
 %   Write outline of entire document
 %   Explain namespaces somewhere
-% XXX not covered: xml.marshal, scripts, namespaces, TREX/schemas,
-% XSLT
+% XXX not covered: xml.marshal, scripts, namespaces, TREX/schemas, XSLT
 % XXX overview of parsers
 
 \newcommand{\element}[1]{\code{#1}}
@@ -304,7 +303,9 @@ See section~\ref{section-XPath}.
 XSLT is a general tool for transforming one XML document
 into another document, specifying the transformation using 
 another XML document called a \dfn{stylesheet}.
-See section~\ref{section-XSLT}.
+\begin{comment}
+  See section~\ref{section-XSLT}.
+\end{comment}
 
   \item[\textbf{RDF}] 
   The Resource Description Format is for describing metadata about 
@@ -493,9 +494,11 @@ one.
   An XPath parser and evaluator.
   (This implementation is called 4XPath, and was written by Fourthought Inc.)
 
+\begin{comment}
 \item[\module{xml.xslt}] 
    An implementation of the XSLT transformation language.
   (This implementation is called 4XSLT, and was written by Fourthought Inc.)
+\end{comment}
 
 \end{itemize}
 
@@ -1324,6 +1327,7 @@ The XPath 1.0 Recommendation is at
 \url{http://www.w3.org/TR/1999/REC-xpath-19991116}.
 
 
+\begin{comment}
 %==========================================================================
 \section{XSLT\label{section-XSLT}}
 
@@ -1376,6 +1380,7 @@ from a DOM tree.
 The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and has links
 to the XSLT specifications and to friendlier tutorials.
 
+\end{comment}
 
 %==========================================================================
 \section{Acknowledgements \label{section-acks}}
