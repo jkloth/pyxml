@@ -709,7 +709,7 @@ class TestXMLParser(XMLParser):
 	    print 'start tag: <' + tag + '>'
 	else:
 	    print 'start tag: <' + tag,
-	    for name, value in attrs:
+	    for name, value in attrs.items():
 		print name + '=' + '"' + value + '"',
 	    print '>'
 
