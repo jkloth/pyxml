@@ -130,9 +130,17 @@ class IndexSizeErr(DOMException):
     def __init__(self, msg=''):
         DOMException.__init__(self, INDEX_SIZE_ERR, msg)
 
-class DOMStringSizeErr(DOMException):
+class DomstringSizeErr(DOMException):
     def __init__(self, msg=''):
         DOMException.__init__(self, DOMSTRING_SIZE_ERR, msg)
+
+# DOMStringSizeErr was accidentally introduced in rev 1.14 of this
+# file, and was released as part of PyXML 0.6.4, 0.6.5, 0.6.6, 0.7,
+# and 0.7.1.  It has never been part of the Python DOM API, although
+# it better matches the W3C recommendation.  It should remain for
+# compatibility, unfortunately.
+#
+DOMStringSizeErr = DomstringSizeErr
 
 class HierarchyRequestErr(DOMException):
     def __init__(self, msg=''):
