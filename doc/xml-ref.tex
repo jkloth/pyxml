@@ -672,22 +672,28 @@ MyDOMImplementation.implementation = MyDOMImplementation()
 
 
 \section{\module{xml.ns} ---
-         XML Namespace constants}
+         XML Namespaces}
 
 \declaremodule{}{xml.ns}
-\modulesynopsis{Constants giving the URIs for common namespaces.}
+\modulesynopsis{Constants giving the URIs for common namespaces,
+                plus convenience classes.}
 \moduleauthor{Rich Salz}{rsalz@zolera.com}
 \sectionauthor{Rich Salz}{rsalz@zolera.com}
 \sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
 
-This module contains the definitions of namespaces (and sometimes
-other URI's) used by a variety of XML standards.  Each class has a
-short all-uppercase name, which should follow any (emerging)
-convention for how that standard is commonly used.  For example,
-\samp{ds} is almost always used as the namespace prefixes for items in
-XML Signature, so \samp{DS} is the class name.  Attributes within that
-class define symbolic names (hopefully evocative) for ``constants''
-used in that standard.
+This module contains two groups of things: constants for common
+namespace URIs, and convenience classes representing namespaces and
+their local names.
+
+The URI definitions for namespaces (and sometimes other URI's) used by
+a variety of XML standards are provided as objects for each
+specification (or group of tightly related specifications) with
+attributes for each URI.  Each object has a short all-uppercase name,
+which should follow any (emerging) convention for how that standard is
+commonly used.  For example, \samp{ds} is almost always used as the
+namespace prefixes for items in XML Signature, so \samp{DS} is the
+name of the object.  Attributes on that object define symbolic names
+(hopefully evocative) for ``constants'' used in that standard.
 
 \begin{classdesc*}{XMLNS}
   The \citetitle[http://www.w3.org/TR/REC-xml-names]{Namespaces in
@@ -923,6 +929,70 @@ used in that standard.
     The URI of the namespace for MIME-type bindings for WSDL.
   \end{memberdesc}
 \end{classdesc*}
+
+
+The convenience classes used to represent namespaces and their local
+names are completely separate from the objects used to represent
+groups of URI definitions.  Instances of these classes are ``namespace
+objects.''  Namespace objects are a convenient way to 'spell'
+\code{(\var{uri}, \var{localName})} pairs in application code.  A
+namespace object would be created to represent a namespace (URI), and
+attributes of the namespace object would represent the
+\code{(\var{uri}, \var{localName})} pairs.
+
+For example, a namespace object would be created by providing the
+URI are any known local names for that namespace to the
+constructor:
+
+\begin{verbatim}
+xbel = xml.ns.ClosedNamespace(
+    'http://www.python.org/topics/xml/xbel/',
+    ['xbel', 'title', 'info', 'metadata', 'folder', 'bookmark',
+     'desc', 'separator', 'alias'])
+\end{verbatim}
+
+Specific \code{(\var{uri}, \var{localName})} pairs can then be
+referenced by convenient names:
+
+\begin{verbatim}
+xbel.title # ==> ('http://www.python.org/topics/xml/xbel/', 'title')
+\end{verbatim}
+
+This can be convenient in (for example) SAX ContentHandler
+implementations.
+
+There are two specific classes used to create namespace objects:
+
+\begin{classdesc}{ClosedNamespace}{uri, names}
+  Namespace that doesn't allow names to be added after instantiation.
+  \var{uri} is the URI of the namespace, and \var{names} is a sequence
+  of local names.  A ``closed'' namespace is useful when the set of
+  names for the namespace is known in advance; using a
+  \class{ClosedNamespace} doesn't allow names to be added
+  inadvertently.
+\end{classdesc}
+
+\begin{classdesc}{OpenNamespace}{uri\optional{, names}}
+  Namespace that allows names to be added automatically.  The
+  constructor arguments are the same as for \class{ClosedNamespace},
+  but \var{names} becomes optional, defaulting to an empty sequence.
+  When attributes of these objects are referenced, \code{(\var{uri},
+  \var{localName})} pairs are generated for the name if they don't
+  already exist.
+
+  For example, using \class{OpenNamespace} instead of
+  \class{ClosedNamespace} in the earlier example would allow
+  additional names to be used in addition to known names:
+
+\begin{verbatim}
+xbel = xml.ns.OpenNamespace(
+    'http://www.python.org/topics/xml/xbel/',
+    ['xbel', 'title', 'info', 'metadata', 'folder', 'bookmark',
+     'desc', 'separator', 'alias'])
+
+xbel.splat # ==> ('http://www.python.org/topics/xml/xbel/', 'splat')
+\end{verbatim}
+\end{classdesc}
 
 
 \section{\module{xml.parsers.expat} Extensions}

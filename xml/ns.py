@@ -203,4 +203,64 @@ class RNG:
     and other information are available from http://www.relaxng.org.
     """
     BASE = "http://relaxng.org/ns/structure/1.0"
-    
+
+
+class _Namespace:
+    """Base class for Namespace classes.
+
+    Namespace objects are a convenient way to 'spell' (uri, localName)
+    pairs in application code.  A namespace object would be created to
+    represent a namespace (URI), and attributes of the namespace
+    object would represent the (uri, localName) pairs.
+
+    For example, a namespace object would be created by providing the
+    URI are any known local names for that namespace to the
+    constructor:
+
+        xbel = xml.ns.ClosedNamespace(
+            'http://www.python.org/topics/xml/xbel/',
+            ['xbel', 'title', 'info', 'metadata', 'folder', 'bookmark',
+             'desc', 'separator', 'alias'])
+
+    Specific (uri, localName) pairs can then be referenced by more
+    convenient names:
+
+        xbel.title # ==> ('http://www.python.org/topics/xml/xbel/', 'title')
+
+    This can be convenient in (for example) SAX ContentHandler
+    implementations.
+    """
+
+    def __init__(self, uri, names):
+        d = self.__dict__
+        for name in names:
+            d[name] = (uri, name)
+
+
+class ClosedNamespace(_Namespace):
+    """Namespace that doesn't allow names to be added after instantiation.
+
+    This is useful when the set of names for the namespace is known in
+    advance; using a ClosedNamespace doesn't allow names to be added
+    inadvertently.
+    """
+
+    def __setattr__(self, name, value):
+        raise AttributeError("can't set attributes on a ClosedNamespace")
+
+
+class OpenNamespace(_Namespace):
+    """Namespace that allows names to be added automatically.
+
+    When attributes of these objects are referenced, (uri, localName)
+    pairs are generated for the name if they don't already exist.
+    """
+
+    def __init__(self, uri, names=()):
+        _Namespace.__init__(self, uri, names)
+        self.__uri = uri
+
+    def __getattr__(self, name):
+        t = self.__uri, name
+        setattr(self, name, t)
+        return t
