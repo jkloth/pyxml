@@ -1,31 +1,6 @@
 /*
-The contents of this file are subject to the Mozilla Public License
-Version 1.1 (the "License"); you may not use this file except in
-compliance with the License. You may obtain a copy of the License at
-http://www.mozilla.org/MPL/
-
-Software distributed under the License is distributed on an "AS IS"
-basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
-License for the specific language governing rights and limitations
-under the License.
-
-The Original Code is expat.
-
-The Initial Developer of the Original Code is James Clark.
-Portions created by James Clark are Copyright (C) 1998, 1999
-James Clark. All Rights Reserved.
-
-Contributor(s):
-
-Alternatively, the contents of this file may be used under the terms
-of the GNU General Public License (the "GPL"), in which case the
-provisions of the GPL are applicable instead of those above.  If you
-wish to allow use of your version of this file only under the terms of
-the GPL and not to allow others to use your version of this file under
-the MPL, indicate your decision by deleting the provisions above and
-replace them with the notice and other provisions required by the
-GPL. If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the GPL.
+Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
+See the file copying.txt for copying permission.
 */
 
 #ifndef XmlParse_INCLUDED
@@ -137,6 +112,15 @@ typedef void (*XML_DefaultHandler)(void *userData,
 				   const XML_Char *s,
 				   int len);
 
+/* This is called for the start of the DOCTYPE declaration when the
+name of the DOCTYPE is encountered. */
+typedef void (*XML_StartDoctypeDeclHandler)(void *userData,
+					    const XML_Char *doctypeName);
+
+/* This is called for the start of the DOCTYPE declaration when the
+closing > is encountered, but after processing any external subset. */
+typedef void (*XML_EndDoctypeDeclHandler)(void *userData);
+
 /* This is called for a declaration of an unparsed (NDATA)
 entity.  The base argument is whatever was set by XML_SetBase.
 The entityName, systemId and notationName arguments will never be null.
@@ -158,6 +142,17 @@ typedef void (*XML_NotationDeclHandler)(void *userData,
 					const XML_Char *base,
 					const XML_Char *systemId,
 					const XML_Char *publicId);
+
+typedef void (*XML_ExternalParsedEntityDeclHandler)(void *userData,
+						    const XML_Char *entityName,
+						    const XML_Char *base,
+						    const XML_Char *systemId,
+						    const XML_Char *publicId);
+
+typedef void (*XML_InternalParsedEntityDeclHandler)(void *userData,
+						    const XML_Char *entityName,
+						    const XML_Char *replacementText,
+						    int replacementTextLength);
 
 /* When namespace processing is enabled, these are called once for
 each namespace declaration. The call to the start and end element
@@ -309,12 +304,25 @@ XML_SetDefaultHandlerExpand(XML_Parser parser,
 		            XML_DefaultHandler handler);
 
 void XMLPARSEAPI
+XML_SetDoctypeDeclHandler(XML_Parser parser,
+			  XML_StartDoctypeDeclHandler start,
+			  XML_EndDoctypeDeclHandler end);
+
+void XMLPARSEAPI
 XML_SetUnparsedEntityDeclHandler(XML_Parser parser,
 				 XML_UnparsedEntityDeclHandler handler);
 
 void XMLPARSEAPI
 XML_SetNotationDeclHandler(XML_Parser parser,
 			   XML_NotationDeclHandler handler);
+
+void XMLPARSEAPI
+XML_SetExternalParsedEntityDeclHandler(XML_Parser parser,
+				       XML_ExternalParsedEntityDeclHandler handler);
+
+void XMLPARSEAPI
+XML_SetInternalParsedEntityDeclHandler(XML_Parser parser,
+				       XML_InternalParsedEntityDeclHandler handler);
 
 void XMLPARSEAPI
 XML_SetNamespaceDeclHandler(XML_Parser parser,
@@ -353,7 +361,7 @@ XML_SetUserData(XML_Parser parser, void *userData);
 #define XML_GetUserData(parser) (*(void **)(parser))
 
 /* This is equivalent to supplying an encoding argument
-to XML_CreateParser. It must not be called after XML_Parse
+to XML_ParserCreate. It must not be called after XML_Parse
 or XML_ParseBuffer. */
 
 int XMLPARSEAPI
@@ -379,11 +387,19 @@ XML_SetBase(XML_Parser parser, const XML_Char *base);
 const XML_Char XMLPARSEAPI *
 XML_GetBase(XML_Parser parser);
 
-/* Returns the number of the attributes passed in last call to the
-XML_StartElementHandler that were specified in the start-tag rather
-than defaulted. */
+/* Returns the number of the attribute/value pairs passed in last call
+to the XML_StartElementHandler that were specified in the start-tag
+rather than defaulted. Each attribute/value pair counts as 2; thus
+this correspondds to an index into the atts array passed to the
+XML_StartElementHandler. */
 
 int XMLPARSEAPI XML_GetSpecifiedAttributeCount(XML_Parser parser);
+
+/* Returns the index of the ID attribute passed in the last call to
+XML_StartElementHandler, or -1 if there is no ID attribute.  Each
+attribute/value pair counts as 2; thus this correspondds to an index
+into the atts array passed to the XML_StartElementHandler. */
+int XMLPARSEAPI XML_GetIdAttributeIndex(XML_Parser parser);
 
 /* Parses some input. Returns 0 if a fatal error is detected.
 The last call to XML_Parse must have isFinal true;
@@ -414,6 +430,35 @@ XML_Parser XMLPARSEAPI
 XML_ExternalEntityParserCreate(XML_Parser parser,
 			       const XML_Char *context,
 			       const XML_Char *encoding);
+
+enum XML_ParamEntityParsing {
+  XML_PARAM_ENTITY_PARSING_NEVER,
+  XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE,
+  XML_PARAM_ENTITY_PARSING_ALWAYS
+};
+
+/* Controls parsing of parameter entities (including the external DTD
+subset). If parsing of parameter entities is enabled, then references
+to external parameter entities (including the external DTD subset)
+will be passed to the handler set with
+XML_SetExternalEntityRefHandler.  The context passed will be 0.
+Unlike external general entities, external parameter entities can only
+be parsed synchronously.  If the external parameter entity is to be
+parsed, it must be parsed during the call to the external entity ref
+handler: the complete sequence of XML_ExternalEntityParserCreate,
+XML_Parse/XML_ParseBuffer and XML_ParserFree calls must be made during
+this call.  After XML_ExternalEntityParserCreate has been called to
+create the parser for the external parameter entity (context must be 0
+for this call), it is illegal to make any calls on the old parser
+until XML_ParserFree has been called on the newly created parser.  If
+the library has been compiled without support for parameter entity
+parsing (ie without XML_DTD being defined), then
+XML_SetParamEntityParsing will return 0 if parsing of parameter
+entities is requested; otherwise it will return non-zero. */
+
+int XMLPARSEAPI
+XML_SetParamEntityParsing(XML_Parser parser,
+			  enum XML_ParamEntityParsing parsing);
 
 enum XML_Error {
   XML_ERROR_NONE,
