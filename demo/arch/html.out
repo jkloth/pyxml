@@ -1,0 +1,13 @@
+<?test where="before"?>
+<?IS10744:arch name ="biblio" renamer-att="bren" suppressor-att="bsup" ignore-data-att="bign"
+               bridge-form="bibbrid"?>
+<?test where="after"?>
+<html bsup="sArcForm">
+  <head biblio="title">
+      <title date="19980721">A more complex sample</title>
+    </head>
+  <body>
+    <h1>The title</h1>
+    <p biblio="content" bsup="sArcNone">This is the <b>complex </b>document.</p>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+?test where="before"
+?IS10744:arch name ="html" suppressor-att="hsup" auto="ArcAuto" form-att="ht"
+?test where="after"
+(biblio
+-
+  
+(author
+Aht #IMPLIED
+Ahsup sArcAll
+-
+      
+-
+      
+(firstname
+Anationality norwegian
+-Geir Ove
+)firstname
+- 
+      
+(lastname
+Aht #IMPLIED
+Amodified yes
+-Gronmo
+)lastname
+-
+      
+(note
+Aht address
+-You can reach me at 
+-grove@infotek.no
+)note
+-
+      
+-
+    
+)author
+-
+  
+(content
+Aht p
+-This is the 
+-document.
+)content
+-
+
+)biblio
