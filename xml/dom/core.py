@@ -148,12 +148,12 @@ class NodeList(UserList.UserList):
         self._parent = parent
 
     def __repr__(self):
-        s = '<NodeList ['
+        s = '<NodeList [ '
         for i in range(len(self.data)):
             n = self.data[i] ; parent = self._parent[i]
             n = NODE_CLASS[ n.type ](n, parent, self._document)
-            s = s + repr(n) + ', '
-        return s[:-2] + ']>'
+            s = s + repr(n) + ','
+        return s[:-1] + ']>'
     
     def __getitem__(self, i):
         n = self.data[i]
@@ -219,6 +219,9 @@ class _nodeData:
         _nodeData.Node_counter = _nodeData.Node_counter + 1
 #        print '_nodeData\tinit\t%s\t%s' % (_nodeData.Node_counter, self.name)
 
+    def __getinitargs__(self):
+        return (self.type,)
+    
     def __del__(self):
         _nodeData.Node_counter = _nodeData.Node_counter -1
 #        print '_nodeData\tdel\t%s\t%s' % (_nodeData.Node_counter, self.name)
@@ -237,8 +240,11 @@ class Node:
         Node.Node_counter = Node.Node_counter + 1
 #        print 'Node      \tinit\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
 
+    def __getinitargs__(self):
+        return self._node, self.parentNode, self._document
+    
     def __del__(self):
-        Node.Node_counter = Node.Node_counter -1
+        Node.Node_counter = Node.Node_counter - 1
 #        print 'Node      \tdel\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
 
     def _index(self):
@@ -827,7 +833,7 @@ class Comment(CharacterData):
         return '<Comment node %s>' % (repr(s),)
     
     def toxml(self):
-        return '<-- %s -->' % self._node.value
+        return '<!-- %s -->' % self._node.value
 
 class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would
