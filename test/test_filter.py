@@ -143,7 +143,7 @@ checkFilterEvents("<doc><e/></doc>", [
     ("accept", Node.ELEMENT_NODE, "e"),
     ])
 
-src = "<doc><e><?pi data?><!--comment--></e></doc>"
+src = "<doc><e attr='value'><?pi data?><!--comment--></e></doc>"
 
 checkFilterEvents(src, [
     ("start", Node.ELEMENT_NODE, "e"),
