@@ -24,6 +24,7 @@ Changes in this version, compared to 0.8.2:
           invasive.
         * expatreader now implements feature_namespace_prefixes.
 	* drv_xmlproc now supports EntityResolvers that return system IDs.
+        * Various bugs have been fixed: 728810, 733890.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
