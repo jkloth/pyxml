@@ -25,7 +25,6 @@ eg1 = """<?xml version="1.0"?>
 <!-- Comment 3 -->
 """
 
-
 eg2 = """<doc>
    <clean>   </clean>
    <dirty>   A   B   </dirty>
@@ -118,7 +117,7 @@ eg7 = """<!DOCTYPE doc [
    </e1>
 </doc>"""
 
-examples = [ eg1, eg2, eg3, eg4, eg5, eg6, eg7 ]
+examples = [ eg1, eg2, eg3, eg4, eg5, eg6, eg7]
 test_results = {
     eg1: '''PD94bWwtc3R5bGVzaGVldCBocmVmPSJkb2MueHNsIgogICB0eXBlPSJ0ZXh0L3hz
     bCIgICA/Pgo8ZG9jPkhlbGxvLCB3b3JsZCE8IS0tIENvbW1lbnQgMQotLT48L2Rv
@@ -161,6 +160,7 @@ test_results = {
     Oi8vd3d3LnczLm9yZyI+CiAgIDxlMT4KICAgICAgPGUyIHhtbG5zPSIiIHhtbDpz
     cGFjZT0icHJlc2VydmUiPgogICAgICAgICA8ZTMgaWQ9IkUzIj48L2UzPgogICAg
     ICA8L2UyPgogICA8L2UxPgo8L2RvYz4=''',
+
 }
 
 # Load XPath and Parser
@@ -168,6 +168,7 @@ import sys, types, traceback, StringIO, base64, string
 from xml import xpath
 from xml.xpath.Context import Context
 from xml.dom.ext.reader import PyExpat
+#from c14n import Canonicalize
 from xml.dom.ext import Canonicalize
 
 # My special reader.
@@ -219,21 +220,26 @@ def builtin():
             continue
 
         # Get the nodeset; the tests have some special cases.
-        if eg == eg7:
-            con = Context(dom, processorNss={'ietf': 'http://www.ietf.org'})
-        else:
-            con = Context(dom)
+        pattern = '(//. | //@* | //namespace::*)'
+        con = Context(dom)
         if eg == eg5:
             pattern = '(//. | //@* | //namespace::*)[not (self::comment())]'
-        else:
-            pattern = '(//. | //@* | //namespace::*)'
+        elif eg == eg7:
+            con = Context(dom, processorNss={'ietf': 'http://www.ietf.org'})
+            
         nodelist = xpath.Evaluate(pattern, context=con)
 
         s = StringIO.StringIO()
         outf = utf8_writer(s)
 
+        #Get the unsuppressedPrefixes for exc-c14n; the tests have special casese
+        pfxlist = []
+
         # Canonicalize a DOM with a document subset list according to XML-C14N
-        Canonicalize(dom, outf, subset=nodelist)
+        if eg == eg1:
+            Canonicalize(dom, outf, subset=nodelist, comments=1)
+        else:
+            Canonicalize(dom, outf, subset=nodelist)
 
         expected = base64.decodestring(test_results[eg])
         if s.getvalue() == expected:
@@ -242,12 +248,14 @@ def builtin():
             print 'Error!'
             print 'Got:\n', s.getvalue()
             print 'Expected:\n', expected
-
+            
 def usage():
     print '''Options accepted:
     -b, --builtin            Run the C14N builtin tests
     -e                       Exclusive C14N
     -p                       Exclusive C14N inclusive prefixes
+    -n string,               Additional NSPrefixes (whitespace delimited)
+        --namespaces=string
     -i file, --in=file       Read specified file* (default is stdin)
     -o file, --out=file      Write to specified file* (default is stdout)
     -h, --help               Print this text
@@ -263,19 +271,22 @@ else:
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ehbi:o:p:x:",
-				    [ "exclusive", "help", "builtin",
-				    "in=", "out=", "prefixes=", "xpath=", ])
+        opts, args = getopt.getopt(sys.argv[1:], "cehbi:o:n:p:x:",
+            [ "comments", "exclusive", "help", "builtin", 
+            "in=", "out=", "namespaces=", "prefixes=", "xpath=" ])
     except getopt.GetoptError, e:
         print sys.argv[0] + ':', e, '\nTry --help for help.\n'
         sys.exit(1)
     if len(args):
-	print 'No arguments, only flags. Try --help for help.'
-	sys.exit(1)
+        print 'No arguments, only flags. Try --help for help.'
+        sys.exit(1)
+
 
     IN, OUT = sys.stdin, sys.stdout
     query = '(//. | //@* | //namespace::*)'
+    comments = 0
     exclusive, pfxlist = None, []
+    nsdict = {}
     for opt,arg in opts:
         if opt in ('-h', '--help'):
             usage()
@@ -283,10 +294,18 @@ else:
         if opt in ('-b', '--builtin'):
             builtin()
             sys.exit(0)
-	elif opt in ('-e', '--exclusive'):
-	    exclusive = 1
-	elif opt in ( '-p', '--prefixes'):
-	    pfxlist = arg.split(',')
+        elif opt in ('-c', '--comments'):
+            comments = 1
+        elif opt in ('-n', '--namespaces'):
+            # convert every pair of whitespace delimited  values to dictionary
+            nsl = arg.split()
+            for i in range(0, len(nsl), 2):
+                nsdict[nsl[i]] = nsl[i+1]
+        #    print "Namespace prefix arguments is not supported yet."
+        elif opt in ('-e', '--exclusive'):
+            exclusive = 1
+        elif opt in ( '-p', '--prefixes'):
+            pfxlist = arg.split(',')
         elif opt in ('-i', '--in'):
             if arg.find(',') == -1:
                 IN = open(arg, 'r')
@@ -305,13 +324,13 @@ else:
                 OUT = writer(open(filename, 'w'))
         elif opt in ('-x', '--xpath'):
             query = arg
-
+            
     r = PYE()
     dom = r.fromStream(IN)
-    context = Context(dom)
+    context = Context(dom, processorNss=nsdict)
     nodelist = xpath.Evaluate(query, context=context)
     if exclusive:
-	Canonicalize(dom, OUT, subset=nodelist, unsuppressedPrefixes=pfxlist)
+        Canonicalize(dom, OUT, subset=nodelist, comments=comments, unsuppressedPrefixes=pfxlist)
     else:
-	Canonicalize(dom, OUT, subset=nodelist)
+        Canonicalize(dom, OUT, subset=nodelist, comments=comments) #    nsdict=nsdict
     OUT.close()
