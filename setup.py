@@ -63,11 +63,22 @@ def should_build_pyexpat():
     except ImportError:
         return 1
     else:
+        try:
+            version = pyexpat.version_info
+        except AttributeError:
+            return 1
+        else:
+            if version < (1,95,2):
+                return 1
         return 0
 
 def get_expat_prefix():
     if LIBEXPAT:
         return LIBEXPAT
+
+    # XXX temporarily disable usage of installed expat
+    # until we figure out a way to determine its version
+    return
 
     for p in ("/usr", "/usr/local"):
         incs = os.path.join(p, "include")
@@ -92,14 +103,38 @@ if build_pyexpat:
             libraries = ['expat']
             library_dirs = [os.path.join(expat_prefix, "lib")]
         else:
-            define_macros = [('XML_NS', None),
-                             ('XML_DTD', None),
-                             ('EXPAT_VERSION','0x010200')]
-            include_dirs = ['extensions/expat/xmltok',
-                            'extensions/expat/xmlparse']
-            sources.extend(['extensions/expat/xmltok/xmltok.c',
-                            'extensions/expat/xmltok/xmlrole.c',
-                            'extensions/expat/xmlparse/xmlparse.c'])
+            # To build expat 1.95.2, we need to find out the byteorder
+            # Python 1.x doesn't provide sys.byteorder
+            try:
+                byteorder = sys.byteorder
+            except NameError:
+                try:
+                    import struct
+                except ImportError:
+                    print "Need struct module to determine byteorder"
+                    raise SystemExit
+                if struct.pack("i",1) == '\x01\x00\x00\x00':
+                    byteorder = "little"
+                else:
+                    byteorder = "big"
+            if byteorder == "little":
+                xmlbo = "12"
+            else:
+                xmlbo = "21"
+            define_macros = [
+                ('HAVE_EXPAT_H',None),
+                ('VERSION', '"1.95.2"'),
+                ('XML_NS', '1'),
+                ('XML_DTD', '1'),
+                ('XML_BYTE_ORDER', xmlbo),
+                ('XML_CONTEXT_BYTES','1024'),
+                ]
+            include_dirs = ['extensions/expat/lib']
+            sources.extend([
+                'extensions/expat/lib/xmlparse.c',
+                'extensions/expat/lib/xmlrole.c',
+                'extensions/expat/lib/xmltok.c',
+                ])
             libraries = []
             library_dirs = []
 
