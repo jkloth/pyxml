@@ -1,9 +1,9 @@
 
 # regression test for SAX drivers
-# $Id: test_saxdrivers.py,v 1.2 2001/02/25 18:38:10 loewis Exp $
+# $Id: test_saxdrivers.py,v 1.3 2001/06/07 20:04:33 larsga Exp $
 
 from xml.sax.saxutils import XMLGenerator, ContentGenerator
-from xml.sax import handler
+from xml.sax import handler, SAXReaderNotAvailable
 import xml.sax.saxexts
 import xml.sax.sax2exts
 from cStringIO import StringIO
@@ -46,6 +46,9 @@ def test_sax1():
         except ImportError:
             print p,"NOT SUPPORTED"
             continue
+        except SAXReaderNotAvailable:
+            print p,"NOT SUPPORTED"
+            continue
         result = StringIO()
         xmlgen = ContentGenerator(result)
         parser.setDocumentHandler(xmlgen)
@@ -62,6 +65,9 @@ def test_sax2():
         except ImportError:
             print p,"NOT SUPPORTED"
             continue
+        except SAXReaderNotAvailable:
+            print p,"NOT SUPPORTED"
+            continue
         # Don't try to test namespace support, yet
         parser.setFeature(handler.feature_namespaces,0)
         result = StringIO()
@@ -71,6 +77,38 @@ def test_sax2():
         parser.parse(open(findfile("test.xml")))
         summarize(p,result.getvalue())
 
+def test_incremental():
+    global tests, fails
+    factory = xml.sax.sax2exts.XMLParserFactory
+    for p in factory.get_parser_list():
+        try:
+            parser = factory._create_parser(p)
+            if not hasattr(parser, "feed"):
+                continue
+        except ImportError:
+            print p,"NOT SUPPORTED"
+            continue
+        except SAXReaderNotAvailable:
+            print p,"NOT SUPPORTED"
+            continue
+        
+        # Don't try to test namespace support, yet
+        result = StringIO()
+        xmlgen = XMLGenerator(result)
+        parser.setContentHandler(xmlgen)
+
+        parser.feed("<doc>")
+        parser.feed("</doc>")
+        parser.close()
+
+        tests = tests + 1
+        if result.getvalue() == '<?xml version="1.0" encoding="iso-8859-1"?>\n<doc></doc>':
+            print p, "PASS"
+        else:
+            print p, "FAIL"
+            fails = fails + 1
+
+        
 items = locals().items()
 items.sort()
 for (name, value) in items:
