@@ -3,6 +3,8 @@
 import copy
 import xml.dom
 
+from xml.dom.minicompat import *
+
 from xml.dom.NodeFilter import NodeFilter
 
 
@@ -24,22 +26,22 @@ class Options:
     # Note that the DOMBuilder class in LoadSave constrains which of these
     # values can be set using the DOM Level 3 LoadSave feature.
 
-    namespace_declarations = 1
-    validation = 0
-    external_parameter_entities = 1
-    external_general_entities = 1
-    external_dtd_subset = 1
-    validate_if_schema = 0
-    validate_against_dtd = 0
-    datatype_normalization = 0
-    create_entity_ref_nodes = 1
-    create_entity_nodes = 1
-    whitespace_in_element_content = 1
-    create_cdata_nodes = 1
-    comments = 1
-    charset_overrides_xml_encoding = 1
-    load_as_infoset = 0
-    supported_mediatypes_only = 0
+    namespace_declarations = True
+    validation = False
+    external_parameter_entities = True
+    external_general_entities = True
+    external_dtd_subset = True
+    validate_if_schema = False
+    validate_against_dtd = False
+    datatype_normalization = False
+    create_entity_ref_nodes = True
+    create_entity_nodes = True
+    whitespace_in_element_content = True
+    create_cdata_nodes = True
+    comments = True
+    charset_overrides_xml_encoding = True
+    load_as_infoset = False
+    supported_mediatypes_only = False
 
     errorHandler = None
     filter = None
@@ -55,11 +57,11 @@ class DOMBuilder:
     filter = None
 
     ACTION_REPLACE = 1
-    ACTION_APPEND = 2
+    ACTION_APPEND_AS_CHILDREN = 2
     ACTION_INSERT_AFTER = 3
     ACTION_INSERT_BEFORE = 4
 
-    _legal_actions = (ACTION_REPLACE, ACTION_APPEND,
+    _legal_actions = (ACTION_REPLACE, ACTION_APPEND_AS_CHILDREN,
                       ACTION_INSERT_AFTER, ACTION_INSERT_BEFORE)
 
     def __init__(self):
@@ -301,15 +303,14 @@ def _name_xform(name):
 class DocumentLS:
     """Mixin to create documents that conform to the load/save spec."""
 
-    async = 0
+    async = False
 
     def _get_async(self):
-        return self.async
+        return False
     def _set_async(self, async):
         if async:
             raise xml.dom.NotSupportedErr(
                 "asynchronous document loading is not supported")
-        self.async = 0
 
     def abort(self):
         # What does it mean to "clear" a document?  Does the
@@ -318,9 +319,7 @@ class DocumentLS:
             "haven't figured out what this means yet")
 
     def load(self, uri):
-        if self.async:
-            return 0
-        # hmm...
+        raise NotImplementedError("haven't written this yet")
 
     def loadXML(self, source):
         raise NotImplementedError("haven't written this yet")
@@ -329,7 +328,7 @@ class DocumentLS:
         if snode is None:
             snode = self
         elif snode.ownerDocument is not self:
-            raise WrongDocumentErr()
+            raise xml.dom.WrongDocumentErr()
         return snode.toxml()
 
 
@@ -337,7 +336,10 @@ class DOMImplementationLS:
     MODE_SYNCHRONOUS = 1
     MODE_ASYNCHRONOUS = 2
 
-    def createDOMBuilder(self, mode):
+    def createDOMBuilder(self, mode, schemaType):
+        if schemaType is not None:
+            raise xml.dom.NotSupportedErr(
+                "schemaType not yet supported")
         if mode == self.MODE_SYNCHRONOUS:
             return DOMBuilder()
         if mode == self.MODE_ASYNCHRONOUS:
