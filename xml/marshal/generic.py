@@ -126,7 +126,11 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_long(self, value, dict):
         name = self.tag_long ; L = []
-        L.append( '<' + name + '>' + str(value)[:-1] + '</' + name + '>' )
+        value = str(value)
+        if value[-1] == 'L':
+            # some Python versions append and 'L'
+            value = value[:-1]
+        L.append( '<' + name + '>' + str(value) + '</' + name + '>' )
         return L
 
     def m_tuple(self, value, dict):
@@ -243,8 +247,6 @@ class Unmarshaller(saxlib.HandlerBase):
         }
 
     def __init__(self):
-        saxlib.HandlerBase.__init__(self)
-
         # Find the named methods, and convert them to the actual
         # method object.
         d = {}
@@ -482,6 +484,12 @@ def test(load, loads, dump, dumps, test_values,
          do_assert = 1):
     # Try all the above bits of data
     import StringIO
+    def format(x):
+        # like str, but wont put an L in the end of longs
+        r=str(x)
+        if type(x)==LongType and r[-1]=='L':
+            return r[:-1]
+        return r
 
     for item in test_values:
         s = dumps(item)
@@ -492,7 +500,6 @@ def test(load, loads, dump, dumps, test_values,
         dump(item, file)
         file.seek(0)
         output2 = load(file)
-
         if do_assert:
             assert item==output and item==output2 and output==output2
 
