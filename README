@@ -28,9 +28,8 @@ If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
-	4DOM 0.10.1		Fourthought, Inc. (Uche Ogbuji, Mike Olson)
+	4DOM from 4Suite 0.9.1	Fourthought, Inc. (Uche Ogbuji, Mike Olson)
 	PyExpat 		Jack Jansen
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-000705		Fredrik Lundh
-	xmlarch 0.25		Geir Ove Gronmo
 	xmlproc 0.70		Lars Marius Garshol

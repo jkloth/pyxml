@@ -3,41 +3,30 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.6.1 of the Python/XML distribution is now available.  It
+Version 0.6.2 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://download.sourceforge.net/pyxml/PyXML-0.6.1.tar.gz
-http://download.sourceforge.net/pyxml/PyXML-0.6.1.win32-py1.5.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.1.win32-py2.0.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.1-1.5.2.i386.rpm
-http://download.sourceforge.net/pyxml/PyXML-0.6.1-2.0b2.i386.rpm
+http://download.sourceforge.net/pyxml/PyXML-0.6.2.tar.gz
+http://download.sourceforge.net/pyxml/PyXML-0.6.2.win32-py1.5.exe
+http://download.sourceforge.net/pyxml/PyXML-0.6.2.win32-py2.0.exe
+http://download.sourceforge.net/pyxml/PyXML-0.6.2-1.5.2.i386.rpm
+http://download.sourceforge.net/pyxml/PyXML-0.6.2-2.0.i386.rpm
 
-Changes in this version, compared to 0.6.0:
+Changes in this version, compared to 0.6.1:
 
-	* Support for Python 1.5.2 was restored, as long as no character
-	  set recoding is required
+	* Synchronize with standard library from Python 2.0
 
-	* The 4DOM package was updated.
+	* Updated to 4DOM from 4Suite 0.9.1. This corrects many
+	errors, see the 4Suite ChangeLog for details. Most notably,
+	the SAX reader interface has been expanded to support
+	arbitrary parsers, and a PyExpat reader class was added.
 
-	* Most of the test suite now passes again.
+	* Add minidom functions: normalize and hasAttribute.
 
-	* The tutorial was updated.
+	* Fix a number of minor bugs.
 
-Changes of version 0.6.0, compared to 0.5.x:
-
-	* The 4DOM package has been integrated into PyXML.
-
-	* The package supports now SAX2 interfaces in addition to the
-SAX1 interfaces. Currently, pyexpat and xmlproc can serve as SAX2
-drivers.
-
-	* The proprietary Unicode type has been removed. Instead,
-PyXML now relies on the standard Python Unicode type. In turn, PyXML
-0.6.0 will not work with Python 1.5. It has been tested with 2.0b1.
-
-	* PyXML now operates on top of the XML package coming in
-Python 2.
+	* More tests pass now, in particular test_dom, and test/dom/test.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled

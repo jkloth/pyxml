@@ -23,8 +23,8 @@ recursive-include doc *.tex
 recursive-include doc *.txt 
 recursive-include doc *.gif 
 recursive-include doc *.css
-recursive-include doc *.doc
 recursive-include doc *.api
+recursive-include doc *.web
 
 recursive-include extensions Makefile.pre.in 
 recursive-include extensions Setup.in 

@@ -7,7 +7,7 @@ Titles by Peter Milligan:
 Shade, the Changing Man 7
 DOM tests:
 
-<?xml version='1.0' encoding='UTF-8'>
+<?xml version='1.0' encoding='UTF-8'?>
 <xbel>  
   <?processing instruction?>
   <desc>No description</desc>
@@ -19,7 +19,7 @@ DOM tests:
   </folder>
 </xbel>
 DOM creation tests
-<?xml version='1.0' encoding='UTF-8'>
+<?xml version='1.0' encoding='UTF-8'?>
 
 <html>
   <head/>
