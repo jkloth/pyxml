@@ -3,6 +3,11 @@
 # The seven examples from the Canonical XML spec.
 # http://www.w3.org/TR/2001/REC-xml-c14n-20010315
 
+try:
+    u = unicode
+except NameError:
+    def u(x):return x
+
 eg1 = """<?xml version="1.0"?>
 
 <?xml-stylesheet   href="doc.xsl"
@@ -98,9 +103,8 @@ eg5 = """<!DOCTYPE doc [
 <!-- Let world.txt contain "world" (excluding the quotes) -->
 """
 
-_eg6 = u"""<?xml version="1.0" encoding="ISO-8859-1"?>
+eg6 = """<?xml version="1.0" encoding="ISO-8859-1"?>
 <doc>&#169;</doc>"""
-eg6 = _eg6.encode('latin')
 
 eg7 = """<!DOCTYPE doc [
 <!ATTLIST e2 xml:space (default|preserve) 'preserve'>
@@ -160,7 +164,7 @@ test_results = {
 }
 
 # Load XPath and Parser
-import codecs, sys, types, traceback, StringIO, base64
+import sys, types, traceback, StringIO, base64, string
 from xml import xpath
 from xml.xpath.Context import Context
 from xml.dom.ext.reader import PyExpat
@@ -176,7 +180,7 @@ class ReaderforC14NExamples(PYE):
         self.parser.ExternalEntityRefHandler = self.entity_ref
 
     def entity_ref(self, *args):
-	if args != (u'ent2', None, u'world.txt', None): return 0
+	if args != (u('ent2'), None, u('world.txt'), None): return 0
 	self.parser.CharacterDataHandler('world')
 	return 1
 
@@ -185,11 +189,18 @@ class ReaderforC14NExamples(PYE):
     def notationDecl(self, *args): pass
 
 
-utf8_writer = codecs.lookup('utf-8')[3]
+try:
+    import codecs
+    utf8_writer = codecs.lookup('utf-8')[3]
+except ImportError:
+    def utf8_writer(s):
+	return s
 
 def builtin():
     '''Run the builtin tests from the C14N spec.'''
-    for num,eg in [(i+1, examples[i]) for i in range(len(examples))]:
+    for i in range(len(examples)):
+	num = i+1
+	eg = examples[i]
 
 	filename = 'out%d.xml' % num
 	try:
@@ -197,7 +208,7 @@ def builtin():
 	except:
 	    pass
 
-	print 'Doing %d, %s...' % (num, eg[0:30].replace('\n', '\\n')),
+	print 'Doing %d, %s...' % (num, string.replace(eg[0:30], '\n', '\\n')),
 
 	r = ReaderforC14NExamples()
 	try:
@@ -269,6 +280,7 @@ else:
             if arg.find(',') == -1:
                 IN = open(arg, 'r')
             else:
+		import codecs
                 encoding, filename = arg.split(',')
                 reader = codecs.lookup(encoding)[2]
                 IN = reader(open(filename, 'r'))
@@ -276,6 +288,7 @@ else:
             if arg.find(',') == -1:
                 OUT = open(arg, 'w')
             else:
+		import codecs
                 encoding, filename = arg.split(',')
                 writer = codecs.lookup(encoding)[3]
                 OUT = writer(open(filename, 'w'))

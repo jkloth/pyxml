@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/12/06 17:13:04 $ by $Author: rsalz $
+$Date: 2001/12/16 09:28:28 $ by $Author: loewis $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -37,6 +37,7 @@ or
   http://www.w3.org/Consortium/Legal/copyright-software-19980720
 '''
 
+import string
 from xml.dom import Node
 try:
     from xml.ns import XMLNS
@@ -44,7 +45,11 @@ except:
     class XMLNS:
 	BASE = "http://www.w3.org/2000/xmlns/"
 	XML = "http://www.w3.org/XML/1998/namespace"
-import cStringIO as StringIO
+try:
+    import cStringIO
+    StringIO = cStringIO
+except ImportError:
+    import StringIO
 
 _attrs = lambda E: (E.attributes and E.attributes.values()) or []
 _children = lambda E: E.childNodes or []
@@ -172,11 +177,10 @@ class _implementation:
         Process a text or CDATA node.  Render various special characters
         as their C14N entity representations.'''
         if not _in_subset(self.subset, node): return
-        s = node.data \
-                .replace("&", "&amp;") \
-                .replace("<", "&lt;") \
-                .replace(">", "&gt;") \
-                .replace("\015", "&#xD;")
+        s = string.replace(node.data, "&", "&amp;")
+	s = string.replace(s, "<", "&lt;")
+	s = string.replace(s, ">", "&gt;")
+	s = string.replace(s, "\015", "&#xD;")
         if s: self.write(s)
     handlers[Node.TEXT_NODE] = _do_text
     handlers[Node.CDATA_SECTION_NODE] = _do_text
@@ -227,13 +231,12 @@ class _implementation:
         W(' ')
         W(n)
         W('="')
-        s = value \
-            .replace("&", "&amp;") \
-            .replace("<", "&lt;") \
-            .replace('"', '&quot;') \
-            .replace('\011', '&#x9') \
-            .replace('\012', '&#xA') \
-            .replace('\015', '&#xD')
+        s = string.replace(value, "&", "&amp;")
+        s = string.replace(s, "<", "&lt;")
+        s = string.replace(s, '"', '&quot;')
+        s = string.replace(s, '\011', '&#x9')
+        s = string.replace(s, '\012', '&#xA')
+        s = string.replace(s, '\015', '&#xD')
         W(s)
         W('"')
 
@@ -339,8 +342,8 @@ def Canonicalize(node, output=None, **kw):
     '''
 
     if output:
-        _implementation(node, output.write, **kw)
+        apply(_implementation, (node, output.write), kw)
     else:
         s = StringIO.StringIO()
-        _implementation(node, s.write, **kw)
+        apply(_implementation, (node, s.write), kw)
         return s.getvalue()
