@@ -3,7 +3,7 @@
 #
 
 import regrtest
+del regrtest.STDTESTS[:]
 
 if __name__ == '__main__':
-    tests = regrtest.findtests(testdir = '.', stdtests = [], nottests = [])
-    regrtest.main( tests, '.' )
+    regrtest.main( tests = [],  testdir = '.' )
