@@ -292,6 +292,10 @@ The CatalogManager class has these methods:
   <DD>Returns the correct system identifier for this combination of
   system and public identifiers. If there was no public identifier the
   pubid parameter should be None.
+
+   <DT><CODE>def get_public_ids(self):</CODE>
+   <DD>Returns a list of all declared public indentifiers in this catalog
+              and delegates.
 </DL>
 
 <H3><A NAME="CatParserFactory">The CatParserFactory interface</A></H3>
@@ -385,7 +389,7 @@ The support for XCatalog should be considered an experimental feature.
 <HR>
 
 <ADDRESS>
-18.Jul.98 17:13, 
+11.Sep.98 19:22, 
 <A HREF="../../../lmg.html">Lars Marius Garshol</A>,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>

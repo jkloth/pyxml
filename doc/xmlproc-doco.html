@@ -103,7 +103,7 @@ used to control parsing.
   <DD>Tells the parser which object to use to map public identifiers
   to system identifiers.
   
-  <DT><CODE>def parse_resource(self,sysID):</CODE>
+  <DT><CODE>def parse_resource(self,sysID,bufsize=16384):</CODE>
   <DD>Makes the parser parse the XML document with the given system identifier.
   
   <DT><CODE>def reset(self):</CODE>
@@ -130,6 +130,11 @@ used to control parsing.
   
   <DT><CODE>def get_column(self):</CODE>
   <DD>Returns the current column position. 
+
+  <DT><CODE>def set_error_language(self,language):</CODE>
+  <DD>Tells the parser which language to report errors in. 'language' must be an ISO 3166
+             language code (case does not matter). A KeyError will be thrown if the language is
+             not supported.
 </DL>
 
 <H2><A NAME="Application">Application</A></H2>
@@ -268,7 +273,7 @@ The default implementation interprets system identifiers as URLs.
 <HR>
 
 <ADDRESS>
-22.Jul.98 21:41, 
+11.Sep.98 19:26, 
 <A HREF="../../../lmg.html">Lars Marius Garshol</A>,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>
