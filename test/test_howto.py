@@ -138,7 +138,9 @@ dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
 doc = FromXml(dom_xml)
 
 # Print it
-PrettyPrint(doc)
+# for testing, we must explicitly pass sys.stdout, as regrtest will
+# bind this to a different object
+PrettyPrint(doc, sys.stdout)
 
 # whitespace-removal currently not supported
 # utils.strip_whitespace(doc)
@@ -168,4 +170,4 @@ r.appendChild(b)
 b.appendChild(d.createTextNode("The body text goes here."))
 
 # Print the document
-PrettyPrint(d)
+PrettyPrint(d, sys.stdout)
