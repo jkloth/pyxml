@@ -2,6 +2,7 @@ import string, re, types, sys
 from xml.parsers import sgmlop
 from xml.dom import implementation
 from xml.dom import Node
+from xml.dom import NotSupportedErr
 from xml.dom.html import HTML_DTD, HTML_CHARACTER_ENTITIES
 
 DEFAULT_CHARSET = 'ISO-8859-1'
@@ -128,8 +129,7 @@ class HtmlParser(SgmlopParser):
         return
 
     def handle_proc(self, target, data):
-        pi = self._ownerDoc.createProcessingInstruction(target, data)
-        self._stack[-1].appendChild(pi)
+        # HTML DOMs do not support processing instructions either.
         return
 
     def finish_starttag(self, tagname, attrs):
