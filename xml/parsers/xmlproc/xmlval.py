@@ -2,7 +2,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.15 2002/04/13 19:15:31 larsga Exp $
+$Id: xmlval.py,v 1.16 2002/07/17 17:43:14 mikeolson Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time
@@ -213,9 +213,13 @@ class ValidatingApp(Application):
             valid = self.cur_elem.get_valid_elements(self.cur_state)
 	    self.parser.report_error(2004, (name, string.join(valid, ", ")))
 	
+	self.realapp.handle_end_tag(name)
+
 	if self.stack!=[]:
 	    (self.cur_elem,self.cur_state)=self.stack[-1]
 	    del self.stack[-1]
+
+
 
     def handle_data(self,data,start,end):
         "Notifies the application of character data."
