@@ -131,14 +131,6 @@ if list is type([]):
         length = property(_get_length, _set_length,
                           doc="The number of nodes in the NodeList.")
 
-        def append(self, o):
-            import xml.dom
-            raise xml.dom.HierarchyRequestErr("cannot append to EmptyNodeList")
-
-        def insert(self, i, o):
-            import xml.dom
-            raise xml.dom.HierarchyRequestErr("cannot insert in EmptyNodeList")
-
 else:
     def NodeList():
         return []
