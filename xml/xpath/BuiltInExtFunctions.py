@@ -19,8 +19,11 @@ from xml.utils import boolean
 from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE, FT_OLD_EXT_NAMESPACE
 
 def Version(context):
-    from Ft.__init__ import __version__
-    return __version__
+    try:
+	from Ft.__init__ import __version__
+	return __version__
+    except:
+	return "0.11.1"		# XXX Upgrade whenever re-integrated.
 
 
 def NodeSet(context, rtf):
@@ -174,10 +177,14 @@ def Evaluate(context, expr):
     return xml.xpath.Evaluate(Conversions.StringValue(st), context=context)
 
 
-def GenerateUuid(context):
-    from Ft.Lib import Uuid
-    return Uuid.UuidAsString(Uuid.GenerateUuid())
-
+try:
+    # Import something small and "safe"
+    import Ft.Lib.DumpBgTuple.
+    def GenerateUuid(context):
+	from Ft.Lib import Uuid
+	return Uuid.UuidAsString(Uuid.GenerateUuid())
+except:
+    GenerateUuid = None
 
 ##
 ## distinct, split, range if_function and find
