@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.17 2001/12/30 12:09:14 loewis Exp $
+$Id: xmldtd.py,v 1.18 2002/04/13 19:13:16 larsga Exp $
 """
 
 import types
@@ -314,25 +314,38 @@ class ElementType:
         "Return the start state of this content model."
         return self.content_model["start"]
 
-    def final_state(self,state):
-        "True if 'state' is a final state."
-        return self.content_model["final"] & state
-
-    def next_state(self,state,elem_name):
-        """Returns the next state of the content model from the given one
+    def final_state(self, state):
+	"True if 'state' is a final state."
+	return self.content_model["final"] & state
+	
+    def next_state(self, state, elem_name):
+	"""Returns the next state of the content model from the given one
         when elem_name is encountered. Character data is represented as
         '#PCDATA'. If 0 is returned the element is not allowed here or if
         the state is unknown."""
-        try:
-            return self.content_model[state][elem_name]
-        except KeyError:
-            return 0
 
-    def get_valid_elements(self,state):
+        return self.content_model[state].get(elem_name, 0)
+
+    def next_state_skip(self, state, elem_name):
+        """Assumes that one element has been forgotten and tries to
+        skip forward one state (regardless of what element is attached
+        to the transition) to get to a state where elem_name is
+        legal. Returns a (state, elem) tuple, where elem is the
+        element missing, and state is the state reached by following
+        the elem_name arc after using the missing element. None is
+        returned if no missing element can be found."""
+
+        arcs = self.content_model[state]
+        for skipped in arcs.keys():
+            if self.content_model[arcs[skipped]].has_key(elem_name):
+                arcs2 = self.content_model[arcs[skipped]]
+                return (arcs2[elem_name], skipped)
+
+    def get_valid_elements(self, state):
         """Returns a list of the valid elements in the given state, or the
         empty list if none are valid (or if the state is unknown). If the
         content model is ANY, the empty list is returned."""
-        if self.content_model==None: # that is, any
+        if self.content_model == None: # that is, any
             return [] # any better ideas?
 
         try:
