@@ -7,6 +7,8 @@ import string
 # Todo:
 # - 3047 needed in Swedish, Norwegian and French
 # - 2024 ditto
+# - 2025 ditto
+# - 2004 must be retranslated
 
 error_lists={}  # The hash of errors
 
@@ -43,7 +45,7 @@ english={
     2001: "Element '%s' not allowed here",
     2002: "Document root element '%s' does not match declared root element",
     2003: "Element '%s' not declared",
-    2004: "Element '%s' ended, but not finished",
+    2004: "Element '%s' ended before required elements found (%s)",
     2005: "Character data not allowed in the content of this element",
     2006: "Attribute '%s' not declared",
     2007: "ID '%s' appears more than once in document",
@@ -64,6 +66,7 @@ english={
     2022: "Notation attribute '%s' uses undeclared notation '%s'",
     2023: "Unparsed entity '%s' uses undeclared notation '%s'",
     2024: "Cannot resolve relative URI '%s' when document URI unknown",
+    2025: "Element '%s' missing before element '%s'",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -537,12 +540,145 @@ french.update({
     5100: "Construction invalide ou non supportée : %s.",
     })
 
+# Errors in Spanish
+# Contributed by Ricardo Javier Cardenes (ricardo@conysis.com)
+
+spanish = {
+
+    # --- Warnings: 1000-1999
+    1000: "Prefijo de espacio de nombres sin declarar '%s'",
+    1002: "Codificación no soportada '%s'",
+    1003: "Sintaxis de espacio de nombres obsoleta",
+    1005: "Caracter número '%d' no soportado en la referencia a caracter",
+    1006: "El elemento '%s' tiene lista de atributos, pero no declaración de elemento",
+    1007: "El atributo '%s' está definido más de una vez",
+    1008: "Modelo de contenido ambiguo",
+
+    # --- Namespace warnings
+    1900: "Los prefijos de espacio de nombres no pueden contener ':'.",
+    1901: "Las URI de los espacios de nombre no pueden estar vacías",
+    1902: "Prefijo de espacio de nombres sin declarar",
+    1903: "Nombres de atributo repetidos después de procesar el espacio de nombres",
+
+    # --- Validity errors: 2000-2999
+    2000: "El valor real del atributo '%s' no se corresponde al valor fijado",
+    2001: "No se permite aquí el elemento '%s'",
+    2002: "El elemento '%s' raíz del documento no es el mismo que se declaró",
+    2003: "El elemento '%s' no está declarado",
+    2004: "El elemento '%s' termina, pero no empieza",
+    2005: "No se permite texto en el contenido de este elemento",
+    2006: "El atributo '%s' no ha sido declarado",
+    2007: "El ID '%s' aparece más de una vez en el documento",
+    2008: "Sólo se permiten entidades sin analizar como valores de los atributos ENTITY",
+    2009: "No está declarada la notación '%s'",
+    2010: "No está presente el atributo '%s' necesario",
+    2011: "IDREF referida a un ID '%s', que no existe",
+    2012: "El elemento '%s' está declarado más de una vez",
+    2013: "Sólo se permite un atributo ID por cada tipo de elemento",
+    2014: "Los atributos ID no pueden ser #FIXED ni tener valor por defecto",
+    2015: "xml:space debe ser declarado como tipo enumerado",
+    2016: "xml:space debe tener exactamente los valores 'default' y 'preserve'",
+    2017: "'%s' no es un tipo válido para el atributo '%s'",
+    2018: "El valor del atributo '%s' debe ser un nombre válido",
+    2019: "El valor del atributo '%s' no es un NMTOKEN válido",
+    2020: "El valor del atributo '%s' no es un NMTOKENS válido",
+    2021: "El símbolo '%s' en el valor del atributo '%s' no es un nombre válido",
+    2022: "El atributo de notación '%s' usa la notación '%s', que no está declarada",
+    2023: "La entidad sin analizar '%s' usa la notación '%s', que no está declarada",
+
+    # --- Well-formedness errors: 3000-3999
+    # From xmlutils
+    3000: "No pude abrir el recurso '%s'",
+    3001: "Se empezó la construcción, pero no se pudo completar",
+    3002: "Aquí se esperaba un espacio en blanco",
+    3003: "'%s' no se corresponde",   ## FIXME: This must be redone
+    3004: "Se esperaba %s o '%s'",
+    3005: "Se esperaba '%s'",
+
+    # From xmlproc.XMLCommonParser
+    3006: "Se esperaba SYSTEM o PUBLIC",
+    3007: "La declaración de texto debe aparecer la primera en la entidad",
+    3008: "La declaración XML debe aparecer la primera en el documento",
+    3009: "Varias declaraciones de texto en la misma entidad",
+    3010: "Múltiples declaraciones XML en el mismo documento",
+    3011: "Falta la versión en la declaración XML",
+    3012: "No se permite una declaración 'standalone' en una declaración de texto",
+    3045: "Los nombres de PI que comienzan por 'xml' están reservados",
+    3046: "Versión XML no soportada",
+    
+    # From xmlproc.XMLProcessor
+    3013: "Construcción ilegal",
+    3014: "El documento acabó prematuramente. No se cerró el elemento '%s'",
+    3015: "Fin prematuro del documento. No hay elemento raíz",
+    3016: "El atributo '%s' está duplicado",
+    3017: "No se permiten elementos fuera del raíz",
+    3018: "Caracter ilegal número '%d' en la referencia a caracter",
+    3019: "Detectada recursividad de entidades",
+    3020: "No se permiten referencias a entidades externas en los valores de los atributos",
+    3021: "Entidad '%s' sin declarar",
+    3022: "No se permite '<' en los valores de atributos",
+    3023: "Se encontró la etiqueta de fin de '%s', pero se esperaba '%s'",
+    3024: "Element '%s' not open",
+    3025: "No debe aparecer ']]>' dentro de datos de texto",
+    3027: "No es un número de caracter válido",
+    3028: "No se permite la referencia a caracteres fuera del elemento raíz",
+    3029: "No se admite texto fuera del elemento raíz",
+    3030: "No se admiten referencias a entidades fuera del elemento raíz",
+    3031: "No se admiten referencias a entidades sin analizar en el contenido de un elemento",
+    3032: "Múltiples declaraciones de tipo de documento",
+    3033: "No se admite una declaración de tipo de documento dentro del elemento raíz",
+    3034: "Fin prematuro de un subconjunto interno de DTD",
+    3042: "Un elemento cruza los límites de la entidad",
+    3045: "Los nombres de PI que empiezan por 'xml' están reservados",
+    3046: "Esta versión de XML no está soportada",
+
+
+    # From xmlproc.DTDParser
+    3035: "Las entidades paramétricas no pueden ser de tipo 'unparsed'",
+    3036: "No se permiten referencias a entidades paramétricas en un subconjunto interno de declaraciones",
+    3037: "No se permiten referencias a entidades externas en texto de reemplazo de entidades",
+    3038: "Entidad paramétrica desconocida '%s'",
+    3039: "Se esperaba un tipo o una lista de alternativas",
+    3040: "No se puede mezclar listas secuenciales con alternativas",
+    3041: "No se admiten secciones condicionales en subconjuntos internos",
+    3043: "Sección condicional sin cerrar",
+    3044: "Se definió el símbolo '%s' más de una vez",
+    # next: 3047
+    
+    # From regular expressions that were not matched
+    3900: "No es unnombre válido",
+    3901: "No es un número de versión válido (%s)",
+    3902: "No es un nombre de codificación válido",
+    3903: "No es un comentario válido",
+    3905: "No es un número hexadecimal válido",
+    3906: "No es un número válido",
+    3907: "No es una referencia a parámetro válida",
+    3908: "No es un tipo de atributo válido",
+    3909: "No es una definición de atributo por defecto válida",
+    3910: "No es un valor de atributo enumerado válido",
+    3911: "No es una declaración 'standalone' válida",
+    
+    # --- Internal errors: 4000-4999
+    4000: "Error interno: Pila de la entidad corrupta",
+    4001: "Error interno: Se esperaba una referencia a entidad.",
+    4002: "Error interno: Número de error desconocido.",
+    4003: "Error interno: No se admiten refrencias PE externas en las declaraciones",
+
+    # --- XCatalog errors: 5000-5099
+    5000: "Elemento XCatalog desconocido: %s.",
+    5001: "Falta el atributo XCatalog %s necesario en %s.",
+     
+    # --- SOCatalog errors: 5100-5199
+    5100: "Construcción inválida o no soportada: %s.",
+    }
+
 # Updating the error hash
 
 add_error_list("en", english)
 add_error_list("no", norsk)
 add_error_list("sv", svenska)
 add_error_list("fr", french)
+add_error_list("es", spanish)
 
 # Checking
 
