@@ -451,9 +451,16 @@ class FilterVisibilityController:
             val = self.filter.acceptNode(node)
             if val == FILTER_INTERRUPT:
                 raise ParseEscape
+            if val == FILTER_SKIP:
+                # move all child nodes to the parent, and remove this node
+                parent = node.parentNode
+                for child in node.childNodes[:]:
+                    parent.appendChild(child)
+                # node is handled by the caller
+                return FILTER_REJECT
             if val not in _ALLOWED_FILTER_RETURNS:
                 raise ValueError, \
-                      "startContainer() returned illegal value: " + repr(val)
+                      "acceptNode() returned illegal value: " + repr(val)
             return val
         else:
             return FILTER_ACCEPT
