@@ -1,5 +1,5 @@
 /***********************************************************
-Copyright 1991-1995 by Stichting Mathematisch Centrum, Amsterdam,
+Copyright 2000 by Stichting Mathematisch Centrum, Amsterdam,
 The Netherlands.
 
                         All Rights Reserved
@@ -136,13 +136,13 @@ static RC my_##NAME##Handler PARAMS {\
 		args = Py_BuildValue PARAM_FORMAT ;\
 		if (!args) return RETURN; \
 		rv = PyEval_CallObject(self->handlers[NAME], args); \
-		Py_XDECREF(args); \
+		Py_DECREF(args); \
 		if (rv == NULL) { \
 			flag_error( self ); \
 			return RETURN; \
 		} \
 		CONVERSION \
-		Py_XDECREF(rv); \
+		Py_DECREF(rv); \
 	} \
 	return RETURN; \
 }
@@ -673,7 +673,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.2 $";
+	char *rev="$Revision: 1.3 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
