@@ -40,13 +40,13 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.1 $'
+__version__ = '$Revision: 1.2 $'
 
 import string
 
 import xml.parsers.xmlproc.dtdparser
 import xml.parsers.xmlproc.xmlapp
-import xml.utils
+from xml.sax.saxutils import escape
 
 
 DEFAULT_LINELENGTH = 74
@@ -283,7 +283,7 @@ class XmlWriter:
         for k, v in attrs.items():
             if v is None:
                 continue
-            a = ' %s%s%s%s%s' % (k, vi, lit, xml.utils.escape(str(v)), lit)
+            a = ' %s%s%s%s%s' % (k, vi, lit, escape(str(v)), lit)
             if (self._offset + len(a)) > self.lineLength:
                 self._write(line + "\n")
                 line = prefix + a
@@ -332,7 +332,7 @@ class XmlWriter:
     def characters(self, data, start, length):
         data = data[start: start+length]
         if data:
-            data = xml.utils.escape(data)
+            data = escape(data)
             if "\n" in data:
                 p = string.find(data, "\n")
                 self._offset = len(data) - (p + 1)
@@ -413,7 +413,7 @@ class XmlWriter:
         # There should be a better way to generate '[CDATA['
         start = self.__syntax.mdo + "[CDATA["
         end = self.__syntax.msc + self.__syntax.mdc
-        s = "%s%s%s" % (start, xml.utils.escape(data), end)
+        s = "%s%s%s" % (start, escape(data), end)
         if self._packing:
             if "\n" in s:
                 rpos = string.rfind(s, "\n")
@@ -496,7 +496,7 @@ class PrettyPrinter(XmlWriter):
         if not data:
             return
         self._check_pending_content()
-        data = xml.utils.escape(data)
+        data = escape(data)
         if not self._flowing:
             self._write(data)
             return
