@@ -39,7 +39,7 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
   }
   Py_INCREF(result);
   return (PyObject *)result;
-};
+}
 
 static int pyobj_as_boolean_int(PyObject *obj) {
   if (Boolean_Check(obj)){
@@ -51,7 +51,7 @@ static int pyobj_as_boolean_int(PyObject *obj) {
   } else {
     return 0;
   }
-};
+}
 
 static PyObject *IsBooleanType(PyObject *self, PyObject *args) {
   PyObject *obj;
@@ -66,7 +66,7 @@ static PyObject *IsBooleanType(PyObject *self, PyObject *args) {
     result = PyInt_FromLong((long)0);
   Py_INCREF(result);
   return result;
-};
+}
 
 PyBooleanObject *boolean_NEW(int initval)
 {
@@ -79,12 +79,12 @@ PyBooleanObject *boolean_NEW(int initval)
   object->ob_type = &PyBoolean_Type;
   object->value = initval;
   return object;
-};
+}
 
 void boolean_dealloc(PyObject *self)
 {
   PyMem_DEL(self);
-};
+}
 
 int boolean_cmp(PyObject *o1, PyObject *o2){
   int result = -1;
@@ -104,7 +104,7 @@ int boolean_cmp(PyObject *o1, PyObject *o2){
     result = !(Boolean_Value(o2) == pyobj_as_boolean_int(o1));
   }
   return result;
-};
+}
 
 static PyObject *boolean_str(PyObject *self)
 {
@@ -118,7 +118,7 @@ static PyObject *boolean_str(PyObject *self)
   }
   Py_INCREF(result);
   return result;
-};
+}
 
 static int boolean_print(PyObject *self, FILE *fp, int flags)
 {
@@ -129,7 +129,7 @@ static int boolean_print(PyObject *self, FILE *fp, int flags)
   sprintf(buf, "%s", Boolean_Value(obj) ? "true" : "false");
   fputs(buf, fp);
   return 0;
-};
+}
 
 static int boolean_coerce(PyObject **v, PyObject **w){
   PyObject *newv, *neww;
@@ -234,7 +234,7 @@ void initboolean(void) {
   PyDict_SetItemString(d, "true", (PyObject *)g_true);
   PyDict_SetItemString(d, "false", (PyObject *)g_false);
   return;
-};
+}
 
 static PyNumberMethods boolean_as_number = {
   0,       /* binaryfunc nb_add;          __add__ */
