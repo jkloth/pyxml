@@ -2,7 +2,7 @@
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
 
-$Id: dtdparser.py,v 1.6 2000/09/26 14:43:10 loewis Exp $
+$Id: dtdparser.py,v 1.7 2000/12/19 03:36:28 mikeolson Exp $
 """
 
 from types import StringType
@@ -232,7 +232,7 @@ class DTDParser(XMLCommonParser):
 
     def deref(self):
         "Removes circular references."
-        self.dtd_consumer = self.dtd = self.app = self.err = None
+        self.ent = self.dtd_consumer = self.dtd = self.app = self.err = None
         
     def do_parse(self):
 	"Does the actual parsing."
