@@ -155,16 +155,20 @@ def FromXml(text, ownerDocument=None, validate=0, keepAllWs=0,
 def FromXmlFile(fileName, ownerDocument=None, validate=0, keepAllWs=0,
                 catName=None, saxHandlerClass=XmlDomGenerator, parser=None):
     fp = open(fileName, 'r')
-    rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName,
-                       saxHandlerClass, parser)
-    fp.close()
+    try:
+        rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName,
+                           saxHandlerClass, parser)
+    finally:
+        fp.close()
     return rv
 
 
 def FromXmlUrl(url, ownerDocument=None, validate=0, keepAllWs=0,
                catName=None, saxHandlerClass=XmlDomGenerator, parser=None):
     fp = urllib2.urlopen(url)
-    rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName,
-                       saxHandlerClass, parser)
-    fp.close()
+    try:
+        rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName,
+                           saxHandlerClass, parser)
+    finally:
+        fp.close()
     return rv
