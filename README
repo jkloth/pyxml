@@ -1,5 +1,5 @@
 
-XML package v0.6.5
+XML package v0.7
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -13,7 +13,7 @@ consult the LICENCE file.
 The only requirements for installing the package are Python 1.5 or
 later, and a C compiler (unless the pyexpat module is already part of
 your Python installation). This release has been tested with Python
-2.0 and Python 1.5.2.
+2.1 and Python 1.5.2.
 
 To compile everything, simply perform the following steps.
 
@@ -31,9 +31,11 @@ to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
 	4DOM			Fourthought, Inc. (Uche Ogbuji, Mike Olson)
+	4XSLT			Fourthought, Inc. (Uche Ogbuji, Mike Olson)
 	PyExpat 		Jack Jansen
         Expat 1.95.2		James Clark, Clark Cooper, Fred Drake
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-000705		Fredrik Lundh
 	xmlproc 0.70		Lars Marius Garshol
 	minidom			Paul Prescod
+	PyTrex			James Tauber
