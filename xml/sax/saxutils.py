@@ -125,6 +125,11 @@ class AttributeMap:
     def has_key(self,key):
         return self.map.has_key(key)
 
+    def get(self, key, alternative):
+        """Return the value associated with attribute name; if it is not
+        available, then return the alternative."""
+        return self.map.get(key, alternative)
+
 # --- Event broadcasting object
 
 class EventBroadcaster:    

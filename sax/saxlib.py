@@ -186,6 +186,11 @@ class AttributeList:
         "True if the attribute is in the list, false otherwise."
         pass
 
+    def get(self, key, alternative):
+        """Return the value associated with attribute name; if it is not
+        available, then return the alternative."""
+        pass
+
 # --- DTDHandler
 
 class DTDHandler:
