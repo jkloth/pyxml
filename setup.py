@@ -10,16 +10,73 @@ try:
 except ImportError:
     pass
 else:
+
+    # I want to override the default build directory so the extension
+    # modules are compiled and placed in the build/xml directory
+    # tree.  This is a bit clumsy, but I don't see a better way to do
+    # this at the moment. 
+    
+    from distutils.command.build import Build
+    from distutils.command.install import Install
+#    from distutils.command.build_ext import BuildExt
+#    from distutils.command.install_ext import InstallExt
+    
+    class XMLBuild(Build):
+        def set_default_options (self):
+            Build.set_default_options( self )
+            self.build_platlib = 'lib/build/xml/parser' 
+#            self.build_dir = 'lib/build/xml/parser' 
+
+    class XMLInstall(Install):
+        def set_default_options (self):
+            Install.set_default_options( self )
+            self.build_platlib = 'lib/build/xml/parser' 
+
+        def set_final_options(self):
+            set_platlib = (self.install_platlib is None)
+            Install.set_final_options(self)
+            if set_platlib:
+                self.install_platlib = os.path.join(
+                    self.platbase, 'xml/parsers')
+                    
+    # XXX should detect whether to use the unixfilemap or readfilemap
+    # depending on the platform
+    FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
+    
     setup (name = "PyXML",
            version = "0.5.2",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
            url = "http://www.python.org/sigs/xml-sig/",
+
+#           cmdclass = {'build':XMLBuild,
+#                       'install':XMLInstall},
            
-           packages = ['xml'],
-           ext_modules = [('pyexpat', { 'sources' : ['extensions/pyexpat.c'] }),
-                          ('sgmlop', { 'sources' : ['extensions/sgmlop.c'] }),
+           packages = ['xml', 'xml.arch', 'xml.dom', 'xml.marshal',
+                       'xml.parsers', 'xml.parsers.xmlproc', 
+                       'xml.sax', 'xml.sax.drivers',
+                       'xml.unicode', 'xml.utils'
+                       ],
+           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c'],
+                                       'build-dir': 'xml/parsers'
+                                       }),
+                          ('pyexpat', { 'define': [('XML_NS', None)],
+                                        'include_dirs': [ 'extensions/expat/xmltok',
+                                                          'extensions/expat/xmlparse' ], 
+                                                          
+                                        'sources' :
+                                        [
+        'extensions/pyexpat.c',
+        'extensions/expat/xmltok/xmltok.c',
+        'extensions/expat/xmltok/xmlrole.c',
+        'extensions/expat/xmlwf/xmlfile.c',
+        'extensions/expat/xmlwf/xmlwf.c',
+        'extensions/expat/xmlwf/codepage.c',
+        'extensions/expat/xmlparse/xmlparse.c',
+        'extensions/expat/xmlparse/hashtable.c',
+        FILEMAP_SRC,
+        ] }),
                           ]
            )
     
