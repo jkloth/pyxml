@@ -32,6 +32,7 @@ to <xml-sig@python.org> describing the problem.
 Software versions and credits:
 	4DOM			Fourthought, Inc. (Uche Ogbuji, Mike Olson)
 	PyExpat 		Jack Jansen
+        Expat 1.95.2		James Clark, Clark Cooper, Fred Drake
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-000705		Fredrik Lundh
 	xmlproc 0.70		Lars Marius Garshol
