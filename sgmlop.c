@@ -1,13 +1,14 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.6 1998/12/03 00:45:42 amk Exp $
+ * $Id: sgmlop.c,v 1.7 1999/07/08 00:31:47 amkcvs Exp $
  *
  * The sgmlop accelerator module
  *
- * This module provides a FastSGMLParser class, which is designed
- * to speed up the standard sgmllib and xmllib modules.  A parser
- * instance can be configured to support either basic SGML (enough
- * of it to process HTML documents, at least) or XML.
+ * This module provides a FastSGMLParser type, which is designed to
+ * speed up the standard sgmllib and xmllib modules.  The parser can
+ * be configured to support either basic SGML (enough of it to process
+ * HTML documents, at least) or XML.  This module also provides an
+ * Element type, useful for fast but simple DOM implementations.
  *
  * History:
  * 98-04-04 fl  Created (for coreXML)
@@ -17,27 +18,41 @@
  * 98-05-14 fl  Cleaned up for first public release
  * 98-05-19 fl  Fixed xmllib compatibility: handle_proc, handle_special
  * 98-05-22 fl  Added attribute parser
- * 98-05-23 fl  Added saxlib callback mode
- * 98-10-08 fl  Generate end tag events for empty tags
+ * 99-06-20 fl  Added Element data type, various bug fixes.
  *
- * Copyright (c) 1998 by Secret Labs AB.
- *
+ * Copyright (c) 1998-99 by Secret Labs AB
+ * Copyright (c) 1998-99 by Fredrik Lundh
+ * 
  * fredrik@pythonware.com
  * http://www.pythonware.com
  *
- * --------------------------------------------------------------------
- * Permission to use, copy, modify, and distribute this software and
- * its associated documentation for any purpose and without fee is
- * hereby granted.  This software is provided as is.
- * --------------------------------------------------------------------
- */
+ * By obtaining, using, and/or copying this software and/or its
+ * associated documentation, you agree that you have read, understood,
+ * and will comply with the following terms and conditions:
+ * 
+ * Permission to use, copy, modify, and distribute this software and its
+ * associated documentation for any purpose and without fee is hereby
+ * granted, provided that the above copyright notice appears in all
+ * copies, and that both that copyright notice and this permission notice
+ * appear in supporting documentation, and that the name of Secret Labs
+ * AB or the author not be used in advertising or publicity pertaining to
+ * distribution of the software without specific, written prior
+ * permission.
+ * 
+ * SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO
+ * THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS.  IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.  */
 
 #include "Python.h"
 
 #include <ctype.h>
 
 #ifdef USE_WCHAR
-/* wide character set */
+/* wide character set (experimental) */
 #include <wchar.h>
 #define CHAR_T  wchar_t
 #define ISALNUM iswalnum
@@ -51,6 +66,20 @@
 #define TOLOWER tolower
 #endif
 
+#if 0
+static int memory = 0;
+#define ALLOC(size, comment)\
+do { memory += size; printf("%8d - %s\n", memory, comment); } while (0)
+#define RELEASE(size, comment)\
+do { memory -= size; printf("%8d - %s\n", memory, comment); } while (0)
+#else
+#define ALLOC(size, comment)
+#define RELEASE(size, comment)
+#endif
+
+/* ====================================================================
+/* parser data type */
+
 /* state flags */
 #define MAYBE 1
 #define SURE 2
@@ -61,7 +90,6 @@ typedef struct {
 
     /* mode flags */
     int xml; /* 0=sgml/html 1=xml */
-    int saxlib; /* 0=xmllib/sgmllib callbacks 1=saxlib callbacks */
 
     /* state attributes */
     int shorttag; /* 0=normal 2=parsing shorttag */
@@ -170,46 +198,20 @@ _sgmlop_register(FastSGMLParserObject* self, PyObject* args)
 {
     /* register a callback object */
     PyObject* item;
-    int saxlib = 0;
-    if (!PyArg_ParseTuple(args, "O|i", &item, &saxlib))
+    if (!PyArg_ParseTuple(args, "O", &item))
         return NULL;
 
-    if (saxlib) {
+    GETCB(finish_starttag, "finish_starttag");
+    GETCB(finish_endtag, "finish_endtag");
+    GETCB(handle_proc, "handle_proc");
+    GETCB(handle_special, "handle_special");
+    GETCB(handle_charref, "handle_charref");
+    GETCB(handle_entityref, "handle_entityref");
+    GETCB(handle_data, "handle_data");
+    GETCB(handle_cdata, "handle_cdata");
+    GETCB(handle_comment, "handle_comment");
 
-        /* saxlib DocumentHandler callbacks */
-
-        self->saxlib = 1;
-
-        /* note: attrs is a Python dictionary! */
-        GETCB(finish_starttag, "startElement");
-        GETCB(finish_endtag, "endElement");
-        GETCB(handle_proc, "processingInstruction");
-        GETCB(handle_data, "characters");
-        GETCB(handle_cdata, "characters");
-
-        /* the following are not used */
-        Py_XDECREF(self->handle_special); self->handle_special = NULL;
-        Py_XDECREF(self->handle_charref); self->handle_charref = NULL;
-        Py_XDECREF(self->handle_entityref); self->handle_entityref = NULL;
-        Py_XDECREF(self->handle_comment); self->handle_comment = NULL;
-
-    } else {
-
-        /* sgmllib/xmllib callbacks */
-
-        self->saxlib = 0;
-
-        GETCB(finish_starttag, "finish_starttag");
-        GETCB(finish_endtag, "finish_endtag");
-        GETCB(handle_proc, "handle_proc");
-        GETCB(handle_special, "handle_special");
-        GETCB(handle_charref, "handle_charref");
-        GETCB(handle_entityref, "handle_entityref");
-        GETCB(handle_data, "handle_data");
-        GETCB(handle_cdata, "handle_cdata");
-        GETCB(handle_comment, "handle_comment");
-        
-    }
+    PyErr_Clear();
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -328,20 +330,492 @@ _sgmlop_getattr(FastSGMLParserObject* self, char* name)
 
 statichere PyTypeObject FastSGMLParser_Type = {
     PyObject_HEAD_INIT(NULL)
-    0,                          /*ob_size*/
-    "FastSGMLParser", 		/*tp_name*/
-    sizeof(FastSGMLParserObject), /*tp_size*/
-    0,                          /*tp_itemsize*/
+    0, /* ob_size */
+    "FastSGMLParser", /* tp_name */
+    sizeof(FastSGMLParserObject), /* tp_size */
+    0, /* tp_itemsize */
     /* methods */
-    (destructor)_sgmlop_dealloc, /*tp_dealloc*/
-    0,                          /*tp_print*/
-    (getattrfunc)_sgmlop_getattr, /*tp_getattr*/
-    0                           /*tp_setattr*/
+    (destructor)_sgmlop_dealloc, /* tp_dealloc */
+    0, /* tp_print */
+    (getattrfunc)_sgmlop_getattr, /* tp_getattr */
+    0 /* tp_setattr */
 };
+
+/* ====================================================================
+/* element data type */
+
+typedef struct {
+    PyObject_HEAD
+
+    /* an element has the following attributes: */
+    PyObject* parent; /* back link (None for the root node) */
+    PyObject* tag; /* element tag (a string) */
+    PyObject* attrib; /* attributes (a dictionary object) */
+    PyObject* text; /* text before first child */
+    PyObject* suffix; /* text after this element, in parent */
+
+    /* in addition, it can hold any number of child nodes: */
+    int child_count; /* actual items */
+    int child_total; /* allocated items */
+    PyObject* *children;
+
+    /* Note: the suffix attribute holds textual data that belongs to
+       the parent.  on other words, each element represents the
+       following XML snippet:
+
+           "<tag attributes> text children </name> suffix"
+
+       */
+
+} ElementObject;
+
+staticforward PyTypeObject Element_Type;
+
+/* -------------------------------------------------------------------- */
+/* element constructor and destructor */
+
+static PyObject*
+element_new(PyObject* _self, PyObject* args)
+{
+    ElementObject* self;
+
+    PyObject* parent;
+    PyObject* tag;
+    PyObject* attrib = Py_None;
+    PyObject* text = Py_None;
+    PyObject* suffix = Py_None;
+    if (!PyArg_ParseTuple(args, "OO|OOO", &parent, &tag,
+                          &attrib, &text, &suffix))
+        return NULL;
+
+    if (parent != Py_None && parent->ob_type != &Element_Type) {
+        PyErr_SetString(PyExc_TypeError, "parent must be Element or None");
+        return NULL;
+    }
+
+    self = PyObject_NEW(ElementObject, &Element_Type);
+    if (self == NULL)
+        return NULL;
+
+    Py_INCREF(parent);
+    self->parent = parent;
+
+    Py_INCREF(tag);
+    self->tag = tag;
+
+    Py_INCREF(attrib);
+    self->attrib = attrib;
+
+    Py_INCREF(text);
+    self->text = text;
+
+    Py_INCREF(suffix);
+    self->suffix = suffix;
+
+    self->child_count = 0;
+    self->child_total = 0;
+    self->children = NULL;
+
+    ALLOC(sizeof(ElementObject), "create element");
+
+    return (PyObject*) self;
+}
+
+static void
+element_dealloc(ElementObject* self)
+{
+    int i;
+
+    /* FIXME: the parent attribute means that a tree will contain
+       circular references.  this will be fixed ("how?" is the big
+       question...) */
+
+    if (self->children) {
+        for (i = 0; i < self->child_count; i++)
+            Py_DECREF(self->children[i]);
+        free(self->children);
+    }
+
+    /* break the backlink */
+    Py_DECREF(self->parent);
+
+    /* discard attributes */
+    Py_DECREF(self->tag);
+    Py_XDECREF(self->attrib);
+    Py_XDECREF(self->text);
+    Py_XDECREF(self->suffix);
+
+    RELEASE(sizeof(ElementObject), "destroy element");
+
+    PyMem_DEL(self);
+}
+
+/* -------------------------------------------------------------------- */
+/* methods (in alphabetical order) */
+
+static PyObject*
+element_append(ElementObject* self, PyObject* args)
+{
+    int total;
+    
+    PyObject* element;
+    if (!PyArg_ParseTuple(args, "O!", &Element_Type, &element))
+        return NULL;
+
+    if (!self->children) {
+        total = 10;
+        self->children = malloc(total * sizeof(PyObject*));
+        self->child_total = total;
+    } else if (self->child_count >= self->child_total) {
+        total = self->child_total + 10;
+        self->children = realloc(self->children, total * sizeof(PyObject*));
+        self->child_total = total;
+    }
+    if (!self->children) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    Py_INCREF(element);
+    self->children[self->child_count++] = element;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject*
+element_destroy(ElementObject* self, PyObject* args)
+{
+    int i;
+    PyObject* res;
+    
+    if (!PyArg_NoArgs(args))
+        return NULL;
+
+    /* break the backlink */
+    if (self->parent != Py_None) {
+        Py_DECREF(self->parent);
+        self->parent = Py_None;
+        Py_INCREF(self->parent);
+    }
+
+    /* destroy element children */
+    if (self->children) {
+        for (i = 0; i < self->child_count; i++) {
+            res = element_destroy((ElementObject*) self->children[i], args);
+            Py_DECREF(res);
+            Py_DECREF(self->children[i]);
+        }
+        self->child_count = 0;
+    }
+
+    /* leave the rest to the garbage collector... */
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *
+element_get(ElementObject* self, PyObject* args)
+{
+    PyObject* value;
+
+    PyObject* key;
+    PyObject* default_value = Py_None;
+    if (!PyArg_ParseTuple(args, "O|O", &key, &default_value))
+        return NULL;
+
+    value = PyDict_GetItem(self->attrib, key);
+    if (!value) {
+        value = default_value;
+        PyErr_Clear();
+    }
+
+    Py_INCREF(value);
+    return value;
+}
+
+static PyObject*
+element_getitem(ElementObject* self, int index)
+{
+    if (index < 0 || index >= self->child_count) {
+        PyErr_SetString(PyExc_IndexError, "child index out of range");
+        return NULL;
+    }
+
+    Py_INCREF(self->children[index]);
+    return self->children[index];
+}
+
+static int
+element_length(ElementObject* self)
+{
+    return self->child_count;
+}
+
+static PyObject*
+element_repr(ElementObject* self)
+{
+    char buf[300];
+    if (PyString_Check(self->tag))
+        sprintf(
+            buf, "<Element object '%.256s' at %lx>",
+            PyString_AsString(self->tag),
+            (long) self
+            );
+    else
+        sprintf(
+            buf, "<Element object at %lx>",
+            (long) self
+            );
+
+    return PyString_FromString(buf);
+}
+
+/* -------------------------------------------------------------------- */
+/* type descriptor */
+
+static PyMethodDef element_methods[] = {
+    {"get", (PyCFunction) element_get, 1},
+    {"append", (PyCFunction) element_append, 1},
+    {"destroy", (PyCFunction) element_destroy, 0},
+    {NULL, NULL}
+};
+
+static PyObject*  
+element_getattr(ElementObject* self, char* name)
+{
+    PyObject* res;
+
+    res = Py_FindMethod(element_methods, (PyObject*) self, name);
+    if (res)
+	return res;
+
+    PyErr_Clear();
+
+    if (strcmp(name, "tag") == 0)
+	res = self->tag;
+    else if (strcmp(name, "text") == 0)
+	res = self->text;
+    else if (strcmp(name, "suffix") == 0)
+        res = self->suffix;
+    else if (strcmp(name, "attrib") == 0)
+	res = self->attrib;
+    else if (strcmp(name, "parent") == 0)
+	res = self->parent;
+    else {
+        PyErr_SetString(PyExc_AttributeError, name);
+        return NULL;
+    }
+
+    Py_INCREF(res);
+    return res;
+}
+
+static int
+element_setattr(ElementObject *self, const char* name, PyObject* value)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError,
+                        "can't delete element attributes");
+        return -1;
+    }
+
+    if (strcmp(name, "text") == 0) {
+
+        Py_DECREF(self->text);
+        self->text = value;
+        Py_INCREF(self->text);
+
+    } else if (strcmp(name, "suffix") == 0) {
+
+        Py_DECREF(self->suffix);
+        self->suffix = value;
+        Py_INCREF(self->suffix);
+
+    } else if (strcmp(name, "attrib") == 0) {
+
+        Py_DECREF(self->attrib);
+        self->attrib = value;
+        Py_INCREF(self->attrib);
+
+    } else {
+
+        PyErr_SetString(PyExc_AttributeError, name);
+        return -1;
+
+    }
+
+    return 0;
+}
+
+static PySequenceMethods element_as_sequence = {
+    (inquiry) element_length, /* sq_length */
+    0, /* sq_concat */
+    0, /* sq_repeat */
+    (intargfunc) element_getitem, /* sq_item */
+    0, /* sq_slice */
+    0, /* sq_ass_item */
+    0, /* sq_ass_slice */
+};
+
+statichere PyTypeObject Element_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0, /* ob_size */
+    "Element", /* tp_name */
+    sizeof(ElementObject), /*tp_size*/
+    0, /* tp_itemsize */
+    /* methods */
+    (destructor)element_dealloc, /* tp_dealloc */
+    0, /* tp_print */
+    (getattrfunc)element_getattr, /* tp_getattr */
+    (setattrfunc)element_setattr, /* tp_setattr */
+    0, /* tp_compare */
+    (reprfunc)element_repr, /* tp_repr */
+    0, /* tp_as_number */
+    &element_as_sequence, /* tp_as_sequence */
+    0 /* tp_as_mapping */
+};
+
+
+/* ====================================================================
+/* tree builder (not yet implemented) */
+
+typedef struct {
+    PyObject_HEAD
+
+    PyObject* root; /* root node (first created node) */
+
+    PyObject* this; /* current node */
+    PyObject* last; /* most recently created node */
+    PyObject* data; /* data collector */
+
+} TreeBuilderObject;
+
+staticforward PyTypeObject TreeBuilder_Type;
+
+/* -------------------------------------------------------------------- */
+/* constructor and destructor */
+
+static PyObject*
+treebuilder_new(PyObject* _self, PyObject* args)
+{
+    TreeBuilderObject* self;
+
+    /* no arguments */
+    if (!PyArg_NoArgs(args))
+        return NULL;
+
+    self = PyObject_NEW(TreeBuilderObject, &TreeBuilder_Type);
+    if (self == NULL)
+        return NULL;
+
+    Py_INCREF(Py_None);
+    self->root = Py_None;
+
+    self->this = NULL;
+    self->last = NULL;
+    self->data = NULL;
+
+    return (PyObject*) self;
+}
+
+static void
+treebuilder_dealloc(TreeBuilderObject* self)
+{
+    Py_XDECREF(self->data);
+    Py_XDECREF(self->last);
+    Py_XDECREF(self->this);
+    Py_DECREF(self->root);
+    PyMem_DEL(self);
+}
+
+/* -------------------------------------------------------------------- */
+/* methods (in alphabetical order) */
+
+static PyObject*
+treebuilder_start(TreeBuilderObject* self, PyObject* args)
+{
+    PyObject* tag;
+    PyObject* attrib = Py_None;
+    if (!PyArg_ParseTuple(args, "O|O", &tag, &attrib))
+        return NULL;
+
+    /* create a new node */
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject*
+treebuilder_end(TreeBuilderObject* self, PyObject* args)
+{
+    PyObject* tag;
+    if (!PyArg_ParseTuple(args, "O", &tag))
+        return NULL;
+
+    /* end current node */
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *
+treebuilder_data(TreeBuilderObject* self, PyObject* args)
+{
+    PyObject* data;
+    if (!PyArg_ParseTuple(args, "O", &data))
+        return NULL;
+
+    /* add data to collector */
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+/* -------------------------------------------------------------------- */
+/* type descriptor */
+
+static PyMethodDef treebuilder_methods[] = {
+    {"data", (PyCFunction) treebuilder_data, 1},
+    {"start", (PyCFunction) treebuilder_start, 1},
+    {"end", (PyCFunction) treebuilder_end, 1},
+    {NULL, NULL}
+};
+
+static PyObject*  
+treebuilder_getattr(ElementObject* self, char* name)
+{
+    return Py_FindMethod(treebuilder_methods, (PyObject*) self, name);
+}
+
+statichere PyTypeObject TreeBuilder_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0, /* ob_size */
+    "TreeBuilder", /* tp_name */
+    sizeof(TreeBuilderObject), /*tp_size*/
+    0, /* tp_itemsize */
+    /* methods */
+    (destructor)treebuilder_dealloc, /* tp_dealloc */
+    0, /* tp_print */
+    (getattrfunc)treebuilder_getattr, /* tp_getattr */
+    0, /* tp_setattr */
+    0, /* tp_compare */
+    0, /* tp_repr */
+    0, /* tp_as_number */
+    0, /* tp_as_sequence */
+    0 /* tp_as_mapping */
+};
+
+
+/* ==================================================================== */
+/* python module interface */
 
 static PyMethodDef _functions[] = {
     {"SGMLParser", _sgmlop_sgmlparser, 0},
     {"XMLParser", _sgmlop_xmlparser, 0},
+    {"Element", element_new, 1},
+    {"TreeBuilder", treebuilder_new, 0},
     {NULL, NULL}
 };
 
@@ -349,23 +823,15 @@ void
 #ifdef WIN32
 __declspec(dllexport)
 #endif
-#ifdef USE_WCHAR
-initwsgmlop()
-{
-    /* Patch object type */
-    FastSGMLParser_Type.ob_type = &PyType_Type;
-
-    Py_InitModule("wsgmlop", _functions);
-}
-#else
 initsgmlop()
 {
     /* Patch object type */
-    FastSGMLParser_Type.ob_type = &PyType_Type;
+    FastSGMLParser_Type.ob_type =
+    Element_Type.ob_type =
+    TreeBuilder_Type.ob_type = &PyType_Type;
 
     Py_InitModule("sgmlop", _functions);
 }
-#endif
 
 /* -------------------------------------------------------------------- */
 /* the parser does it all in a single loop, keeping the necessary
@@ -480,17 +946,19 @@ fastfeed(FastSGMLParserObject* self)
             /* process tag name */
             b = p;
             if (!self->xml)
-                /* FIXME: is SGML not case sensitive? */
-                while (ISALNUM(*p) || *p == '-' || *p == ':' || *p == '?') {
+                while (ISALNUM(*p) || *p == '-' || *p == '.' ||
+                       *p == ':' || *p == '?') {
                     *p = TOLOWER(*p);
                     if (++p >= end)
                         goto eol;
                 }
             else
-                /* FIXME: is XML case sensitive? */
-                while (ISALNUM(*p) || *p == '-' || *p == ':' || *p == '?')
+                while (ISALNUM(*p) || *p == '-' || *p == '.' || *p == '_' ||
+                       *p == ':' || *p == '?') {
                     if (++p >= end)
                         goto eol;
+                }
+
             t = p;
 
             has_attr = 0;
@@ -623,12 +1091,8 @@ fastfeed(FastSGMLParserObject* self)
         if (q != s && self->handle_data) {
             /* flush any raw data before this tag */
             PyObject* res;
-            if (self->saxlib)
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#ii", s, q-s, 0, q-s);
-            else
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#", s, q-s);
+            res = PyObject_CallFunction(self->handle_data,
+                                        "s#", s, q-s);
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -655,7 +1119,7 @@ fastfeed(FastSGMLParserObject* self)
                     Py_DECREF(res);
                 }
             } else if (token == PI) {
-                if (self->handle_special) {
+                if (self->handle_proc) {
                     PyObject* res;
                     int len = t-b;
                     while (ISSPACE(*t))
@@ -682,7 +1146,6 @@ fastfeed(FastSGMLParserObject* self)
                     return -1;
                 Py_DECREF(res);
                 if (token == TAG_EMPTY && self->finish_endtag) {
-                    PyObject* res;
                     res = PyObject_CallFunction(self->finish_endtag,
                                                 "s#", b, len);
                     if (!res)
@@ -711,13 +1174,8 @@ fastfeed(FastSGMLParserObject* self)
                 ch = 0;
                 for (p = b; p < e; p++)
                     ch = ch*10 + *p - '0';
-                if (self->saxlib)
-                    res = PyObject_CallFunction(self->handle_data,
-                                                "s#ii", &ch, sizeof(CHAR_T),
-                                                0, sizeof(CHAR_T));
-                else
-                    res = PyObject_CallFunction(self->handle_data,
-                                                "s#", &ch, sizeof(CHAR_T));
+                res = PyObject_CallFunction(self->handle_data,
+                                            "s#", &ch, sizeof(CHAR_T));
             }
             if (!res)
                 return -1;
@@ -726,20 +1184,12 @@ fastfeed(FastSGMLParserObject* self)
                                       self->handle_data)) {
             PyObject* res;
             if (self->handle_cdata) {
-                if (self->saxlib)
-                    res = PyObject_CallFunction(self->handle_cdata,
-                                                "s#ii", b, e-b, 0, e-b);
-                else
                     res = PyObject_CallFunction(self->handle_cdata,
                                                 "s#", b, e-b);
             } else {
                 /* fallback: handle cdata as plain data */
-                if (self->saxlib)
-                    res = PyObject_CallFunction(self->handle_data,
-                                                "s#ii", b, e-b, 0, e-b);
-                else
-                    res = PyObject_CallFunction(self->handle_data,
-                                                "s#", b, e-b);
+                res = PyObject_CallFunction(self->handle_data,
+                                            "s#", b, e-b);
             }
             if (!res)
                 return -1;
@@ -760,12 +1210,8 @@ fastfeed(FastSGMLParserObject* self)
   eol: /* end of line */
     if (q != s && self->handle_data) {
         PyObject* res;
-        if (self->saxlib)
-            res = PyObject_CallFunction(self->handle_data,
-                                        "s#ii", s, q-s, 0, q-s);
-        else
-            res = PyObject_CallFunction(self->handle_data,
-                                        "s#", s, q-s);
+        res = PyObject_CallFunction(self->handle_data,
+                                    "s#", s, q-s);
         if (!res)
             return -1;
         Py_DECREF(res);
@@ -859,6 +1305,8 @@ attrparse(const CHAR_T* p, int len, int xml)
 
             PyObject* res;
             res = PyTuple_New(2);
+            if (!res)
+                goto err;
             PyTuple_SET_ITEM(res, 0, key);
             PyTuple_SET_ITEM(res, 1, value);
             if (PyList_Append(attrs, res) < 0) {
