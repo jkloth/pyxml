@@ -124,8 +124,21 @@ from xml.dom.html import HTMLDOMImplementation
 
 htmlImplementation = HTMLDOMImplementation.HTMLDOMImplementation()
 
-from xml.unicode.iso8859 import wstring
-wstring.install_alias('ISO-8859-1','ISO_8859-1:1987')
+try:
+    # if the wstring module is found, use it
+    from xml.unicode.iso8859 import wstring
+    wstring.install_alias('ISO-8859-1','ISO_8859-1:1987')
+except ImportError:
+    # otherwise, try 1.6/2.0 Unicode code
+    class _wstring:
+        def from_utf(self,str):
+            return unicode(self,"utf-8")
+        try:
+            # If it is 1.5.2, delay errors until non-UTF-8 output is used
+            ConvertError = UnicodeError
+        except NameError:
+            ConvertError = "not supported"
+    wstring=_wstring()
 
 import re, string
 g_xmlIllegalCharPattern = re.compile('[\x01-\x08\x0B-\x0D\x0E-\x1F\x80-\xFF]')
