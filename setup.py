@@ -177,9 +177,18 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
 
        package_dir = {xml(''):'xml'},
 
-       data_files = xmldocfiles,
-
-       packages = [xml(''),
+       data_files = [Data_Files(base_dir='install_lib',
+                                copy_to=xml('/dom/de/LC_MESSAGES'),
+                                files=['xml/dom/de/LC_MESSAGES/4Suite.mo']),
+                     Data_Files(base_dir='install_lib',
+                                copy_to=xml('/dom/en_US/LC_MESSAGES'),
+                                files=['xml/dom/en_US/LC_MESSAGES/4Suite.mo']),
+                     Data_Files(base_dir='install_lib',
+                                copy_to=xml('/dom/fr_FR/LC_MESSAGES'),
+                                files=['xml/dom/fr_FR/LC_MESSAGES/4Suite.mo']),
+                     ] + xmldocfiles,
+       
+       packages = [xml(''), 
                    xml('.dom'), xml('.dom.html'), xml('.dom.ext'),
                    xml('.dom.ext.reader'),
                    xml('.marshal'), xml('.unicode'),
