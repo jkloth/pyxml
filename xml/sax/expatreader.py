@@ -245,6 +245,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         if self._namespaces:
             self._parser = expat.ParserCreate(None, " ",
                                               intern=self._interning)
+            self._parser.namespace_prefixes = 1
             self._parser.StartElementHandler = self.start_element_ns
             self._parser.EndElementHandler = self.end_element_ns
         else:
@@ -299,27 +300,43 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
     def start_element_ns(self, name, attrs):
         pair = name.split()
         if len(pair) == 1:
+            # no namespace
             pair = (None, name)
+        elif len(pair) == 3:
+            pair = pair[0], pair[1]
         else:
+            # default namespace
             pair = tuple(pair)
 
         newattrs = {}
+        qnames = {}
         for (aname, value) in attrs.items():
-            apair = aname.split()
-            if len(apair) == 1:
+            parts = aname.split()
+            length = len(parts)
+            if length == 1:
+                # no namespace
+                qname = aname
                 apair = (None, aname)
+            elif length == 3:
+                qname = "%s:%s" % (parts[2], parts[1])
+                apair = parts[0], parts[1]
             else:
-                apair = tuple(apair)
+                # default namespace
+                qname = parts[1]
+                apair = tuple(parts)
 
             newattrs[apair] = value
+            qnames[apair] = qname
 
         self._cont_handler.startElementNS(pair, None,
-                                          AttributesNSImpl(newattrs, {}))
+                                          AttributesNSImpl(newattrs, qnames))
 
     def end_element_ns(self, name):
         pair = name.split()
         if len(pair) == 1:
             pair = (None, name)
+        elif len(pair) == 3:
+            pair = pair[0], pair[1]
         else:
             pair = tuple(pair)
 
