@@ -1,18 +1,74 @@
 <!-- DTD for XBEL - XML Bookmark Exchange Language -->
 
-<!ELEMENT XBEL (INFO, FOLDER+)>
-<!ELEMENT FOLDER (NAME?, (BOOKMARK|FOLDER)+)>
+<!ENTITY lt "&#38;#60;">
+<!ENTITY gt "&#62;">
+<!ENTITY amp "&#38;#38;">
+<!ENTITY apos "&#39;">
+<!ENTITY quot "&#34;">
 
-<!ELEMENT BOOKMARK (NAME, URL, ADDED?, VISITED?, MODIFIED?)>
+<!ENTITY % NODES 'bookmark|folder|url|alias|separator'>
 
-<!ELEMENT INFO (OWNER, DATE?, MACHINENAME?)>
+<!ELEMENT xbel     (title?, info?, desc?, (%NODES;)*)>
+<!ATTLIST xbel
+            version CDATA   #FIXED "1.0"
+>
 
-<!ELEMENT OWNER (#PCDATA)>
-<!ELEMENT MACHINENAME (#PCDATA)>
-<!ELEMENT DATE (#PCDATA)>
+<!ELEMENT title	  (#PCDATA)>
 
-<!ELEMENT NAME (#PCDATA)>
-<!ELEMENT URL (#PCDATA)>
-<!ELEMENT ADDED (#PCDATA)>
-<!ELEMENT VISITED (#PCDATA)>
-<!ELEMENT MODIFIED (#PCDATA)>
+<!--=================== Info blocks ===============================-->
+
+<!ELEMENT info (metadata*)>
+
+<!ELEMENT metadata (meta*)>
+<!ATTLIST metadata
+	    id		ID    #IMPLIED
+	    scheme	CDATA #IMPLIED
+	    lang	CDATA #IMPLIED
+>
+<!ELEMENT meta (#PCDATA)>
+<!ATTLIST meta
+	    name	CDATA #REQUIRED
+>
+
+<!--=================== Folder ====================================-->
+
+<!ELEMENT folder   (title?,info?,desc?,(%NODES;)*)>
+<!ATTLIST folder
+            id	     ID	      #IMPLIED
+	    added     CDATA   #IMPLIED
+            folded   (yes|no) 'yes'   
+>
+
+<!--=================== URL ======================================-->
+
+<!ELEMENT url        (#PCDATA)>
+<!ATTLIST url
+            id	     ID	      #IMPLIED
+	    added    CDATA    #IMPLIED
+            href     CDATA    #REQUIRED
+            visited  CDATA    #IMPLIED
+            modified CDATA    #IMPLIED
+            response CDATA    #IMPLIED	-- HTTP response code? --
+            checked  CDATA    #IMPLIED
+>
+
+<!--=================== Bookmark ==================================-->
+
+<!-- a wrapper around an url when it has to contain extra info
+     like a description and info blocks
+  -->
+
+<!ELEMENT bookmark (url, info?, desc?)>
+
+<!ELEMENT desc       (#PCDATA)>
+
+<!--=================== Separator =================================-->
+
+<!ELEMENT separator EMPTY>
+
+<!--=================== Alias =====================================-->
+
+<!ELEMENT alias EMPTY>
+<!ATTLIST alias
+            ref       IDREF    #REQUIRED
+>
