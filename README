@@ -13,16 +13,15 @@ consult the LICENCE file.
 The only requirements for installing the package are Python 1.5 or
 later, and a C compiler (unless the pyexpat module is already part of
 your Python installation). This release has been tested with Python
-2.0b2 and Python 1.5.2.
+2.0 and Python 1.5.2.
 
 To compile everything, simply perform the following steps.
 
-1) 
- Run "python setup.py build" to copy *.py files and compile the C extensions.
+1) Run "python setup.py build" to copy *.py files and compile the C
+   extensions.
 
-2)
- To install everything in the site-packages directory as an xml/ package, 
- run "python setup.py install".
+2) To install everything in the site-packages directory as an xml/
+   package, run "python setup.py install".
 
 If you use a binary distribution package, no compiler is needed, and
 setup.py does not need to be run.
@@ -31,7 +30,7 @@ If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
-	4DOM from 4Suite 0.9.1	Fourthought, Inc. (Uche Ogbuji, Mike Olson)
+	4DOM from 4Suite 0.10.2	Fourthought, Inc. (Uche Ogbuji, Mike Olson)
 	PyExpat 		Jack Jansen
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-000705		Fredrik Lundh

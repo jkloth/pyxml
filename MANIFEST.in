@@ -8,8 +8,6 @@ include TODO
 include setup.py
 
 recursive-include xml *.py 
-recursive-include windows *.dll 
-recursive-include windows *.mak 
 
 recursive-include mac *.prj 
 recursive-include mac *.prj.exp
@@ -38,6 +36,7 @@ recursive-include extensions/expat *.dsp
 
 recursive-include test *.py 
 recursive-include test *.xml
+recursive-include test *.html
 include test/test.xml.out
 
 recursive-include test/output test_*
