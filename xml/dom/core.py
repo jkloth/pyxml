@@ -503,8 +503,8 @@ class Node:
 
                 if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
                     L[i:i+1] = newChild._node.children
-	            for child in newchild._node.children:
-	                self._set_parentdict(id(newChild._node), self._node)
+	            for child in newChild._node.children:
+	                self._set_parentdict(id(child), self._node)
                     newChild._node.children = []
                 else:
                     L[i] = newChild._node
