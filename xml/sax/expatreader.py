@@ -250,6 +250,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 #         self._parser.DefaultHandlerExpand =
 #         self._parser.NotStandaloneHandler =
         self._parser.ExternalEntityRefHandler = self.external_entity_ref
+        self._parser.SetParamEntityParsing(expat.XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE)
 
         self._parsing = 0
         self._entity_stack = []
