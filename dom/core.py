@@ -573,12 +573,10 @@ class Element(Node):
 
     def getElementsByTagName(self, tagname):
         L = []
-        if self._node.name == tagname:
-            L.append(self)
         for child in self._node.children:
             if child.type == ELEMENT:
                 d = Element(child, self, self._document)
-                if child.name == tagname:
+                if tagname == '*' or child.name == tagname:
                     L.append(d)
                 L = L + d.getElementsByTagName(tagname)
         return NodeList(L)
@@ -785,7 +783,10 @@ class Document(Node):
     def getElementsByTagName(self, tagname):
         elem = self.get_documentElement()
         if elem == None: return []
-        return elem.getElementsByTagName(tagname)
+        L = []
+        if tagname == '*' or tagname == elem._node.name:
+            L.append( elem )
+        return L + elem.getElementsByTagName(tagname)
 
     # Extended methods for creating entity and notation nodes
     def createNotation(self, name, publicId, systemId):
