@@ -251,7 +251,7 @@ class Node(xml.dom.Node, GetattrMagic):
 
 defproperty(Node, "firstChild", doc="First child node, or None.")
 defproperty(Node, "lastChild",  doc="Last child node, or None.")
-defproperty(Node, "localName", doc="Namespace-local name of this attribute.")
+defproperty(Node, "localName", doc="Namespace-local name of this node.")
 
 
 def _appendChild(self, node):
@@ -312,7 +312,7 @@ class Attr(Node):
     ownerElement = None
     childNodeTypes = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
     specified = 0
-    
+
     def __init__(self, qName, namespaceURI=EMPTY_NAMESPACE, localName=None,
                  prefix=None):
         # skip setattr for performance
@@ -322,8 +322,8 @@ class Attr(Node):
         d["prefix"] = prefix
         d['childNodes'] = NodeList()
 
-        #Add the single child node that represents the value of the attr
-        d['childNodes'].append(Text())
+        # Add the single child node that represents the value of the attr
+        self.childNodes.append(Text())
 
         # nodeValue and value are set elsewhere
 
@@ -339,6 +339,8 @@ class Attr(Node):
             d["name"] = d["nodeName"] = value
         else:
             d[name] = value
+
+defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
 
 
 class NamedNodeMap(NewStyle, GetattrMagic):
@@ -593,6 +595,8 @@ class Element(Node):
 
 defproperty(Element, "attributes",
             doc="NamedNodeMap of attributes on the element.")
+defproperty(Element, "localName",
+            doc="Namespace-local name of this element.")
 
 
 def _setAttributeNode(self, attr):
@@ -821,7 +825,7 @@ class Comment(Childless, CharacterData):
         self.data = self.nodeValue = data
 
     def writexml(self, writer, indent="", addindent="", newl=""):
-        writer.write("%s<!--%s-->%s" % (indent,self.data,newl))
+        writer.write("%s<!--%s-->%s" % (indent, self.data, newl))
 
 
 class CDATASection(Text):
@@ -833,8 +837,9 @@ class CDATASection(Text):
     nodeName = "#cdata-section"
 
     def writexml(self, writer, indent="", addindent="", newl=""):
+        if self.data.find("]]>") >= 0:
+            raise ValueError("']]>' not allowed in a CDATA section")
         writer.write("<![CDATA[%s]]>" % self.data)
-
 
 
 def _nssplit(qualifiedName):
