@@ -792,6 +792,7 @@ class Element(Node):
     
     def __init__(self, node, document = None):
         Node.__init__(self, node, document)
+	self.ns_prefix = {}         # Dictionary for namespaces
         
     def __repr__(self):
         return "<Element '%s'>" % (self._node.name)
@@ -855,11 +856,23 @@ class Element(Node):
         a.children.append( t )
         self._node.attributes[name] = a
 
+	# Update the namespace prefixes, if required
+	if name[0:5] == 'xmlns':
+	    prefix = name[6:]
+	    uri = value
+	    self.ns_prefix[prefix] = uri
+
     def removeAttribute(self, name):
         "Removes an attribute by name."
 
         if self._node.attributes.has_key(name):
             del self._node.attributes[name]
+
+	# Update the namespace prefixes, if required
+	if name[0:5] == 'xmlns':
+	    prefix = name[6:]
+	    assert self.ns_prefix.has_key( prefix )
+	    del self.ns_prefix[prefix]
 
     def getAttributeNode(self, name):
         "Retrieves an Attr node by name."
@@ -885,12 +898,26 @@ class Element(Node):
         else: retval = None
 
         self._node.attributes[ name ] = newAttr._node
+
+	# Update the namespace prefixes, if required
+	if name[0:5] == 'xmlns':
+	    prefix = name[6:]
+	    uri = newAttr.get_nodeValue()
+	    self.ns_prefix[prefix] = uri
+
         return retval
 
     def removeAttributeNode(self, oldAttr):
         "Removes the specified attribute."
         # XXX this needs to know about DTDs to restore a default value
         name = oldAttr._node.name
+
+	# Update the namespace prefixes, if required
+	if name[0:5] == 'xmlns':
+	    prefix = name[6:]
+	    assert self.ns_prefix.has_key( prefix )
+	    del self.ns_prefix[prefix]
+
         if self._node.attributes.has_key( name ):
             retval = Attr(self._node.attributes[name], self._document )
             del self._node.attributes[ name ]
