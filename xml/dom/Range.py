@@ -671,6 +671,9 @@ class Range:
             newStart = cur.cloneNode(0)
             for k in lastStartKids:
                 newStart.appendChild(k)
+            if startCopyData:
+                newStart.data = startCopyData
+                startCopyData = None
 
             df.appendChild(newStart)
 
@@ -710,7 +713,9 @@ class Range:
             newEnd = cur.cloneNode(0)
             for k in lastEndKids:
                 newEnd.appendChild(k)
-
+            if endCopyData:
+                newEnd.data = endCopyData
+                endCopyData = None
 
             cur = startAncestorChild
             #Extract everything between us
@@ -723,7 +728,7 @@ class Range:
         #Adjust the containers
         #FIXME What the heck is the spec talking about??
         self.__dict__['endContainer'] = self.startContainer
-        self.__dict__['endOffset'] = self.startContainer
+        self.__dict__['endOffset'] = self.startOffset
         self.__dict__['commonAncestorContainer'] = self.startContainer
         self.__dict__['collapsed'] = 1
 
@@ -881,8 +886,8 @@ class Range:
         index = cont.childNodes.index(node)
         self.setStart(cont,index)
 
-    def surrondContents(self,newParent):
-        """Surrond the range with this node"""
+    def surroundContents(self,newParent):
+        """Surround the range with this node"""
         if self.detached:
             raise InvalidStateErr()
 
