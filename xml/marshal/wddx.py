@@ -86,13 +86,13 @@ class WDDXMarshaller(Marshaller):
 
 class WDDXUnmarshaller(Unmarshaller):
     unmarshal_meth = {
-        'wddxPacket': ('um_start_root', 'um_end_root'),
+        'wddxPacket': ('um_start_root', None),
         'boolean': ('um_start_boolean', 'um_end_boolean'),
         'number': ('um_start_number', 'um_end_number'),
         'string': ('um_start_string', 'um_end_string'),
         'array': ('um_start_list', 'um_end_list'),
         'struct': ('um_start_dictionary', 'um_end_dictionary'),
-        'var': ('um_start_var', 'um_end_var'),
+        'var': ('um_start_var', None),
         'recordSet': ('um_start_recordset', 'um_end_recordset'),
         'field': ('um_start_field', 'um_end_field'),
         }

@@ -194,7 +194,7 @@ class Unmarshaller(saxlib.HandlerBase):
     # name them um_start_foo and um_end_foo, but do whatever you like.
     
     unmarshal_meth = {
-        'marshal': ('um_start_root', 'um_end_root'),
+        'marshal': ('um_start_root', None),
         'int': ('um_start_int', 'um_end_int'),
         'float': ('um_start_float', 'um_end_float'),
         'long': ('um_start_long', 'um_end_long'),
@@ -203,7 +203,7 @@ class Unmarshaller(saxlib.HandlerBase):
         'list': ('um_start_list', 'um_end_list'),
         'dictionary': ('um_start_dictionary', 'um_end_dictionary'),
         'complex': ('um_start_complex', 'um_end_complex'),
-        'reference': ('um_start_reference', 'um_end_reference'),
+        'reference': ('um_start_reference', None),
         'code': ('um_start_code', 'um_end_code'),
         'none': ('um_start_none', 'um_end_none'),
         }
@@ -215,16 +215,16 @@ class Unmarshaller(saxlib.HandlerBase):
         # method object.
         d = {}
         for key, (sm, em) in self.unmarshal_meth.items():
-            meth1 = meth2 = None
-            if hasattr(self, sm): meth1 = getattr(self, sm)
-            if hasattr(self, em): meth2 = getattr(self, em)
-            d[ key ] = meth1, meth2
+	    if sm is not None: sm = getattr(self, sm)
+	    if em is not None: em = getattr(self, em)
+            d[ key ] = sm,em
         self.unmarshal_meth = d
 
     def load(self, file):
         "Unmarshal one value, reading it from a file-like object"
         # Instatiate a new object; unmarshalling isn't thread-safe
-        # because it modifies attributes on the object.
+	# with a single object because it modifies attributes on the
+	# object.  
         m = self.__class__()
         return m._load(file)
 
@@ -405,9 +405,6 @@ def test(load, loads, dump, dumps, test_values,
 	file.seek(0)
 	output2 = load(file)
 
-##        print repr(item)
-##         print repr(output)
-##         print repr(output2)
         if do_assert:
             assert item==output and item==output2 and output==output2
 

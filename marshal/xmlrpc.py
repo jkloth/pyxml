@@ -49,7 +49,7 @@ class XMLRPCMarshaller(Marshaller):
 
 class XMLRPCUnmarshaller(Unmarshaller):
     unmarshal_meth = {
-        'methodCall': ('um_start_root', 'um_end_root'),
+        'methodCall': ('um_start_root', None),
         'i4': ('um_start_int', 'um_end_int'),
         'int': ('um_start_int', 'um_end_int'),
         'boolean': ('um_start_boolean', 'um_end_boolean'),
