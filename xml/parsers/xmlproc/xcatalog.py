@@ -1,6 +1,6 @@
 """
 Support for XCatalog catalog files.
-$Id: xcatalog.py,v 1.7 2000/09/26 14:43:10 loewis Exp $
+$Id: xcatalog.py,v 1.8 2001/03/27 19:29:11 larsga Exp $
 """
 
 import catalog,xmlapp,xmlproc
@@ -60,7 +60,18 @@ class XCatalogParser(catalog.AbstrCatalogParser,xmlapp.Application):
             elif name!="XCatalog":
                 self.parser.report_error(5000,(name,))
         except KeyError,e:
-            if e.args[0]=="HRef" or e.args[0]=="PublicID" or e.args[0]=="HRef":
+            if e.args[0] in ("HRef" , "PublicID"):
                 self.parser.report_error(5001,(e.args[0],name))
             else:
                 raise e # This came from the application, pass it on
+
+    # implementing Locator methods
+
+    def get_current_sysid(self):
+        return self.parser.get_current_sysid()
+
+    def get_line(self):
+        return self.parser.get_line()
+
+    def get_column(self):
+        return self.parser.get_column()
