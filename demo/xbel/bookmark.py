@@ -69,9 +69,9 @@ class Bookmarks:
                   % ID
         )
         if self.title:
-            out.write("  <title>%s</title>\n" % encode(self.title))
+            out.write("  <title>%s</title>\n" % esc_enc(self.title))
         if self.info:
-            out.write("  <info>%s</info>\n" % encode(self.info))
+            out.write("  <info>%s</info>\n" % esc_enc(self.info))
         out.write("  <desc>%s</desc>\n" % (esc_enc(self.desc),) )
 
         for folder in self.folders:
@@ -92,10 +92,10 @@ class Bookmarks:
         # Netscape 4 is not bothered by it
         out.write('<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n')
         if self.title:
-            out.write("<TITLE>" + encode(self.title) + "</TITLE>\n")
+            out.write("<TITLE>" + esc_enc(self.title) + "</TITLE>\n")
         else:
             out.write("<TITLE>Bookmarks</TITLE>\n")
-        out.write("<H1>" + encode(self.desc) + "</H1>\n\n")
+        out.write("<H1>" + esc_enc(self.desc) + "</H1>\n\n")
 
         out.write("<DL><p>\n")
         for folder in self.folders:
@@ -194,9 +194,9 @@ class Folder(Node):
         out.write("  <folder%s%s%s%s%s>\n" % (ID, added, folded, icon, toolbar))
         out.write("    <title>%s</title>\n" % esc_enc(self.title) )
         if self.info:
-            out.write("    <info>%s</info>\n" % encode(self.info))
+            out.write("    <info>%s</info>\n" % esc_enc(self.info))
         if self.desc:
-            out.write("    <desc>%s</desc>\n" % encode(self.desc))
+            out.write("    <desc>%s</desc>\n" % esc_enc(self.desc))
         for child in self.children:
             child.dump_xbel(out)
         out.write("  </folder>\n")
@@ -229,10 +229,10 @@ class Folder(Node):
         else:
             added = ""
         out.write("  <DT><H3%s%s%s>%s</H3>\n" %
-                  (folded,added,ID,encode(self.title)))
+                  (folded,added,ID,esc_enc(self.title)))
         if self.desc:
             out.write("  <DD>%s\n" %
-                      (encode(self.desc)))
+                      (esc_enc(self.desc)))
             
         out.write("  <DL><p>\n")
 
@@ -286,9 +286,9 @@ class Bookmark(Node):
                   ( esc_enc(self.href), ID, added, visited, modified) )
         out.write("      <title>%s</title>\n" % esc_enc(self.title) )
         if self.info:
-            out.write("    <info>%s</info>\n" % encode(self.info))
+            out.write("    <info>%s</info>\n" % esc_enc(self.info))
         if self.desc:
-            out.write("    <desc>%s</desc>\n" % encode(self.desc))
+            out.write("    <desc>%s</desc>\n" % esc_enc(self.desc))
         out.write("    </bookmark>\n")
 
     def dump_adr(self,out):
@@ -312,9 +312,9 @@ class Bookmark(Node):
                   (encode(self.href),added,visited,modified,
                    esc_enc(self.title)))
         if self.desc:
-            out.write("    <DD>%s\n" %(encode(self.desc)))
+            out.write("    <DD>%s\n" %(esc_enc(self.desc)))
     def dump_lynx(self, out):
-        out.write("<LI><A HREF=\"%s\">%s</A>\n" % (self.href, self.title) )
+        out.write("<LI><A HREF=\"%s\">%s</A>\n" % (self.href, esc_enc(self.title)) )
 
 # --- Class for separators
 
