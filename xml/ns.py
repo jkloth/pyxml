@@ -72,10 +72,10 @@ class DSIG:
     C14N_COMM   = C14N + "#WithComments"
 
 
-class ENC:
-    """ENC, XML-Encryption Syntax and Processing
+class ENCRYPTION:
+    """ENCRYPTION, XML-Encryption Syntax and Processing
 
-    ENC (26-Jun-2001) is a W3C Working Draft.  It is specified in
+    ENCRYPTION (26-Jun-2001) is a W3C Working Draft.  It is specified in
     http://www.w3.org/TR/xmlenc-core/
 	BASE -- the basic namespace defined by the specification
 	BLOCK_3DES -- The triple-DES symmetric encryption method
