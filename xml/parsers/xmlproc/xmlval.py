@@ -2,7 +2,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.14 2001/12/30 12:09:14 loewis Exp $
+$Id: xmlval.py,v 1.15 2002/04/13 19:15:31 larsga Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time
@@ -171,42 +171,51 @@ class ValidatingApp(Application):
         self.realapp.set_locator(locator)
 
     def handle_start_tag(self,name,attrs):
-        decl_root=self.dtd.get_root_elem()
-
-        if self.cur_elem!=None:
-            if self.cur_state!=-1:
-                next=self.cur_elem.next_state(self.cur_state,name)
-                if next==0:
-                    self.parser.report_error(2001,name)
+	decl_root = self.dtd.get_root_elem()
+	
+	if self.cur_elem != None:
+            if self.cur_state != -1:
+                next = self.cur_elem.next_state(self.cur_state, name)
+                if next == 0:
+                    # try to infer missing element
+                    skip = self.cur_elem.next_state_skip(self.cur_state, name)
+                    if skip:
+                        # success: give improved error message
+                        self.parser.report_error(2025, (skip[1], name))
+                        self.cur_state = skip[0]
+                    else:
+                        # failed; give generic error message
+                        self.parser.report_error(2001, name)
                 else:
-                    self.cur_state=next
+                    self.cur_state = next
 
-            self.stack.append((self.cur_elem,self.cur_state))
-        elif (not self._seen_root) and decl_root!=None and name!=decl_root:
-            self.parser.report_error(2002,name)
+	    self.stack.append((self.cur_elem, self.cur_state))
+            
+	elif (not self._seen_root) and decl_root != None and name != decl_root:
+	    self.parser.report_error(2002,name)
 
         self._seen_root = 1
-        try:
-            self.cur_elem=self.dtd.get_elem(name)
-            self.cur_state=self.cur_elem.get_start_state()
-            self.validate_attributes(self.dtd.get_elem(name),attrs)
-        except KeyError:
-            self.parser.report_error(2003,name)
-            self.cur_state=-1
+	try:
+	    self.cur_elem = self.dtd.get_elem(name)
+            self.cur_state = self.cur_elem.get_start_state()
+	    self.validate_attributes(self.dtd.get_elem(name), attrs)
+	except KeyError:
+	    self.parser.report_error(2003, name)
+	    self.cur_state = -1
 
-        self.realapp.handle_start_tag(name,attrs)
-
+	self.realapp.handle_start_tag(name, attrs)
+	
     def handle_end_tag(self,name):
-        "Notifies the application of end tags (and empty element tags)."
-        if self.cur_elem!=None and \
-           not self.cur_elem.final_state(self.cur_state):
-            self.parser.report_error(2004,name)
+	"Notifies the application of end tags (and empty element tags)."
+	if self.cur_elem != None and \
+	   not self.cur_elem.final_state(self.cur_state):
 
-        if self.stack!=[]:
-            (self.cur_elem,self.cur_state)=self.stack[-1]
-            del self.stack[-1]
-
-        self.realapp.handle_end_tag(name)
+            valid = self.cur_elem.get_valid_elements(self.cur_state)
+	    self.parser.report_error(2004, (name, string.join(valid, ", ")))
+	
+	if self.stack!=[]:
+	    (self.cur_elem,self.cur_state)=self.stack[-1]
+	    del self.stack[-1]
 
     def handle_data(self,data,start,end):
         "Notifies the application of character data."
@@ -230,14 +239,14 @@ class ValidatingApp(Application):
         """Validates the attributes against the element declaration and adds
         fixed and default attributes."""
 
-        # Check the values of the present attributes
-        for attr in attrs.keys():
-            try:
-                decl=element.get_attr(attr)
-            except KeyError:
-                self.parser.report_error(2006,attr)
-                return
-
+	# Check the values of the present attributes
+	for attr in attrs.keys():
+	    try:
+		decl = element.get_attr(attr)
+	    except KeyError:
+		self.parser.report_error(2006, attr)
+                continue
+        
             if decl.type!="CDATA":
                 attrs[attr]=string.join(string.split(attrs[attr]))
 
