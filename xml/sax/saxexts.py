@@ -1,7 +1,7 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.8 2000/09/26 20:01:02 loewis Exp $
+$Id: saxexts.py,v 1.9 2000/09/28 06:54:50 loewis Exp $
 """
 
 import _exceptions,handler,sys,string,os
@@ -42,7 +42,7 @@ class ParserFactory:
             drv_module = __import__(parser_name,{},{},['create_parser'])
             return drv_module.create_parser()
 
-    def make_parser(self, parser_list):
+    def make_parser(self, parser_list = []):
         """Returns a SAX driver for the first available parser of the parsers
         in the list. Note that the list is one of drivers, so it first tries
         the driver and if that exists imports it to see if the parser also
