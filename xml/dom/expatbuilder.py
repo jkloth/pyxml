@@ -724,7 +724,9 @@ class Namespaces:
     def install(self, parser):
         """Insert the namespace-handlers onto the parser."""
         ExpatBuilder.install(self, parser)
-        parser.StartNamespaceDeclHandler = self.start_namespace_decl_handler
+        if self._options.namespace_declarations:
+            parser.StartNamespaceDeclHandler = (
+                self.start_namespace_decl_handler)
 
     def start_namespace_decl_handler(self, prefix, uri):
         """Push this namespace declaration on our storage."""
@@ -743,7 +745,7 @@ class Namespaces:
         _append_child(self.curNode, node)
         self.curNode = node
 
-        if self._ns_ordered_prefixes and self._options.namespace_declarations:
+        if self._ns_ordered_prefixes:
             for prefix, uri in self._ns_ordered_prefixes:
                 if prefix:
                     a = minidom.Attr(_intern(self, 'xmlns:' + prefix),
