@@ -810,6 +810,37 @@ class Text(CharacterData):
                 break
         return ''.join(L)
 
+    def replaceWholeText(self, content):
+        # XXX This needs to be seriously changed if minidom ever
+        # supports EntityReference nodes.
+        parent = self.parentNode
+        n = self.previousSibling
+        while n is not None:
+            if n.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+                next = n.previousSibling
+                parent.removeChild(n)
+                n = next
+            else:
+                break
+        n = self.nextSibling
+        if not content:
+            parent.removeChild(self)
+        while n is not None:
+            if n.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+                next = n.nextSibling
+                parent.removeChild(n)
+                n = next
+            else:
+                break
+        if content:
+            d = self.__dict__
+            d['data'] = content
+            d['nodeValue'] = content
+            return self
+        else:
+            return None
+
+
 defproperty(Text, "wholeText",
             doc="The text of all logically-adjacent text nodes.")
 
@@ -1171,6 +1202,9 @@ class Document(Node, DocumentLS):
             d['name'] = name
             if element is not None:
                 element.setAttributeNode(n)
+        # XXX not clear whether we should call the user data handlers
+        # for the NODE_RENAMED event since we're re-using the existing
+        # node.  This is a whole in the spec.
         return n
 
 defproperty(Document, "documentElement",
