@@ -32,8 +32,7 @@ Usage:
   and XMLSOCATALOG will be used (in that order).
 """
 
-from xml.parsers.xmlproc import xmlval,catalog,xcatalog,xmlproc
-import outputters
+from xml.parsers.xmlproc import xmlval,catalog,xcatalog,xmlproc,_outputters
 import sys, getopt, os, string
 
 # --- Utilities
@@ -77,11 +76,11 @@ for option in options:
             print "Error: Language '%s' not available" % option[1]
     elif option[0]=="-o":
         if string.lower(option[1]) == "e":
-            app = outputters.ESISDocHandler()            
+            app = _outputters.ESISDocHandler()            
         elif string.lower(option[1]) == "x":
-            app = outputters.Canonizer()
+            app = _outputters.Canonizer()
         elif string.lower(option[1]) == "n":
-            app = outputters.DocGenerator()
+            app = _outputters.DocGenerator()
         else:
             print_usage("Error: Unknown output format " + option[1])
             
@@ -96,7 +95,7 @@ for option in options:
 
 # Acting on option settings
 
-err = outputters.MyErrorHandler(p, p.parser, warnings, entstack, rawxml)
+err = _outputters.MyErrorHandler(p, p.parser, warnings, entstack, rawxml)
 p.set_error_handler(err)
 
 if namespaces:

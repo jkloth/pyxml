@@ -29,8 +29,8 @@ Usage:
 
 # --- INITIALIZATION
 
-import sys,outputters,getopt
-from xml.parsers.xmlproc import xmlproc
+import sys,getopt
+from xml.parsers.xmlproc import xmlproc, _outputters
 
 # --- Interpreting options
 
@@ -60,11 +60,11 @@ for option in options:
             print "Error language '%s' not available" % option[1]
     elif option[0]=="-o":
         if option[1]=="e" or option[1]=="E":
-            app=outputters.ESISDocHandler()            
+            app=_outputters.ESISDocHandler()            
         elif option[1]=="x" or option[1]=="X":
-            app=outputters.Canonizer()
+            app=_outputters.Canonizer()
         elif option[1]=="n" or option[1]=="N":
-            app=outputters.DocGenerator()
+            app=_outputters.DocGenerator()
         else:
             print "Error: Unknown output format "+option[1]
             print usage
@@ -81,7 +81,7 @@ for option in options:
 
 # Acting on option settings
 
-err=outputters.MyErrorHandler(p, p, warnings, entstack, rawxml)
+err=_outputters.MyErrorHandler(p, p, warnings, entstack, rawxml)
 p.set_error_handler(err)
 
 if namespaces:
