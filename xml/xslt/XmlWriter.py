@@ -38,7 +38,7 @@ class XmlWriter(NullWriter.NullWriter):
         self._outputParams.indent = outputParams.indent == 'yes'
         self._outputParams.mediaType = outputParams.mediaType or 'text/xml'
         self._currElement = None
-        self._namespaces = [{'': '', 'xml': XML_NAMESPACE}]
+        self._namespaces = [{'': EMPTY_NAMESPACE, 'xml': XML_NAMESPACE}]
         self._indent = ''
         self._nextNewLine = 0
         self._cdataSectionElement = 0
@@ -88,7 +88,7 @@ class XmlWriter(NullWriter.NullWriter):
         self._nextNewLine = 0
         return
 
-    def attribute(self, name, value, namespace=''):
+    def attribute(self, name, value, namespace=EMPTY_NAMESPACE):
         if not self._currElement:
             raise XsltException(Error.ATTRIBUTE_ADDED_AFTER_ELEMENT)
         value = TranslateCdata(value, self._outputParams.encoding)
@@ -120,7 +120,7 @@ class XmlWriter(NullWriter.NullWriter):
         self._nextNewLine = 1
         return
 
-    def startElement(self, name, namespace='', extraNss=None):
+    def startElement(self, name, namespace=EMPTY_NAMESPACE, extraNss=None):
         extraNss = extraNss or {}
 
         self._completeLastElement(0)
