@@ -680,6 +680,7 @@ xmlparse_dealloc(xmlparseobject *self)
     for (i=0; handler_info[i].name != NULL; i++) {
         Py_XDECREF(self->handlers[i]);
     }
+    free (self->handlers);
 #if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
     /* Code for versions before 1.6 */
     free(self);
