@@ -29,6 +29,12 @@ def _sorter(n1, n2):
     if i: return i
     return cmp(n1.localName, n2.localName)
 
+def _sorter_ns(n1, n2):
+    '''Sorting predicate for NS attributes; "xmlns" always comes first.'''
+    if n1.localName == 'xmlns': return -1
+    if n2.localName == 'xmlns': return 1
+    return cmp(n1.localName, n2.localName)
+    
 class _implementation:
     '''Implementation class for C14N.'''
 
@@ -124,20 +130,22 @@ class _implementation:
 	    .replace("&", "&amp;") \
 	    .replace("<", "&lt;") \
 	    .replace('"', '&quot;') \
-	    .replace('\011', '&#9') \
-	    .replace('\012', '&#A') \
-	    .replace('\015', '&#D')
+	    .replace('\011', '&#x9') \
+	    .replace('\012', '&#xA') \
+	    .replace('\015', '&#xD')
 	W(s)
 	W('"')
 
     def _do_element(self, node, initialattrlist = []):
 	'Process an element (and its children).'
 	name = node.nodeName
-	parent_ns = self.ns_stack[-1]
-	my_ns = { 'xmlns': parent_ns.get('xmlns', XMLNS.BASE) }
 	W = self.write
 	W('<')
 	W(name)
+
+	# Get parent namespace, make a copy for us to inherit.
+	parent_ns = self.ns_stack[-1]
+	my_ns = parent_ns.copy()
 
 	# Divide attributes into NS definitions and others.
 	nsnodes, others = [], initialattrlist[:]
@@ -149,16 +157,24 @@ class _implementation:
 
 	# Namespace attributes: update dictionary; if not already
 	# in parent, output it.
-	nsnodes.sort(lambda n1, n2: cmp(n1.localName, n2.localName))
+	nsnodes.sort(_sorter_ns)
 	for a in nsnodes:
+	    # Some DOMs seem to rename "xmlns='xxx'" strangely
 	    n = a.nodeName
 	    if n == "xmlns:":
 		key, n = "", "xmlns"
 	    else:
 		key = a.localName
+
 	    v = my_ns[key] = a.nodeValue
 	    pval = parent_ns.get(key, None)
-	    if v != pval: self._do_attr(n, v)
+
+	    if n == "xmlns" and v in [ '', XMLNS.BASE ] \
+	    and pval in [ '', XMLNS.BASE ]:  
+		# Default namespace set to default value.
+		pass
+	    elif v != pval:
+		self._do_attr(n, v)
 
 	# Other attributes: sort and output.
 	others.sort(_sorter)
@@ -166,6 +182,7 @@ class _implementation:
 
 	W('>')
 
+	# Push our namespace dictionary, recurse, pop the dicionary.
 	self.ns_stack.append(my_ns)
 	for c in _children(node):
 	    _implementation.handlers[c.nodeType](self, c)
@@ -194,7 +211,7 @@ def Canonicalize(node, output=None, **kw):
 	stripspace=kw.get('stripspace', 0),
 	nocomments=kw.get('comments', 0) == 0,
     )
-    if not output: return (s.getvalue(), s.close())[0]
+    if not output: return s.getvalue()
 
 if __name__ == '__main__':
     text = '''<SOAP-ENV:Envelope xml:lang='en'
@@ -205,7 +222,7 @@ if __name__ == '__main__':
       SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
 	<SOAP-ENV:Body xmlns='test-uri'><?MYPI spenser?>
 	    <zzz xsd:foo='xsdfoo' xsi:a='xsi:a'/>
-	    <SOAP-ENC:byte>44</SOAP-ENC:byte>	<!-- 1 -->
+	    <SOAP-ENC:byte>44</SOAP-ENC:byte>        <!-- 1 -->
 	    <Name xml:lang='en-GB'>This is the name</Name>Some
 content here on two lines.
 	    <n2><![CDATA[<greeting>Hello</greeting>]]></n2> <!-- 3 -->
