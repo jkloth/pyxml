@@ -743,13 +743,13 @@ class Attr(Node):
         return '<Attribute node %s>' % (repr(self._node.name),)
 
     def toxml(self):
-        s = ""
+        L = []
         for c in self._node.children:
             if c.type == TEXT_NODE:
-                s = s + c.value
+                L.append(c.value)
             elif c.type == ENTITY_REFERENCE_NODE:
-                s = s + '&' + c.name + ';'
-        return s
+                L.extend(["&", c.name, ";"])
+        return string.join(L, "")
     
     def get_nodeName(self):
         return self._node.name
@@ -798,25 +798,26 @@ class Element(Node):
         return "<Element '%s'>" % (self._node.name)
 
     def toxml(self):
-        s = "<" + self._node.name
+        L = ["<", self._node.name]
         for attr, attrnode in self._node.attributes.items():
-            s = s + " %s='" % (attr,)
+            L.append(" %s='" % (attr,))
             for value in attrnode.children:
                 if value.type == TEXT_NODE:
-                    s = s + escape(value.value) 
+                    L.append(escape(value.value) )
                 else:
                     n = NODE_CLASS[ value.type ] (value, self._document)
-                    s = s + value.toxml()
-            s = s + "'"
+                    L.append(value.toxml())
+            L.append("'")
             
         if len(self._node.children) == 0:
-            return s + " />"
-        s = s + '>'
+            L.append(" />")
+            return string.join(L, "")
+        L.append(">")
         for child in self._node.children:
             n = NODE_CLASS[ child.type ] (child, self._document)
-            s = s + n.toxml()
-        s = s + "</" + self._node.name + '>'
-        return s
+            L.append(n.toxml())
+        L.extend(["</", self._node.name, ">"])
+        return string.join(L, "")
 
     # Attributes
     
@@ -1109,13 +1110,13 @@ class Document(Node):
 	self._document = node
 
     def toxml(self):
-        s = '<?xml version="1.0"?>\n'
+        L = ['<?xml version="1.0"?>\n']
         if self.documentType:
-            s = s + self.documentType.toxml()
+            L.append(self.documentType.toxml())
         for n in self._node.children:
             n = NODE_CLASS[ n.type ] (n, self._document)
-            s = s + n.toxml()
-        return s
+            L.append(n.toxml())
+        return string.join(L, "")
 
     def __repr__(self):
         return '<DOM Document; root=%s >' % (repr(self.get_documentElement()),)
@@ -1327,11 +1328,11 @@ class DocumentFragment(Node):
 	return None    
 
     def toxml(self):
-        s = ""
+        L = []
         for child in self._node.children:
             n = NODE_CLASS[ child.type ] (child, self._document)
-            s = s + n.toxml()
-        return s
+            L.append(n.toxml())
+        return string.join(L, "")
     
 # Dictionary mapping types to the corresponding class object
 
