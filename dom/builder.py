@@ -7,7 +7,8 @@ Event-driven, almost-SAXish, grove builder.
 from xml.dom.core import *
 import string
 
-_LEGAL_DOCUMENT_CHILDREN = (ELEMENT, PROCESSING_INSTRUCTION, COMMENT)
+_LEGAL_DOCUMENT_CHILDREN = (ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+			    COMMENT_NODE)
 
 
 class Builder:
