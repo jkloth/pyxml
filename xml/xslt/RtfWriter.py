@@ -15,6 +15,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string, os
 import NullWriter
+from xml.dom import EMPTY_NAMESPACE
 from xml.xslt import XSL_NAMESPACE
 from xml.xpath import Util
 from xml.dom.ext import SplitQName
@@ -32,7 +33,7 @@ class RtfWriter(NullWriter.NullWriter):
     def getResult(self):
         return self._root
 
-    def startElement(self, name, namespace='', extraNss=None):
+    def startElement(self, name, namespace=EMPTY_NAMESPACE, extraNss=None):
         extraNss = extraNss or {}
         prefix, localName = SplitQName(name)
         new_element = self._ownerDoc.createElementNS(namespace, name)
@@ -60,7 +61,7 @@ class RtfWriter(NullWriter.NullWriter):
         top_node.stringValue = top_node.stringValue + text
         return
 
-    def attribute(self, name, value, namespace=''):
+    def attribute(self, name, value, namespace=EMPTY_NAMESPACE):
         prefix, localName = SplitQName(name)
         attr = self._ownerDoc.createAttributeNS(namespace, name)
         attr.value = value

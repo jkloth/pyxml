@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 from xml.xslt import XsltElement, XsltException, Error, AttributeValueTemplate
@@ -25,7 +26,7 @@ class ProcessingInstructionElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_target'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'name'))
+        self.__dict__['_target'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'name'))
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         return
 

@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 from xml.xslt import XsltElement, XsltException, Error
@@ -24,10 +25,10 @@ class ValueOfElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_select'] = self.getAttributeNS('', 'select')
+        self.__dict__['_select'] = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         if not self._select:
             raise XsltException(Error.VALUEOF_MISSING_SELECT)
-        self.__dict__['_disable_output_escaping'] = self.getAttributeNS('', 'disable-output-escaping') == 'yes'
+        self.__dict__['_disable_output_escaping'] = self.getAttributeNS(EMPTY_NAMESPACE, 'disable-output-escaping') == 'yes'
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         parser = XPathParser.XPathParser()
         self.__dict__['_expr'] = parser.parseExpression(self._select)

@@ -14,6 +14,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string, types
 import urlparse, urllib
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml import xpath, xslt
 from xml.dom import Node
@@ -116,7 +117,7 @@ class StylesheetElement(XsltElement):
         self.decimalFormats = {'': ('.', ',', 'Infinity', '-', 'NaN', '%', '?', '0', '#', ';')}
         self.keys = {}
         self.outputParams = OutputParameters()
-        excluded_prefixes = self.getAttributeNS('', 'exclude-result-prefixes')
+        excluded_prefixes = self.getAttributeNS(EMPTY_NAMESPACE, 'exclude-result-prefixes')
         self.excludedNss = []
         if excluded_prefixes:
             excluded_prefixes = string.splitfields(excluded_prefixes)
@@ -137,8 +138,8 @@ class StylesheetElement(XsltElement):
         #Namespace aliases
         ns_aliases = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'namespace-alias'), self.childNodes)
         for nsa in ns_aliases:
-            stylesheet_prefix = nsa.getAttributeNS('', 'stylesheet-prefix')
-            result_prefix = nsa.getAttributeNS('', 'result-prefix')
+            stylesheet_prefix = nsa.getAttributeNS(EMPTY_NAMESPACE, 'stylesheet-prefix')
+            result_prefix = nsa.getAttributeNS(EMPTY_NAMESPACE, 'result-prefix')
             if not (stylesheet_prefix and result_prefix):
                 raise XsltException(Error.INVALID_NAMESPACE_ALIAS)
             if stylesheet_prefix == '#default':
@@ -171,16 +172,16 @@ class StylesheetElement(XsltElement):
         dec_formats = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'decimal-format'), self.childNodes)
         for dc in dec_formats:
             format_settings = (
-                (dc.getAttributeNS('', 'decimal-separator') or '.'),
-                (dc.getAttributeNS('', 'grouping-separator') or ','),
-                (dc.getAttributeNS('', 'infinity') or 'Infinity'),
-                (dc.getAttributeNS('', 'minus-sign') or '-'),
-                (dc.getAttributeNS('', 'NaN') or 'NaN'),
-                (dc.getAttributeNS('', 'percent') or '%'),
-                (dc.getAttributeNS('', 'per-mille') or '?'),
-                (dc.getAttributeNS('', 'zero-digit') or '0'),
-                (dc.getAttributeNS('', 'digit') or '#'),
-                (dc.getAttributeNS('', 'pattern-separator') or ';')
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'decimal-separator') or '.'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'grouping-separator') or ','),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'infinity') or 'Infinity'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'minus-sign') or '-'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'NaN') or 'NaN'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'percent') or '%'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'per-mille') or '?'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'zero-digit') or '0'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'digit') or '#'),
+                (dc.getAttributeNS(EMPTY_NAMESPACE, 'pattern-separator') or ';')
                 )
             nfs = []
             for fc in format_settings:
@@ -188,7 +189,7 @@ class StylesheetElement(XsltElement):
                     nfs.append('\\'+fc)
                 else:
                     nfs.append(fc)
-            name = dc.getAttributeNS('', 'name')
+            name = dc.getAttributeNS(EMPTY_NAMESPACE, 'name')
             name = name and Util.ExpandQName(name, dc)
             self.decimalFormats[name] = tuple(nfs)
         return
@@ -197,7 +198,7 @@ class StylesheetElement(XsltElement):
         #Whitespace rules
         space_rules = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) in [(XSL_NAMESPACE, 'preserve-space'), (XSL_NAMESPACE, 'strip-space')], self.childNodes)
         for sr in space_rules:
-            args = string.splitfields(sr.getAttributeNS('', 'elements'))
+            args = string.splitfields(sr.getAttributeNS(EMPTY_NAMESPACE, 'elements'))
             for an_arg in args:
                 #FIXME: watch out!  ExpandQName doesn't handle ns defaulting
                 split_name = Util.ExpandQName(an_arg, sr)
@@ -208,28 +209,28 @@ class StylesheetElement(XsltElement):
         #Output
         output = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'output'), self.childNodes)
         for out in output:
-            method = out.getAttributeNS('', 'method')
+            method = out.getAttributeNS(EMPTY_NAMESPACE, 'method')
             if method: self.outputParams.method = method
-            version = out.getAttributeNS('', 'version')
+            version = out.getAttributeNS(EMPTY_NAMESPACE, 'version')
             if version: self.outputParams.version = version
-            encoding = out.getAttributeNS('', 'encoding')
+            encoding = out.getAttributeNS(EMPTY_NAMESPACE, 'encoding')
             if encoding: self.outputParams.encoding = encoding
-            omit_xml_decl = out.getAttributeNS('', 'omit-xml-declaration')
+            omit_xml_decl = out.getAttributeNS(EMPTY_NAMESPACE, 'omit-xml-declaration')
             if omit_xml_decl: self.outputParams.omitXmlDeclaration = omit_xml_decl
-            standalone = out.getAttributeNS('', 'standalone')
+            standalone = out.getAttributeNS(EMPTY_NAMESPACE, 'standalone')
             if standalone: self.outputParams.standalone = standalone
-            doctype_system = out.getAttributeNS('', 'doctype-system')
+            doctype_system = out.getAttributeNS(EMPTY_NAMESPACE, 'doctype-system')
             if doctype_system: self.outputParams.doctypeSystem = doctype_system
-            doctype_public = out.getAttributeNS('', 'doctype-public')
+            doctype_public = out.getAttributeNS(EMPTY_NAMESPACE, 'doctype-public')
             if doctype_public: self.outputParams.doctypePublic = doctype_public
-            media_type = out.getAttributeNS('', 'media-type')
+            media_type = out.getAttributeNS(EMPTY_NAMESPACE, 'media-type')
             if media_type: self.outputParams.mediaType = media_type
-            #cdata_sec_elem = out.getAttributeNS('', 'cdata-section-elements')
+            #cdata_sec_elem = out.getAttributeNS(EMPTY_NAMESPACE, 'cdata-section-elements')
             self.outputParams.cdataSectionElements = []
-            qnames = string.splitfields(out.getAttributeNS('', 'cdata-section-elements'))
+            qnames = string.splitfields(out.getAttributeNS(EMPTY_NAMESPACE, 'cdata-section-elements'))
             for qname in qnames:
                 self.outputParams.cdataSectionElements.append(Util.ExpandQName(qname, namespaces=self.namespaces))
-            indent = out.getAttributeNS('', 'indent')
+            indent = out.getAttributeNS(EMPTY_NAMESPACE, 'indent')
             if indent: self.outputParams.indent = indent
         return
 
@@ -269,10 +270,10 @@ class StylesheetElement(XsltElement):
         path_parser = XPathParser.XPathParser()
         kelems = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'key'), self.childNodes)
         for kelem in kelems:
-            name = Util.ExpandQName(kelem.getAttributeNS('', 'name'), kelem)
-            match = kelem.getAttributeNS('', 'match')
+            name = Util.ExpandQName(kelem.getAttributeNS(EMPTY_NAMESPACE, 'name'), kelem)
+            match = kelem.getAttributeNS(EMPTY_NAMESPACE, 'match')
             match_pattern = pattern_parser.parsePattern(match)
-            use = kelem.getAttributeNS('', 'use')
+            use = kelem.getAttributeNS(EMPTY_NAMESPACE, 'use')
             use_expr = path_parser.parseExpression(use)
             self._kelems.append((name, match_pattern, use_expr))
 
@@ -480,7 +481,7 @@ class StylesheetElement(XsltElement):
         self.decimalFormats = {'': ('.', ',', 'Infinity', '-', 'NaN', '%', '?', '0', '#', ';')}
         self.keys = {}
         self.outputParams = OutputParameters()
-        excluded_prefixes = self.getAttributeNS('', 'exclude-result-prefixes')
+        excluded_prefixes = self.getAttributeNS(EMPTY_NAMESPACE, 'exclude-result-prefixes')
         self.excludedNss = []
         self._lres = []
         return

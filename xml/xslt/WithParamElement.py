@@ -19,6 +19,7 @@ from xml.xslt import XsltElement, XsltException, Error
 from xml.xpath import CoreFunctions
 from xml.xpath import Util
 from xml.xpath import XPathParser
+from xml.dom import EMPTY_NAMESPACE
 
 class WithParamElement(XsltElement):
     legalAttrs = ('select', 'name')
@@ -28,13 +29,13 @@ class WithParamElement(XsltElement):
 
     def setup(self):
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
-        name_attr = self.getAttributeNS('', 'name')
+        name_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'name')
         split_name = Util.ExpandQName(
             name_attr,
             namespaces=self._nss
             )
         self.__dict__['_name'] = split_name
-        select = self.getAttributeNS('', 'select')
+        select = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         if select:
             parser = XPathParser.XPathParser()
             self.__dict__['_expr'] = parser.parseExpression(select)

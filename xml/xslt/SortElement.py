@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 import xml.xslt
@@ -27,12 +28,12 @@ class SortElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_select'] = self.getAttributeNS('', 'select') or '.'
-        data_type = self.getAttributeNS('', 'data-type')
+        self.__dict__['_select'] = self.getAttributeNS(EMPTY_NAMESPACE, 'select') or '.'
+        data_type = self.getAttributeNS(EMPTY_NAMESPACE, 'data-type')
         self.__dict__['_data_type'] = data_type and AttributeValueTemplate.AttributeValueTemplate(data_type) or None
-        case_order = self.getAttributeNS('', 'case-order')
+        case_order = self.getAttributeNS(EMPTY_NAMESPACE, 'case-order')
         self.__dict__['_case_order'] = case_order and AttributeValueTemplate.AttributeValueTemplate(case_order) or None
-        order = self.getAttributeNS('', 'order')
+        order = self.getAttributeNS(EMPTY_NAMESPACE, 'order')
         self.__dict__['_order'] = order and AttributeValueTemplate.AttributeValueTemplate(order) or None
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         parser = XPathParser.XPathParser()

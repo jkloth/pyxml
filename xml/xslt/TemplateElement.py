@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import re, string
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 import xml.xslt
@@ -31,8 +32,8 @@ class TemplateElement(XsltElement):
 
     def setup(self):
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
-        self.__dict__['_match'] = self.getAttributeNS('', 'match')
-        mode_attr = self.getAttributeNS('', 'mode')
+        self.__dict__['_match'] = self.getAttributeNS(EMPTY_NAMESPACE, 'match')
+        mode_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'mode')
         if not mode_attr:
             self.__dict__['_mode'] = None
         else:
@@ -41,7 +42,7 @@ class TemplateElement(XsltElement):
                 namespaces=self._nss
                 )
             self.__dict__['_mode'] = split_name
-        name_attr = self.getAttributeNS('', 'name')
+        name_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'name')
         split_name = Util.ExpandQName(
             name_attr,
             namespaces=self._nss
@@ -67,7 +68,7 @@ class TemplateElement(XsltElement):
         self.__dict__['_patternInfo'] = []
 
         if self._match:
-            priority = self.getAttributeNS('', 'priority') or None
+            priority = self.getAttributeNS(EMPTY_NAMESPACE, 'priority') or None
             if priority is not None:
                 try:
                     priority = float(priority)

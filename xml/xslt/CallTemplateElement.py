@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom import Node
 import xml.dom.ext
 import xml.xslt
@@ -28,7 +29,7 @@ class CallTemplateElement(XsltElement):
     def setup(self):
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         split_name = Util.ExpandQName(
-            self.getAttributeNS('', 'name'),
+            self.getAttributeNS(EMPTY_NAMESPACE, 'name'),
             namespaces=self._nss
             )
         self.__dict__['_name'] = split_name

@@ -1,10 +1,10 @@
 import string, urllib, StringIO, xml.sax.sax2exts, xml.sax.handler
-from xml.dom import minidom,pulldom
+from xml.dom import minidom,pulldom, EMPTY_NAMESPACE
 
 # _XsltElementBase is used when Ft.Lib.pDomlette.Element is not available
 
 class _XsltElementBase(minidom.Element):
-    def __init__(self, ownerDocument, namespaceURI='', localName='', prefix=''):
+    def __init__(self, ownerDocument, namespaceURI=EMPTY_NAMESPACE, localName='', prefix=''):
         if prefix:
             tagName = prefix+':'+localName
         else:
@@ -77,7 +77,7 @@ class StrippingPullDOM(pulldom.PullDOM):
         new_element = self.elementStack[-1]
         new_pstate = self.stripState[-1]
         for (uri, local, strip) in self.stripElements:
-            if (uri, local) in [(new_element.namespaceURI, new_element.localName), ('', '*'), (new_element.namespaceURI, '*')]:
+            if (uri, local) in [(new_element.namespaceURI, new_element.localName), (EMPTY_NAMESPACE, '*'), (new_element.namespaceURI, '*')]:
                 new_pstate = not strip
                 break
         self.stripState.append(new_pstate)

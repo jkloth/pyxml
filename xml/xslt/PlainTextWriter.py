@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.xslt import NullWriter
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom.ext.Printer import utf8_to_code
 
 class PlainTextWriter(NullWriter.NullWriter):
@@ -37,7 +38,7 @@ class PlainTextWriter(NullWriter.NullWriter):
             # Defaults to UTF-8
             self._stream.write(text)
     
-    def attribute(self, name, value, namespace=''):
+    def attribute(self, name, value, namespace=EMPTY_NAMESPACE):
         return
 
     def processingInstruction(self, target, data):
@@ -46,7 +47,7 @@ class PlainTextWriter(NullWriter.NullWriter):
     def comment(self, body):
         return
 
-    def startElement(self, name, namespace='', extraNss=None):
+    def startElement(self, name, namespace=EMPTY_NAMESPACE, extraNss=None):
         return
 
     def endElement(self, name):

@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom.ext.Printer import TranslateCdata, TranslateCdataAttr
 from xml.dom.html import TranslateHtmlCdata
 from xml.xslt import NullWriter, XsltException, Error
@@ -155,7 +156,7 @@ class HtmlWriter(NullWriter.NullWriter):
             self._inPCdata = 1
         return
 
-    def attribute(self, name, value, namespace=''):
+    def attribute(self, name, value, namespace=EMPTY_NAMESPACE):
         self._stream.write(' %s' % name)
         # Output boolean attributes in minimized form 
         
@@ -181,7 +182,7 @@ class HtmlWriter(NullWriter.NullWriter):
         self._stream.write('<!--%s-->' % body)
         return
 
-    def startElement(self, name, namespace='', extraNss=None):
+    def startElement(self, name, namespace=EMPTY_NAMESPACE, extraNss=None):
         if self._elementRestrictions is not None:
             if name not in self._elementRestrictions:
                 raise XsltException(Error.RESTRICTED_OUTPUT_VIOLATION, name)

@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 import xml.xslt
@@ -27,9 +28,9 @@ class ElementElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_name'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'name'))
-        self.__dict__['_namespace'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'namespace'))
-        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS( '', 'use-attribute-sets'))
+        self.__dict__['_name'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'name'))
+        self.__dict__['_namespace'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'namespace'))
+        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS(EMPTY_NAMESPACE, 'use-attribute-sets'))
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         return
 

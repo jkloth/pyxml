@@ -14,6 +14,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 
 import string, UserList, types
 
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom.ext import SplitQName
 from xml.xpath import CompiletimeException, RuntimeException
 from xml.xpath import g_extFunctions
@@ -87,7 +88,7 @@ class ParsedVariableReferenceExpr:
         uri = context.processorNss.get(prefix)
         if prefix and not uri:
             raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-        expanded = (prefix and uri or '', local)
+        expanded = (prefix and uri or EMPTY_NAMESPACE, local)
         try:
             return context.varBindings[expanded]
         except:
@@ -141,7 +142,7 @@ class FunctionCall:
             uri = context.processorNss.get(prefix)
             if prefix and not uri:
                 raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-            expanded = (prefix and uri or '', local)
+            expanded = (prefix and uri or EMPTY_NAMESPACE, local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
         try:
@@ -182,7 +183,7 @@ class FunctionCall1(FunctionCall):
             uri = context.processorNss.get(prefix)
             if prefix and not uri:
                 raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-            expanded = (prefix and uri or '', local)
+            expanded = (prefix and uri or EMPTY_NAMESPACE, local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
         try:
@@ -206,7 +207,7 @@ class FunctionCall2(FunctionCall):
             uri = context.processorNss.get(prefix)
             if prefix and not uri:
                 raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-            expanded = (prefix and uri or '', local)
+            expanded = (prefix and uri or EMPTY_NAMESPACE, local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
         try:
@@ -232,7 +233,7 @@ class FunctionCall3(FunctionCall):
             uri = context.processorNss.get(prefix)
             if prefix and not uri:
                 raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-            expanded = (prefix and uri or '', local)
+            expanded = (prefix and uri or EMPTY_NAMESPACE, local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
         try:
@@ -255,7 +256,7 @@ class FunctionCallN(FunctionCall):
             uri = context.processorNss.get(prefix)
             if prefix and not uri:
                 raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
-            expanded = (prefix and uri or '', local)
+            expanded = (prefix and uri or EMPTY_NAMESPACE, local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
         try:

@@ -23,7 +23,6 @@ except ImportError:
 
 #FIXME: we might want to do some meta-magic to __import__ element modules on demand
 from xml.xslt.ApplyTemplatesElement import ApplyTemplatesElement
-
 from xml.xslt.AttributeElement import AttributeElement
 from xml.xslt.AttributeSetElement import AttributeSetElement
 from xml.xslt.CallTemplateElement import CallTemplateElement
@@ -59,7 +58,7 @@ from xml import xslt
 
 from xml.dom import Node
 from xml.dom.ext import StripXml, GetAllNs, SplitQName
-from xml.dom import implementation, ext, XML_NAMESPACE, XMLNS_NAMESPACE
+from xml.dom import implementation, ext, XML_NAMESPACE, XMLNS_NAMESPACE, EMPTY_NAMESPACE
 
 try:
     from Ft.Lib import FtException
@@ -161,11 +160,11 @@ def FromDocument(oldDoc, baseUri='',stylesheetReader = None):
         sheet = StylesheetElement(xsl_doc, XSL_NAMESPACE,
                                   'transform', vattr.prefix,
                                   baseUri)
-        sheet.setAttributeNS('', 'version', vattr.value)
+        sheet.setAttributeNS(EMPTY_NAMESPACE, 'version', vattr.value)
         tpl = TemplateElement(xsl_doc, XSL_NAMESPACE, 'template',
                               vattr.prefix, baseUri)
 
-        tpl.setAttributeNS('', 'match', '/')
+        tpl.setAttributeNS(EMPTY_NAMESPACE, 'match', '/')
         sheet.appendChild(tpl)
         sheet.__dict__['extensionNss'] = []
         xsl_doc.appendChild(sheet)
@@ -181,7 +180,7 @@ def FromDocument(oldDoc, baseUri='',stylesheetReader = None):
                     ext_uris.append(sty_nss[prefix])
             sheet.setAttributeNS(attr.namespaceURI, attr.nodeName, attr.value)
         sheet.__dict__['extensionNss'] = ext_uris
-        if not sheet.getAttributeNS('', 'version'):
+        if not sheet.getAttributeNS(EMPTY_NAMESPACE, 'version'):
             raise XsltException(Error.STYLESHEET_MISSING_VERSION)
         xsl_doc.appendChild(sheet)
         for child in source_root.childNodes:
@@ -189,7 +188,7 @@ def FromDocument(oldDoc, baseUri='',stylesheetReader = None):
     #Handle includes
     includes = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'include'), sheet.childNodes)
     for inc in includes:
-        href = inc.getAttributeNS("",'href')
+        href = inc.getAttributeNS(EMPTY_NAMESPACE,'href')
         if stylesheetReader is None:
             stylesheetReader = StylesheetReader()
         docfrag = stylesheetReader.fromUri(href,baseUri = baseUri, ownerDoc=xsl_doc)
@@ -377,7 +376,7 @@ class StylesheetReader(_ReaderBase):
     def _initializeSheet(self, rootNode):
         if rootNode.namespaceURI == XSL_NAMESPACE:
             if rootNode.localName in ['stylesheet', 'transform']:
-                if not rootNode.getAttributeNS('', 'version'):
+                if not rootNode.getAttributeNS(EMPTY_NAMESPACE, 'version'):
                     raise XsltException(Error.STYLESHEET_MISSING_VERSION)
                 #rootNode.__dict__['extensionNss'] = []
             else:
@@ -393,10 +392,10 @@ class StylesheetReader(_ReaderBase):
             sheet = StylesheetElement(self._ownerDoc, XSL_NAMESPACE,
                                       'transform', vattr.prefix,
                                       self._ssheetUri)
-            sheet.setAttributeNS('', 'version', vattr.value)
+            sheet.setAttributeNS(EMPTY_NAMESPACE, 'version', vattr.value)
             tpl = TemplateElement(self._ownerDoc, XSL_NAMESPACE, 'template',
                                   vattr.prefix, self._ssheetUri)
-            tpl.setAttributeNS('', 'match', '/')
+            tpl.setAttributeNS(EMPTY_NAMESPACE, 'match', '/')
             sheet.appendChild(tpl)
             sheet.__dict__['extensionNss'] = []
             self._nodeStack[-1].appendChild(sheet)

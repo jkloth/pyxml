@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 from xml.xpath import CoreFunctions
@@ -26,7 +27,7 @@ class TextElement(XsltElement):
         return
 
     def setup(self):
-        self.__dict__['_disable_output_escaping'] = self.getAttributeNS('', 'disable-output-escaping') == 'yes'
+        self.__dict__['_disable_output_escaping'] = self.getAttributeNS(EMPTY_NAMESPACE, 'disable-output-escaping') == 'yes'
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         for child in self.childNodes:
             if child.nodeType == Node.ELEMENT_NODE:

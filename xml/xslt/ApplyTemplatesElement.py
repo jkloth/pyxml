@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 FourThought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.Element
 import xml.dom.ext
 import xml.xslt
@@ -30,7 +31,7 @@ class ApplyTemplatesElement(XsltElement):
     def setup(self):
 
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
-        mode_attr = self.getAttributeNS('', 'mode')
+        mode_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'mode')
         if mode_attr == '':
             self.__dict__['_mode'] = None
         else:
@@ -42,7 +43,7 @@ class ApplyTemplatesElement(XsltElement):
 
 
 
-        select = self.getAttributeNS('', 'select')
+        select = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         if select:
             parser = XPathParser.XPathParser()
             self.__dict__['_expr'] = parser.parseExpression(select)

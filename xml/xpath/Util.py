@@ -14,7 +14,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 
 import os, glob, string
 import xml.dom.ext
-from xml.dom import XML_NAMESPACE
+from xml.dom import XML_NAMESPACE,EMPTY_NAMESPACE
 from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 from xml.xpath import g_xpathRecognizedNodes, Compile
@@ -27,7 +27,7 @@ g_xmlSpaceDescendant = g_xmlSpaceAncestor = None
 def ElementsById(element, name):
     elements = []
     attrs = element.attributes
-    idattr = attrs.get(('', 'id')) or attrs.get(('', 'ID'))
+    idattr = attrs.get((EMPTY_NAMESPACE, 'id')) or attrs.get((EMPTY_NAMESPACE, 'ID'))
     idattr and idattr.value == name and elements.append(idattr.ownerElement)
     for element in filter(lambda node: node.nodeType == Node.ELEMENT_NODE,
                           element.childNodes):
@@ -82,7 +82,7 @@ def ExpandQName(qname, refNode=None, namespaces=None):
     if prefix != '':
         split_name = (nss[prefix], local)
     else:
-        split_name = ('', local)
+        split_name = (EMPTY_NAMESPACE, local)
     return split_name
 
 

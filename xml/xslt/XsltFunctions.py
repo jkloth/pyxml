@@ -13,6 +13,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import cStringIO, os, re, urlparse, urllib
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml.dom import Node
 from xml.dom.DocumentFragment import DocumentFragment
@@ -223,15 +224,15 @@ Conversions.g_numberConversions.insert(0, XsltNumberValue)
 Conversions.g_booleanConversions.insert(0, XsltBooleanValue)
 
 ExtFunctions = {
-    ('', 'document'): Document,
-    ('', 'key'): Key,
-    ('', 'current'): Current,
-    ('', 'generate-id'): GenerateId,
-    ('', 'system-property'): SystemProperty,
-    ('', 'function-available'): FunctionAvailable,
-    ('', 'element-available'): ElementAvailable,
-    ('', 'string-value'): XsltStringValue,
-    ('', 'format-number'): FormatNumber,
-    ('', 'unparsed-entity-uri'): UnparsedEntityUri
+    (EMPTY_NAMESPACE, 'document'): Document,
+    (EMPTY_NAMESPACE, 'key'): Key,
+    (EMPTY_NAMESPACE, 'current'): Current,
+    (EMPTY_NAMESPACE, 'generate-id'): GenerateId,
+    (EMPTY_NAMESPACE, 'system-property'): SystemProperty,
+    (EMPTY_NAMESPACE, 'function-available'): FunctionAvailable,
+    (EMPTY_NAMESPACE, 'element-available'): ElementAvailable,
+    (EMPTY_NAMESPACE, 'string-value'): XsltStringValue,
+    (EMPTY_NAMESPACE, 'format-number'): FormatNumber,
+    (EMPTY_NAMESPACE, 'unparsed-entity-uri'): UnparsedEntityUri
     }
 

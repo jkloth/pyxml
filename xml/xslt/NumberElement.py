@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import re, string
+from xml.dom import EMPTY_NAMESPACE
 from xml.xslt import Roman
 import xml.xslt
 import xml.dom.ext
@@ -51,21 +52,21 @@ class NumberElement(XsltElement):
 
         path_parser = XPathParser.XPathParser()
         pattern_parser = XPatternParser.XPatternParser()
-        self.__dict__['_level'] = self.getAttributeNS('', 'level') or 'single'
+        self.__dict__['_level'] = self.getAttributeNS(EMPTY_NAMESPACE, 'level') or 'single'
         if self._level not in ['single', 'multiple', 'any']:
             raise XsltException(Error.ILLEGAL_NUMBER_LEVEL_VALUE)
-        self.__dict__['_count'] = self.getAttributeNS('', 'count')
-        self.__dict__['_from'] = self.getAttributeNS('', 'from')
-        self.__dict__['_value'] = self.getAttributeNS('', 'value')
-        format = self.getAttributeNS('', 'format')
+        self.__dict__['_count'] = self.getAttributeNS(EMPTY_NAMESPACE, 'count')
+        self.__dict__['_from'] = self.getAttributeNS(EMPTY_NAMESPACE, 'from')
+        self.__dict__['_value'] = self.getAttributeNS(EMPTY_NAMESPACE, 'value')
+        format = self.getAttributeNS(EMPTY_NAMESPACE, 'format')
         self.__dict__['_format'] = format and AttributeValueTemplate.AttributeValueTemplate(format) or None
-        lang = self.getAttributeNS('', 'lang')
+        lang = self.getAttributeNS(EMPTY_NAMESPACE, 'lang')
         self.__dict__['_lang'] = lang and AttributeValueTemplate.AttributeValueTemplate(lang) or None
-        letter_value = self.getAttributeNS('', 'letter-value')
+        letter_value = self.getAttributeNS(EMPTY_NAMESPACE, 'letter-value')
         self.__dict__['_letter_value'] = letter_value and AttributeValueTemplate.AttributeValueTemplate(letter_value) or None
-        grouping_separator = self.getAttributeNS('', 'grouping-separator')
+        grouping_separator = self.getAttributeNS(EMPTY_NAMESPACE, 'grouping-separator')
         self.__dict__['_grouping_separator'] = grouping_separator and AttributeValueTemplate.AttributeValueTemplate(grouping_separator) or None
-        grouping_size = self.getAttributeNS('', 'grouping-size')
+        grouping_size = self.getAttributeNS(EMPTY_NAMESPACE, 'grouping-size')
         self.__dict__['_grouping_size'] = grouping_size and AttributeValueTemplate.AttributeValueTemplate(grouping_size) or None
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
 

@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import sys, cStringIO
+from xml.dom import EMPTY_NAMESPACE
 from xml.xslt import OutputParameters
 
 class NullWriter:
@@ -38,7 +39,7 @@ class NullWriter:
     def text(self, text, escapeOutput=1):
         return
     
-    def attribute(self, name, value, namespace=''):
+    def attribute(self, name, value, namespace=EMPTY_NAMESPACE):
         return
 
     def processingInstruction(self, target, data):
@@ -47,7 +48,7 @@ class NullWriter:
     def comment(self, body):
         return
 
-    def startElement(self, name, namespace='', extraNss=None):
+    def startElement(self, name, namespace=EMPTY_NAMESPACE, extraNss=None):
         return
 
     def endElement(self, name):

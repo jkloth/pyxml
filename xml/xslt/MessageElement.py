@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 import cStringIO
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 import xml.xslt
@@ -26,7 +27,7 @@ class MessageElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_terminate'] = self.getAttributeNS('', 'terminate')
+        self.__dict__['_terminate'] = self.getAttributeNS(EMPTY_NAMESPACE, 'terminate')
         if not self._terminate:
             self.__dict__['_terminate'] = 'no'
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)

@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 FourThought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.xslt
 from xml.xslt import XsltElement, XsltException, Error, XSL_NAMESPACE
@@ -46,7 +47,7 @@ class IncludeElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_href'] = self.getAttributeNS('', 'href')
+        self.__dict__['_href'] = self.getAttributeNS(EMPTY_NAMESPACE, 'href')
         return
 
     def __getinitargs__(self):
@@ -104,7 +105,7 @@ class ImportElement(XsltElement):
         self.stylesheet = None
 
     def setup(self):
-        self.href = self.getAttributeNS('', 'href')
+        self.href = self.getAttributeNS(EMPTY_NAMESPACE, 'href')
 
     def __getinitargs__(self):
         return (None, self.namespaceURI, self.localName, self.prefix,

@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.Element
 import xml.dom.ext
 import xml.xslt
@@ -27,10 +28,10 @@ class AttributeSetElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_name'] = self.getAttributeNS( '', 'name')
+        self.__dict__['_name'] = self.getAttributeNS(EMPTY_NAMESPACE, 'name')
         if not self._name:
             raise XsltException(Error.ATTRIBUTESET_REQUIRES_NAME)
-        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS( '', 'use-attribute-sets'))
+        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS(EMPTY_NAMESPACE, 'use-attribute-sets'))
         self.__dict__['_varBindings'] = {}
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
 

@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml.dom import Node
 import xml.xslt
@@ -30,7 +31,7 @@ class CopyOfElement(XsltElement):
 
     def setup(self):
         parser = XPathParser.XPathParser()
-        self.__dict__['_select'] = self.getAttributeNS('', 'select')
+        self.__dict__['_select'] = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         if not self._select:
             raise XsltException(Error.COPYOF_MISSING_SELECT)
         self.__dict__['_expr'] = parser.parseExpression(self._select)

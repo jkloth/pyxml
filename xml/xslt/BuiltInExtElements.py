@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml.xslt import XsltElement, XsltException, Error
 from xml.xslt import XSL_NAMESPACE
@@ -24,7 +25,7 @@ class FtApplyTemplates(ApplyTemplatesElement.ApplyTemplatesElement):
         ApplyTemplatesElement.ApplyTemplatesElement.setup(self)
 
         #Overwrite the mode
-        mode_attr = self.getAttributeNS('', 'mode')
+        mode_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'mode')
         if mode_attr != '':
             parser = XPathParser.XPathParser()
             self.__dict__['_mode'] = parser.parseExpression(mode_attr)
@@ -45,30 +46,30 @@ class WriteFileElement(XsltElement):
 
     def setup(self):
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
-        self.__dict__['_name'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'name'))
-        self.__dict__['_overwrite'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'overwrite'))
+        self.__dict__['_name'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'name'))
+        self.__dict__['_overwrite'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'overwrite'))
         out = OutputParameters()
         for child in self.childNodes:
             if (child.namespaceURI, child.localName) == (FT_EXT_NAMESPACE, 'output'):
-                method = child.getAttributeNS('', 'method')
+                method = child.getAttributeNS(EMPTY_NAMESPACE, 'method')
                 if method: out.method = method
-                version = child.getAttributeNS('', 'version')
+                version = child.getAttributeNS(EMPTY_NAMESPACE, 'version')
                 if version: out.version = version
-                encoding = child.getAttributeNS('', 'encoding')
+                encoding = child.getAttributeNS(EMPTY_NAMESPACE, 'encoding')
                 if encoding: out.encoding = encoding
-                omit_xml_decl = child.getAttributeNS('', 'omit-xml-declaration')
+                omit_xml_decl = child.getAttributeNS(EMPTY_NAMESPACE, 'omit-xml-declaration')
                 if omit_xml_decl: out.omitXmlDeclaration = omit_xml_decl
-                standalone = child.getAttributeNS('', 'standalone')
+                standalone = child.getAttributeNS(EMPTY_NAMESPACE, 'standalone')
                 if standalone: out.standalone = standalone
-                doctype_system = child.getAttributeNS('', 'doctype-system')
+                doctype_system = child.getAttributeNS(EMPTY_NAMESPACE, 'doctype-system')
                 if doctype_system: out.doctypeSystem = doctype_system
-                doctype_public = child.getAttributeNS('', 'doctype-public')
+                doctype_public = child.getAttributeNS(EMPTY_NAMESPACE, 'doctype-public')
                 if doctype_public: out.doctypePublic = doctype_public
-                media_type = child.getAttributeNS('', 'media-type')
+                media_type = child.getAttributeNS(EMPTY_NAMESPACE, 'media-type')
                 if media_type: out.mediaType = media_type
-                cdata_sec_elem = child.getAttributeNS('', 'cdata-section-elements')
+                cdata_sec_elem = child.getAttributeNS(EMPTY_NAMESPACE, 'cdata-section-elements')
                 if cdata_sec_elem: out.cdataSectionElements = cdata_sec_elem
-                indent = child.getAttributeNS('', 'indent')
+                indent = child.getAttributeNS(EMPTY_NAMESPACE, 'indent')
                 if indent: out.indent = indent
             self.__dict__['_outputParams'] = out
         return
@@ -130,16 +131,16 @@ class MessageOutputElement(XsltElement):
     def setup(self):
         #FIXME: disable -> silent
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
-        if self.getAttributeNS('', 'file'):
-            self.__dict__['_file'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'file'))
+        if self.getAttributeNS(EMPTY_NAMESPACE, 'file'):
+            self.__dict__['_file'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'file'))
         else:
             self.__dict__['_file'] = None
-        if self.getAttributeNS('', 'disable'):
-            self.__dict__['_disable'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'disable'))
+        if self.getAttributeNS(EMPTY_NAMESPACE, 'disable'):
+            self.__dict__['_disable'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'disable'))
         else:
             self.__dict__['_disable'] = None
-        if self.getAttributeNS('', 'overwrite'):
-            self.__dict__['_overwrite'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'overwrite'))
+        if self.getAttributeNS(EMPTY_NAMESPACE, 'overwrite'):
+            self.__dict__['_overwrite'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS(EMPTY_NAMESPACE, 'overwrite'))
         else:
             self.__dict__['_overwrite'] = None
         return

@@ -13,7 +13,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string
-from xml.dom import Node
+from xml.dom import Node,EMPTY_NAMESPACE
 from xml.xpath import NamespaceNode
 from xml.xpath import NAMESPACE_NODE, RuntimeException
 from xml.xpath import g_xpathRecognizedNodes 
@@ -144,7 +144,7 @@ class LocalNameTest(NodeTestBase):
         if node.nodeType != principalType:
             return 0
         try:
-            uri = self._prefix and context.processorNss[self._prefix] or ''
+            uri = self._prefix and context.processorNss[self._prefix] or EMPTY_NAMESPACE
         except KeyError:
             raise RuntimeException(RuntimeException.UNDEFINED_PREFIX,
                                    self._prefix)

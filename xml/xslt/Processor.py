@@ -15,7 +15,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import string, os, sys
 import traceback
 import xml.dom.ext
-from xml.dom import XML_NAMESPACE
+from xml.dom import XML_NAMESPACE,EMPTY_NAMESPACE
 from xml.dom.ext import reader
 from xml.dom import Node
 from xml.xpath import Util
@@ -99,7 +99,7 @@ class Processor:
     appendStylesheetFile = appendStylesheetUri
 
     def appendStylesheetNode(self, styleSheetNode, baseUri=''):
-        '''Accepts a DOM node that must be a document containing the stylesheet'''
+        """Accepts a DOM node that must be a document containing the stylesheet"""
         sty = StylesheetReader.FromDocument(styleSheetNode, baseUri)
         self._stylesheets.append(sty)
         return
@@ -115,7 +115,7 @@ class Processor:
         return
 
     def appendInstantStylesheet(self, sty):
-        '''Accepts a valid StyleDOM node'''
+        """Accepts a valid StyleDOM node"""
         self._stylesheets.append(sty)
         return
 
@@ -226,12 +226,12 @@ class Processor:
 
     def execute(self, node, ignorePis=0, topLevelParams=None, writer=None,
                 baseUri='', outputStream=None):
-        '''
+        """
         Run the stylesheet processor against the given XML DOM node with the
         stylesheets that have been registered.  Does not mutate the DOM
         If writer is None, use the XmlWriter, otherwise, use the
         supplied writer
-        '''
+        """
         #FIXME: What about ws stripping?
         topLevelParams = topLevelParams or {}
 
@@ -345,10 +345,10 @@ class Processor:
         del self.writers[-1]
 
     def pushResult(self, handler=None, ownerDoc=None):
-        '''
+        """
         Start processing all content into a separate result-tree
         (either an rtf, or for ft:write-file)
-        '''
+        """
         #FIXME: Should actually use a doc fragment for the SAX handler doc
         #Q: Should the output parameters discovered at run-time (e.g html root element) be propagated back to RTFs?
         handler = handler or RtfWriter.RtfWriter(self._outputParams,
@@ -357,7 +357,7 @@ class Processor:
         return
 
     def popResult(self):
-        '''End sub-result-tree and return any result'''
+        """End sub-result-tree and return any result"""
         result = self.writers[-1].getResult()
         del self.writers[-1]
         return result
@@ -390,7 +390,7 @@ class Processor:
             else:
                 #See if it is a perserve or strip element
                 for (uri, local, strip) in stripElements:
-                    if (uri, local) in [(node.namespaceURI, node.localName), ('', '*'), (node.namespaceURI, '*')]:
+                    if (uri, local) in [(node.namespaceURI, node.localName), (EMPTY_NAMESPACE, '*'), (node.namespaceURI, '*')]:
                         stripState = strip
                         break
             

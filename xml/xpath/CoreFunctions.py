@@ -14,7 +14,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 
 import string, cStringIO
 
-from xml.dom import Node
+from xml.dom import Node,EMPTY_NAMESPACE
 from xml.xpath import ExpandedNameWrapper
 from xml.xpath import NamespaceNode
 from xml.xpath import NaN, Inf
@@ -340,34 +340,34 @@ def ExpandedName(node):
 ### Function Mappings ###
 
 CoreFunctions = {
-    ('', 'last'): Last,
-    ('', 'position'): Position,
-    ('', 'count'): Count,
-    ('', 'id'): Id,
-    ('', 'local-name'): LocalName,
-    ('', 'namespace-uri'): NamespaceUri,
-    ('', 'name'): Name,
-    ('', 'string'): String,
-    ('', 'concat'): Concat,
-    ('', 'starts-with'): StartsWith,
-    ('', 'contains'): Contains,
-    ('', 'substring-before'): SubstringBefore,
-    ('', 'substring-after'): SubstringAfter,
-    ('', 'substring'): Substring,
-    ('', 'string-length'): StringLength,
-    ('', 'normalize-space'): Normalize,
-    ('', 'translate'): Translate,
-    ('', 'boolean'): _Boolean,
-    ('', 'not'): Not,
-    ('', 'true'): True,
-    ('', 'false'): False,
-    ('', 'lang'): Lang,
-    ('', 'number'): Number,
-    ('', 'sum'): Sum,
-    ('', 'floor'): Floor,
-    ('', 'ceiling'): Ceiling,
-    ('', 'round'): Round,
-    ('', 'expanded-name'): ExpandedName
+    (EMPTY_NAMESPACE, 'last'): Last,
+    (EMPTY_NAMESPACE, 'position'): Position,
+    (EMPTY_NAMESPACE, 'count'): Count,
+    (EMPTY_NAMESPACE, 'id'): Id,
+    (EMPTY_NAMESPACE, 'local-name'): LocalName,
+    (EMPTY_NAMESPACE, 'namespace-uri'): NamespaceUri,
+    (EMPTY_NAMESPACE, 'name'): Name,
+    (EMPTY_NAMESPACE, 'string'): String,
+    (EMPTY_NAMESPACE, 'concat'): Concat,
+    (EMPTY_NAMESPACE, 'starts-with'): StartsWith,
+    (EMPTY_NAMESPACE, 'contains'): Contains,
+    (EMPTY_NAMESPACE, 'substring-before'): SubstringBefore,
+    (EMPTY_NAMESPACE, 'substring-after'): SubstringAfter,
+    (EMPTY_NAMESPACE, 'substring'): Substring,
+    (EMPTY_NAMESPACE, 'string-length'): StringLength,
+    (EMPTY_NAMESPACE, 'normalize-space'): Normalize,
+    (EMPTY_NAMESPACE, 'translate'): Translate,
+    (EMPTY_NAMESPACE, 'boolean'): _Boolean,
+    (EMPTY_NAMESPACE, 'not'): Not,
+    (EMPTY_NAMESPACE, 'true'): True,
+    (EMPTY_NAMESPACE, 'false'): False,
+    (EMPTY_NAMESPACE, 'lang'): Lang,
+    (EMPTY_NAMESPACE, 'number'): Number,
+    (EMPTY_NAMESPACE, 'sum'): Sum,
+    (EMPTY_NAMESPACE, 'floor'): Floor,
+    (EMPTY_NAMESPACE, 'ceiling'): Ceiling,
+    (EMPTY_NAMESPACE, 'round'): Round,
+    (EMPTY_NAMESPACE, 'expanded-name'): ExpandedName
     }
 
 Args = {

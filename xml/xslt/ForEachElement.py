@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.Element
 import xml.dom.ext
 import xml.xslt
@@ -26,7 +27,7 @@ class ForEachElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_select'] = self.getAttributeNS('', 'select')
+        self.__dict__['_select'] = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
 
         if self._select:

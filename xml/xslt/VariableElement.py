@@ -12,6 +12,7 @@ Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 import xml.dom.Element
 import xml.xslt
@@ -28,13 +29,13 @@ class VariableElement(XsltElement):
 
     def setup(self):
         self._nss = xml.dom.ext.GetAllNs(self)
-        name_attr = self.getAttributeNS('', 'name')
+        name_attr = self.getAttributeNS(EMPTY_NAMESPACE, 'name')
         split_name = Util.ExpandQName(
             name_attr,
             namespaces=self._nss
             )
         self._name = split_name
-        self._select = self.getAttributeNS('', 'select')
+        self._select = self.getAttributeNS(EMPTY_NAMESPACE, 'select')
         if self._select:
             parser = XPathParser.XPathParser()
             self._expr = parser.parseExpression(self._select)

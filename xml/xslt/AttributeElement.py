@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import cStringIO
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.Element
 import xml.dom.ext
 import xml.xslt
@@ -30,12 +31,12 @@ class AttributeElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        name = self.getAttributeNS('', 'name')
+        name = self.getAttributeNS(EMPTY_NAMESPACE, 'name')
         if not name:
             raise XsltException(Error.ATTRIBUTE_MISSING_NAME)
         self._name = AttributeValueTemplate(name)
 
-        namespace = self.getAttributeNS('', 'namespace')
+        namespace = self.getAttributeNS(EMPTY_NAMESPACE, 'namespace')
         self._namespace = AttributeValueTemplate(namespace)
 
         self._nss = xml.dom.ext.GetAllNs(self)

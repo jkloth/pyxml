@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml.dom import Node, XMLNS_NAMESPACE
 import xml.xslt
@@ -27,7 +28,7 @@ class CopyElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS('', 'use-attribute-sets'))
+        self.__dict__['_useAttributeSets'] = string.splitfields(self.getAttributeNS(EMPTY_NAMESPACE, 'use-attribute-sets'))
         self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
         return
         

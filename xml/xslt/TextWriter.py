@@ -13,6 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import os, re, string, cStringIO
+from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml.dom.ext.Printer import TranslateCdata, TranslateCdataAttr
 from xml.dom.html import TranslateHtmlCdata
