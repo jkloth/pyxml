@@ -32,6 +32,7 @@ class MSIE:
             if os.path.isdir(fullname):
                 self.bms.add_folder(file,None)
                 self.__walk(subpath + [file])
+                self.bms.leave_folder()
             else:
                 url = self.__geturl(fullname)
                 if url:
@@ -41,7 +42,7 @@ class MSIE:
     def __geturl(self, file):
         try:
             fp = open(file)
-            if fp.readline() != "[InternetShortcut]\n":
+            if string.rstrip(fp.readline()) != "[InternetShortcut]":
                 return None
             while 1:
                 s = fp.readline()
