@@ -352,6 +352,7 @@ libinstall:
 		$(BINDIR)/$(PYTHON) -O $(LIBDEST)/compileall.py $(LIBXML)
 
 test: default
+	cp pyexpat$(SO) sgmlop$(SO) parsers
 	cd test ; PYTHONPATH=.. python testxml.py
 
 pyexpat$(SO) : expat/libexpat.a
