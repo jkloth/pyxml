@@ -37,6 +37,19 @@ else:
     def xml(s):
         return "_xmlplus"+s
 
+# special command-line arguments
+LIBEXPAT = None
+LDFLAGS = []
+
+args = sys.argv[:]
+for arg in args:
+    if string.find(arg, '--with-libexpat=') == 0:
+        LIBEXPAT = string.split(arg, '=')[1]
+        sys.argv.remove(arg)
+    elif string.find(arg, '--ldflags=') == 0:
+        LDFLAGS = string.split(string.split(arg, '=')[1])
+        sys.argv.remove(arg)
+
 def should_build_pyexpat():
     try:
         import pyexpat
@@ -58,6 +71,9 @@ def should_build_pyexpat():
         return 0
 
 def get_expat_prefix():
+    if LIBEXPAT:
+        return LIBEXPAT
+
     for p in ("/usr", "/usr/local"):
         incs = os.path.join(p, "include")
         libs = os.path.join(p, "lib")
@@ -102,6 +118,7 @@ if build_pyexpat:
                       include_dirs=include_dirs,
                       library_dirs=library_dirs,
                       libraries=libraries,
+                      extra_link_args=LDFLAGS,
                       sources=sources
                       ))
 
