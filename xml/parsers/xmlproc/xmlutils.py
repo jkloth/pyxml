@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.12 2001/01/12 06:45:10 uche Exp $
+# $Id: xmlutils.py,v 1.13 2001/03/15 00:14:48 larsga Exp $
 
 import string,re,urlparse,os,sys
 
@@ -586,7 +586,9 @@ class XMLCommonParser(EntityParser):
 
     def parse_comment(self,handler):
         "Parses the comment from after '<!--' to beyond '-->'."
-        handler.handle_comment(self.get_match(reg_comment_content))
+        new_pos = self.get_index("--")
+        handler.handle_comment(self.data[self.pos : new_pos])
+        self.pos = new_pos
         if not self.now_at("-->"):
             self.report_error(3005,"-->")
 
@@ -697,7 +699,6 @@ reg_ws=re.compile("[\n\t \r]+")
 reg_ver=re.compile("[-a-zA-Z0-9_.:]+")
 reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
 reg_std_alone=re.compile("yes|no")
-reg_comment_content=re.compile("([^-]|-[^-])*")
 reg_name=re.compile("["+namestart+"]["+namechars+"]*")
 reg_names=re.compile("["+namestart+"]["+namechars+"]*"
              "([\n\t \r]+["+namestart+"]["+namechars+"]*)*")
@@ -746,7 +747,7 @@ reg_lang_code=re.compile("([a-zA-Z][a-zA-Z]|[iIxX]-([a-zA-Z])+)(-[a-zA-Z])*")
 reg2code={
     reg_name.pattern : 3900, reg_ver.pattern : 3901,
     reg_enc_name.pattern : 3902, reg_std_alone.pattern : 3903,
-    reg_comment_content.pattern : 3904, reg_hex_digits.pattern : 3905,
+    reg_hex_digits.pattern : 3905,
     reg_digits.pattern : 3906, reg_pe_ref.pattern : 3907,
     reg_attr_type.pattern : 3908, reg_attr_def.pattern : 3909,
     reg_nmtoken.pattern : 3910}
