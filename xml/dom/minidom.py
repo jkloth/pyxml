@@ -18,6 +18,7 @@ import xml.dom
 
 from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import *
+from xml.dom.xmlbuilder import DOMImplementationLS, DocumentLS
 
 
 class Node(xml.dom.Node, GetattrMagic):
@@ -29,7 +30,7 @@ class Node(xml.dom.Node, GetattrMagic):
     previousSibling = None
 
     def __nonzero__(self):
-        return 1
+        return True
 
     def toxml(self, encoding = None):
         return self.toprettyxml("", "", encoding)
@@ -51,9 +52,9 @@ class Node(xml.dom.Node, GetattrMagic):
 
     def hasChildNodes(self):
         if self.childNodes:
-            return 1
+            return True
         else:
-            return 0
+            return False
 
     def _get_firstChild(self):
         if self.childNodes:
@@ -188,10 +189,47 @@ class Node(xml.dom.Node, GetattrMagic):
                 clone.appendChild(child.cloneNode(1))
         return clone
 
-    # DOM Level 3 (Working Draft 2001-Jan-26)
+    def isSupported(self, feature, version):
+        return self.ownerDocument.implementation.hasFeature(feature, version)
+
+    # Node interfaces from Level 3 (WD 9 April 2002)
 
     def isSameNode(self, other):
         return self is other
+
+    def getInterface(self, feature):
+        if self.isSupported(feature, None):
+            return self
+        else:
+            return None
+
+    # The "user data" functions use a dictionary that is only present
+    # if some user data has been set, so be careful not to assume it
+    # exists.
+
+    def getUserData(self, key):
+        try:
+            return self._user_data[key][0]
+        except (AttributeError, KeyError):
+            return None
+
+    def setUserData(self, key, data, handler):
+        old = None
+        try:
+            d = self._user_data
+        except AttributeError:
+            d = {}
+            self._user_data = d
+        if d.has_key(key):
+            old = d[key][0]
+        if data is None:
+            # ignore handlers passed for None
+            handler = None
+            if old is not None:
+                del d[key]
+        else:
+            d[key] = (data, handler)
+        return old
 
     # minidom-specific API:
 
@@ -550,9 +588,9 @@ class Element(Node):
 
     def hasAttributes(self):
         if self._attrs:
-            return 1
+            return True
         else:
-            return 0
+            return False
 
 defproperty(Element, "attributes",
             doc="NamedNodeMap of attributes on the element.")
@@ -591,7 +629,7 @@ class Childless:
             self.nodeName + " nodes cannot have children")
 
     def hasChildNodes(self):
-        return 0
+        return False
 
     def insertBefore(self, newChild, refChild):
         raise xml.dom.HierarchyRequestErr(
@@ -810,10 +848,10 @@ class DocumentType(Childless, Node):
             self.name = localname
 
 
-class DOMImplementation:
+class DOMImplementation(DOMImplementationLS):
     def hasFeature(self, feature, version):
-        if version not in ("1.0", "2.0"):
-            return 0
+        if version not in ("1.0", "2.0", None, ""):
+            return False
         return feature.lower() == "core"
 
     def createDocument(self, namespaceURI, qualifiedName, doctype):
@@ -855,7 +893,7 @@ class DOMImplementation:
     def _createDocument(self):
         return Document()
 
-class Document(Node):
+class Document(Node, DocumentLS):
     nodeType = Node.DOCUMENT_NODE
     nodeName = "#document"
     nodeValue = None
@@ -867,6 +905,17 @@ class Document(Node):
     implementation = DOMImplementation()
     childNodeTypes = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
                       Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
+
+    # DocumentLS attributes from Level 3 (WD 9 April 2002)
+
+    actualEncoding = None
+    encoding = None
+    standalone = False
+    version = None
+
+    strictErrorChecking = False
+    errorHandler = None
+    documentURI = None
 
     def __init__(self):
         self.childNodes = NodeList()
@@ -965,6 +1014,9 @@ class Document(Node):
     def getElementsByTagNameNS(self, namespaceURI, localName):
         return _getElementsByTagNameNSHelper(self, namespaceURI, localName,
                                              NodeList())
+
+    def isSupported(self, feature, version):
+        return self.implementation.hasFeature(feature, version)
 
     def writexml(self, writer, indent="", addindent="", newl="",
                  encoding = None):
