@@ -217,6 +217,10 @@ class Node(xml.dom.Node, GetattrMagic):
     def isSupported(self, feature, version):
         return self.ownerDocument.implementation.hasFeature(feature, version)
 
+    def _get_localName(self):
+        # Overridden in Element and Attr where localName can be Non-Null
+        return None
+
     # Node interfaces from Level 3 (WD 9 April 2002)
 
     def isSameNode(self, other):
@@ -227,10 +231,6 @@ class Node(xml.dom.Node, GetattrMagic):
             return self
         else:
             return None
-
-    def _get_localName(self):
-        # Overridden in Element and Attr where localName can be Non-Null
-        return None
 
     # The "user data" functions use a dictionary that is only present
     # if some user data has been set, so be careful not to assume it
@@ -347,6 +347,7 @@ class Attr(Node):
     attributes = None
     ownerElement = None
     specified = False
+    _is_id = False
 
     _child_node_types = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
 
@@ -410,7 +411,20 @@ class Attr(Node):
             _clear_id_cache(self.ownerElement)
         self.childNodes[0].data = value
 
+    def unlink(self):
+        elem = self.ownerElement
+        if elem is not None:
+            del elem._attrs[self.nodeName]
+            del elem._attrsNS[(self.namespaceURI, self.localName)]
+            if self._is_id:
+                self._is_id = False
+                elem._magic_id_nodes -= 1
+                self.ownerDocument._magic_id_count -= 1
+        Node.unlink(self)
+
     def _get_isId(self):
+        if self._is_id:
+            return True
         doc = self.ownerDocument
         elem = self.ownerElement
         if doc is None or elem is None:
@@ -580,8 +594,6 @@ class NamedNodeMap(NewStyle, GetattrMagic):
         node = self[attname_or_tuple]
         _clear_id_cache(node.ownerElement)
         node.unlink()
-        del self._attrs[node.name]
-        del self._attrsNS[(node.namespaceURI, node.localName)]
 
     def __getstate__(self):
         return self._attrs, self._attrsNS, self._ownerElement
@@ -620,6 +632,8 @@ class Element(Node):
     nodeType = Node.ELEMENT_NODE
     nodeValue = None
     schemaType = _no_type
+
+    _magic_id_nodes = 0
 
     _child_node_types = (Node.ELEMENT_NODE,
                          Node.PROCESSING_INSTRUCTION_NODE,
@@ -694,15 +708,20 @@ class Element(Node):
     def setAttributeNode(self, attr):
         if attr.ownerElement not in (None, self):
             raise xml.dom.InuseAttributeErr("attribute node already owned")
-        old = self._attrs.get(attr.name, None)
-        if old:
-            old.unlink()
+        old1 = self._attrs.get(attr.name, None)
+        if old1:
+            self.removeAttributeNode(old1)
+        old2 = self._attrsNS.get((attr.namespaceURI, attr.localName), None)
+        if old2:
+            self.removeAttributeNode(old2)
         _set_attribute_node(self, attr)
 
-        if old is not attr:
+        if old1 is not attr:
             # It might have already been part of this node, in which case
             # it doesn't represent a change, and should not be returned.
-            return old
+            return old1
+        if old2 is not attr:
+            return old2
 
     setAttributeNodeNS = setAttributeNode
 
@@ -716,10 +735,9 @@ class Element(Node):
 
     def removeAttributeNode(self, node):
         try:
-            del self._attrs[node.name]
+            self._attrs[node.name]
         except KeyError:
             raise xml.dom.NotFoundErr()
-        del self._attrsNS[(node.namespaceURI, node.localName)]
         _clear_id_cache(self)
         node.unlink()
         # Restore this since the node is still useful and otherwise
@@ -774,6 +792,27 @@ class Element(Node):
             return True
         else:
             return False
+
+    # DOM Level 3 attributes, based on the 22 Oct 2002 draft
+
+    def setIdAttribute(self, name):
+        idAttr = self.getAttributeNode(name)
+        self.setIdAttributeNode(idAttr)
+
+    def setIdAttributeNS(self, namespaceURI, localName):
+        idAttr = self.getAttributeNodeNS(namespaceURI, localName)
+        self.setIdAttributeNode(idAttr)
+
+    def setIdAttributeNode(self, idAttr):
+        if idAttr is None or not self.isSameNode(idAttr.ownerElement):
+            raise xml.dom.NotFoundErr()
+        if _get_containing_entref(self) is not None:
+            raise xml.dom.NoModificationAllowedErr()
+        if not idAttr._is_id:
+            idAttr.__dict__['_is_id'] = True
+            self._magic_id_nodes += 1
+            self.ownerDocument._magic_id_count += 1
+            _clear_id_cache(self)
 
 defproperty(Element, "attributes",
             doc="NamedNodeMap of attributes on the element.")
@@ -1033,6 +1072,14 @@ def _get_containing_element(node):
     c = node.parentNode
     while c is not None:
         if c.nodeType == Node.ELEMENT_NODE:
+            return c
+        c = c.parentNode
+    return None
+
+def _get_containing_entref(node):
+    c = node.parentNode
+    while c is not None:
+        if c.nodeType == Node.ENTITY_REFERENCE_NODE:
             return c
         c = c.parentNode
     return None
@@ -1408,6 +1455,8 @@ class Document(Node, DocumentLS):
     errorHandler = None
     documentURI = None
 
+    _magic_id_count = 0
+
     def __init__(self):
         self.childNodes = NodeList()
         # mapping of (namespaceURI, localName) -> ElementInfo
@@ -1578,7 +1627,7 @@ class Document(Node, DocumentLS):
     def getElementById(self, id):
         if self._id_cache.has_key(id):
             return self._id_cache[id]
-        if not self._elem_info:
+        if not (self._elem_info or self._magic_id_count):
             return None
 
         stack = self._id_search_stack
@@ -1591,6 +1640,7 @@ class Document(Node, DocumentLS):
             # no matching node.
             return None
 
+        result = None
         while stack:
             node = stack.pop()
             # add child elements to stack for continued searching
@@ -1599,21 +1649,38 @@ class Document(Node, DocumentLS):
             # check this node
             info = self._get_elem_info(node)
             if info:
+                # We have to process all ID attributes before
+                # returning in order to get all the attributes set to
+                # be IDs using Element.setIdAttribute*().
                 for attr in node.attributes.values():
                     if attr.namespaceURI:
                         if info.isIdNS(attr.namespaceURI, attr.localName):
                             self._id_cache[attr.value] = node
                             if attr.value == id:
-                                return node
-                            else:
+                                result = node
+                            elif not node._magic_id_nodes:
                                 break
                     elif info.isId(attr.name):
                         self._id_cache[attr.value] = node
                         if attr.value == id:
-                            return node
-                        else:
+                            result = node
+                        elif not node._magic_id_nodes:
                             break
-        return None
+                    elif attr._is_id:
+                        self._id_cache[attr.value] = node
+                        if attr.value == id:
+                            result = node
+                        elif node._magic_id_nodes == 1:
+                            break
+            elif node._magic_id_nodes:
+                for attr in node.attributes.values():
+                    if attr._is_id:
+                        self._id_cache[attr.value] = node
+                        if attr.value == id:
+                            result = node
+            if result is not None:
+                break
+        return result
 
     def getElementsByTagName(self, name):
         return _get_elements_by_tagName_helper(self, name, NodeList())
@@ -1672,6 +1739,7 @@ class Document(Node, DocumentLS):
         if n.nodeType == Node.ATTRIBUTE_NODE:
             element = n.ownerElement
             if element is not None:
+                is_id = n._is_id
                 element.removeAttributeNode(n)
         else:
             element = None
@@ -1688,6 +1756,8 @@ class Document(Node, DocumentLS):
             d['name'] = name
             if element is not None:
                 element.setAttributeNode(n)
+                if is_id:
+                    element.setIdAttributeNode(n)
         # It's not clear from a semantic perspective whether we should
         # call the user data handlers for the NODE_RENAMED event since
         # we're re-using the existing node.  The draft spec has been

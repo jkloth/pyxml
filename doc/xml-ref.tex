@@ -362,13 +362,22 @@ The following have been added to the \class{Attr} class:
   Added in DOM Level~3.
 \end{memberdesc}
 
-The following attribute has been added to the \class{Element} class:
+The following attributes have been added to the \class{Element} class:
 
 \begin{memberdesc}[Element]{schemaType}
   The \class{TypeInfo} object representing the type of this element,
   taking into account the type of the element to which is it attached.
   Added in DOM Level~3.
 \end{memberdesc}
+
+\begin{methoddesc}[Element]{setIdAttribute}{name}
+\methodline{setIdAttributeNS}{namespaceURI, localName}
+\methodline{setIdAttributeNode}{idAttr}
+  Set the specified attribute of the element to be an ID, even if the
+  schema information does not cause it to be an ID.  Existing IDs
+  remain valid.  The \member{schemaType} value is not changed.
+  Added in DOM Level~3.
+\end{methoddesc}
 
 \class{TypeInfo} objects have the following attributes:
 

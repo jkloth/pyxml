@@ -1048,6 +1048,109 @@ def testSchemaType():
         confirm(hasattr(t, "name")
                 and t.namespace == xml.dom.EMPTY_NAMESPACE)
 
+def testSetIdAttribute():
+    doc = parseString("<doc a1='v' a2='w'/>")
+    e = doc.documentElement
+    a1 = e.getAttributeNode("a1")
+    a2 = e.getAttributeNode("a2")
+    confirm(doc.getElementById("v") is None
+            and not a1.isId
+            and not a2.isId)
+    e.setIdAttribute("a1")
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and a1.isId
+            and not a2.isId)
+    e.setIdAttribute("a2")
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and e.isSameNode(doc.getElementById("w"))
+            and a1.isId
+            and a2.isId)
+    # replace the a1 node; the new node should *not* be an ID
+    a3 = doc.createAttribute("a1")
+    a3.value = "v"
+    e.setAttributeNode(a3)
+    confirm(doc.getElementById("v") is None
+            and e.isSameNode(doc.getElementById("w"))
+            and not a1.isId
+            and a2.isId
+            and not a3.isId)
+    # renaming an attribute should not affect it's ID-ness:
+    doc.renameNode(a2, xml.dom.EMPTY_NAMESPACE, "an")
+    confirm(e.isSameNode(doc.getElementById("w"))
+            and a2.isId)
+
+def testSetIdAttributeNS():
+    NS1 = "http://xml.python.org/ns1"
+    NS2 = "http://xml.python.org/ns2"
+    doc = parseString("<doc"
+                      " xmlns:ns1='" + NS1 + "'"
+                      " xmlns:ns2='" + NS2 + "'"
+                      " ns1:a1='v' ns2:a2='w'/>")
+    e = doc.documentElement
+    a1 = e.getAttributeNodeNS(NS1, "a1")
+    a2 = e.getAttributeNodeNS(NS2, "a2")
+    confirm(doc.getElementById("v") is None
+            and not a1.isId
+            and not a2.isId)
+    e.setIdAttributeNS(NS1, "a1")
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and a1.isId
+            and not a2.isId)
+    e.setIdAttributeNS(NS2, "a2")
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and e.isSameNode(doc.getElementById("w"))
+            and a1.isId
+            and a2.isId)
+    # replace the a1 node; the new node should *not* be an ID
+    a3 = doc.createAttributeNS(NS1, "a1")
+    a3.value = "v"
+    e.setAttributeNode(a3)
+    confirm(e.isSameNode(doc.getElementById("w")))
+    confirm(not a1.isId)
+    confirm(a2.isId)
+    confirm(not a3.isId)
+    confirm(doc.getElementById("v") is None)
+    # renaming an attribute should not affect it's ID-ness:
+    doc.renameNode(a2, xml.dom.EMPTY_NAMESPACE, "an")
+    confirm(e.isSameNode(doc.getElementById("w"))
+            and a2.isId)
+
+def testSetIdAttributeNode():
+    NS1 = "http://xml.python.org/ns1"
+    NS2 = "http://xml.python.org/ns2"
+    doc = parseString("<doc"
+                      " xmlns:ns1='" + NS1 + "'"
+                      " xmlns:ns2='" + NS2 + "'"
+                      " ns1:a1='v' ns2:a2='w'/>")
+    e = doc.documentElement
+    a1 = e.getAttributeNodeNS(NS1, "a1")
+    a2 = e.getAttributeNodeNS(NS2, "a2")
+    confirm(doc.getElementById("v") is None
+            and not a1.isId
+            and not a2.isId)
+    e.setIdAttributeNode(a1)
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and a1.isId
+            and not a2.isId)
+    e.setIdAttributeNode(a2)
+    confirm(e.isSameNode(doc.getElementById("v"))
+            and e.isSameNode(doc.getElementById("w"))
+            and a1.isId
+            and a2.isId)
+    # replace the a1 node; the new node should *not* be an ID
+    a3 = doc.createAttributeNS(NS1, "a1")
+    a3.value = "v"
+    e.setAttributeNode(a3)
+    confirm(e.isSameNode(doc.getElementById("w")))
+    confirm(not a1.isId)
+    confirm(a2.isId)
+    confirm(not a3.isId)
+    confirm(doc.getElementById("v") is None)
+    # renaming an attribute should not affect it's ID-ness:
+    doc.renameNode(a2, xml.dom.EMPTY_NAMESPACE, "an")
+    confirm(e.isSameNode(doc.getElementById("w"))
+            and a2.isId)
+
 def testPickledDocument():
     doc = parseString("<?xml version='1.0' encoding='us-ascii'?>\n"
                       "<!DOCTYPE doc PUBLIC 'http://xml.python.org/public'"
