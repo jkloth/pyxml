@@ -148,6 +148,11 @@ class NodeList(UserList.UserList):
             parent = [parent] * len(list)
         self._parent = parent
 
+    def __getslice__(self, i, j):
+        userlist = NodeList([], self._document, self._parent)
+        userlist.data[:] = self.data[i:j]
+        return userlist
+
     def __repr__(self):
         s = '<NodeList [ '
         for i in range(len(self.data)):
@@ -512,7 +517,8 @@ class CharacterData(Node):
         if self.readonly:
             raise NoModificationAllowedException("Read-only object")
         self._node.value = data
-        
+    set_nodeValue = set_data
+    
     def __len__(self):
         "Return the length of the node's character data."
         return len(self._node.value)
