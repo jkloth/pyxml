@@ -34,7 +34,7 @@
         E-mail: \email{fdrake@acm.org}
 }
 
-%\date{XXX October, 1998}           % XXX update before release!
+\date{28 October, 1998}			% XXX update before release!
 \release{1.0}
 
 \begin{document}
@@ -42,7 +42,7 @@
 
 \begin{abstract}
 \noindent
-The XML Bookmark Exchange Language (XBEL) provides a rich interchange
+The XML Bookmark Exchange Language (XBEL) is a rich interchange
 format for ``bookmark'' data as used by most Internet browsers.  This
 document describes the origin of the design, the requirements which
 drove the design process, and the resulting document type.
@@ -53,6 +53,11 @@ drove the design process, and the resulting document type.
 
 \section{Introduction
          \label{intro}}
+
+  The XML Bookmark Exchange Language, or XBEL, is an interchange
+  format for the hierarchical bookmark data used by current Internet
+  browsers.  It is defined as an application of the Extensible Markup
+  Language, or XML \cite{w3c-xml}.
 
   This section descibes the origin of the effort which created the XML
   Bookmark Exchange Language (XBEL), identifies the contributors, and
@@ -132,9 +137,9 @@ drove the design process, and the resulting document type.
 
     Information on XBEL, including the public text and this document,
     is available on the PSA Web site at
-    \url{http://www.python.org/topics/xml/xbel/}.  Please refer to
-    this Web resource for information on new versions, DTD variants,
-    and supporting software.
+    \url{http://www.python.org/topics/xml/xbel/} \cite{xbel-home}.
+    Please refer to this Web resource for information on new versions,
+    DTD variants, and supporting software.
 
     The public text for XBEL will be made available through a SOCAT
     catalog at available at:
@@ -143,7 +148,7 @@ drove the design process, and the resulting document type.
     used by XML processing software.  The DELEGATE entry should be:
 
 \begin{verbatim}
-DELEGATE "-//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
+DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
 \end{verbatim}
 
 
@@ -154,7 +159,7 @@ DELEGATE "-//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
     Identifier:
 
 \begin{verbatim}
--//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML
++//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML
 \end{verbatim}
 
     Valid instances of this document type may use the following document
@@ -162,7 +167,7 @@ DELEGATE "-//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
 
 \begin{verbatim}
 <!DOCTYPE xbel
-  PUBLIC "-//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"
+  PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"
          "http://www.python.org/topics/xml/dtds/xbel-1.0.dtd">
 \end{verbatim}
 
@@ -716,7 +721,7 @@ DELEGATE "-//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
 
 
 \begin{longexample}
-\verbatiminput{xbel.dtd}
+\verbatiminput{../xbel.dtd}
 \end{longexample}
 
 
@@ -725,4 +730,3 @@ DELEGATE "-//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
 \bibliography{xbel}
 
 \end{document}
-
