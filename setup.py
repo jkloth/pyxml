@@ -83,7 +83,7 @@ ext_modules.append(
 # directory via setup.cfg (usuall /usr/doc). On all other systems, the
 # documentation is not installed.
 
-doc2xmldoc = 1
+doc2xmldoc = 0
 if sys.platform == 'win32':
     doc2xmldoc = 1
 
