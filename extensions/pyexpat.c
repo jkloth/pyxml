@@ -1,6 +1,6 @@
-/* Based on Python's pyexpat.c, version 2.40.
+/* Based on Python's pyexpat.c, see the revision number in inipyexpat().
    After integrating a new version from Python, the version string in
-   initpyexpat should be corrected.  */
+   initpyexpat() must be corrected.  */
 #include "Python.h"
 #include "compile.h"
 #include "frameobject.h"
@@ -499,23 +499,6 @@ my_##NAME##Handler PARAMS {\
 	RC_HANDLER(int, NAME, PARAMS, int rc=0;, PARAM_FORMAT, \
 			rc = PyInt_AsLong(rv);, rc, \
 	(xmlparseobject *)userData)
-
-#if EXPAT_VERSION == 0x010200
-#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
-VOID_HANDLER(StartElement,
-             (void *userData, const XML_Char *name, const XML_Char **atts), 
-             ("(O&O&)", STRING_CONV_FUNC, name, 
-              conv_atts_using_string, atts))
-#else
-/* Python 1.6 and later */
-VOID_HANDLER(StartElement,
-             (void *userData, const XML_Char *name, const XML_Char **atts), 
-             ("(O&O&)", STRING_CONV_FUNC, name, 
-              (self->returns_unicode  
-               ? conv_atts_using_unicode 
-               : conv_atts_using_string), atts))
-#endif
-#endif
 
 VOID_HANDLER(EndElement, 
              (void *userData, const XML_Char *name), 
@@ -1489,7 +1472,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.40 $";
+    char *rev = "#Revision: 2.41 $";
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module;
     PyObject *modelmod_name;
