@@ -3,12 +3,12 @@ from xml.dom.core import *
 class Walker:
     def walk(self, root):
         if root.get_nodeType() == DOCUMENT_NODE:
-	    c = root.get_documentElement()
-	    assert c.get_nodeType() == ELEMENT_NODE
-	    return self.walk1(c)
-	else:
-	    return self.walk1(root)
-		
+            c = root.get_documentElement()
+            assert c.get_nodeType() == ELEMENT_NODE
+            return self.walk1(c)
+        else:
+            return self.walk1(root)
+                
     def walk1(self, node):
         type = node.get_nodeType()
         if type == ELEMENT_NODE:
@@ -38,4 +38,4 @@ class Walker:
     def doOtherNode(self, node):
         pass
 
-	
+        

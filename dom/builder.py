@@ -22,7 +22,6 @@ class Builder:
 		"Add node to current node and move to new node."
 
 		nodetype = node.get_nodeType()
-
 		if self.current_element:
 			self.current_element.insertBefore(node, None)
 		elif nodetype in _LEGAL_DOCUMENT_CHILDREN:
@@ -34,7 +33,7 @@ class Builder:
 
 		if nodetype == ELEMENT_NODE:
 			self.current_element = node
-
+		
 	def pop(self):
 		"Move to current node's parent."
 
