@@ -115,14 +115,13 @@ set_error_attr(PyObject *err, char *name, int value)
  * information.  Always returns NULL.
  */
 static PyObject *
-set_error(xmlparseobject *self)
+set_error(xmlparseobject *self, enum XML_Error code)
 {
     PyObject *err;
     char buffer[256];
     XML_Parser parser = self->itself;
     int lineno = XML_GetErrorLineNumber(parser);
     int column = XML_GetErrorColumnNumber(parser);
-    enum XML_Error code = XML_GetErrorCode(parser);
 
     /* There is no risk of overflowing this buffer, since
        even for 64-bit integers, there is sufficient space. */
@@ -812,7 +811,7 @@ get_parse_result(xmlparseobject *self, int rv)
         return NULL;
     }
     if (rv == 0) {
-        return set_error(self);
+        return set_error(self, XML_GetErrorCode(self->itself));
     }
     if (flush_character_buffer(self) < 0) {
         return NULL;
@@ -1132,13 +1131,7 @@ xmlparse_UseForeignDTD(xmlparseobject *self, PyObject *args)
         flag = PyObject_IsTrue(flagobj) ? XML_TRUE : XML_FALSE;
     rc = XML_UseForeignDTD(self->itself, flag);
     if (rc != XML_ERROR_NONE) {
-        PyObject *err;
-        err = PyObject_CallFunction(ErrorObject, "s", XML_ErrorString(rc));
-        if (  err != NULL
-              && set_error_attr(err, "code", rc)) {
-            PyErr_SetObject(ErrorObject, err);
-        }
-        return NULL;
+        return set_error(self, rc);
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -1753,7 +1746,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.67 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.68 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
