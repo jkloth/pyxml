@@ -90,8 +90,8 @@ if __name__ == '__main__':
 	b = HtmlBuilder()
 	b.feed(open(sys.argv[1]).read())
 	b.close()
-	print b.document
-	print b.document.documentElement
+#	print b.document
+#	print b.document.documentElement
 
 	from writer import HtmlLineariser
 	w = HtmlLineariser()

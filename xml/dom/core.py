@@ -1,4 +1,4 @@
-'''
+"""
 core.py: `light' implementation of the Document Object Model (core) level 1.
 
 Reference: http://www.w3.org/TR/WD-DOM/level-one-core
@@ -10,16 +10,26 @@ Deviations from the specs:
 So, useful classes in this module are Node (abstract) and its
 (concrete) subclasses -- Document, Element, Text, Comment,
 ProcessingInstruction -- all of which should be instantiated though
-the relevant createXXX() methods on a Document object.  
+the relevant create{Element,TextNode,Comment,...}() methods on a
+Document object.  
 
-Typical usage XXX
+Typical usage:
 
 from xml.dom.core import *
 
-XXX example here
+doc = core.createDocument()
+html = doc.createElement('html')
+html.setAttribute('attr', 'value')
+head = doc.createElement('head')
+title = doc.createElement('title')
+
+text = doc.createTextNode("Title goes here")
+title.appendChild( text )
+
+print doc.toxml()
 ...
 
-'''
+"""
 
 import string, sys
 from xml.utils import escape
@@ -405,10 +415,24 @@ class CharacterData(Node):
             raise NoModificationAllowedException("Read-only object")
         self._node.value = self._node.value[:offset] + arg + self._node.value[offset+count:]
 
-    # XXX define __getslice__ & friends here...
-
     def toxml(self):
         return escape(self._node.value) 
+
+    # Methods to make slicing work naturally
+    def __delslice__(self, i, j):
+        v = self._node.value
+        self._node.value = v[:i] + v[j:]
+
+    def __setslice__(self, i, j, seq):
+        if isinstance(seq, CharacterData):
+            seq = seq._node.value
+        v = self._node.value
+        self._node.value = v[:i] + seq + v[j:]
+
+    def __getslice__(self, i,j):
+        value = self._node.value[i:j]
+        return self._document.createTextNode( value )
+
     
 class Attr(Node):
     def __init__(self, node, parent = None):
@@ -584,30 +608,35 @@ class DocumentType(Node):
         return self._node.name
 
     def get_entities(self):
-        pass # XXX
+        d = NamedNodeMap()
+        for entity, value in self._node.entities:
+            pass # XXX
 
     def get_notations(self):
         pass # XXX
 
+    def toxml(self):
+        return '<!DOCTYPE %s XXX>\n' % (self._node.name,)
+        
 class Notation(Node):
     readonly = 1    # This is a read-only class
     # Attributes
     def get_publicId(self):
-        pass # XXX
+        return self._node.publicId
         
     def get_systemId(self):
-        pass # XXX
+        return self._node.systemId
         
 class Entity(Node):
     readonly = 1    # This is a read-only class
     def get_publicId(self):
-        pass # XXX
+        return self._node.publicId
 
     def get_systemId(self):
-        pass # XXX
+        return self._node.systemId
 
     def get_notationName(self):
-        pass # XXX
+        return self._node.notationName
 
 class EntityReference(Node):
     pass 
@@ -633,14 +662,14 @@ class Document(Node):
         Node.__init__(self, node, parent = None, document = None)
         self.documentType = None
         self.DOMImplementation = __import__(__name__)
-        self._document = None
         
     def toxml(self):
         s = '<?xml version="1.0"?>\n'
-        s = s + "<!DOCTYPE XXX>\n"
+        if self.documentType:
+            s = s + self.documentType
         if len(self._node.children):
             n = self._node.children[0]
-            n =  NODE_CLASS[ n.type ] (n, self, self._document)
+            n =  NODE_CLASS[ n.type ] (n, self, self)
             s = s + n.toxml()
         return s
 
@@ -655,7 +684,9 @@ class Document(Node):
         return elem
 
     def createDocumentFragment(self):
-        pass #XXX
+        d = _nodeData(DOCUMENT_FRAGMENT_NODE)
+        d.name = "#document-fragment"
+        return DocumentFragment(d, None, self)
 
     def createTextNode(self, data):
         d = _nodeData(TEXT_NODE)
@@ -697,6 +728,22 @@ class Document(Node):
         elem = self.get_documentElement()
         if elem == None: return []
         return elem.getElementsByTagName(tagname)
+
+    # Extended methods for creating entity and notation nodes
+    def createNotation(self, name, publicId, systemId):
+        d = _nodeData(NOTATION_NODE)
+        d.name = name
+        d.value = None
+        d.publicId, d.systemId = publicId, systemId
+        return Notation(d, None, self)
+
+    def createEntity(self, name, publicId, systemId, notationName = None):
+        d = _nodeData(ENTITY_NODE)
+        d.name = name
+        d.value = None
+        d.publicId, d.systemId = publicId, systemId
+        d.notationName = notationName
+        return Entity(d, None, self)
 
     # Attributes
     def get_doctype(self):

@@ -17,9 +17,10 @@ class SaxBuilder(Builder, HandlerBase):
 	def characters(self, char, start, length):
 		self.text(char[start:start+length])
 
-
+	
 # Test.
 if __name__ == '__main__':
+    while 1:
 	from xml.sax import saxexts
 	import sys, writer
 
@@ -30,8 +31,9 @@ if __name__ == '__main__':
 	dh = SaxBuilder()
 	p.setDocumentHandler(dh)
 	p.parse(sys.argv[1])
+	p.close()
 
 	doc = dh.document
 	w = writer.XmlLineariser()
 	print w.linearise(dh.document)
-	
+
