@@ -183,7 +183,7 @@ class Node(xml.dom.Node, GetattrMagic):
         self.childNodes[:] = L
 
     def cloneNode(self, deep):
-        clone = CloneNode(self,deep,self.ownerDocument or self)
+        clone = _clone_node(self, deep, self.ownerDocument or self)
         return clone
 
     def isSupported(self, feature, version):
@@ -976,9 +976,6 @@ class DOMImplementation(DOMImplementationLS):
         add_root_element = not (namespaceURI is None
                                 and qualifiedName is None
                                 and doctype is None)
-
-        #if doctype is None:
-        #    doctype = self.createDocumentType(qualifiedName, None, None)
         
         if not qualifiedName and add_root_element:
             # The spec is unclear what to raise here; SyntaxErr
@@ -988,11 +985,11 @@ class DOMImplementation(DOMImplementationLS):
             # XXX: need to check for illegal characters here and in
             # createElement.
 
-            #DOM Level III clears this up when talking about the return value
-            #of this function.  If namespaceURI, qName and DocType are
-            #Null the document is returned without a document element
-            #Otherwise if doctype or namespaceURI are not None
-            #Then we go back to the above problem
+            # DOM Level III clears this up when talking about the return value
+            # of this function.  If namespaceURI, qName and DocType are
+            # Null the document is returned without a document element
+            # Otherwise if doctype or namespaceURI are not None
+            # Then we go back to the above problem
             raise xml.dom.InvalidCharacterErr("Element with no name")
 
         if add_root_element:
@@ -1156,7 +1153,7 @@ class Document(Node, DocumentLS):
         return self.implementation.hasFeature(feature, version)
 
     def importNode(self,node,deep):
-        return CloneNode(node,deep,self)
+        return _clone_node(node, deep, self)
 
     def writexml(self, writer, indent="", addindent="", newl="",
                  encoding = None):
@@ -1223,9 +1220,7 @@ defproperty(Document, "documentElement",
             doc="Top-level element of this document.")
 
 
-
-
-def CloneNode(node,deep,newOwnerDocument):
+def _clone_node(node, deep, newOwnerDocument):
     """
     Clone a node and give it the new owner document.
     Called by Node.cloneNode and Document.importNode
@@ -1234,11 +1229,11 @@ def CloneNode(node,deep,newOwnerDocument):
         clone = newOwnerDocument.createElementNS(node.namespaceURI,
                                                  node.nodeName)
         for attr in node.attributes.values():
-            clone.setAttributeNS(attr.namespaceURI,attr.nodeName,attr.value)
+            clone.setAttributeNS(attr.namespaceURI, attr.nodeName, attr.value)
 
         if deep:
             for child in node.childNodes:
-                c = CloneNode(child,deep,newOwnerDocument)
+                c = _clone_node(child, deep, newOwnerDocument)
                 clone.appendChild(c)
 
     elif node.nodeType == Node.TEXT_NODE:
@@ -1253,7 +1248,8 @@ def CloneNode(node,deep,newOwnerDocument):
     else:
         raise Exception("Cannot clone node %s" % repr(node))
 
-    if hasattr(node,'_call_user_data_handler'):
+    # XXX Why would a node ever *not* have _call_user_data_handler() ??
+    if hasattr(node, '_call_user_data_handler'):
         node._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
                                      node, clone)
     return clone
