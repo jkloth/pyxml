@@ -744,11 +744,14 @@ class Attr(Node):
 
     def toxml(self):
         L = []
+        append = L.append
         for c in self._node.children:
             if c.type == TEXT_NODE:
-                L.append(c.value)
+                append(c.value)
             elif c.type == ENTITY_REFERENCE_NODE:
-                L.extend(["&", c.name, ";"])
+                append("&")
+                append(c.name)
+                append(";")
         return string.join(L, "")
     
     def get_nodeName(self):
@@ -799,24 +802,27 @@ class Element(Node):
 
     def toxml(self):
         L = ["<", self._node.name]
+        append = L.append
         for attr, attrnode in self._node.attributes.items():
-            L.append(" %s='" % (attr,))
+            append(" %s='" % (attr,))
             for value in attrnode.children:
                 if value.type == TEXT_NODE:
-                    L.append(escape(value.value) )
+                    append(escape(value.value) )
                 else:
                     n = NODE_CLASS[ value.type ] (value, self._document)
-                    L.append(value.toxml())
-            L.append("'")
+                    append(value.toxml())
+            append("'")
             
         if len(self._node.children) == 0:
-            L.append(" />")
+            append("/>")
             return string.join(L, "")
-        L.append(">")
+        append(">")
         for child in self._node.children:
             n = NODE_CLASS[ child.type ] (child, self._document)
-            L.append(n.toxml())
-        L.extend(["</", self._node.name, ">"])
+            append(n.toxml())
+        append("</")
+        append(self._node.name)
+        append(">")
         return string.join(L, "")
 
     # Attributes
@@ -1076,16 +1082,17 @@ class EntityReference(Node):
                       ENTITY_REFERENCE_NODE]
 
     def toxml(self):
-        return '&' + self._node.name + ';'
+        return '&%s;' % self._node.name
     
 class ProcessingInstruction(Node):
     childNodeTypes = []
     
     def toxml(self):
-        return "<?" + self._node.name + ' ' +self._node.value + "?>"
+        return "<?%s %s?>" % (self._node.name, self._node.value)
 
     def __repr__(self):
-        return '<Processing instruction ?%s %s?>' % (self._node.name, self._node.value)
+        return '<Processing instruction ?%s %s?>' \
+               % (self._node.name, self._node.value)
 
     def get_target(self):
         return self._node.name
