@@ -104,20 +104,22 @@ def __extract_date(m):
     julian = m.group("julian")
     if julian:
         return __find_julian(year, string.atoi(julian, 10))
-    month = string.atoi(m.group("month"), 10)
+    month = m.group("month")
     day = 1
     if month is None:
         month = 1
-    elif not 1 <= month <= 12:
-        raise ValueError, "illegal month number: " + m.group("month")
     else:
-        day = m.group("day")
-        if day:
-            day = string.atoi(day)
-            if not 1 <= day <= 31:
-                raise ValueError, "illegal day number: " + m.group("day")
+        month = string.atoi(month, 10)
+        if not 1 <= month <= 12:
+            raise ValueError, "illegal month number: " + m.group("month")
         else:
-            day = 1
+            day = m.group("day")
+            if day:
+                day = string.atoi(day)
+                if not 1 <= day <= 31:
+                    raise ValueError, "illegal day number: " + m.group("day")
+            else:
+                day = 1
     return year, month, day
 
 
