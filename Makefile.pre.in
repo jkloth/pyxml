@@ -211,17 +211,10 @@ $(TARGET):	$(ADDOBJS) lib.a $(PYTHONLIBS) Makefile $(BASELIB)
 		 -o $(TARGET) $(LDLAST)
 
 install:	sharedmods libinstall
-		if test ! -d $(LIBXML) ; then \
-			mkdir $(LIBXML) ; else true ; fi
-		-for i in sgmlop$(SO) wstrop$(SO) intl$(SO) ; do \
-			$(INSTALL_SHARED) $$i $(DESTSHARED)/$$i; \
-		done
-		-cd unicode ; for i in *.py ; do \
-			$(INSTALL_DATA) $$i $(DESTSHARED)/$$i; \
-		done
-		-for i in pyexpat$(SO) ; do \
-			$(INSTALL_SHARED) $$i $(LIBXML)/parsers/$$i; \
-		done
+		$(INSTALL_SHARED) _sgmlop$(SO) $(LIBXML)/parsers/_sgmlop$(SO)
+		$(INSTALL_SHARED) _wstrop$(SO) $(LIBXML)/unicode/_wstrop$(SO)
+		$(INSTALL_SHARED) intl$(SO) $(LIBXML)/unicode/intl$(SO)
+		$(INSTALL_SHARED) pyexpat$(SO) $(LIBXML)/parsers/pyexpat$(SO); 
 
 # Build the library containing our extension modules
 lib.a:		$(MODOBJS)
@@ -322,10 +315,15 @@ clobber:	clean
 distclean:	clobber
 		-rm -f Setup
 
-LIBSUBDIRS = arch dom parsers parsers/xmlproc sax sax/drivers utils
+LIBSUBDIRS = arch dom parsers parsers/xmlproc sax sax/drivers unicode utils
 
 libinstall:	
 	# Create directories, if required
+	if test ! -d $(DESTSHARED) ; then \
+		mkdir $(DESTSHARED) ; else true ; fi
+	if test ! -d $(LIBXML) ; then \
+		mkdir $(LIBXML) ; else true ; fi
+
 	@for d in "" $(LIBSUBDIRS); \
 	do \
 		b=$(LIBXML)/$$d; \
