@@ -8,6 +8,9 @@
 #endif
 #include <ctype.h>
 
+/* limits.h is included through Python.h in 2.x, but not in 1.5.2 */
+#include <limits.h>
+
 #include "compile.h"
 #include "frameobject.h"
 #ifdef HAVE_EXPAT_H
