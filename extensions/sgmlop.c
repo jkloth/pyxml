@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.1 1999/08/15 23:25:47 amk Exp $
+ * $Id: sgmlop.c,v 1.2 2000/06/06 12:39:21 amkcvs Exp $
  *
  * The sgmlop accelerator module
  *
@@ -11,17 +11,21 @@
  * Element type, useful for fast but simple DOM implementations.
  *
  * History:
- * 98-04-04 fl  Created (for coreXML)
- * 98-04-05 fl  Added close method
- * 98-04-06 fl  Added parse method, revised callback interface
- * 98-04-14 fl  Fixed parsing of PI tags
- * 98-05-14 fl  Cleaned up for first public release
- * 98-05-19 fl  Fixed xmllib compatibility: handle_proc, handle_special
- * 98-05-22 fl  Added attribute parser
- * 99-06-20 fl  Added Element data type, various bug fixes.
+ * 1998-04-04 fl  Created (for coreXML)
+ * 1998-04-05 fl  Added close method
+ * 1998-04-06 fl  Added parse method, revised callback interface
+ * 1998-04-14 fl  Fixed parsing of PI tags
+ * 1998-05-14 fl  Cleaned up for first public release
+ * 1998-05-19 fl  Fixed xmllib compatibility: handle_proc, handle_special
+ * 1998-05-22 fl  Added attribute parser
+ * 1999-06-20 fl  Added Element data type, various bug fixes.
+ * 2000-05-28 fl  Fixed data truncation error (@SGMLOP1)
+ * 2000-05-28 fl  Added temporary workaround for unicode problem (@SGMLOP2)
+ * 2000-05-28 fl  Removed optional close argument (@SGMLOP3)
+ * 2000-05-28 fl  Raise exception on recursive feed (@SGMLOP4)
  *
- * Copyright (c) 1998-99 by Secret Labs AB
- * Copyright (c) 1998-99 by Fredrik Lundh
+ * Copyright (c) 1998-2000 by Secret Labs AB
+ * Copyright (c) 1998-2000 by Fredrik Lundh
  * 
  * fredrik@pythonware.com
  * http://www.pythonware.com
@@ -51,13 +55,15 @@
 
 #include <ctype.h>
 
-#ifdef USE_WCHAR
+#ifdef SGMLOP_UNICODE_SUPPORT
 /* wide character set (experimental) */
-#include <wchar.h>
-#define CHAR_T  wchar_t
-#define ISALNUM iswalnum
-#define ISSPACE iswspace
-#define TOLOWER towlower
+/* FIXME: under Python 1.6, the current version converts Unicode
+   strings to UTF-8, and parses the result as if it was an ASCII
+   string. */
+#define CHAR_T  Py_UNICODE
+#define ISALNUM Py_UNICODE_ISALNUM
+#define ISSPACE Py_UNICODE_ISSPACE
+#define TOLOWER Py_UNICODE_TOLOWER
 #else
 /* 8-bit character set */
 #define CHAR_T  char
@@ -92,6 +98,7 @@ typedef struct {
     int xml; /* 0=sgml/html 1=xml */
 
     /* state attributes */
+    int feed;
     int shorttag; /* 0=normal 2=parsing shorttag */
     int doctype; /* 0=normal 1=dtd pending 2=parsing dtd */
 
@@ -134,6 +141,7 @@ _sgmlop_new(int xml)
 
     self->xml = xml;
 
+    self->feed = 0;
     self->shorttag = 0;
     self->doctype = 0;
 
@@ -229,6 +237,13 @@ feed(FastSGMLParserObject* self, char* string, int stringlen, int last)
 
     int length;
 
+    if (self->feed) {
+        /* dealing with recursive feeds isn's exactly trivial, so
+           let's just bail out before the parser messes things up */
+        PyErr_SetString(PyExc_AssertionError, "recursive feed");
+        return NULL;
+    }
+
     /* append new text block to local buffer */
     if (!self->buffer) {
         length = stringlen;
@@ -248,13 +263,18 @@ feed(FastSGMLParserObject* self, char* string, int stringlen, int last)
     memcpy(self->buffer + self->bufferlen, string, stringlen);
     self->bufferlen = length;
 
+    self->feed = 1;
+
     length = fastfeed(self);
+
+    self->feed = 0;
+
     if (length < 0)
         return NULL;
 
     if (length > self->bufferlen) {
         /* ran beyond the end of the buffer (internal error)*/
-        PyErr_SetString(PyExc_RuntimeError, "buffer overrun");
+        PyErr_SetString(PyExc_AssertionError, "buffer overrun");
         return NULL;
     }
 
@@ -264,6 +284,12 @@ feed(FastSGMLParserObject* self, char* string, int stringlen, int last)
                 self->bufferlen - length);
 
     self->bufferlen = self->bufferlen - length;
+
+    /* FIXME: if data remains in the buffer even through this is the
+       last call, do an extra handle_data to get rid of it */
+
+    /* FIXME: if this is the last call, shut the parser down and
+       release the internal buffers */
 
     return Py_BuildValue("i", self->bufferlen);
 }
@@ -275,7 +301,7 @@ _sgmlop_feed(FastSGMLParserObject* self, PyObject* args)
 
     char* string;
     int stringlen;
-    if (!PyArg_ParseTuple(args, "s#", &string, &stringlen))
+    if (!PyArg_ParseTuple(args, "t#", &string, &stringlen))
         return NULL;
 
     return feed(self, string, stringlen, 0);
@@ -284,14 +310,12 @@ _sgmlop_feed(FastSGMLParserObject* self, PyObject* args)
 static PyObject*
 _sgmlop_close(FastSGMLParserObject* self, PyObject* args)
 {
-    /* feed final chunk of data to the parser */
+    /* flush parser buffers */
 
-    char* string = "";
-    int stringlen = 0;
-    if (!PyArg_ParseTuple(args, "|s#", &string, &stringlen))
+    if (!PyArg_NoArgs(args))
         return NULL;
 
-    return feed(self, string, stringlen, 1);
+    return feed(self, "", 0, 1);
 }
 
 static PyObject*
@@ -301,7 +325,7 @@ _sgmlop_parse(FastSGMLParserObject* self, PyObject* args)
 
     char* string;
     int stringlen;
-    if (!PyArg_ParseTuple(args, "s#", &string, &stringlen))
+    if (!PyArg_ParseTuple(args, "t#", &string, &stringlen))
         return NULL;
 
     return feed(self, string, stringlen, 1);
@@ -316,7 +340,7 @@ static PyMethodDef _sgmlop_methods[] = {
     {"register", (PyCFunction) _sgmlop_register, 1},
     /* incremental parsing */
     {"feed", (PyCFunction) _sgmlop_feed, 1},
-    {"close", (PyCFunction) _sgmlop_close, 1},
+    {"close", (PyCFunction) _sgmlop_close, 0},
     /* one-shot parsing */
     {"parse", (PyCFunction) _sgmlop_parse, 1},
     {NULL, NULL}
@@ -1080,8 +1104,10 @@ fastfeed(FastSGMLParserObject* self)
         } else {
 
             /* raw data */
-            if (++p >= end)
+            if (++p >= end) {
+                q = p;
                 goto eol;
+            }
             continue;
 
         }
