@@ -4,7 +4,7 @@ SAX driver for Dan Connollys XML scanner. Should work with Python 1.4.
 
 version="0.10"
 
-import sys,urllib,regex,string
+import sys,urllib,re,string
 
 if sys.version[:3]<"1.5":
     import saxlib
@@ -83,13 +83,12 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
 	pass
 
     def pi(self, stuff):
-        end_of_target=regex.search(reg_ws,stuff)
+        match=re.search(reg_ws,stuff)
 
-        if end_of_target==-1:
+        if not match:
             self.doc_handler.processingInstruction(stuff,"")
         else:
-            start_of_data=regex.match(reg_ws,stuff[end_of_target:])+\
-                           end_of_target
+            end_of_target,start_of_data=match.span()
             self.doc_handler.processingInstruction(stuff[:end_of_target],
                                                    stuff[start_of_data:])
 
