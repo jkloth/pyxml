@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.3 2000/10/03 10:19:24 loewis Exp $
+$Id: drv_xmlproc.py,v 1.4 2001/01/12 06:45:11 uche Exp $
 """
 
 import types, string
@@ -84,8 +84,14 @@ class XmlprocDriver(saxlib.XMLReader):
                 
             # FIXME: set other handlers
 
+            bufsize=16384
             self._parser = parser # make it available for callbacks
-            parser.parse_resource(source.getSystemId()) # FIXME: rest!
+            #parser.parse_resource(source.getSystemId()) # FIXME: rest!
+            parser.current_sysID=source.getSystemId()
+            parser.read_from(source.getByteStream(), bufsize)
+            source.getByteStream().close()
+            parser.flush()
+            parser.parseEnd()
             
         finally:
             self._parser = None
@@ -294,8 +300,8 @@ class NamespaceFilter:
                 if string.find(prefix,":")!=-1:
                     self.parser.report_error(1900)
 
-                if v=="":
-                    self.parser.report_error(1901)
+                #if v=="":
+                #    self.parser.report_error(1901)
             elif a=="xmlns":
                 prefix=""
             else:
@@ -303,13 +309,10 @@ class NamespaceFilter:
 
             if self.ns_map.has_key(prefix):
                 old_ns[prefix]=self.ns_map[prefix]
-            else:
-                del_ns.append(prefix)
-
-            if prefix=="" and v=="":
-                del self.ns_map[prefix]
-            else:
+            if v:
                 self.ns_map[prefix]=v
+            else:
+                del self.ns_map[prefix]
 
             if not self.rep_ns_attrs:
                 del attrs[a]
@@ -323,11 +326,11 @@ class NamespaceFilter:
         rawnames = {}
         for (a,v) in attrs.items():
             del attrs[a]
-            aname = self.__process_name(a, ns)
+            aname = self.__process_name(a, is_attr=1)
             if attrs.has_key(aname):
                 self.parser.report_error(1903)         
             attrs[aname] = v
-            rawnames[a] = v
+            rawnames[aname] = a
         
         # Report event
         self._cont_handler.startElementNS(cooked_name, name,
@@ -363,7 +366,7 @@ class NamespaceFilter:
 
     # --- Internal methods
         
-    def __process_name(self,name,default_to=None):
+    def __process_name(self, name, default_to=None, is_attr=0):
         n=string.split(name,":")
         if len(n)>2:
             self.parser.report_error(1900)
@@ -377,6 +380,8 @@ class NamespaceFilter:
             except KeyError:
                 self.parser.report_error(1902)
                 return (None, name)
+        elif is_attr:
+            return (None, name)
         elif default_to != None:
             return (default_to, name)
         elif self.ns_map.has_key("") and name != "xmlns":
