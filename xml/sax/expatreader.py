@@ -105,7 +105,16 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._source = source
         self.reset()
         self._cont_handler.setDocumentLocator(ExpatLocator(self))
-        xmlreader.IncrementalParser.parse(self, source)
+        try:
+            xmlreader.IncrementalParser.parse(self, source)
+        finally:
+            # Drop reference to Expat parser, but read potential
+            # error state before that. Also, if close has completed,
+            # we don't have a parser anymore, anyway.
+            if self._parser:
+                self._ColumnNumber = self._parser.ErrorColumnNumber
+                self._LineNumber = self._parser.ErrorLineNumber
+                self._parser = None
 
     def prepareParser(self, source):
         if source.getSystemId() != None:
@@ -276,17 +285,20 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
         self._parsing = 0
         self._entity_stack = []
+        # default values when _parser goes aways
+        self._ColumnNumber = None
+        self._LineNumber = 1
 
     # Locator methods
 
     def getColumnNumber(self):
         if self._parser is None:
-            return None
+            return self._ColumnNumber
         return self._parser.ErrorColumnNumber
 
     def getLineNumber(self):
         if self._parser is None:
-            return 1
+            return self._LineNumber
         return self._parser.ErrorLineNumber
 
     def getPublicId(self):
