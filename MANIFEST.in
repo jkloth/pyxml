@@ -2,6 +2,7 @@ include ANNOUNCE
 include CREDITS 
 include LICENCE 
 include MANIFEST 
+include MANIFEST.in
 include README* 
 include TODO 
 include setup.py
@@ -22,6 +23,8 @@ recursive-include doc *.tex
 recursive-include doc *.txt 
 recursive-include doc *.gif 
 recursive-include doc *.css
+recursive-include doc *.doc
+recursive-include doc *.api
 
 recursive-include extensions Makefile.pre.in 
 recursive-include extensions Setup.in 
@@ -41,5 +44,18 @@ recursive-include test/output test_*
 recursive-include demo README 
 recursive-include demo *.py 
 recursive-include demo *.xml
+recursive-include demo *.dtd
+recursive-include demo *.html
+recursive-include demo *.htm
+include demo/genxml/data.txt
+include demo/dom/html2html
+include demo/xbel/doc/xbel.bib
+include demo/xbel/doc/xbel.tex
+include demo/xmlproc/catalog.soc
 
-
+include xml/dom/COPYRIGHT
+include xml/dom/ChangeLog
+include xml/dom/README
+include xml/dom/TODO
+include xml/dom/html/generate.dtd
+include xml/dom/html/html_classes.xml
