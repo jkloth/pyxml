@@ -504,6 +504,12 @@ def test(load, loads, dump, dumps, test_values,
     import StringIO
     def format(x):
         # like str, but wont put an L in the end of longs
+        # also, for dictionaries, always gives the same dictionary order
+        if type(x) == DictionaryType:
+            x = x.items()
+            x.sort()
+            r = str(x)
+            return "{"+r[1:-1]+"}"
         r=str(x)
         if type(x)==LongType and r[-1]=='L':
             return r[:-1]
