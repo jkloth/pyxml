@@ -362,7 +362,8 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 #define STRING_CONV_FUNC (self->returns_unicode \
                           ? conv_string_to_unicode : conv_string_to_utf8)
 #endif
-
+/* Is this the right version? Otherwise it conflicts with defines below */
+#if EXPAT_VERSION >= 0x015f00
 static void
 my_StartElementHandler(void *userData,
                        const XML_Char *name, const XML_Char **atts)
@@ -440,7 +441,7 @@ my_StartElementHandler(void *userData,
         Py_DECREF(rv);
     }
 }
-
+#endif
 #define RC_HANDLER(RC, NAME, PARAMS, INIT, PARAM_FORMAT, CONVERSION, \
                 RETURN, GETUSERDATA) \
 static RC \
