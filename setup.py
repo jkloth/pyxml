@@ -195,7 +195,7 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
                    xml('.parsers'), xml('.parsers.xmlproc'),
                    xml('.sax'), xml('.sax.drivers'),
                    xml('.sax.drivers2'), xml('.utils'), xml('.schema'),
-                   xml('.xpath'), xml('.xslt')
+                   #xml('.xpath'), xml('.xslt')
                    ],
 
        ext_modules = ext_modules,
