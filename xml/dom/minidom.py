@@ -130,6 +130,28 @@ class Node:
             clone.childNodes = map(lambda x: x.cloneNode, self.childNodes)
         return clone
 
+    def normalize(self):
+        """Join adjacent Text nodes and delete empty Text nodes
+        in the full depth of the sub-tree underneath this Node.
+        """
+        i = 0
+        while i < len(self.childNodes):
+            cn = self.childNodes[i]
+            if cn.nodeType == Node.TEXT_NODE:
+                i = i + 1
+                # join adjacent Text nodes
+                while i < len(self.childNodes) and self.childNodes[i].nodeType == Node.TEXT_NODE:
+                    cn.nodeValue = cn.data = cn.data + self.childNodes[i].data
+                    del self.childNodes[i]
+                # delete empty nodes      
+                if cn.nodeValue == "":
+                    i = i - 1             
+                    del self.childNodes[i] 
+                continue
+            elif cn.nodeType == Node.ELEMENT_NODE:
+                cn.normalize()
+            i = i + 1      
+
     def unlink(self):
         self.parentNode = None
         while self.childNodes:
