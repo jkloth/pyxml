@@ -299,5 +299,5 @@ else:
     dom = r.fromStream(IN)
     context = Context(dom)
     nodelist = xpath.Evaluate(query, context=context)
-    c14n.Canonicalize(dom, OUT, subset=nodelist)
+    Canonicalize(dom, OUT, subset=nodelist)
     OUT.close()
