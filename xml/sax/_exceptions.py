@@ -42,7 +42,7 @@ class SAXException(Exception):
 
 # ===== SAXPARSEEXCEPTION =====
 
-class SAXParseException(SAXException):    
+class SAXParseException(SAXException):
     """Encapsulate an XML parse error or warning.
 
     This exception will include information for locating the error in
@@ -62,7 +62,7 @@ class SAXParseException(SAXException):
 
     def getColumnNumber(self):
         """The column number of the end of the text where the exception
-	occurred."""
+        occurred."""
         return self._locator.getColumnNumber()
 
     def getLineNumber(self):
@@ -84,6 +84,7 @@ class SAXParseException(SAXException):
             sysid = "<unknown>"
         return "%s:%d:%d: %s" % (sysid, self.getLineNumber(),
                                  self.getColumnNumber(), self._msg)
+
 
 # ===== SAXNOTRECOGNIZEDEXCEPTION =====
 
