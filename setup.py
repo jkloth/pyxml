@@ -94,12 +94,14 @@ if expat_prefix:
 else:
     # To build expat 1.95.x, we need to find out the byteorder
     if sys.byteorder == "little":
-        xmlbo = "12"
+        xmlbo = "1234"
     else:
-        xmlbo = "21"
+        xmlbo = "4321"
     define_macros = [
-        ('HAVE_EXPAT_H', None),
-        ('XML_BYTE_ORDER', xmlbo),
+        ('XML_NS', '1'),
+        ('XML_DTD', '1'),
+        ('BYTEORDER', xmlbo),
+        ('XML_CONTEXT_BYTES','1024'),
         ]
     include_dirs = ['extensions/expat/lib']
     sources.extend([
