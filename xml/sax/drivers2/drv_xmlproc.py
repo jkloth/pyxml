@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.10 2001/04/16 10:44:51 larsga Exp $
+$Id: drv_xmlproc.py,v 1.11 2001/06/07 19:27:29 larsga Exp $
 """
 
 import types, string
@@ -39,13 +39,14 @@ class XmlprocDriver(IncrementalParser):
         IncrementalParser.__init__(self)
         self.__parsing = 0
         self.__validate = 0
-        self.__namespaces = 1
+        self.__namespaces = 0
         self.__ext_pes = 0
 
         self.__locator = 0
 
         self._lex_handler = saxlib.LexicalHandler()
         self._decl_handler = saxlib.DeclHandler()
+        self._parser = None
 
     def prepareParser(self, source):
         self.__parsing = 1
@@ -83,11 +84,12 @@ class XmlprocDriver(IncrementalParser):
             parser.set_read_external_subset(1)
         
         self._parser = parser # make it available for callbacks
-        #parser.parse_resource(source.getSystemId()) # FIXME: rest!
-        parser.set_sysid(source.getSystemId())
-
+        if source:
+            parser.set_sysid(source.getSystemId())
         
     def feed(self, data):
+        if not self._parser:
+            self.prepareParser(None)
         self._parser.feed(data)
 
     def close(self):
