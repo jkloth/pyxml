@@ -277,8 +277,8 @@ class ExpatBuilder:
                                             systemId, notationName)
         if value is not None:
             # internal entity
+            # node *should* be readonly, but we'll cheat
             child = self.document.createTextNode(value)
-            node.__dict__['childNodes'] = minidom.NodeList()
             node.childNodes.append(child)
         self.document.doctype.entities._seq.append(node)
         if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
