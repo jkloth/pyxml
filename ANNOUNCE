@@ -1,0 +1,49 @@
+To be sent to: c.l.py.announce, comp.text.xml, xml-dev, www-dom, 
+	       announcement on freshmeat.net,
+	       other suggestions?
+
+==================
+Version 0.5 of the Python/XML distribution can be downloaded from 
+	http://www.python.org/sigs/xml-sig/files/xml-0.5.tgz
+
+The Python/XML distribution contains the basic tools required for
+processing XML data using the Python programming language, assembled
+into one easy-to-install package.  The distribution includes parsers
+and standard interfaces such as SAX and DOM, along with various other
+useful modules.  Version 0.5 can be considered a beta release.
+
+Major changes in this version:
+	* The DOM implementation has been extensively modified, and is
+now much closer to compliance with the DOM Recommendation.  
+
+	* A Unicode type has been added as the subpackage xml.unicode.wstring. 
+
+	* Various subpackages have been upgraded to their most recent versions.
+
+The package currently contains:
+
+	* XML parsers: Pyexpat (Jack Jansen), xmlproc (Lars Marius
+Garshol), xmllib.py (Sjoerd Mullender) using the sgmlop.c accelerator
+module (Fredrik Lundh).
+
+	* SAX interface (Lars Marius Garshol)
+	* DOM interface (Stefane Fermigier, A.M. Kuchling)
+	* xmlarch.py, for architectural forms processing (Geir Ove Grønmo)
+	* Unicode wide-string module (Martin von Löwis)
+	* Various utility modules and functions (various people)
+	* Documentation and example programs (various people)
+
+The code is being developed bazaar-style by contributors from the
+Python XML Special Interest Group, so please send comments, questions,
+or bug reports to <xml-sig@python.org>.
+
+For general information about Python, see:
+	http://www.python.org
+The Python XML-SIG home page is:
+	http://www.python.org/sigs/xml-sig/
+
+-- 
+A.M. Kuchling			http://starship.skyport.net/crew/amk/
+Problems worthy of attack / prove their worth by hitting back.
+    -- Piet Hein
+
