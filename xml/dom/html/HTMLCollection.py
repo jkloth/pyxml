@@ -11,7 +11,6 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-from xml.dom import IndexSizeErr
 from xml.dom import NoModificationAllowedErr
 from xml.dom.Node import Node
 from xml.dom.html import HTML_NAME_ALLOWED
