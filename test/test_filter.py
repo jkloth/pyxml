@@ -131,6 +131,8 @@ checkResult("<stopbefore/>")
 checkResult("<doc>text<stopbefore> and </stopbefore>more</doc>")
 checkResult("<doc>text<stopafter> and </stopafter>more</doc>")
 
+checkResult("<doc><a/><skipafter>text</skipafter><a/></doc>")
+
 checkFilterEvents("<doc/>", [])
 checkFilterEvents("<doc attr='value'/>", [])
 checkFilterEvents("<doc><e/></doc>", [

@@ -46,3 +46,6 @@ test_filter
 
 <?xml version="1.0" ?>
 <doc>text<stopafter> and </stopafter></doc>
+
+<?xml version="1.0" ?>
+<doc><a/>text<a/></doc>
