@@ -2,10 +2,11 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.16 2000/10/07 18:30:11 loewis Exp $
+$Id: saxutils.py,v 1.17 2000/10/09 18:11:22 akuchling Exp $
 """
 
-import types, handler, _exceptions, sys, urllib, os, xmlreader, string
+import types, sys, urllib, urlparse, os, string
+import handler, _exceptions, xmlreader
 
 try:
   _StringTypes = [types.StringType, types.UnicodeType]
