@@ -210,7 +210,7 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
                    xml('.marshal'), xml('.unicode'),
                    xml('.parsers'), xml('.parsers.xmlproc'),
                    xml('.sax'), xml('.sax.drivers'),
-                   xml('.sax.drivers2'), xml('.utils')
+                   xml('.sax.drivers2'), xml('.utils'), xml('.schema')
                    ],
 
        ext_modules = ext_modules,
