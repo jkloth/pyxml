@@ -430,7 +430,7 @@ class XPath(Parser):
         elif _token_ == "'!='":
             self._scan("'!='")
             RelationalExpr = self.RelationalExpr()
-            EqualityExprs = self.EqualityExprs(self.bop(self.NE,v,RelationalExpr))
+            EqualityExprs = self.EqualityExprs(self.bop(self.NEQ,v,RelationalExpr))
             return EqualityExprs
         elif _token_ in ["'and'", "'or'", 'END', 'RPAREN', 'RBRACKET', "','"]:
             return v

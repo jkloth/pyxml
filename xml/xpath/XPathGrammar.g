@@ -171,7 +171,7 @@ parser XPath:
     rule EqualityExprs<<v>>:
           '=' RelationalExpr EqualityExprs<<self.bop(self.EQ,v,RelationalExpr)>>
                   {{return EqualityExprs}}
-        | '!=' RelationalExpr EqualityExprs<<self.bop(self.NE,v,RelationalExpr)>>
+        | '!=' RelationalExpr EqualityExprs<<self.bop(self.NEQ,v,RelationalExpr)>>
                   {{return EqualityExprs}}
         |   {{return v}}
 
