@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/11/29 19:45:59 $ by $Author: rsalz $
+$Date: 2001/12/06 17:08:41 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -46,7 +46,7 @@ except:
 	XML = "http://www.w3.org/XML/1998/namespace"
 import cStringIO as StringIO
 
-_attrs = lambda E: E.attributes or []
+_attrs = lambda E: (E.attributes and E.attributes.values()) or []
 _children = lambda E: E.childNodes or []
 _IN_XML_NS = lambda n: n.namespaceURI == XMLNS.XML
 
