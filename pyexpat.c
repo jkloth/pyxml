@@ -31,6 +31,12 @@ PERFORMANCE OF THIS SOFTWARE.
 
 #include "Python.h"
 #include "xmlparse.h"
+#include <setjmp.h>
+
+/*
+** The version number should match the one in _checkversion
+*/
+#define VERSION "1.3"
 
 static PyObject *ErrorObject;
 
@@ -45,6 +51,8 @@ typedef struct {
 	PyObject *EndElementHandler;
 	PyObject *CharacterDataHandler;
 	PyObject *ProcessingInstructionHandler;
+	int jmpbuf_valid;
+	jmp_buf jmpbuf;
 } xmlparseobject;
 
 staticforward PyTypeObject Xmlparsetype;
@@ -78,9 +86,16 @@ my_StartElementHandler(userdata, name, atts)
 		}
 		
 		args = Py_BuildValue("(sO)", name, attrs_obj);
+		Py_XDECREF(attrs_obj);
 		if (!args) return;
 		rv = PyEval_CallObject(self->StartElementHandler, args);
 		Py_XDECREF(args);
+		if (rv == NULL) {
+			if (self->jmpbuf_valid)
+				longjmp(self->jmpbuf, 1);
+			PySys_WriteStderr("Exception in StartElementHandler()\n");
+			PyErr_Clear();
+		}
 		Py_XDECREF(rv);
 	}
 }
@@ -100,6 +115,12 @@ my_EndElementHandler(userdata, name)
 		if (!args) return;
 		rv = PyEval_CallObject(self->EndElementHandler, args);
 		Py_XDECREF(args);
+		if (rv == NULL) {
+			if (self->jmpbuf_valid)
+				longjmp(self->jmpbuf, 1);
+			PySys_WriteStderr("Exception in EndElementHandler()\n");
+			PyErr_Clear();
+		}
 		Py_XDECREF(rv);
 	}
 }
@@ -121,6 +142,12 @@ my_CharacterDataHandler(userdata, data, len)
 		if (!args) return;
 		rv = PyEval_CallObject(self->CharacterDataHandler, args);
 		Py_XDECREF(args);
+		if (rv == NULL) {
+			if (self->jmpbuf_valid)
+				longjmp(self->jmpbuf, 1);
+			PySys_WriteStderr("Exception in CharacterDataHandler()\n");
+			PyErr_Clear();
+		}
 		Py_XDECREF(rv);
 	}
 }
@@ -142,6 +169,12 @@ my_ProcessingInstructionHandler(userdata, target, data)
 		rv = PyEval_CallObject(self->ProcessingInstructionHandler,
 				       args);
 		Py_XDECREF(args);
+		if (rv == NULL) {
+			if (self->jmpbuf_valid)
+				longjmp(self->jmpbuf, 1);
+			PySys_WriteStderr("Exception in ProcessingInstructionHandler()\n");
+			PyErr_Clear();
+		}
 		Py_XDECREF(rv);
 	}
 }
@@ -165,7 +198,13 @@ xmlparse_Parse(self, args)
 	
 	if (!PyArg_ParseTuple(args, "s#|i", &s, &slen, &isFinal))
 		return NULL;
+	if (setjmp(self->jmpbuf)) {
+		/* Error in callback routine */
+		return NULL;
+	}
+	self->jmpbuf_valid = 1;
 	rv = XML_Parse(self->itself, s, slen, isFinal);
+	self->jmpbuf_valid = 0;
 	return Py_BuildValue("i", rv);
 }
 
@@ -312,7 +351,7 @@ static char Xmlparsetype__doc__[] =
 ;
 
 static PyTypeObject Xmlparsetype = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,				/*ob_size*/
 	"xmlparser",			/*tp_name*/
 	sizeof(xmlparseobject),		/*tp_basicsize*/
@@ -395,6 +434,8 @@ initpyexpat()
 {
 	PyObject *m, *d;
 
+	Xmlparsetype.ob_type = &PyType_Type;
+
 	/* Create the module and add the functions */
 	m = Py_InitModule4("pyexpat", pyexpat_methods,
 		pyexpat_module_documentation,
@@ -406,8 +447,11 @@ initpyexpat()
 	PyDict_SetItemString(d, "error", ErrorObject);
 
 	/* XXXX Add constants here */
+	PyDict_SetItemString(d, "version", PyString_FromString(VERSION));
+		
 #define MYCONST(name) \
 	PyDict_SetItemString(d, #name, PyInt_FromLong(name))
+		
 	MYCONST(XML_ERROR_NONE);
 	MYCONST(XML_ERROR_NO_MEMORY);
 	MYCONST(XML_ERROR_SYNTAX);
