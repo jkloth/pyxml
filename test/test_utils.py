@@ -15,9 +15,6 @@ v1, v2 = escape('&\'"<>', {'"': '&quot;', "'": '&apos;'}), '&amp;&apos;&quot;&lt
 print v1 == v2, repr(v1), repr(v2)
 
 # Test the iso8601 module
-import time
-saved_timezone = time.timezone
-time.timezone = 0
 
 for dt in ['1998', '1998-06', '1998-06-13', 
            '1998-06-13T14:12Z',
@@ -27,5 +24,4 @@ for dt in ['1998', '1998-06', '1998-06-13',
     date = iso8601.parse( dt )
     print iso8601.tostring( date )
         
-time.timezone = saved_timezone 
 
