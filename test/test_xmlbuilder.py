@@ -1,5 +1,6 @@
 """Tests of the extended features of xml.dom.expatbuilder."""
 
+import os
 import pprint
 import unittest
 
@@ -126,6 +127,11 @@ class TestingResolver(xmlbuilder.DOMEntityResolver):
     def _create_opener(self):
         return FakeOpener(self._content_type)
 
+if os.name == "nt":
+    NULLFILE = "nul"
+else:
+    NULLFILE = "/dev/null"
+
 class FakeOpener:
     def __init__(self, content_type):
         self._content_type = content_type
@@ -133,7 +139,7 @@ class FakeOpener:
     def open(self, url):
         if url != DUMMY_URL:
             raise ValueError, "unexpected URL: " + repr(url)
-        return FakeFile(open("/dev/null", "rb"), self._content_type)
+        return FakeFile(open(NULLFILE, "rb"), self._content_type)
 
 class FakeFile:
     def __init__(self, file, content_type):
