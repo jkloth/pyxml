@@ -19,54 +19,54 @@ class Application:
     parsed data from the parser. It is meant to be subclassed by users."""
 
     def __init__(self):
-	self.locator=None
+        self.locator=None
 
     def set_locator(self,locator):
-	"""Gives the application an object to ask for the current location.
-	Called automagically by the parser."""
-	self.locator=locator
+        """Gives the application an object to ask for the current location.
+        Called automagically by the parser."""
+        self.locator=locator
     
     def doc_start(self):
-	"Notifies the application of the start of the document."
-	pass
+        "Notifies the application of the start of the document."
+        pass
 
     def doc_end(self):
-	"Notifies the application of the end of the document."
-	pass
-	
+        "Notifies the application of the end of the document."
+        pass
+        
     def handle_comment(self,data):
-	"Notifies the application of comments."
-	pass
+        "Notifies the application of comments."
+        pass
 
     def handle_start_tag(self,name,attrs):
-	"Notifies the application of start tags (and empty element tags)."
-	pass
+        "Notifies the application of start tags (and empty element tags)."
+        pass
 
     def handle_end_tag(self,name):
-	"Notifies the application of end tags (and empty element tags)."
-	pass
+        "Notifies the application of end tags (and empty element tags)."
+        pass
     
     def handle_data(self,data,start,end):
-	"Notifies the application of character data."
-	pass
+        "Notifies the application of character data."
+        pass
 
     def handle_ignorable_data(self,data,start,end):
-	"Notifies the application of character data that can be ignored."
-	pass
+        "Notifies the application of character data that can be ignored."
+        pass
     
     def handle_pi(self,target,data):
-	"Notifies the application of processing instructions."
-	pass    
+        "Notifies the application of processing instructions."
+        pass    
 
     def handle_doctype(self,root,pubID,sysID):
-	"Notifies the application of the document type declaration."
-	pass
+        "Notifies the application of the document type declaration."
+        pass
     
     def set_entity_info(self,xmlver,enc,sddecl):
-	"""Notifies the application of information about the current entity
-	supplied by an XML or text declaration. All three parameters will be
+        """Notifies the application of information about the current entity
+        supplied by an XML or text declaration. All three parameters will be
         None, if they weren't present."""
-	pass
+        pass
 
 # ==============================
 # The public identifier resolver
@@ -103,32 +103,32 @@ class ErrorHandler:
     that want to use their own error handlers."""
 
     def __init__(self,locator):
-	self.locator=locator	
+        self.locator=locator    
 
     def set_locator(self,loc):
-	self.locator=loc
+        self.locator=loc
 
     def get_locator(self):
-	return self.locator
-	
+        return self.locator
+        
     def warning(self,msg):
-	"Handles a non-fatal error message."
-	pass
+        "Handles a non-fatal error message."
+        pass
 
     def error(self,msg):
-	self.fatal(msg)
+        self.fatal(msg)
 
     # "The reports of the error's fatality are much exaggerated"
     # --Paul Prescod 
     
     def fatal(self,msg):
-	"Handles a fatal error message."
+        "Handles a fatal error message."
         if self.locator==None:
             print "ERROR: "+msg
         else:
             print "ERROR: "+msg+" at %s:%d:%d" % (self.locator.get_current_sysid(),\
-						  self.locator.get_line(),\
-						  self.locator.get_column())
+                                                  self.locator.get_line(),\
+                                                  self.locator.get_column())
             print "TEXT: '%s'" % (self.locator.data[self.locator.pos:\
                                                     self.locator.pos+10])
         sys.exit(1)
@@ -141,75 +141,75 @@ class EntityHandler:
     "An entity handler for the parser."
 
     def __init__(self,parser):
-	self.parser=parser
+        self.parser=parser
     
     def resolve_ent_ref(self,entname):
-	"""Resolves a general entity reference and returns its contents. The
-	default method only resolves the predefined entities. Returns a
-	2-tuple (n,m) where n is true if the entity is internal. For internal
-	entities m is the value, for external ones it is the system id."""
+        """Resolves a general entity reference and returns its contents. The
+        default method only resolves the predefined entities. Returns a
+        2-tuple (n,m) where n is true if the entity is internal. For internal
+        entities m is the value, for external ones it is the system id."""
 
-	try:
-	    return (1,predef_ents[entname])
-	except KeyError,e:
-	    self.parser.report_error(3021,entname)
-	    return (1,"")
+        try:
+            return (1,predef_ents[entname])
+        except KeyError,e:
+            self.parser.report_error(3021,entname)
+            return (1,"")
 
 # ==============================
 # A DTD event handler
 # ==============================
-	
+        
 class DTDConsumer:
     """Represents an XML DTD. This class can be subclassed by applications
     which want to handle the DTD information themselves."""
 
     def __init__(self,parser):
-	self.parser=parser
-	
+        self.parser=parser
+        
     def dtd_start(self):
-	"Called when DTD parsing starts."
-	pass
+        "Called when DTD parsing starts."
+        pass
     
     def dtd_end(self):
-	"Called when the DTD is completely parsed."
-	pass
+        "Called when the DTD is completely parsed."
+        pass
     
     def new_comment(self,contents):
-	"Receives comment contents."
-	pass
+        "Receives comment contents."
+        pass
 
     def new_pi(self,target,rem):
-	"Receives processing instructions in the DTD."
-	pass
+        "Receives processing instructions in the DTD."
+        pass
     
     def new_general_entity(self,name,val):
-	"Receives internal general entity declarations."
-	pass
+        "Receives internal general entity declarations."
+        pass
 
     def new_external_entity(self,ent_name,pub_id,sys_id,ndata):
-	"""Receives external general entity declarations. 'ndata' is the
+        """Receives external general entity declarations. 'ndata' is the
         empty string if the entity is parsed."""
-	pass
+        pass
 
     def new_parameter_entity(self,name,val):
-	"Receives internal parameter entity declarations."
-	pass
+        "Receives internal parameter entity declarations."
+        pass
     
     def new_external_pe(self,name,pubid,sysid):
-	"Receives external parameter entity declarations."
-	pass
-	
+        "Receives external parameter entity declarations."
+        pass
+        
     def new_notation(self,name,pubid,sysid):
-	"Receives notation declarations."
-	pass
+        "Receives notation declarations."
+        pass
 
     def new_element_type(self,elem_name,elem_cont):
-	"Receives the declaration of an element type."
-	pass
-	    
+        "Receives the declaration of an element type."
+        pass
+            
     def new_attribute(self,elem,attr,a_type,a_decl,a_def):
-	"Receives the declaration of a new attribute."
-	pass
+        "Receives the declaration of a new attribute."
+        pass
 
     def new_namespace(self,prefix,name,schema_url):
         "Receives the declaration of a new namespace."

@@ -1111,4 +1111,4 @@ class DTDParser(XMLCommonParser):
         return list
                 
     def is_external(self):
-	return not self.internal
+        return not self.internal

@@ -37,9 +37,9 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def startElement(self,name,attrs):
         at = {}
-	for i in range(0, len(attrs), 2):
-	    at[attrs[i]] = attrs[i+1]
-	    
+        for i in range(0, len(attrs), 2):
+            at[attrs[i]] = attrs[i+1]
+            
         self.doc_handler.startElement(name,saxutils.AttributeMap(at))
 
     def endElement(self,name):
@@ -52,22 +52,22 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.doc_handler.processingInstruction(target,data)
 
     def parse(self,sysID):
-	self.sysID=sysID
+        self.sysID=sysID
         self.parseFile(urllib.urlopen(sysID))
         
     def parseFile(self,fileobj):
         self.reset()
-	self.doc_handler.startDocument()
+        self.doc_handler.startDocument()
 
 #        while 1:
 #            buf=fileobj.read(16384)
 #
 #            if buf:
-#	        if not self.parser.Parse(buf):
+#               if not self.parser.Parse(buf):
 #                    self.__report_error()
 #                    return
-#	    else:
-#		break
+#           else:
+#               break
 
         if not self.parser.Parse(fileobj.read(),1):
             self.__report_error()

@@ -11,22 +11,22 @@ class Location:
     stored internally."""
 
     def __init__(self, locator):
-	self.__col=locator.getColumnNumber()
-	self.__line=locator.getLineNumber()
-	self.__pubid=locator.getPublicId()
-	self.__sysid=locator.getSystemId()
+        self.__col=locator.getColumnNumber()
+        self.__line=locator.getLineNumber()
+        self.__pubid=locator.getPublicId()
+        self.__sysid=locator.getSystemId()
     
     def getColumnNumber(self):
-	return self.__col
+        return self.__col
 
     def getLineNumber(self):
-	return self.__line
+        return self.__line
 
     def getPublicId(self):
-	return self.__pubid
+        return self.__pubid
 
     def getSystemId(self):
-	return self.__sysid
+        return self.__sysid
 
 # --- ErrorPrinter
     
@@ -41,27 +41,27 @@ class ErrorPrinter:
         if self.level>1:
             return
         
-	self.outfile.write("ERROR in %s: %s\n" % (self.__getpos(exception),\
+        self.outfile.write("ERROR in %s: %s\n" % (self.__getpos(exception),\
                                                   exception.getMessage()))
 
     def fatalError(self, exception):
         if self.level>2:
             return
         
-	self.outfile.write("FATAL ERROR in %s: %s\n" % \
+        self.outfile.write("FATAL ERROR in %s: %s\n" % \
                            (self.__getpos(exception),exception.getMessage()))
 
     def warning(self, exception):
         if self.level>0:
             return
         
-	self.outfile.write("WARNING in %s: %s\n" % (self.__getpos(exception),\
+        self.outfile.write("WARNING in %s: %s\n" % (self.__getpos(exception),\
                                                     exception.getMessage()))
 
     def __getpos(self, exception):
-	return "%s:%s:%s" % (exception.getSystemId(),\
-			     exception.getLineNumber(),\
-			     exception.getColumnNumber())
+        return "%s:%s:%s" % (exception.getSystemId(),\
+                             exception.getLineNumber(),\
+                             exception.getColumnNumber())
 
 # --- ErrorRaiser
 
@@ -84,11 +84,11 @@ class AttributeMap:
     and uses it to implement the AttributeList interface."""    
 
     def __init__(self, map):
-	self.map=map
+        self.map=map
     
     def getLength(self):
-	return len(self.map.keys())
-	
+        return len(self.map.keys())
+        
     def getName(self, i):
         try:
             return self.map.keys()[i]
@@ -96,7 +96,7 @@ class AttributeMap:
             return None
 
     def getType(self, i):
-	return "CDATA"
+        return "CDATA"
 
     def getValue(self, i):
         try:
@@ -108,22 +108,22 @@ class AttributeMap:
             return None
 
     def __len__(self):
-	return len(self.map.keys())
+        return len(self.map.keys())
 
     def __getitem__(self, key):
-	if type(key)==types.IntType:
+        if type(key)==types.IntType:
             return self.map.keys()[key]
-	else:
+        else:
             return self.map[key]
 
     def items(self):
         return self.map.items()
         
     def keys(self):
-	return self.map.keys()
+        return self.map.keys()
 
     def has_key(self,key):
-	return self.map.has_key(key)
+        return self.map.has_key(key)
 
 # --- Event broadcasting object
 
@@ -158,26 +158,26 @@ class ESISDocHandler(saxlib.HandlerBase):
     "A SAX document handler that produces naive ESIS output."
 
     def __init__(self,writer=sys.stdout):
-	self.writer=writer
+        self.writer=writer
     
     def processingInstruction (self,target, remainder):
-	"""Receive an event signalling that a processing instruction
-	has been found."""
-	self.writer.write("?"+target+" "+remainder+"\n")
+        """Receive an event signalling that a processing instruction
+        has been found."""
+        self.writer.write("?"+target+" "+remainder+"\n")
 
     def startElement(self,name,amap):
-	"Receive an event signalling the start of an element."
-	self.writer.write("("+name+"\n")
-	for a_name in amap.keys():
-	    self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
+        "Receive an event signalling the start of an element."
+        self.writer.write("("+name+"\n")
+        for a_name in amap.keys():
+            self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
 
     def endElement(self,name):
-	"Receive an event signalling the end of an element."
-	self.writer.write(")"+name+"\n")
+        "Receive an event signalling the end of an element."
+        self.writer.write(")"+name+"\n")
 
     def characters(self,data,start_ix,length):
-	"Receive an event signalling that character data has been found."
-	self.writer.write("-"+data[start_ix:start_ix+length]+"\n")
+        "Receive an event signalling that character data has been found."
+        self.writer.write("-"+data[start_ix:start_ix+length]+"\n")
 
     def endDocument(self):
         try:
@@ -192,48 +192,48 @@ class Canonizer(saxlib.HandlerBase):
     "A SAX document handler that produces canonized XML output."
 
     def __init__(self,writer=sys.stdout):
-	self.elem_level=0
-	self.writer=writer
+        self.elem_level=0
+        self.writer=writer
     
     def processingInstruction (self,target, remainder):
-	if not target=="xml":
-	    self.writer.write("<?"+target+" "+remainder+"?>")
+        if not target=="xml":
+            self.writer.write("<?"+target+" "+remainder+"?>")
 
     def startElement(self,name,amap):
-	self.writer.write("<"+name)
-	
-	a_names=amap.keys()
-	a_names.sort()
+        self.writer.write("<"+name)
+        
+        a_names=amap.keys()
+        a_names.sort()
 
-	for a_name in a_names:
-	    self.writer.write(" "+a_name+"=\"")
-	    self.write_data(amap[a_name])
-	    self.writer.write("\"")
-	self.writer.write(">")
-	self.elem_level=self.elem_level+1
+        for a_name in a_names:
+            self.writer.write(" "+a_name+"=\"")
+            self.write_data(amap[a_name])
+            self.writer.write("\"")
+        self.writer.write(">")
+        self.elem_level=self.elem_level+1
 
     def endElement(self,name):
-	self.writer.write("</"+name+">")
-	self.elem_level=self.elem_level-1
+        self.writer.write("</"+name+">")
+        self.elem_level=self.elem_level-1
 
     def ignorableWhitespace(self,data,start_ix,length):
-	self.characters(data,start_ix,length)
-	
+        self.characters(data,start_ix,length)
+        
     def characters(self,data,start_ix,length):
-	if self.elem_level>0:
+        if self.elem_level>0:
             self.write_data(data[start_ix:start_ix+length])
-	    
+            
     def write_data(self,data):
-	"Writes datachars to writer."
-	data=string.replace(data,"&","&amp;")
-	data=string.replace(data,"<","&lt;")
-	data=string.replace(data,"\"","&quot;")
-	data=string.replace(data,">","&gt;")
+        "Writes datachars to writer."
+        data=string.replace(data,"&","&amp;")
+        data=string.replace(data,"<","&lt;")
+        data=string.replace(data,"\"","&quot;")
+        data=string.replace(data,">","&gt;")
         data=string.replace(data,chr(9),"&#9;")
         data=string.replace(data,chr(10),"&#10;")
         data=string.replace(data,chr(13),"&#13;")
-	self.writer.write(data)
-	
+        self.writer.write(data)
+        
     def endDocument(self):
         try:
             pass #self.writer.close()

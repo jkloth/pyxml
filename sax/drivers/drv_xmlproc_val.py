@@ -16,10 +16,10 @@ class SAX_XPValParser(SAX_XPParser):
 
     def __init__(self):
         SAX_XPParser.__init__(self)
-	self.doc_handler.setDocumentLocator(self)
+        self.doc_handler.setDocumentLocator(self)
     
     def _create_parser(self):
-	return xmlval.XMLValidator()
+        return xmlval.XMLValidator()
 
     def handle_start_tag(self, name, attrs):
         try:
@@ -55,7 +55,7 @@ class XPAttributes(saxutils.AttributeMap):
         return "CDATA"        # Used for undeclared elements
         
     def getType(self, i):
-	if type(i)==types.IntType:
+        if type(i)==types.IntType:
             try:
                 i=self.map.keys()[i]
             except KeyError,e:

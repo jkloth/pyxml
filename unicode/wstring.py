@@ -11,7 +11,7 @@ def install_encoding_map(name,dict):
     to 10646 characters."""
     encoding = {}
     for code8,uni in dict.items():
-	encoding[uni]=code8
+        encoding[uni]=code8
     encodings[name]=encoding
     decodings[name]=dict
 

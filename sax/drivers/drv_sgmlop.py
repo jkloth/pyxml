@@ -26,22 +26,22 @@ class Parser(saxlib.Parser):
         self.parser = sgmlop.XMLParser()
     
     def setDocumentHandler(self, dh):
-	self.parser.register(DHWrapper(dh), 1)
+        self.parser.register(DHWrapper(dh), 1)
         self.doc_handler=dh
 
     def parse(self, url):
         self.parseFile(urllib.urlopen(url))
         
     def parseFile(self, file):
-	parser = self.parser
+        parser = self.parser
 
-	while 1:
-	    data = file.read(16384)
-	    if not data:
-		break
-	    parser.feed(data)
+        while 1:
+            data = file.read(16384)
+            if not data:
+                break
+            parser.feed(data)
 
-	self.close()
+        self.close()
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
 

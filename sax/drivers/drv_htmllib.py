@@ -15,7 +15,7 @@ class SAX_HLParser(pylibs.SGMLParsers,htmllib.HTMLParser):
     "SAX driver for htmllib.py."
 
     def __init__(self):
-	htmllib.HTMLParser.__init__(self,None)
+        htmllib.HTMLParser.__init__(self,None)
         pylibs.LibParser.__init__(self)
         self.standalone=0
 
@@ -40,7 +40,7 @@ class SAX_HLParser(pylibs.SGMLParsers,htmllib.HTMLParser):
     
     def close(self):
         htmllib.HTMLParser.close(self)
-	self.doc_handler.endDocument()
+        self.doc_handler.endDocument()
     
 # --- Global functions
 

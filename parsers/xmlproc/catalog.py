@@ -68,9 +68,9 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                           "BASE": ("o"), "SYSTEM": ("o","s") }
     
     def do_parse(self):
-	try:
-	    while self.pos+1<self.datasize:
-		prepos=self.pos
+        try:
+            while self.pos+1<self.datasize:
+                prepos=self.pos
 
                 self.skip_stuff()
                 if self.pos+1>=self.datasize:
@@ -82,12 +82,12 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                 
                 self.parse_entry(entryname,self.entry_hash[entryname])
 
-	except xmlutils.OutOfDataException,e:
-	    if self.final:
-		raise sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-	        #raise e
-	    else:
-		self.pos=prepos  # Didn't complete the construct
+        except xmlutils.OutOfDataException,e:
+            if self.final:
+                raise sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
+                #raise e
+            else:
+                self.pos=prepos  # Didn't complete the construct
 
     def parse_arg(self):
         if self.now_at('"'):

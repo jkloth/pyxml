@@ -14,20 +14,20 @@ class Locator:
     results are unpredictable."""
     
     def getColumnNumber(self):
-	"Return the column number where the current event ends."
-	return -1
+        "Return the column number where the current event ends."
+        return -1
 
     def getLineNumber(self):
-	"Return the line number where the current event ends."
-	return -1
+        "Return the line number where the current event ends."
+        return -1
 
     def getPublicId(self):
-	"Return the public identifier for the current event."
-	return ""
+        "Return the public identifier for the current event."
+        return ""
 
     def getSystemId(self):
-	"Return the system identifier for the current event."
-	return ""
+        "Return the system identifier for the current event."
+        return ""
 
 # --- SAXException
 
@@ -52,8 +52,8 @@ class SAXException(Exception):
         self.exception=exception
 
     def getMessage(self):
-	"Return a message for this exception."
-	return self.msg
+        "Return a message for this exception."
+        return self.msg
 
     def getException(self):
         "Return the embedded exception, if any."
@@ -84,21 +84,21 @@ class SAXParseException(SAXException):
         self.locator=locator
         
     def getColumnNumber(self):
-	"""The column number of the end of the text where the exception
-	occurred."""
-	return self.locator.getColumnNumber()
+        """The column number of the end of the text where the exception
+        occurred."""
+        return self.locator.getColumnNumber()
 
     def getLineNumber(self):
-	"The line number of the end of the text where the exception occurred."
-	return self.locator.getLineNumber()
+        "The line number of the end of the text where the exception occurred."
+        return self.locator.getLineNumber()
 
     def getPublicId(self):
-	"Get the public identifier of the entity where the exception occurred."
-	return self.locator.getPublicId()
+        "Get the public identifier of the entity where the exception occurred."
+        return self.locator.getPublicId()
 
     def getSystemId(self):
-	"Get the system identifier of the entity where the exception occurred."
-	return self.locator.getSystemId()
+        "Get the system identifier of the entity where the exception occurred."
+        return self.locator.getSystemId()
 
     def __str__(self):
         "Create a string representation of the exception."
@@ -115,8 +115,8 @@ class EntityResolver:
     this interface with the default behaviour."""
     
     def resolveEntity(self, publicId, systemId):
-	"Resolve the system identifier of an entity."
-	return systemId
+        "Resolve the system identifier of an entity."
+        return systemId
 
 # --- ErrorHandler
 
@@ -130,16 +130,16 @@ class ErrorHandler:
     only parameter."""
 
     def error(self, exception):
-	"Handle a recoverable error."
-	pass
+        "Handle a recoverable error."
+        pass
 
     def fatalError(self, exception):
-	"Handle a non-recoverable error."
-	pass
+        "Handle a non-recoverable error."
+        pass
 
     def warning(self, exception):
-	"Handle a warning."
-	pass
+        "Handle a warning."
+        pass
 
 # --- AttributeList
 
@@ -153,37 +153,37 @@ class AttributeList:
     or specified."""
 
     def getLength(self):
-	"Return the number of attributes in list."
+        "Return the number of attributes in list."
         pass
 
     def getName(self, i):
-	"Return the name of an attribute in the list."
+        "Return the name of an attribute in the list."
         pass
 
     def getType(self, i):
-	"""Return the type of an attribute in the list. (Parameter can be
-	either integer index or attribute name.)"""
+        """Return the type of an attribute in the list. (Parameter can be
+        either integer index or attribute name.)"""
         pass
 
     def getValue(self, i):
-	"""Return the value of an attribute in the list. (Parameter can be
-	either integer index or attribute name.)"""
+        """Return the value of an attribute in the list. (Parameter can be
+        either integer index or attribute name.)"""
         pass
 
     def __len__(self):
-	"Alias for getLength."
+        "Alias for getLength."
         pass
 
     def __getitem__(self, key):
-	"Alias for getName (if key is an integer) and getValue (if string)."
+        "Alias for getName (if key is an integer) and getValue (if string)."
         pass
 
     def keys(self):
-	"Returns a list of the attribute names."
+        "Returns a list of the attribute names."
         pass
 
     def has_key(self, key):
-	"True if the attribute is in the list, false otherwise."
+        "True if the attribute is in the list, false otherwise."
         pass
 
 # --- DTDHandler
@@ -196,12 +196,12 @@ class DTDHandler:
     behaviour."""
 
     def notationDecl(self, name, publicId, systemId):
-	"Handle a notation declaration event."
-	pass
+        "Handle a notation declaration event."
+        pass
 
     def unparsedEntityDecl(self, name, publicId, systemId, ndata):
-	"Handle an unparsed entity declaration event."
-	pass
+        "Handle an unparsed entity declaration event."
+        pass
 
 # --- DocumentHandler
 
@@ -217,36 +217,36 @@ class DocumentHandler:
     supplied by setDocumentLocator()."""
 
     def characters(self, ch, start, length):
-	"Handle a character data event."
-	pass
+        "Handle a character data event."
+        pass
 
     def endDocument(self):
-	"Handle an event for the end of a document."
-	pass
+        "Handle an event for the end of a document."
+        pass
 
     def endElement(self, name):
-	"Handle an event for the end of an element."
-	pass
+        "Handle an event for the end of an element."
+        pass
 
     def ignorableWhitespace(self, ch, start, length):
-	"Handle an event for ignorable whitespace in element content."
-	pass
+        "Handle an event for ignorable whitespace in element content."
+        pass
 
     def processingInstruction(self, target, data):
-	"Handle a processing instruction event."
-	pass
+        "Handle a processing instruction event."
+        pass
 
     def setDocumentLocator(self, locator):
-	"Receive an object for locating the origin of SAX document events."
-	pass
+        "Receive an object for locating the origin of SAX document events."
+        pass
 
     def startDocument(self):
-	"Handle an event for the beginning of a document."
-	pass
+        "Handle an event for the beginning of a document."
+        pass
 
     def startElement(self, name, atts):
-	"Handle an event for the beginning of an element."
-	pass
+        "Handle an event for the beginning of an element."
+        pass
 
 # --- Parser
 
@@ -258,34 +258,34 @@ class Parser:
     parsers should also implement a zero-argument constructor."""
 
     def __init__(self):
-	self.doc_handler=DocumentHandler()
-	self.dtd_handler=DTDHandler()
-	self.ent_handler=EntityResolver()
-	self.err_handler=ErrorHandler()
+        self.doc_handler=DocumentHandler()
+        self.dtd_handler=DTDHandler()
+        self.ent_handler=EntityResolver()
+        self.err_handler=ErrorHandler()
 
     def parse(self, systemId):
-	"Parse an XML document from a system identifier."
-	pass
+        "Parse an XML document from a system identifier."
+        pass
 
     def parseFile(self, fileobj):
         "Parse an XML document from a file-like object."
         pass
 
     def setDocumentHandler(self, handler):
-	"Register an object to receive basic document-related events."
-	self.doc_handler=handler
+        "Register an object to receive basic document-related events."
+        self.doc_handler=handler
 
     def setDTDHandler(self, handler):
-	"Register an object to receive basic DTD-related events."
-	self.dtd_handler=handler
+        "Register an object to receive basic DTD-related events."
+        self.dtd_handler=handler
 
     def setEntityResolver(self, resolver):
-	"Register an object to resolve external entities."
-	self.ent_handler=resolver
+        "Register an object to resolve external entities."
+        self.ent_handler=resolver
 
     def setErrorHandler(self, handler):
-	"Register an object to receive error-message events."
-	self.err_handler=handler
+        "Register an object to receive error-message events."
+        self.err_handler=handler
 
     def setLocale(self, locale):
         """Allow an application to set the locale for errors and warnings. 
@@ -299,7 +299,7 @@ class Parser:
 # --- HandlerBase
 
 class HandlerBase(EntityResolver, DTDHandler, DocumentHandler,\
-		     ErrorHandler):
+                     ErrorHandler):
     """Default base class for handlers. This class implements the
     default behaviour for four SAX interfaces: EntityResolver,
     DTDHandler, DocumentHandler, and ErrorHandler: rather
