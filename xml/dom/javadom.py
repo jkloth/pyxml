@@ -3,7 +3,7 @@
 # access them through the same interface as the Python DOM
 # implementation.
 #
-# $Id: javadom.py,v 1.3 2000/05/20 11:38:54 lars Exp $
+# $Id: javadom.py,v 1.4 2000/06/01 13:14:58 lars Exp $
 
 # Supports:
 # - Sun's Java Project X
@@ -30,13 +30,13 @@ class BaseDomImplementation:
     def buildDocumentString(self, string):
         from java.io import StringReader
         from org.xml.sax import InputSource
-        return _parse_from_source(InputSource(StringReader(string)))
+        return self._parse_from_source(InputSource(StringReader(string)))
 
     def buildDocumentUrl(self, url):
-        return _parse_from_source(url)
+        return self._parse_from_source(url)
 
     def buildDocumentFile(self, filename):
-        return buildDocumentUrl(filetourl(filename))    
+        return self.buildDocumentUrl(filetourl(filename))    
 
 class SunDomImplementation:
 
@@ -53,7 +53,7 @@ class SunDomImplementation:
         return Document(XmlDocument.createXmlDocument(url))
 
     def buildDocumentFile(self, filename):
-        return buildDocumentUrl(filetourl(filename))
+        return self.buildDocumentUrl(filetourl(filename))
 
 class XercesDomImplementation(BaseDomImplementation):
 
@@ -85,9 +85,10 @@ class IndelvDomImplementation(BaseDomImplementation):
 
     def _parse_from_source(self, source):
         from com.indelv.dom.util import XMLReader
-        return Document(XMLReader.parseDocument(source))
+        from org.xml.sax import InputSource
+        return Document(XMLReader.parseDocument(InputSource(source)))
 
-class SxpDomImplementation:
+class SxpDomImplementation(BaseDomImplementation):
 
     def createDocument(self):
         from fr.loria.xml import DOMFactory
@@ -96,7 +97,10 @@ class SxpDomImplementation:
     def _parse_from_source(self, source):
         from fr.loria.xml import DocumentLoader
         loader = DocumentLoader()
-        if source.getCharacterStream() != None:
+        
+        if type(source) == type(""):
+            doc = loader.loadDocument(source)
+        elif source.getCharacterStream() != None:
             doc = loader.loadDocument(source.getCharacterStream())
         elif source.getByteStream() != None:
             doc = loader.loadDocument(source.getByteStream())
@@ -105,7 +109,7 @@ class SxpDomImplementation:
 
         return Document(doc)
 
-class OpenXmlDomImplementation:
+class OpenXmlDomImplementation(BaseDomImplementation):
 
     def createDocument(self):
         from org.openxml.dom import DocumentImpl
