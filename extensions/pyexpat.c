@@ -19,6 +19,7 @@
 #define PyGC_HEAD_SIZE 0
 #define PyObject_GC_Init(x)
 #define PyObject_GC_Fini(m)
+#define Py_TPFLAGS_GC 0
 #endif
 
 enum HandlerTypes {
