@@ -231,7 +231,7 @@ class Element(FtNode):
                 e.attributes.setNamedItem(clone)
             else:
                 e.attributes.setNamedItemNS(clone)
-            clone._4dom_setOwnerElement(self)
+            clone._4dom_setOwnerElement(e)
         return e
 
     def __getinitargs__(self):
