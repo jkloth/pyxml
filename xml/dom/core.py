@@ -153,147 +153,147 @@ class _nodeData:
         self.name = self.value = self.attributes = None
         
 class Node:
-	'''Base class for grove nodes in DOM model.  Proxies an instance
-        of the _nodeData class.'''
+    '''Base class for grove nodes in DOM model.  Proxies an instance
+    of the _nodeData class.'''
 
-        def __init__(self, node, parent = None, document = None):
-            self._node = node
-            self._parent = parent
-            self._document = document
-                        
-	def index(self):
-            "Return the index of this child in its parent's child list"
-            if self._parent:
-                return self._parent._node.children.index(self)
-            else:
-                return -1
+    def __init__(self, node, parent = None, document = None):
+        self._node = node
+        self._parent = parent
+        self._document = document
 
-	# get/set attributes
+    def _index(self):
+        "Return the index of this child in its parent's child list"
+        if self._parent:
+            return self._parent._node.children._index(self)
+        else:
+            return -1
 
-        def get_nodeName(self):
-            return self._node.name
-        get_name = get_nodeName
-        
-        def get_nodeValue(self):
-            return self._node.value
-        get_value = get_nodeValue
-        
-	def get_nodeType(self):
-            return self._node.type
+    # get/set attributes
 
-	def get_parentNode(self):
-            return self._parent
+    def get_nodeName(self):
+        return self._node.name
+    get_name = get_nodeName
 
-	def get_childNodes(self):
-            L = self._node.children[:]
-            # Convert the list of _nodeData instances into a list of
-            # the appropriate Node subclasses
-            for i in range(len(L)):
-                L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self._document)
-            return NodeList(L)
+    def get_nodeValue(self):
+        return self._node.value
+    get_value = get_nodeValue
 
-	def get_firstChild(self):
-            if self._node.children:
-                n = self._node.children[0]
-                return NODE_CLASS[ n.type ] (n, self, self._document)
-            else:
-                return None
+    def get_nodeType(self):
+        return self._node.type
 
-        def get_lastChild(self):
-            if self._node.children:
-                n = self._node.children[-1]
-                return NODE_CLASS[ n.type ] (n, self, self._document)
-            else:
-                return None
+    def get_parentNode(self):
+        return self._parent
 
-	def get_previousSibling(self):
-            if self._parent is None: return None
-            i = self.index()
-            if i <= 0:
-                return None
-            else:
-                n = self._parent._node.children[i - 1]
-                return NODE_CLASS[ n.type ] (n, self, self._document)
+    def get_childNodes(self):
+        L = self._node.children[:]
+        # Convert the list of _nodeData instances into a list of
+        # the appropriate Node subclasses
+        for i in range(len(L)):
+            L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self._document)
+        return NodeList(L)
 
-	def get_nextSibling(self):
-            if self._parent is None: return None
-            L = self._parent._node.children
-            i = self.index()
-            if i == -1 or i == len(L) - 1:
-                return None
-            else:
-                return L[i + 1]
+    def get_firstChild(self):
+        if self._node.children:
+            n = self._node.children[0]
+            return NODE_CLASS[ n.type ] (n, self, self._document)
+        else:
+            return None
 
-        def get_attributes(self):
-            return self._node.attributes
+    def get_lastChild(self):
+        if self._node.children:
+            n = self._node.children[-1]
+            return NODE_CLASS[ n.type ] (n, self, self._document)
+        else:
+            return None
 
-        def get_ownerDocument(self):
-            return self._document
+    def get_previousSibling(self):
+        if self._parent is None: return None
+        i = self._index()
+        if i <= 0:
+            return None
+        else:
+            n = self._parent._node.children[i - 1]
+            return NODE_CLASS[ n.type ] (n, self, self._document)
 
-        # Methods
+    def get_nextSibling(self):
+        if self._parent is None: return None
+        L = self._parent._node.children
+        i = self._index()
+        if i == -1 or i == len(L) - 1:
+            return None
+        else:
+            return L[i + 1]
 
-	def insertBefore(self, newChild, refChild):
-            # XXX should check if newChild is a legal child,
-            # and raise HIERARCHY_REQUEST_ERR if it isn't
+    def get_attributes(self):
+        return self._node.attributes
 
-            if newChild._document != self._document:
-                raise WrongDocumentException("newChild created from a different document")
+    def get_ownerDocument(self):
+        return self._document
 
-            # If newChild is already in the tree, remove it
-            if newChild._parent != None:
-                newChild._parent.removeChild( newChild )
-                
-            if refChild == None:
-                self.appendChild(newChild)
+    # Methods
+
+    def insertBefore(self, newChild, refChild):
+        # XXX should check if newChild is a legal child,
+        # and raise HIERARCHY_REQUEST_ERR if it isn't
+
+        if newChild._document != self._document:
+            raise WrongDocumentException("newChild created from a different document")
+
+        # If newChild is already in the tree, remove it
+        if newChild._parent != None:
+            newChild._parent.removeChild( newChild )
+
+        if refChild == None:
+            self.appendChild(newChild)
+            return newChild
+
+        L = self._node.children ; n = refChild._node
+        for i in range(len(L)):
+            if L[i] == n:
+                L[i:i] = [newChild._node]
+                newChild._parent = self
                 return newChild
+        raise NotFoundException("refChild not a child in insertBefore()")
 
-            L = self._node.children ; n = refChild._node
-            for i in range(len(L)):
-                if L[i] == n:
-                    L[i:i] = [newChild._node]
-                    newChild._parent = self
-                    return newChild
-            raise NotFoundException("refChild not a child in insertBefore()")
-			
-	def replaceChild(self, newChild, oldChild):
-            o = oldChild._node ; L = self._node.children
-            for i in range(len(L)):
-                if L[i] == o:
-                    # If newChild is already in the tree, remove it
-                    if newChild._parent != None:
-                        newChild._parent.removeChild( newChild )
+    def replaceChild(self, newChild, oldChild):
+        o = oldChild._node ; L = self._node.children
+        for i in range(len(L)):
+            if L[i] == o:
+                # If newChild is already in the tree, remove it
+                if newChild._parent != None:
+                    newChild._parent.removeChild( newChild )
 
-                    L[i] = newChild._node
-                    newChild._parent = self
-                    oldChild._parent = None
-                    return oldChild
-            raise NotFoundException("oldChild not a child of this node")
-			
-	def removeChild(self, oldChild):
-            try:
-                self._node.children.remove(oldChild._node)
+                L[i] = newChild._node
+                newChild._parent = self
                 oldChild._parent = None
                 return oldChild
-            except ValueError:
-                raise NotFoundException("oldChild is not a child of this node")
-			
-	def appendChild(self, newChild):
-            if newChild._document != self._document:
-                raise WrongDocumentException("newChild created from a different document")
+        raise NotFoundException("oldChild not a child of this node")
 
-            # If newChild is already in the tree, remove it
-            if newChild._parent != None:
-                newChild._parent.removeChild( newChild )
+    def removeChild(self, oldChild):
+        try:
+            self._node.children.remove(oldChild._node)
+            oldChild._parent = None
+            return oldChild
+        except ValueError:
+            raise NotFoundException("oldChild is not a child of this node")
 
-            self._node.children.append( newChild._node )
-            newChild._parent = self
-            return newChild
-        
-	def hasChildNodes(self):
-            return len(self._node.children) > 0
+    def appendChild(self, newChild):
+        if newChild._document != self._document:
+            raise WrongDocumentException("newChild created from a different document")
 
-	def cloneNode(self, deep):
-            pass # XXX I don't understand the exact definition of cloneNode()
+        # If newChild is already in the tree, remove it
+        if newChild._parent != None:
+            newChild._parent.removeChild( newChild )
+
+        self._node.children.append( newChild._node )
+        newChild._parent = self
+        return newChild
+
+    def hasChildNodes(self):
+        return len(self._node.children) > 0
+
+    def cloneNode(self, deep):
+        pass # XXX I don't understand the exact definition of cloneNode()
 
 			
 class CharacterData(Node):
