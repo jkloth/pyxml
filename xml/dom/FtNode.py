@@ -28,8 +28,20 @@ from xml.dom import XML_NAMESPACE
 
 import re, copy
 #FIXME: should allow combining characters: fix when Python gets Unicode
-g_namePattern = re.compile(r'[a-zA-Z_:][\w\.\-_:]*\Z')
 g_pattPrefix = re.compile(r'[a-zA-Z_][\w\.\-_]*\Z')
+_namePattern = None
+def get_name_pattern():
+    # delay creating pattern until it is really needed
+    global _namePattern
+    if _namePattern: return _namePattern
+    try:
+        unicode # See whether we have Unicode support
+    except NameError:
+        _namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
+    else:
+        import xml.utils.characters
+        _namePattern = re.compile(xml.utils.characters.Name+'\Z')
+    return _namePattern
 
 class FtNode(Event.EventTarget, Node):
     """
@@ -131,7 +143,7 @@ class FtNode(Event.EventTarget, Node):
 
     def _set_prefix(self, value):
         # Check for invalid characters
-        if not g_namePattern.match(value):
+        if not get_name_pattern().match(value):
             raise InvalidCharacterErr()
         if (self.__dict__['__namespaceURI'] is None or
             ':' in value or

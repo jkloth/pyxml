@@ -12,7 +12,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from DOMImplementation import implementation
-from FtNode import FtNode
+from FtNode import FtNode, get_name_pattern
 
 import Event
 from xml.dom import Node
@@ -26,10 +26,6 @@ from xml.dom import SyntaxErr
 from xml.dom import NamespaceErr
 
 from ext import SplitQName, IsDOMString
-
-import re, string
-#FIXME: should allow combining characters: fix when Python gets Unicode
-g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
 
 class Element(FtNode):
     nodeType = Node.ELEMENT_NODE
@@ -99,7 +95,7 @@ class Element(FtNode):
     def setAttribute(self, name, value):
         if not IsDOMString(value):
             raise SyntaxErr()
-        if not g_namePattern.match(name):
+        if not get_name_pattern().match(name):
             raise InvalidCharacterErr()
         attr = self.attributes.getNamedItem(name)
         if attr:
@@ -170,7 +166,7 @@ class Element(FtNode):
     def setAttributeNS(self, namespaceURI, qualifiedName, value):
         if not IsDOMString(value):
             raise SyntaxErr()
-        if not g_namePattern.match(qualifiedName):
+        if not get_name_pattern().match(qualifiedName):
             raise InvalidCharacterErr()
 
         prefix, localName = SplitQName(qualifiedName)

@@ -16,7 +16,7 @@ import re, string
 
 
 from DOMImplementation import implementation
-from FtNode import FtNode
+from FtNode import FtNode, get_name_pattern
 from ext import SplitQName
 
 from xml.dom import Node
@@ -27,9 +27,6 @@ from xml.dom import HierarchyRequestErr
 from xml.dom import InvalidCharacterErr
 from xml.dom import NotSupportedErr
 from xml.dom import NamespaceErr
-
-#FIXME: should allow combining characters: fix when Python gets Unicode
-g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
 
 class Document(FtNode):
     #Base node type for this class
@@ -70,7 +67,7 @@ class Document(FtNode):
     ### Methods ###
 
     def createAttribute(self, name):
-        if not g_namePattern.match(name):
+        if not get_name_pattern().match(name):
             raise InvalidCharacterErr()
         import Attr
         return Attr.Attr(self, name, EMPTY_NAMESPACE, None, None)
@@ -88,19 +85,19 @@ class Document(FtNode):
         return DocumentFragment(self)
 
     def createElement(self, tagname):
-        if not g_namePattern.match(tagname):
+        if not get_name_pattern().match(tagname):
             raise InvalidCharacterErr()
         from Element import Element
         return Element(self, tagname, EMPTY_NAMESPACE, None, None)
 
     def createEntityReference(self, name):
-        if not g_namePattern.match(name):
+        if not get_name_pattern().match(name):
             raise InvalidCharacterErr()
         from EntityReference import EntityReference
         return EntityReference(self, name)
 
     def createProcessingInstruction(self, target, data):
-        if not g_namePattern.match(target):
+        if not get_name_pattern().match(target):
             raise InvalidCharacterErr()
 
         #FIXME: Unicode support
@@ -132,7 +129,7 @@ class Document(FtNode):
     ### DOM Level 2 Methods ###
 
     def createAttributeNS(self, namespaceURI, qualifiedName):
-        if not g_namePattern.match(qualifiedName):
+        if not get_name_pattern().match(qualifiedName):
             raise InvalidCharacterErr()
         from Attr import Attr
         (prefix, localName) = SplitQName(qualifiedName)
@@ -168,7 +165,7 @@ class Document(FtNode):
 
     def createElementNS(self, namespaceURI, qualifiedName):
         from Element import Element
-        if not g_namePattern.match(qualifiedName):
+        if not get_name_pattern().match(qualifiedName):
             raise InvalidCharacterErr()
         (prefix, localName) = SplitQName(qualifiedName)
         if prefix == 'xml' and namespaceURI != XML_NAMESPACE:
