@@ -18,16 +18,21 @@ class WFCDTD(DTDConsumer):
 
     def __init__(self,err):
 	DTDConsumer.__init__(self,err)
+        self.dtd_listener=DTDConsumer(err)        
+        self.reset()
+
+    def reset(self):
+        "Clears all DTD information."
 	self.gen_ents={}
 	self.param_ents={}
 	self.elems={}
+        self.namespaces={}
+        self.attrinfo={}
 
-        self.dtd_listener=DTDConsumer(err)
-        
 	# Adding predefined entities
 	for name in predef_ents.keys():
-	    self.new_general_entity(name,predef_ents[name])
-
+	    self.new_general_entity(name,predef_ents[name])        
+            
     def set_dtd_listener(self,listener):
         "Registers an object that listens for DTD parse events."
         self.dtd_listener=listener
@@ -47,6 +52,25 @@ class WFCDTD(DTDConsumer):
 	element does not exist."""
 	return self.elems[name]
 
+    def get_namespace(self,prefix):
+        """Returns the namespace declared with this prefix. Throws a KeyError
+        if the prefix is not declared."""
+        return self.namespaces[prefix]
+
+    # --- Shortcut information for validation
+
+    def prepare_for_parsing(self):
+        "Stores shortcut information."
+        self.attrinfo={}
+        for elem in self.elems.values():
+            self.attrinfo[elem.get_name()]=(elem.get_default_attributes(),
+                                            elem.get_fixed_attributes())
+
+    def get_element_info(self,name):
+        return self.attrinfo[name]
+            
+    # --- Parse events
+    
     def new_attribute(self,elem,attr,a_type,a_decl,a_def):
 	"Receives the declaration of a new attribute."
         self.dtd_listener.new_attribute(elem,attr,a_type,a_decl,a_def)
@@ -55,7 +79,13 @@ class WFCDTD(DTDConsumer):
 	    self.elems[elem]=ElementTypeAny(elem) # Adding dummy
 
         self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.err)
-                
+
+    def new_namespace(self,prefix,name,schema_url):
+        if self.namespaces.has_key(prefix):
+            self.err.warning("Namespace with prefix '%s' redeclared" % prefix)
+            
+        self.namespaces[prefix]=Namespace(prefix,name,schema_url)
+        
     # --- Echoing DTD parse events
     
     def new_general_entity(self,name,val):
@@ -102,10 +132,14 @@ class CompleteDTD(WFCDTD):
 
     def __init__(self,err):
 	WFCDTD.__init__(self,err)
+
+    def reset(self):
+        "Clears all DTD information."
+        WFCDTD.reset(self)
 	self.notations={}
 	self.attlists={}  # Attribute lists of elements not yet declared
-	self.root_elem=None
-	
+        self.root_elem=None
+        
     def get_root_elem(self):
 	"Returns the name of the declared root element."
 	return self.root_elem
@@ -129,7 +163,7 @@ class CompleteDTD(WFCDTD):
 	self.notations[name]=(pubid,sysid)
         self.dtd_listener.new_notation(name,pubid,sysid)
 
-    def new_element_type(self,elem_name,elem_cont):
+    def new_element_type(self,elem_name,elem_cont):       
 	if self.elems.has_key(elem_name):
 	    self.err.fatal("Element '%s' declared twice" % elem_name)
 
@@ -220,6 +254,24 @@ class ElementType:
 		return to
 
 	return 0
+
+    # --- Methods used to create shortcut validation information
+
+    def get_default_attributes(self):
+        defs={}
+        for attr in self.attrhash.values():
+            if attr.get_default()!=None:
+                defs[attr.get_name()]=attr.get_default()
+
+        return defs
+
+    def get_fixed_attributes(self):
+        fixed={}
+        for attr in self.attrhash.values():
+            if attr.get_decl()=="#FIXED":
+                fixed[attr.get_name()]=attr.get_default()
+
+        return fixed        
 
 # --- Element types with ANY content
 
@@ -350,7 +402,26 @@ class ExternalEntity:
     def get_sysid(self):
         "Returns the system identifier of the entity."
         return self.sysid
-    
+
+# ==============================
+# Namespaces
+# ==============================
+
+class Namespace:
+
+    def __init__(self,prefix,nsname,srcdef):
+        self.__prefix=prefix
+        self.__nsname=nsname
+        self.__srcdef=srcdef
+
+    def get_prefix(self):
+        return self.__prefix
+
+    def get_name(self):
+        return self.__nsname
+
+    def get_schema_URL(self):
+        return self.__srcdef
 
 # ==============================
 # Internal classes
@@ -537,17 +608,20 @@ def fnda2fda(transitions,final_state,err):
     new_states={}
 
     # Compute the e-closure of the start state
+    closure_hash={}
     start_state=[0]*len(transitions)
     compute_closure(0,start_state,transitions)
     state_key=hash(start_state)
+    closure_hash[0]=state_key
 
     # Add transitions and the other states
-    add_transitions(0,transitions,new_states,start_state,state_key,err)
+    add_transitions(0,transitions,new_states,start_state,state_key,err,
+                    closure_hash)
     
     states=new_states.keys()
     states.sort()
 
-    #print_states(new_states,1)
+    #print_states(new_states,2)
     
     for state in states:
 	if state % 2==1:
@@ -557,14 +631,11 @@ def fnda2fda(transitions,final_state,err):
     new_states["final"]=pow(2L,final_state)
     return new_states
     
-def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err):
+def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err,
+                    closure_hash):
     "Set up transitions and create new states."
 
-    if new_states.has_key(state_key):
-	return                   # We've been here before
-    else:
-	new_states[state_key]=[] # OK, a new one, create it
-
+    new_states[state_key]=[] # OK, a new one, create it
     new_trans={} # Hash from label to a list of the possible destination states
 
     # Find all transitions from this set of states and group them by their
@@ -587,27 +658,34 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err):
         
     for (over,destlist) in new_trans.items():
         # creating new state                    
-        new_inc=[0]*len(transitions)
 
-        if len(destlist)>1:
-            err.warning("Ambiguous content model")
+        # if len(destlist)>1:
+        # err.warning("Ambiguous content model")
 
-        for to in destlist:
-            compute_closure(to,new_inc,transitions)
-        new_state=hash(new_inc)
+        if len(destlist)==1 and closure_hash.has_key(destlist[0]):
+            # The closure of this state has been computed before, don't repeat
+            new_state=closure_hash[destlist[0]]
+        else:
+            new_inc=[0]*len(transitions)
+            for to in destlist:
+                compute_closure(to,new_inc,transitions)
+
+            new_state=hash(new_inc)
+            if len(destlist)==1:
+                closure_hash[destlist[0]]=new_state
 
         # add transition and destination state
         new_states[state_key].append(new_state,over)
-        add_transitions(to,transitions,new_states,new_inc,\
-                        new_state,err)
+        if not new_states.has_key(new_state):
+            add_transitions(to,transitions,new_states,new_inc,\
+                            new_state,err,closure_hash)
         
 def compute_closure(ix,included,transitions):
     "Computes the e-closure of this state."
-    if included[ix]: return
-    
     included[ix]=1
     for (to,what) in transitions[ix]:
-	if what=="": compute_closure(to,included,transitions)
+	if what=="" and not included[to]:
+            compute_closure(to,included,transitions)
         
 def print_trans(model):
     ix=0
@@ -629,6 +707,9 @@ def print_states(states,stop=0):
 		print "  To: "+`to`+" over: "+what
 	    except TypeError,e:
 		print "ERROR: "+`what`
+
+        if stop>1:
+            raw_input()
 
     if stop:
         raw_input()

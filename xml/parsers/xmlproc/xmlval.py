@@ -8,13 +8,10 @@ subclass of the parser object that sets this up."""
 # - make parser report correct position inside internal entities
 # - test position reporting and make it work consistently
 #   - new attribute: self.last_pos, position at start of construct
-# - handle XML decl in external entities
 # - clean up entity reference handling in attribute values (parse_string)
 # - make position reporting work in XML DTD with parameter entities as well
 # - THINK THIS THROUGH AND MAKE A CONSISTENT POLICY FOR INTERNAL
 #   AND EXTERNAL ENTITIES OF DIFFERENT TYPES...
-#
-# - run through the entire test case collection
 #
 # - implement notation attributes
 #
@@ -30,9 +27,6 @@ subclass of the parser object that sets this up."""
 #
 # - WFCs:
 #   - Well-Formedness Constraint: Entity Declared
-#
-# - move more stuff up into AbstractXML (DTDParser must use app attribute)
-# - move entityparser down into xmlutils
 #
 # - parameter entities in DTD
 #
@@ -59,16 +53,17 @@ class XMLValidator:
     def __init__(self):
 	self.parser=XMLProcessor()
         self.app=Application()
+        self.dtd=CompleteDTD(ErrorHandler(self.parser))
+        self.val=ValidatingApp(self.dtd)
         self.reset()
 
     def parse_resource(self,sysid):
         self.parser.parse_resource(sysid)
 
     def reset(self):
-        self.dtd=CompleteDTD(ErrorHandler(self.parser))
-	self.val=ValidatingApp(self.dtd)
-	self.val.set_real_app(self.app)
-
+        self.dtd.reset()
+        self.val.reset()
+        
         self.parser.reset()
 	self.parser.set_application(self.val)
         self.parser.dtd=self.dtd
@@ -136,15 +131,18 @@ class ValidatingApp(Application):
 
     def __init__(self,dtd):
 	self.dtd=dtd
+	self.realapp=Application()
+        self.pubres=PubIdResolver()
+	self.err=ErrorHandler(None)
+        self.reset()
+
+    def reset(self):
 	self.cur_elem=None
 	self.cur_state=0
 	self.stack=[]
-        self.pubres=PubIdResolver()
-	self.err=ErrorHandler(None)
 	self.ids={}
-	self.idrefs=[]
-	self.realapp=Application()
-	
+	self.idrefs=[]        
+        
     def set_real_app(self,app):
 	self.realapp=app
 

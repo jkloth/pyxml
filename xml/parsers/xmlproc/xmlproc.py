@@ -10,7 +10,7 @@ from xmlutils import *
 from xmlapp import *
 from xmldtd import *
 
-version="0.50"
+version="0.51"
 
 # ==============================
 # Common code for the parsers
@@ -18,9 +18,11 @@ version="0.50"
 
 class XMLCommonParser(EntityParser):
 
-    def parse_external_id(self,required=0):
+    def parse_external_id(self,required=0,sysidreq=1):
         """Parses an external ID declaration and returns a tuple consisting
-        of (pubid,sysid)."""
+        of (pubid,sysid). If the required attribute is false neither SYSTEM
+        nor PUBLIC identifiers are required. If sysidreq is false a SYSTEM
+        identifier is not required after a PUBLIC one."""
 
         pub_id=None
         sys_id=None
@@ -34,15 +36,141 @@ class XMLCommonParser(EntityParser):
 	    pub_id=self.get_wrapped_match([("\"",reg_pubid_quote),\
 					   ("'",reg_pubid_apo)])
             pub_id=string.join(string.split(pub_id))
-	    self.skip_ws(1)
-	    sys_id=self.get_wrapped_match([("\"",reg_sysid_quote),\
-					   ("'",reg_sysid_apo)])
+
+            if sysidreq:
+                self.skip_ws(1)
+                sys_id=self.get_wrapped_match([("\"",reg_sysid_quote),\
+                                               ("'",reg_sysid_apo)])
+            else:
+                self.skip_ws()
+                if self.test_str("'") or self.test_str('"'):
+                    sys_id=self.get_wrapped_match([("\"",reg_sysid_quote),\
+                                                   ("'",reg_sysid_apo)])
 	else:
             if required:
                 self.err.fatal("SYSTEM or PUBLIC expected")
 
         return (pub_id,sys_id)
 
+    # --- Namespace name mangling
+
+    def process_name(self,name):    
+        pos=string.find(name,":")
+        if pos!=-1:
+            prefix=name[:pos]
+            if prefix=="xmlns" or prefix=="xml":
+                return name
+            
+            try:
+                name=self.namespaces[prefix]+" "+name[pos+1:]
+            except KeyError:
+                self.err.warning("Undeclared namespace prefix '%s'" % prefix)
+
+        return name
+
+    # --- EONamespaces
+
+    def parse_xml_decl(self):
+	"Parses the contents of the XML declaration from after the '<?xml'."
+
+        textdecl=self.is_external() # If this is an external entity, then this
+                                    # is a text declaration, not an XML decl
+        
+	self.update_pos()
+	if self.get_column()!=5 or self.get_line()!=1:
+            if textdecl:
+                self.err.fatal("Text declaration must appear first in entity")
+            else:
+                self.err.fatal("XML declaration must appear first in document")
+            
+	if self.seen_xmldecl: # Set in parse_pi, to avoid block problems
+            if textdecl:
+                self.err.fatal("Multiple text declarations in a single entity")
+            else:
+                self.err.fatal("Multiple XML declarations")
+
+	enc=None
+	sddecl=None
+        ver=None
+	self.skip_ws()
+        
+	if self.now_at("version"):
+	    self.skip_ws()
+	    if not self.now_at("="): self.err.fatal("'=' expected")
+	    self.skip_ws()
+	    ver=self.get_match(reg_ver)[1:-1]
+	    if ver!="1.0":
+		self.err.fatal("Unsupported XML version")
+
+	    self.skip_ws()
+	else:
+            if not textdecl:
+                self.err.fatal("XML version info missing on XML declaration")
+
+	try:
+	    tst=self.now_at("encoding")
+            # Weird. Why do I bother to catch this? Look into this later...
+	except OutOfDataException,e:
+	    tst=0 # It's OK
+
+	if tst:
+	    self.skip_ws()
+	    if not self.now_at("="): self.err.fatal("'=' expected")
+	    self.skip_ws()
+	    enc=self.get_match(reg_enc_name)[1:-1]
+
+            # Setting up correct conversion
+            if string.lower(enc)!="iso-8859-1":
+                self.err.fatal("Encoding not supported")
+            
+	    self.skip_ws()	    
+
+	try:
+	    tst=self.now_at("standalone")
+	except OutOfDataException,e:
+	    tst=0
+
+	if tst:
+            if textdecl:
+                self.err.fatal("Standalone declaration on text declaration not"
+                               " allowed")
+                sddecl="yes"
+            else:
+                self.skip_ws()
+                if not self.now_at("="): self.err.fatal("'=' expected")
+                self.skip_ws()
+                sddecl=self.get_match(reg_std_alone)[1:-1]
+                self.standalone= sddecl=="yes"
+
+                self.skip_ws()
+
+	self.skip_ws()
+
+        if isinstance(self,XMLProcessor):
+            self.app.set_entity_info(ver,enc,sddecl)
+
+    def parse_pi(self,handler):
+	"""Parses a processing instruction from after the '<?' to beyond
+	the '?>'."""
+	trgt=self.get_match(reg_name)
+
+	if trgt=="xml":
+	    self.parse_xml_decl()
+	    if not self.now_at("?>"):
+		self.err.fatal("'?>' expected")
+	    self.seen_xmldecl=1
+	else:
+	    if reg_res_pi.match(trgt)!=None:
+		if trgt=="xml:namespace":
+		    self.err.warning("This XML namespace syntax is obsolete")
+		else:
+		    self.err.warning("Processing instruction target names "
+                                     "beginning with 'xml' are reserved")
+
+            self.skip_ws()
+            rem=self.scan_to("?>") # OutOfDataException if not found
+            handler.handle_pi(trgt,rem)   
+            
 # ==============================
 # A full well-formedness parser
 # ==============================
@@ -50,7 +178,7 @@ class XMLCommonParser(EntityParser):
 class XMLProcessor(XMLCommonParser):
     "A parser that performs a complete well-formedness check."
 
-    def __init__(self):
+    def __init__(self):        
 	EntityParser.__init__(self)
 
 	# Various handlers
@@ -63,16 +191,22 @@ class XMLProcessor(XMLCommonParser):
 	"Sets the object to send data events to."
 	self.app=app
 	app.set_locator(self)
+        
+    def set_dtd_listener(self,listener):
+        "Registers an object that listens for DTD parse events."
+        self.dtd_listener=listener                
 
     def reset(self):
         EntityParser.reset(self)
+        if hasattr(self,"dtd"):
+            self.dtd.reset()
 
 	# State vars
 	self.stack=[]
 	self.seen_root=0
 	self.seen_doctype=0
 	self.seen_xmldecl=0
-        
+
     def do_parse(self):
 	"Does the actual parsing."
 	try:
@@ -87,7 +221,7 @@ class XMLProcessor(XMLCommonParser):
                     elif self.now_at("<!--"):
                         self.parse_comment()
                     elif self.now_at("<?"):
-                        self.parse_pi()
+                        self.parse_pi(self.app)
                     elif self.now_at("<![CDATA["):
                         self.parse_cdata()
                     elif self.now_at("<!DOCTYPE"):
@@ -110,10 +244,6 @@ class XMLProcessor(XMLCommonParser):
 	    else:
 		self.pos=prepos  # Didn't complete the construct
 
-    def set_dtd_listener(self,listener):
-        "Registers an object that listens for DTD parse events."
-        self.dtd_listener=listener
-                
     def parseStart(self):
 	"Must be called before parsing starts. (Notifies application.)"
 	self.app.doc_start()
@@ -135,11 +265,16 @@ class XMLProcessor(XMLCommonParser):
 	name=self.get_match(reg_name)
 	self.skip_ws()
 
-        if self.pos<self.datasize and (self.data[self.pos]==">" or \
-                                       self.data[self.pos]=="/"):
+        try:
+            (attrs,fixeds)=self.dtd.attrinfo[name]
+            attrs=attrs.copy()
+        except KeyError:
             attrs={}
-        else:
-            attrs={}
+            fixeds={}
+        
+        if not (self.pos<self.datasize and (self.data[self.pos]==">" or \
+                                       self.data[self.pos]=="/")):
+            seen={}
             while not self.test_str(">") and not self.test_str("/>"):
                 a_name=self.get_match(reg_name)
                 self.skip_ws()
@@ -149,30 +284,17 @@ class XMLProcessor(XMLCommonParser):
 
                 a_val=self.parse_att_val()
 
-                if attrs.has_key(a_name):
+                if seen.has_key(a_name):
                     self.err.fatal("Attribute '%s' occurs twice" % a_name)
+                else:
+                    seen[a_name]=1
 
-                attrs[a_name]=a_val		    
+                attrs[a_name]=a_val
+                if fixeds.has_key(a_name) and fixeds[a_name]!=a_val:
+                    self.err.error("Actual value of attribute '%s' does not"
+                                   "match fixed value" % a_name)
                 self.skip_ws()
 
-            # --- Insert default attributes
-            try:
-                element=self.dtd.get_elem(name)
-                for attr in element.get_attr_list():
-                    decl=element.get_attr(attr)
-
-                    if decl.decl=="#FIXED":
-                        try:
-                            if attrs[attr]!=decl.default:
-                                self.err.error("Actual value of attribute '%s' "
-                                               "does not match fixed value" % attr)
-                        except KeyError,e:
-                            attrs[attr]=decl.default
-                    elif decl.decl=="#DEFAULT" and not attrs.has_key(attr):
-                        attrs[attr]=decl.default
-            except KeyError,e:
-                pass
-        
 	# --- Take care of the tag
 	    
 	if self.stack==[] and self.seen_root:
@@ -351,6 +473,7 @@ class XMLProcessor(XMLCommonParser):
     def parse_end_tag(self):
 	"Parses the end tag from after the '</' and beyond '>'."
 	name=self.get_match(reg_name)
+        
 	if not self.now_at(">"):
             self.skip_ws() # Probably rare to find whitespace here
             if not self.now_at(">"): self.err.fatal("'>' expected")
@@ -422,7 +545,7 @@ class XMLProcessor(XMLCommonParser):
 		self.err.fatal("Illegal character")
 	else:
 	    if self.stack==[]:
-		self.err.fatal("Character data not allowed outside root "
+		self.err.fatal("Character references not allowed outside root "
 			       "element")
 	    self.app.handle_data(chr(digs),0,1)
 
@@ -499,6 +622,7 @@ class XMLProcessor(XMLCommonParser):
 	elif not self.now_at(">"):
 	    self.err.fatal("'>' expected")
 
+        self.dtd.prepare_for_parsing()
 	self.seen_doctype=1 # Has to be at the end to avoid block trouble
     
     def parse_internal_dtd(self):
@@ -521,80 +645,6 @@ class XMLProcessor(XMLCommonParser):
 
 	# [:-2] cuts off the "]>" at the end
 	self.handle_internal_dtd(line,lb,self.get_region()[:-2])
-
-    def parse_xml_decl(self):
-	"Parses the contents of the XML declaration from after the '<?xml'."
-
-        textdecl=self.is_external() # If this is an external entity, then this
-                                    # is a text declaration, not an XML decl
-        
-	self.update_pos()
-	if self.get_column()!=5 or self.get_line()!=1:
-            if textdecl:
-                self.err.fatal("Text declaration must appear first in entity")
-            else:
-                self.err.fatal("XML declaration must appear first in document")
-            
-	if self.seen_xmldecl: # Set in parse_pi, to avoid block problems
-            if textdecl:
-                self.err.fatal("Multiple text declarations in a single entity")
-            else:
-                self.err.fatal("Multiple XML declarations")
-
-	enc=None
-	sddecl=None
-        ver=None
-	self.skip_ws()
-        
-	if self.now_at("version"):
-	    self.skip_ws()
-	    if not self.now_at("="): self.err.fatal("'=' expected")
-	    self.skip_ws()
-	    ver=self.get_match(reg_ver)[1:-1]
-	    if ver!="1.0":
-		self.err.fatal("Unsupported XML version")
-
-	    self.skip_ws()
-	else:
-            if not textdecl:
-                self.err.fatal("XML version info missing on XML declaration")
-
-	try:
-	    tst=self.now_at("encoding")
-            # Wierd. Why do I bother to catch this? Look into this later...
-	except OutOfDataException,e:
-	    tst=0 # It's OK
-
-	if tst:
-	    self.skip_ws()
-	    if not self.now_at("="): self.err.fatal("'=' expected")
-	    self.skip_ws()
-	    enc=self.get_match(reg_enc_name)[1:-1]
-	    if enc!="UTF-8" and enc!="ISO-8859-1":
-		self.err.fatal("Unsupported character encoding")
-	    self.skip_ws()	    
-
-	try:
-	    tst=self.now_at("standalone")
-	except OutOfDataException,e:
-	    tst=0
-
-	if tst:
-            if textdecl:
-                self.err.fatal("Standalone declaration on text declaration not"
-                               " allowed")
-                sddecl="yes"
-            else:
-                self.skip_ws()
-                if not self.now_at("="): self.err.fatal("'=' expected")
-                self.skip_ws()
-                sddecl=self.get_match(reg_std_alone)[1:-1]
-                self.standalone= sddecl=="yes"
-
-                self.skip_ws()
-
-	self.skip_ws()
-	self.app.set_entity_info(ver,enc,sddecl)
 	
     def handle_internal_dtd(self,doctype_line,doctype_lb,int_dtd):
 	"Handles the internal DTD."
@@ -625,32 +675,7 @@ class XMLProcessor(XMLCommonParser):
 	self.app.handle_comment(self.get_match(reg_comment_content))
 	if not self.now_at("-->"):
 	    self.err.fatal("Comment incorrectly terminated")
-
-    def parse_pi(self):
-	"""Parses a processing instruction from after the '<?' to beyond
-	the '?>'."""
-	trgt=self.get_match(reg_name)
-
-	if trgt=="xml":
-	    self.parse_xml_decl()
-	    if not self.now_at("?>"):
-		self.err.fatal("'?>' expected")
-	    self.seen_xmldecl=1
-	else:
-	    self.skip_ws()
-	    rem=self.scan_to("?>") # OutOfDataException if not found
-
-	    if reg_res_pi.match(trgt)!=None:
-		if trgt=="xml:namespace":
-		    self.err.warning("XML name spaces not yet supported")
-                    if self.seen_doctype:
-                        self.err.warning("Name space declarations not allowed "
-                                         "after the DOCTYPE declaration")
-		else:
-		    self.err.warning("Processing instruction target names "
-                                     "beginning with 'xml' are reserved")
-	    self.app.handle_pi(trgt,rem)   
-	    
+                
 # ==============================
 # A DTD parser
 # ==============================
@@ -661,6 +686,7 @@ class DTDParser(XMLCommonParser):
     def __init__(self):
 	EntityParser.__init__(self)
 	self.internal=0
+        self.seen_xmldecl=0
 	self.dtd=DTDConsumer(self)
 
 	self.ignore=0 # Currently in a conditional section marked ignore?
@@ -699,7 +725,7 @@ class DTDParser(XMLCommonParser):
 		elif self.test_reg(reg_pe_ref):
 		    self.parse_pe_ref()
 		elif self.now_at("<?"):
-		    self.parse_pi()
+		    self.parse_pi(self.dtd)
 		elif self.now_at("<!--"):
 		    self.parse_comment()
 		elif self.now_at("<!["):
@@ -841,7 +867,7 @@ class DTDParser(XMLCommonParser):
 	name=self.get_match(reg_name)
 	self.skip_ws(1)
 
-        (pubid,sysid)=self.parse_external_id(1)
+        (pubid,sysid)=self.parse_external_id(1,0)
 	self.skip_ws()
 	if not self.now_at(">"):
 	    self.err.fatal("'>' expected")
@@ -895,7 +921,7 @@ class DTDParser(XMLCommonParser):
 
 	    if self.test_reg(reg_attr_def):
 		a_decl=self.get_match(reg_attr_def)
-		a_def=""
+		a_def=None
 	    elif self.now_at("#FIXED"):
 		self.skip_ws(1)
 		a_decl="#FIXED"
@@ -1031,6 +1057,7 @@ class DTDParser(XMLCommonParser):
 		break
 	    else:
 		self.err.fatal("'|' expected")
+                self.scan_to(">")
 
 	    self.skip_ws()
 	    cont_list.append(ContentModel([self.get_match(reg_name)],""))
@@ -1065,20 +1092,6 @@ class DTDParser(XMLCommonParser):
 	self.dtd.handle_comment(self.get_match(reg_comment_content))
 	if not self.now_at("-->"):
 	    self.err.fatal("Comment incorrectly terminated")
-
-    def parse_pi(self):
-	"""Parses a processing instruction from after the '<?' to beyond
-	the '?>'."""
-	trgt=self.get_match(reg_name)
-
-        self.skip_ws()
-        rem=self.scan_to("?>") # OutOfDataException if not found
-
-        if reg_res_pi.match(trgt)!=None:
-            if trgt=="xml:namespace":
-                self.err.warning("XML name spaces not yet supported")
-            else:
-                self.err.warning("Processing instruction target names "
-                                 "beginning with 'xml' are reserved")
-        self.dtd.handle_pi(trgt,rem)   
-    
+                
+    def is_external(self):
+        return not self.internal

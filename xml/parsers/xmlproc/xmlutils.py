@@ -27,6 +27,7 @@ class EntityParser:
 	self.ent=EntityHandler(self.err)
         self.isf=InputSourceFactory()
         self.pubres=PubIdResolver()
+        self.data_charset="iso-8859-1"
         
         self.reset()
 
@@ -46,6 +47,11 @@ class EntityParser:
     def set_inputsource_factory(self,isf):
         "Sets the object factory used to create input sources from sysids."
         self.isf=isf
+
+    def set_data_charset(self,charset):
+        """Tells the parser which character encoding to use when reporting data
+        to applications."""
+        self.data_charset=charset
         
     def parse_resource(self,sysID):
 	"""Begin parsing an XML entity with the specified public and
@@ -152,14 +158,13 @@ class EntityParser:
 	self.last_break=0
 	self.block_offset=0 # Offset from start of stream to start of cur block
 	self.pos=0
-	self.current_sysID=None	
 	self.last_upd_pos=0
             
     def feed(self,new_data):
 	"""Accepts more data from the data source. This method must
 	set self.datasize and correctly update self.pos and self.data."""
         if self.first_feed:
-            self.first_feed=0
+            self.first_feed=0                    
             self.parseStart()
 
 	self.update_pos() # Update line/col count

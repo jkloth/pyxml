@@ -219,6 +219,10 @@ class DTDConsumer:
 	"Receives the declaration of a new attribute."
 	pass
 
+    def new_namespace(self,prefix,name,schema_url):
+        "Receives the declaration of a new namespace."
+        pass
+    
     def handle_comment(self,contents):
         "Receives the contents of a comment."
         pass
