@@ -565,7 +565,7 @@ spanish = {
     2001: "No se permite aquí el elemento '%s'",
     2002: "El elemento '%s' raíz del documento no es el mismo que se declaró",
     2003: "El elemento '%s' no está declarado",
-    2004: "El elemento '%s' termina, pero no empieza",
+    2004: "El elemento '%s' termina antes de encontrar los elementos requeridos (%s)",
     2005: "No se permite texto en el contenido de este elemento",
     2006: "El atributo '%s' no ha sido declarado",
     2007: "El ID '%s' aparece más de una vez en el documento",
@@ -585,6 +585,8 @@ spanish = {
     2021: "El símbolo '%s' en el valor del atributo '%s' no es un nombre válido",
     2022: "El atributo de notación '%s' usa la notación '%s', que no está declarada",
     2023: "La entidad sin analizar '%s' usa la notación '%s', que no está declarada",
+    2024: "No se puede resolver la URI relativa '%s' si se desconoce la URI del documento",
+    2025: "No se encuentra el elemento '%s' antes del '%s'",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -594,6 +596,8 @@ spanish = {
     3003: "'%s' no se corresponde",   ## FIXME: This must be redone
     3004: "Se esperaba %s o '%s'",
     3005: "Se esperaba '%s'",
+    3047: "La codificación '%s' es conflictiva con la autodetectada",
+    3048: "Problema de conversión de conjunto de caracteres: %s",
 
     # From xmlproc.XMLCommonParser
     3006: "Se esperaba SYSTEM o PUBLIC",
@@ -629,9 +633,6 @@ spanish = {
     3033: "No se admite una declaración de tipo de documento dentro del elemento raíz",
     3034: "Fin prematuro de un subconjunto interno de DTD",
     3042: "Un elemento cruza los límites de la entidad",
-    3045: "Los nombres de PI que empiezan por 'xml' están reservados",
-    3046: "Esta versión de XML no está soportada",
-
 
     # From xmlproc.DTDParser
     3035: "Las entidades paramétricas no pueden ser de tipo 'unparsed'",
@@ -643,10 +644,10 @@ spanish = {
     3041: "No se admiten secciones condicionales en subconjuntos internos",
     3043: "Sección condicional sin cerrar",
     3044: "Se definió el símbolo '%s' más de una vez",
-    # next: 3047
+    # next: 3049
     
     # From regular expressions that were not matched
-    3900: "No es unnombre válido",
+    3900: "No es un nombre válido",
     3901: "No es un número de versión válido (%s)",
     3902: "No es un nombre de codificación válido",
     3903: "No es un comentario válido",
@@ -696,11 +697,13 @@ def _test():
     no = norsk.keys()
     sv = svenska.keys()
     fr = french.keys()
+    es = spanish.keys()
 
     en.sort()
     no.sort()
     sv.sort()
     fr.sort()
+    es.sort()
 
     print "en == no"
     compare(en, no)
@@ -710,6 +713,9 @@ def _test():
 
     print "en == fr"
     compare(en, fr)
+
+    print "en == es"
+    compare(en, es)
 
 if __name__ == "__main__":
     _test()
