@@ -62,6 +62,10 @@ class Builder:
 		node = self.document.createProcessingInstruction(target, data)
 		self.push(node)
 
+	def entityref(self, name):
+		node = self.document.createEntityReference(name)
+	        self.push(node)
+
 	def text(self, s):
 		if self.current_element:
 			text_node = self.document.createTextNode(s)
