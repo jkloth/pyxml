@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.4 $'
+__version__ = '$Revision: 1.5 $'
 
 import string
 
@@ -207,7 +207,7 @@ class XmlWriter:
     def __init__(self, fp, standalone=None, dtdinfo=None,
                  syntax=None, linelength=None):
         self._offset = 0
-        self._packing = 0
+        self._packing = 1
         self._flowing = 1
         self._write = fp.write
         self._dtdflowing = None
@@ -332,6 +332,7 @@ class XmlWriter:
     def characters(self, data, start, length):
         data = data[start: start+length]
         if data:
+            self._check_pending_content()
             data = escape(data)
             if "\n" in data:
                 p = string.find(data, "\n")
