@@ -1,11 +1,8 @@
 TODO list:
-        * Namespace support for DOM conforming to DOM Level 2 draft 
-	  (a major thing)
-(SAX namespace support can wait and see what the current effort to revise
-SAX will produce in a few months; SAX2 may add a standard filter for
-namespaces or something similar.) 
-	* Drop wstrop & Unicode; Python 1.6 will handle this
         * Integrate widestring support with the PyExpat module (major thing)
+	* Switch to 4DOM's DOM implementation 
+	* Add SAX2 support
+	* Drop wstrop & Unicode; Python 1.6 will handle this
 	* Speed up the builder class somehow, and do some performance tests
 	* Change HTMLBuilder to use SAX instead of SGMLlib
 	* Make more passes over the documentation
