@@ -14,8 +14,7 @@ syntax/semantics in a language because there is less to have to remember.
 """
 
 bad_html = """
-Interdigitated <b>bold and <i>italic</B> tags.</i>
-&amp; &lt; &gt; &eacute; &ouml; &nbsp;
+Interdigitated <b>bold and <i>italic</B> tags.</i>&amp; &lt; &gt; &eacute; &ouml; &nbsp;
 """
 
 # Try the good output with both settings of ignore_mismatched_end_tags
