@@ -35,7 +35,6 @@ class Parser:
   def reset(self):
     self.root = None
     self.cur_elem = None
-    self.error = None
 
   def find_prefix(self, prefix):
     elem = self.cur_elem
@@ -61,14 +60,11 @@ class Parser:
 
     ns = self.find_prefix(name[:idx])
     if ns is None:
-      self.error = 'namespace prefix not found'
+      raise error, 'namespace prefix not found'
 
     return ns, name[idx+1:]
 
   def start(self, name, attrs):
-    if self.error:
-      return
-
     elem = _element(name=name, lang=None, parent=None,
                     children=[], ns_scope={}, attrs={},
                     first_cdata='', following_cdata='')
@@ -83,10 +79,7 @@ class Parser:
     work_attrs = [ ]
 
     # scan for namespace declarations (and xml:lang while we're at it)
-    for i in range(0, len(attrs), 2):
-      name = attrs[i]
-      value = attrs[i+1]
-
+    for name, value in attrs.items():
       if name == 'xmlns':
         elem.ns_scope[''] = value
       elif name[:6] == 'xmlns:':
@@ -108,9 +101,6 @@ class Parser:
       elem.attrs[self.process_prefix(name, 0)] = value
 
   def end(self, name):
-    if self.error:
-      return
-
     parent = self.cur_elem.parent
 
     del self.cur_elem.ns_scope
@@ -119,8 +109,6 @@ class Parser:
     self.cur_elem = parent
 
   def cdata(self, data):
-    if self.error:
-      return
     elem = self.cur_elem
     if elem.children:
       last = elem.children[-1]
@@ -136,35 +124,18 @@ class Parser:
     p.EndElementHandler = self.end
     p.CharacterDataHandler = self.cdata
 
-    exception = None
     try:
       if type(input) == type(''):
-        try:
-          p.Parse(input, 1)
-        except pyexpat.error, exception:
-          pass
+        p.Parse(input, 1)
       else:
         while 1:
           s = input.read(_BLOCKSIZE)
           if not s:
-            try:
-              p.Parse('', 1)
-            except pyexpat.error, exception:
-              pass
+            p.Parse('', 1)
             break
 
-          try:
-            rv = p.Parse(s, 0)
-          except pyexpat.error, exception:
-            pass
-          if exception or self.error:
-            break
+          p.Parse(s, 0)
 
-      if exception:
-        s = pyexpat.ErrorString(p.ErrorCode)
-        raise error, 'expat parsing error: ' + exception
-      if self.error:
-        raise error, self.error
     finally:
       if self.root:
         _clean_tree(self.root)
@@ -178,7 +149,7 @@ class Parser:
 def dump(f, root):
   f.write('<?xml version="1.0"?>\n')
   namespaces = _collect_ns(root)
-  _dump_recurse(f, root, namespaces, 1)
+  _dump_recurse(f, root, namespaces, dump_ns=1)
   f.write('\n')
 
 
@@ -243,7 +214,7 @@ def _collect_ns(elem):
     d[keys[i]] = i
   return d
 
-def _dump_recurse(f, elem, namespaces, dump_ns=0):
+def _dump_recurse(f, elem, namespaces, lang=None, dump_ns=0):
   if elem.ns:
     f.write('<ns%d:%s' % (namespaces[elem.ns], elem.name))
   else:
@@ -256,10 +227,12 @@ def _dump_recurse(f, elem, namespaces, dump_ns=0):
   if dump_ns:
     for ns, id in namespaces.items():
       f.write(' xmlns:ns%d="%s"' % (id, ns))
+  if elem.lang != lang:
+    f.write(' xml:lang="%s"' % elem.lang)
   if elem.children or elem.first_cdata:
     f.write('>' + elem.first_cdata)
     for child in elem.children:
-      _dump_recurse(f, child, namespaces)
+      _dump_recurse(f, child, namespaces, elem.lang)
       f.write(child.following_cdata)
     if elem.ns:
       f.write('</ns%d:%s>' % (namespaces[elem.ns], elem.name))
