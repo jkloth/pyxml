@@ -210,6 +210,25 @@ class HtmlParser(SgmlopParser):
             node.appendChild(self._ownerDoc.createTextNode(unidata))
         return
 
+    def handle_charref(self, value):
+        # Can't rely on sgmlop to handle charrefs itself: it can't
+        # report Unicode (since it won't know the document encoding),
+        # and it may encounter non-ASCII characters
+
+        if value[0] == 'x':
+            value = int(value[1:], 16)
+        else:
+            value = int(value)
+        
+        unidata = unichr(value)
+        node = self._stack[-1]
+        text_node = node.lastChild or node
+        if text_node.nodeType == Node.TEXT_NODE:
+            text_node.appendData(unidata)
+        else:
+            node.appendChild(self._ownerDoc.createTextNode(unidata))
+        return
+
     def handle_comment(self, data):
         comment = self._ownerDoc.createComment(data)
         self._stack[-1].appendChild(comment)
