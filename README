@@ -1,5 +1,5 @@
 
-XML package v0.5.6
+XML package v0.6.0
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -10,10 +10,11 @@ xmllib.py by a factor of 5.  There's even documentation!
 For information on the licensing conditions for each component,
 consult the LICENCE file.
 
-The only requirements for installing the package are Python 1.5 or
-later, and a C compiler.  It's recommended that you have the Distutils
-installed; fetch the latest version from
-http://www.python.org/sigs/distutils-sig/.
+The only requirements for installing the package are Python 1.6 or
+later, and a C compiler (unless the pyexpat module is already part of
+your Python installation). This release has been tested only with
+Python 2.0b1; it won't work with Python 1.5 - use older releases of
+this package if you have only Python 1.5.
 
 To compile everything, simply perform the following steps.
 

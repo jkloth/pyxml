@@ -3,30 +3,28 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.5.1 of the Python/XML distribution is now available.  It
+Version 0.6.0 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-	http://www.python.org/sigs/xml-sig/files/xml-0.5.1.tgz
-	http://www.python.org/sigs/xml-sig/files/xml051.zip
+	http://download.sourceforge.net/pyxml/PyXML-0.6.0.tar.gz
+	http://download.sourceforge.net/pyxml/PyXML-0.6.0.win32.exe
+	http://download.sourceforge.net/pyxml/PyXML-0.6.0.noarch.rpm
 
-Changes in this version:
+Changes in this version, compared to 0.5.x:
 
-	* A sizable DOM test suite has been written.  The test suite
-turned up a number of bugs which have all been fixed, which greatly
-increases my confidence in PyDOM's compliance with the DOM
-Recommendation.  Test suites have also been added for various other
-modules.
+	* The 4DOM package has been integrated into PyXML.
 
-	* Added marshalling into various XML-based formats: a generic
-one for Python objects, WDDX, and XML-RPC.  The generic marshaller can
-be subclassed to implement marshalling into a specific DTD; both the
-WDDX and XML-RPC marshallers were implemented in this fashion.
- 
-	* Collected the licences for everything into a LICENCE file.
+	* The package supports now SAX2 interfaces in addition to the
+SAX1 interfaces. Currently, pyexpat and xmlproc can serve as SAX2
+drivers.
 
-	* Various subpackages (sgmlop, xmlarch, xmlproc, expat) have
-been upgraded to their most recent versions.
+	* The proprietary Unicode type has been removed. Instead,
+PyXML now relies on the standard Python Unicode type. In turn, PyXML
+0.6.0 will not work with Python 1.5. It has been tested with 2.0b1.
+
+	* PyXML now operates on top of the XML package coming in
+Python 2.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
@@ -42,8 +40,8 @@ module (Fredrik Lundh).
 
 	* SAX interface (Lars Marius Garshol)
 	* DOM interface (Stefane Fermigier, A.M. Kuchling)
+	* 4DOM interface from Fourthought (Uche Ogbuji, Mike Olson)
 	* xmlarch.py, for architectural forms processing (Geir Ove Grønmo)
-	* Unicode wide-string module (Martin von Löwis)
 	* Various utility modules and functions (various people)
 	* Documentation and example programs (various people)
 
@@ -55,8 +53,4 @@ For more information about Python and XML, see:
 	http://www.python.org/topics/xml/
 
 -- 
-A.M. Kuchling			http://starship.python.net/crew/amk/
-The days come and go like muffled and veiled figures sent from a distant
-friendly party, but they say nothing, and if we do not use the gifts they
-bring, they carry them as silently away.
-    -- Ralph Waldo Emerson
+Martin v. Löwis               http://www.informatik.hu-berlin.de/~loewis
