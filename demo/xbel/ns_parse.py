@@ -76,7 +76,7 @@ if __name__ == '__main__':
         print "A simple utility to convert Netscape bookmarks to XBEL."
         print
         print "Usage: "        
-        print "  ns_parse.py <adr-file> [<xbel-file>]"
+        print "  ns_parse.py <ns-file> [<xbel-file>]"
         sys.exit(1)        
     
     ns_handler=NetscapeHandler()
