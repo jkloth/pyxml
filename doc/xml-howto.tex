@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.14 2002/05/14 19:49:14 akuchling Exp $
+% $Id: xml-howto.tex,v 1.15 2002/05/15 15:09:46 akuchling Exp $
 
 % TODO:
 %   Write outline of entire document
@@ -1341,7 +1341,8 @@ XSL Formatting Objects.  XSLT is used much more often than XSL-FO,
 because XSL-FO is intended primarily for rendering XML for printing
 onto paper while XSLT is a general tool for transforming one XML document
 into another document, and therefore can be used for more diverse
-tasks.
+tasks.  The PyXML package only has an implementation of XSLT;
+XSL-FO is not supported.
 
 To use XSLT, you have to write a \dfn{stylesheet}, which is itself an
 XML document written in the XSLT DTD.  The source document is turned
@@ -1350,9 +1351,25 @@ you want to perform by selecting some elements from the tree and
 rearranging them.  
 
 
-%\subsection{Performing an XSL Transformation}
-% XXX finish this section
+\subsection{Performing an XSL Transformation}
 
+The heart of 4XSLT is the \class{Processor} class.  \class{Processor}
+instances automatically handle the parsing and processing of XSLT
+stylesheets and of input documents.  The usual usage pattern will be
+to call some methods (\method{appendStylesheetString},
+\method{appendStylesheetStream}, \method{appendStylesheetUri},
+\method{appendStylesheetNode}) to parse at least one stylesheet, and
+then run input documents through these stylesheets using another set
+of methods (\method{runString}, \method{runStream}, \method{runUri},
+\method{runNode}).  
+
+The method names tell you what sort of input is expected, so
+\method{*String()} takes an XML string and parses it,
+\method{*Stream()} reads from a file-like object, \method{*Uri()}
+opens the requested URI, and finally \method{*Node()} expects a node
+from a DOM tree.
+
+%XXX finish this section
 
 \subsection{Related Links}
 
