@@ -222,6 +222,9 @@ class Node:
     def get_nodeType(self):
         return self._node.type
 
+    def get_document(self):
+        return self._document
+    
     def get_parentNode(self):
         return self.parentNode
 
@@ -375,7 +378,7 @@ class Node:
             else:
                 setattr(d, key, copy.deepcopy(value) )
 
-        node = NODE_CLASS[ d.type ] (d, None, self)
+        node = NODE_CLASS[ d.type ] (d, None, self.get_document())
         if deep:
             d.children = copy.deepcopy(self._node.children)
         return node
