@@ -137,22 +137,23 @@ class FileReader:
         type = self.getFileType(filename)
         if file is None:
             file = open(filename,'r')
-            dom = self.readStream(file,type)
+            document = self.readStream(file,type)
             file.close()
         else:
-            dom = self.readStream(file,type)
-        return dom
+            document = self.readStream(file,type)
+        return document
 
-    def readStream(self,stream,type='XML'):
+    def readStream(self,stream, type='XML'):
         if type == 'XML':
-            dom = self.readXml(stream)
+            document = self.readXml(stream)
         elif type == 'HTML':
-            dom = self.readHtml(stream)
+            document = self.readHtml(stream)
         elif type == 'SGML':
-            dom = self.readSgml(stream)
+            document = self.readSgml(stream)
         else:
-            dom = None
-        return dom
+            document = None
+        self.document = document
+        return document
 
     def readXml(self,stream,parserName=None):
         """parserName could be 'pyexpat', 'sgmlop', etc."""
