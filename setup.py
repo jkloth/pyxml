@@ -20,6 +20,8 @@ import shutil
 # copytree() function copied from shutil, and modified to allow
 # copying to an already existing directory.
 
+EXCLUDE_FILES = ['CVS']
+
 def copytree(src, dst, symlinks=0):
     """Recursively copy a directory tree using copy2().
 
@@ -37,6 +39,8 @@ def copytree(src, dst, symlinks=0):
     if not os.path.exists(dst):
         os.mkdir(dst)
     for name in names:
+        if name in EXCLUDE_FILES: continue
+        
         srcname = os.path.join(src, name)
         dstname = os.path.join(dst, name)
         try:
@@ -62,18 +66,22 @@ def create_build_dir():
     copytree('xml', 'build/xml')
 
 def build_win32():
-    print "'build' target not executed on win32"
     create_build_dir()
     
 def build_mac():
-    print "'build' target not executed on mac"
     create_build_dir()
     
 def build_unix():
     os.chdir('extensions')
     if not os.path.exists('Makefile'):
-        os.system('make -f Makefile.pre.in boot')
-    os.system('make')
+        cmd = 'make -f Makefile.pre.in boot'
+        print '\nRunning command:', cmd
+        os.system(cmd)
+        
+    cmd = 'make'
+    print '\nRunning command:', cmd
+    os.system(cmd)
+
     os.chdir('..')
     create_build_dir()
 
@@ -106,6 +114,7 @@ platform = sys.platform
 if platform not in ['win32', 'mac']: platform = 'unix'
 
 for action in actions:
+    print "\nExecuting '%s' action..." % (action)
     func = eval(action + '_' + platform)
     func()
     
