@@ -124,8 +124,11 @@ class XmlWriter(Walker):
 class XmlLineariser(XmlWriter):
 
     def __init__(self):
-        import StringIO
-        self.buffer = StringIO.StringIO()
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from StringIO import StringIO
+        self.buffer = StringIO()
         XmlWriter.__init__(self, self.buffer)
 
     def linearise(self, node):
@@ -169,12 +172,21 @@ class HtmlWriter(XmlWriter):
         
         self._setNewLines(nl_dict)
 
+    def doOtherNode(self, node):
+        if node.get_nodeType() == PROCESSING_INSTRUCTION_NODE:
+            self.stream.write("<?%s %s>" % (node.target, node.value))
+        else:
+            XmlWriter.doOtherNode(self, node)
+
 
 class HtmlLineariser(HtmlWriter):
 
     def __init__(self):
-        import StringIO
-        self.buffer = StringIO.StringIO()
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from StringIO import StringIO
+        self.buffer = StringIO()
         HtmlWriter.__init__(self, self.buffer)
 
     def linearise(self, node):
