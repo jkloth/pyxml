@@ -1,5 +1,5 @@
 
-XML package v0.5.1
+XML package v0.5.2
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -10,30 +10,19 @@ xmllib.py by a factor of 5.  There's even documentation!
 For information on the licensing conditions for each component,
 consult the LICENCE file.
 
-The only requirements for installing the package is Python 1.5 or
-later, and a C compiler.
+The only requirements for installing the package are Python 1.5 or
+later, and a C compiler.  It's recommended that you have the Distutils
+installed; fetch the latest version from
+http://www.python.org/sigs/distutils-sig/.
 
 To compile everything, simply perform the following steps.
 
 1) 
- Run "make -f Makefile.pre.in boot".  This creates Makefile
- (producing Makefile.pre and sedscript as intermediate files) and
- config.c, incorporating the values for sys.prefix, sys.exec_prefix
- and sys.version from the installed Python binary.  For this to work,
- the python binary must be on your path.  If this fails, try
+ Run "python setup.py build" to copy *.py files and compile the C extensions.
 
-   make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
-
- where <prefix> is the prefix used to install Python for installdir
- (and possibly similar for exec_installdir=<exec_prefix>).
-
-2) 
- Once the Makefile has been constructed, run "make" to compile the C modules.
- There's no test suite yet, but there will be one someday.
-
-3)
+2)
  To install everything in the site-packages directory as an xml/ package, 
- run "make install".
+ run "python setup.py install".
 
 If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
@@ -45,3 +34,5 @@ Software versions and credits:
 	sgmlop-981008		Fredrik Lundh
 	xmlarch 0.25		Geir Ove Gronmo
 	xmlproc 0.62		Lars Marius Garshol
+
+

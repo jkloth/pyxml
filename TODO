@@ -4,10 +4,10 @@ TODO list:
 (SAX namespace support can wait and see what the current effort to revise
 SAX will produce in a few months; SAX2 may add a standard filter for
 namespaces or something similar.) 
+	* Drop wstrop & Unicode; Python 1.6 will handle this
         * Integrate widestring support with the PyExpat module (major thing)
 	* Speed up the builder class somehow, and do some performance tests
 	* Change HTMLBuilder to use SAX instead of SGMLlib
-	* Switch to /F's Unicode module, probably
 	* Make more passes over the documentation
 	* More demo programs 
 	* Add READMEs to existing demo programs
@@ -15,7 +15,8 @@ namespaces or something similar.)
         * Re-indent everything to 4-space indents
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite more
-	* Update the Windows DLLs
+	* Update the Windows DLLs and integrate Christian Tismer's WISE 
+	  installer
 
 demo/xbel/	
 	* Update all the software to match the current XBEL DTD
