@@ -304,7 +304,6 @@ class Node:
 
     def __init__(self, node, document = None):
         self._node = node
-#	print 'print',  node.type, document and document.__dict__
 	assert isinstance(node, _nodeData)
 	assert isinstance(document, _nodeData) or (document is None)
 
@@ -440,6 +439,9 @@ class Node:
                 raise HierarchyRequestException, \
                       "%s cannot be child of %s" % (repr(node), repr(self) )
 
+        if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+            newChild._node.children = []
+
         if refChild is None:
             # If newChild is already in the tree, remove it
             if newChild.get_parentNode() != None:
@@ -448,9 +450,7 @@ class Node:
             for node in nodelist:
                 self._node.children.append( node )
 	        self._set_parentdict( id(node), self._node)
-                
-            if newChild._node.type != DOCUMENT_FRAGMENT_NODE:
-                self._set_parentdict(id(newChild._node), self._node)
+                            
             return newChild
 
         L = self._node.children ; n = refChild._node
@@ -464,7 +464,8 @@ class Node:
                 if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
                     newChild._node.children = []
                 else:
-	            self._set_parentdict(id(newChild._node), self._node)
+                    for node in nodelist:
+	                self._set_parentdict(id(node), self._node)
                 return newChild
 
         raise NotFoundException("refChild not a child in insertBefore()")
@@ -514,10 +515,11 @@ class Node:
 
         try:
             self._node.children.remove(oldChild._node)
-	    self._del_parentdict( id(oldChild._node) )
-            return oldChild
         except ValueError:
             raise NotFoundException("oldChild is not a child of this node")
+
+	self._del_parentdict( id(oldChild._node) )
+        return oldChild
 
     def appendChild(self, newChild):
         """Adds the node newChild to the end of the list of children of
@@ -561,16 +563,32 @@ class Node:
             c = NODE_CLASS[ c.type ](c, self._document)
             c.dump(stream, indent + 1)
 
-    # Private methods        
-
     def get_parentNode(self):
+        # If self._document is None, this must be the Document node,
+	# which doesn't have a parent.
 	if self._document is None: return None
-        if self._node in self._document.children:
-            return Document(self._document, None)
+
+	# Check if the id() of this node is a key in the dictionary;
+	# if so, the corresponding value is the _nodeData instance 
+	# that's the parent node.  
 	pr = self._get_parentdict()
         parent = pr.get( id(self._node), None)
-        if parent is None: return None
-        else: return NODE_CLASS[ parent.type ] (parent, self._document)
+        if parent is not None: 
+	    return NODE_CLASS[ parent.type ] (parent, self._document)
+        else:
+            # The children of the Document node can't be added to the
+	    # parentdict, because that would lead to a cycle; the
+	    # Document _nodeData instance would contain a dictionary which
+	    # contained the Document node as a value.  Therefore, if
+	    # there's no key for id(self._node), we have to check 
+	    # the children of the Document element before concluding 
+	    # that this node is parentless.
+	
+            if self._node in self._document.children:
+                return Document(self._document, None)
+	    return None
+
+    # Private methods        
 
     def _get_parentdict(self):
         if self._node.type == DOCUMENT_NODE:
@@ -579,9 +597,13 @@ class Node:
 	    return self._document._parent_relation
 
     def _set_parentdict(self, key, node):
-        # Don't insert the document node, in order to avoid a cycle
-        if node == self._document: return
 	d = self._get_parentdict()
+        # Don't insert the document node, in order to avoid a cycle
+        if node == self._document: 
+            # If this node is already represented in the dictionary,
+	    # we have to delete it.
+	    if d.has_key( key ): del d[key]
+	    return
         d[key] = node
 
     def _del_parentdict(self, key):
