@@ -31,6 +31,8 @@ LDFLAGS = []
 
 args = sys.argv[:]
 extra_packages = []
+with_xpath = 1
+with_xslt = 1
 for arg in args:
     if string.find(arg, '--with-libexpat=') == 0:
         LIBEXPAT = string.split(arg, '=')[1]
@@ -39,11 +41,23 @@ for arg in args:
         LDFLAGS = string.split(string.split(arg, '=')[1])
         sys.argv.remove(arg)
     elif arg == '--with-xpath':
-	extra_packages.append(xml('.xpath'))
-	sys.argv.remove(arg)
+        with_xpath = 1
+        sys.argv.remove(arg)
     elif arg == '--with-xslt':
-	extra_packages.append(xml('.xslt'))
+        with_xslt = 1
 	sys.argv.remove(arg)
+    elif arg == '--without-xpath':
+        with_xpath = 0
+        sys.argv.remove(arg)
+    elif arg == '--without-xslt':
+        without_xslt = 0
+	sys.argv.remove(arg)
+
+if with_xpath:
+    extra_packages.append(xml('.xpath'))
+
+if with_xslt:
+    extra_packages.append(xml('.xslt'))
 
 def should_build_pyexpat():
     try:
