@@ -1,3 +1,9 @@
+/*
+ Boolean extension, by Uche Ogbuji
+ Copyright (c) 2001 Fourthought, Inc. USA.   All Rights Reserved.
+ See  http://4suite.org/COPYRIGHT  for license and copyright information
+*/
+
 #include "boolean.h"
 #include <string.h>
 #include <ctype.h>
@@ -146,7 +152,7 @@ static int boolean_coerce(PyObject **v, PyObject **w){
 }
 
 static PyObject *boolean_and(PyObject *o1, PyObject *o2){
-  /* FIXME: Check whether we need to conver the 1st arg.  Of course the Python/C docs are no use here */
+  /* FIXME: Check whether we need to conver the 1st arg.  The Python/C docs don't help */
   int lhs = pyobj_as_boolean_int(o1), rhs = pyobj_as_boolean_int(o2);
   PyObject *result = NULL;
 
@@ -156,7 +162,7 @@ static PyObject *boolean_and(PyObject *o1, PyObject *o2){
 }
 
 static PyObject *boolean_or(PyObject *o1, PyObject *o2){
-  /* FIXME: Check whether we need to conver the 1st arg.  Of course the Python/C docs are no use here */
+  /* FIXME: Check whether we need to conver the 1st arg.  The Python/C docs don't help */
   int lhs = pyobj_as_boolean_int(o1), rhs = pyobj_as_boolean_int(o2);
   PyObject *result = NULL;
 
@@ -166,7 +172,7 @@ static PyObject *boolean_or(PyObject *o1, PyObject *o2){
 }
 
 static PyObject *boolean_xor(PyObject *o1, PyObject *o2){
-  /* FIXME: Check whether we need to conver the 1st arg.  Of course the Python/C docs are no use here */
+  /* FIXME: Check whether we need to conver the 1st arg.  The Python/C docs don't help */
   int lhs = pyobj_as_boolean_int(o1), rhs = pyobj_as_boolean_int(o2);
   PyObject *result = NULL;
 
