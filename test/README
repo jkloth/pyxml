@@ -1,0 +1,5 @@
+This directory contains unit tests for the PyXML package.
+
+To run the tests under CPython, you need to either install PyXML first
+or add the top-level directory of the PyXML distribution to
+PYTHONPATH.  Run the testxml.py script to execute the tests.
