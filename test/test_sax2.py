@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax2.py,v 1.3 2002/08/22 16:55:43 fdrake Exp $
+# $Id: test_sax2.py,v 1.4 2002/09/10 16:11:14 fdrake Exp $
 
 from xml.sax import handler, make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -254,10 +254,31 @@ class TestDTDHandler:
     def unparsedEntityDecl(self, name, publicId, systemId, ndata):
         self._entities.append((name, publicId, systemId, ndata))
 
+class LexicalHandler:
+    _start_dtd = None
+    _end_dtd = None
+
+    def startDTD(self, *args):
+        self._start_dtd = args
+
+    def endDTD(self, *args):
+        self._end_dtd = args
+
+    def comment(self, text):
+        pass
+
+    def startCDATA(self):
+        pass
+
+    def endCDATA(self):
+        pass
+
 def test_expat_dtdhandler():
     parser = make_parser()
-    handler = TestDTDHandler()
-    parser.setDTDHandler(handler)
+    dtdhandler = TestDTDHandler()
+    lexhandler = LexicalHandler()
+    parser.setDTDHandler(dtdhandler)
+    parser.setProperty(handler.property_lexical_handler, lexhandler)
 
     parser.parse(StringIO('''<!DOCTYPE doc [
   <!ENTITY img SYSTEM "expat.gif" NDATA GIF>
@@ -269,11 +290,13 @@ def test_expat_dtdhandler():
         def makestr(uni):
             if uni is None: return uni
             return str(uni)
-        handler._notations = [tuple(map(makestr, handler._notations[0]))]
-        handler._entities = [tuple(map(makestr, handler._entities[0]))]
+        dtdhandler._notations = [tuple(map(makestr, dtdhandler._notations[0]))]
+        dtdhandler._entities = [tuple(map(makestr, dtdhandler._entities[0]))]
 
-    return handler._notations == [("GIF", "-//CompuServe//NOTATION Graphics Interchange Format 89a//EN", None)] and \
-           handler._entities == [("img", None, "expat.gif", "GIF")]
+    return dtdhandler._notations == [("GIF", "-//CompuServe//NOTATION Graphics Interchange Format 89a//EN", None)] and \
+           dtdhandler._entities == [("img", None, "expat.gif", "GIF")] and \
+           lexhandler._start_dtd == ("doc", None, None) and \
+           lexhandler._end_dtd == ()
 
 
 # ===== EntityResolver support
