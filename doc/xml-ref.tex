@@ -686,7 +686,7 @@ The parser provides a new method:
   application-provided external subset if one is not specified by the
   document type declaration.  If \var{flag} is true or omitted, Expat
   will attempt to load an external subset by calling the
-  \code{ExternalEntityRefHandler} callback with \var{systemId} and
+  \member{ExternalEntityRefHandler} callback with \var{systemId} and
   \var{publicId} both set to \code{None}; this is done \emph{only} if
   the document does not specify a external subset.  If \var{flag} is
   false (or this method is never called), Expat will not attempt such
@@ -703,8 +703,8 @@ and one new attribute:
   Set to true on a parser with namespaces enabled to request that the
   actual prefix is reported as well as the namespace URI for each
   namespace-qualified name.  This modifies the element or attribute
-  names passed to the \code{StartElementHandler} and
-  \code{EndElementHandler} callbacks, if true.  If set to a true
+  names passed to the \member{StartElementHandler} and
+  \member{EndElementHandler} callbacks, if true.  If set to a true
   value, the names passed to these callbacks will have the prefix
   added to the end, separated from the local name by the value of the
   \var{namespace_separator} passed to the parser constructor.  No
@@ -719,7 +719,7 @@ One new callback method has been added as well:
 \begin{methoddesc}[xmlparser]{SkippedEntityHandler}{name, is_param_entity}
   This is called when an external entity is not read, and gives
   information about the entity.  The entity name will have been
-  previously reported by the \code{EntityDeclHandler}, if set.
+  previously reported by the \member{EntityDeclHandler}, if set.
 
   This was added in PyXML 0.8 to support Expat 1.95.4 and newer.
 \end{methoddesc}
@@ -838,9 +838,9 @@ Makes the parser start parsing afresh.
 \begin{methoddesc}{get_parser_list}{}
 Returns the list of possible drivers.  Currently this starts out as
 \code{["xml.sax.drivers.drv_xmltok",
-                      "xml.sax.drivers.drv_xmlproc",
-                      "xml.sax.drivers.drv_xmltoolkit",
-                      "xml.sax.drivers.drv_xmllib"]}.
+       "xml.sax.drivers.drv_xmlproc",
+       "xml.sax.drivers.drv_xmltoolkit",
+       "xml.sax.drivers.drv_xmllib"]}.
 \end{methoddesc}
 
 \begin{methoddesc}{make_parser}{\optional{driver_name}}
@@ -965,7 +965,7 @@ Since this exception is a subclass of \exception{SAXException}, it inherits
 \subsection{\class{AttributeList} methods}
 
 The \class{AttributeList} class supports some of the behaviour of
-Python dictionaries; the \method{len()}, \method{has_key()},
+Python dictionaries; the \function{len()} function and \method{has_key()},
 \method{keys()} methods are available, and \code{attr['href']} will
 retrieve the value of the \attribute{href} attribute.  There are also
 additional methods specific to \class{AttributeList}:
