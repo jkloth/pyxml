@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.7 2001/03/03 08:00:29 loewis Exp $
+$Id: drv_xmlproc.py,v 1.8 2001/03/04 22:10:49 loewis Exp $
 """
 
 import types, string
@@ -183,10 +183,10 @@ class XmlprocDriver(saxlib.XMLReader):
         self._cont_handler.endElement(name)
     
     def handle_data(self, data, start, end):
-        self._cont_handler.characters(data[start : end]) # FIXME?
+        self._cont_handler.characters(data[start:end])
         
     def handle_ignorable_data(self, data, start, end):
-        self._cont_handler.ignorableWhitespace(data, start, end) # FIXME?
+        self._cont_handler.ignorableWhitespace(data[start:end])
     
     def handle_pi(self, target, data):
         self._cont_handler.processingInstruction(target, data)
@@ -232,7 +232,7 @@ class XmlprocDriver(saxlib.XMLReader):
         self._decl_handler.internalEntityDecl(name, val)
 
     def new_external_entity(self, ent_name, pub_id, sys_id, ndata):
-        if ndata == None:
+        if not ndata:
             self._decl_handler.externalEntityDecl(ent_name, pub_id, sys_id)
         else:
             self._dtd_handler.unparsedEntityDecl(ent_name, pub_id, sys_id,
@@ -349,10 +349,10 @@ class NamespaceFilter:
         self._cont_handler.endElementNS(name, rawname)
     
     def handle_data(self, data, start, end):
-        self._cont_handler.characters(data[start : end]) # FIXME?
+        self._cont_handler.characters(data[start:end])
         
     def handle_ignorable_data(self, data, start, end):
-        self._cont_handler.ignorableWhitespace(data, start, end) # FIXME?
+        self._cont_handler.ignorableWhitespace(data[start:end])
     
     def handle_pi(self, target, data):
         self._cont_handler.processingInstruction(target, data)

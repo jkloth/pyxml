@@ -1,6 +1,6 @@
 from test.test_support import verbose, TestFailed, findfile
 from xml.sax.sax2exts import XMLValParserFactory
-from xml.sax import InputSource, SAXException
+from xml.sax import InputSource, SAXException, ContentHandler
 from StringIO import StringIO
 import sys
 
@@ -69,8 +69,31 @@ def test_illformed():
         print "PASS:",e
         return 1
     else:
-        return 0    
-    
+        return 0
+
+doc3 = """<?xml version="1.0"?>
+<!DOCTYPE configuration [
+  <!ELEMENT configuration EMPTY>
+]>
+<configuration>
+</configuration>
+"""
+
+class H(ContentHandler):
+    def __init__(self):
+        self.passed = 0
+
+    def ignorableWhitespace(self, data):
+        self.passed = 1
+
+def test_ignorable():
+    p = XMLValParserFactory.make_parser()
+    i = InputSource("doc3.xml")
+    i.setByteStream(StringIO(doc3))
+    h = H()
+    p.setContentHandler(h)
+    p.parse(i)
+    return h.passed
 
 items = locals().items()
 items.sort()
