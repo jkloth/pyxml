@@ -14,10 +14,10 @@
 /*
  * fdrake says:
  * Don't change the PyDoc_STR macro definition to (str), because
- * '''the parentheses cause compile failures 
- * ("non-constant static initializer" or something like that) 
+ * '''the parentheses cause compile failures
+ * ("non-constant static initializer" or something like that)
  * on some platforms (Irix?)'''
- */ 
+ */
 #define PyDoc_STR(str)         str
 #define PyDoc_VAR(name)        static char name[]
 #define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
@@ -221,10 +221,25 @@ conv_string_len_to_utf8(const XML_Char *str, int len)
 
 static void clear_handlers(xmlparseobject *self, int initial);
 
+/* This handler is used when an error has been detected, in the hope
+   that actual parsing can be terminated early.  This will only help
+   if an external entity reference is encountered. */
+static int
+error_external_entity_ref_handler(XML_Parser parser,
+                                  const XML_Char *context,
+                                  const XML_Char *base,
+                                  const XML_Char *systemId,
+                                  const XML_Char *publicId)
+{
+    return 0;
+}
+
 static void
 flag_error(xmlparseobject *self)
 {
     clear_handlers(self, 0);
+    XML_SetExternalEntityRefHandler(self->itself,
+                                    error_external_entity_ref_handler);
 }
 
 static PyCodeObject*
@@ -1746,7 +1761,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.68 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.69 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
