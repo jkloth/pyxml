@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Import needed modules
 from xml.sax import saxexts, saxlib, saxutils
