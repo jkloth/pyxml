@@ -60,11 +60,13 @@ class DOMException(Exception):
         self.args = args
         Exception.__init__(self, g_errorMessages[self.code])
 
-    def _derived_init(self, *args):
+    def _derived_init(*args):
         """Initializer method that does not expect a code argument,
         for use in derived classes."""
-        self.args = args
-        Exception.__init__(self, g_errorMessages[self.code])
+        if len(args) == 1:
+            # If no explicit message was passed, use the default message
+            args = args[0], g_errorMessages[args[0].code]
+        apply(Exception.__init__, args)
 
 
 class IndexSizeErr(DOMException):
