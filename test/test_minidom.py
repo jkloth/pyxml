@@ -1,8 +1,8 @@
 # test for xml.dom.minidom
 
-import os.path
-import pickle
+import os
 import sys
+import pickle
 import traceback
 from StringIO import StringIO
 from test.test_support import verbose
@@ -110,7 +110,7 @@ def testInsertBeforeFragment():
 
 def testAppendChild():
     dom = parse(tstfile)
-    dom.documentElement.appendChild(dom.createComment( "Hello"))
+    dom.documentElement.appendChild(dom.createComment(u"Hello"))
     confirm(dom.documentElement.childNodes[-1].nodeName == "#comment")
     confirm(dom.documentElement.childNodes[-1].data == "Hello")
     dom.unlink()
@@ -386,7 +386,7 @@ def testElementReprAndStr():
 # commented out until Fredrick's fix is checked in
 def _testElementReprAndStrUnicode():
     dom = Document()
-    el = dom.appendChild(dom.createElement( "abc"))
+    el = dom.appendChild(dom.createElement(u"abc"))
     string1 = repr(el)
     string2 = str(el)
     confirm(string1 == string2)
@@ -405,7 +405,7 @@ def _testElementReprAndStrUnicodeNS():
 
 def testAttributeRepr():
     dom = Document()
-    el = dom.appendChild(dom.createElement( "abc"))
+    el = dom.appendChild(dom.createElement(u"abc"))
     node = el.setAttribute("abc", "def")
     confirm(str(node) == repr(node))
     dom.unlink()
@@ -1322,7 +1322,7 @@ names.sort()
 failed = []
 
 for name in names:
-    if name[:4]=="test":
+    if name.startswith("test"):
         func = globals()[name]
         try:
             func()
