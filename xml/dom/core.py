@@ -17,18 +17,18 @@ Typical usage:
 
 from xml.dom.core import *
 
-doc = core.createDocument()
+doc = createDocument()                  
 html = doc.createElement('html')
 html.setAttribute('attr', 'value')
 head = doc.createElement('head')
 title = doc.createElement('title')
 
 text = doc.createTextNode("Title goes here")
-title.appendChild( text )
+title.appendChild(text)
+head.appendChild (title)                # added this
+doc.appendChild (head)                  # and this
 
 print doc.toxml()
-...
-
 """
 
 import string, sys
