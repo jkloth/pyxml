@@ -8,6 +8,7 @@ import sys, os, string
 
 from distutils.core import setup, Extension
 from setupext import Data_Files, install_Data_Files, wininst_request_delete
+from distutils.sysconfig import get_config_vars
 
 # I want to override the default build directory so the extension
 # modules are compiled and placed in the build/xml directory
@@ -54,7 +55,9 @@ for arg in args:
         with_xslt = 0
 	sys.argv.remove(arg)
 
-if sys.platform[:6] == "darwin": # Mac OS X
+if sys.platform[:6] == "darwin" and \
+   distutils.sysconfig.get_config_var("LDSHARED").find("-flat_namespace") == -1:
+    # Mac OS X
     LDFLAGS.append('-flat_namespace')
 
 if with_xpath:
