@@ -11,4 +11,5 @@ ns_parse.py	A class that parses Netscape bookmark files.
 msie_parse.py	A class that parses Internet Explorer bookmark files. 
 adr_parse.py    A class that parses Opera bookmark files
 lynx_parse.py   A class that parses Lynx bookmark files
-xbel_parse.py   A class that parses an XBEL input file
+xbel_parse.py   A class that parses an XBEL input file and can output it
+		in any of the other formats.

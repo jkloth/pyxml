@@ -64,6 +64,18 @@ class Bookmarks:
             folder.dump_netscape(out)
         out.write("</DL><p>\n")
 
+    # Lynx uses multiple bookmark files; each folder will be written to a
+    # different file.
+    def dump_lynx(self, path):
+        for folder in self.folders:
+            # First, figure out a reasonable filename for this folder
+            file = string.replace(folder.name, ' ', '_') + '.html'
+            output = open( os.path.join(path, filename), 'w')
+            output.write('<head>\n<title>Bookmark file: %s</title>\n<head>\n'
+                         % (folder.name,) )
+            output.write('<p>\n<ol>\n')
+            folder.dump_lynx(path, output)
+            
 # --- Superclass for folder and bookmarks
         
 class Node:
