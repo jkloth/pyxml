@@ -1,0 +1,37 @@
+test_domu
+strip_whitespace test
+<?xml version="1.0"?>
+<top>     
+
+
+
+
+real text     more text<subthing>  text     with        spaces </subthing>
+
+
+
+
+</top>
+==========
+<?xml version="1.0"?>
+<top>real textmore text<subthing>text     with        spaces </subthing></top>
+======================
+collapse_whitespace test
+<?xml version="1.0"?>
+<top>     
+
+
+
+
+real text     more text<subthing>  text     with        spaces </subthing>
+
+
+
+
+</top>
+==========
+<?xml version="1.0"?>
+<top>  real text more text<subthing> text with spaces </subthing> </top>
+
+<?xml version="1.0"?>
+<top> real text more text<subthing> text with spaces </subthing> </top>
