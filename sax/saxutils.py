@@ -181,7 +181,7 @@ class ESISDocHandler(saxlib.HandlerBase):
 
     def endDocument(self):
         try:
-            pass #self.writer.close()
+            self.writer.close()
         except NameError:
             pass # It's OK, if the method isn't there we probably don't need it
         
@@ -235,7 +235,7 @@ class Canonizer(saxlib.HandlerBase):
 	
     def endDocument(self):
         try:
-            pass #self.writer.close()
+            self.writer.close()
         except NameError:
             pass # It's OK, if the method isn't there we probably don't need it
 
