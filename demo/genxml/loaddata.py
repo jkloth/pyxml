@@ -7,7 +7,7 @@
 
 Usage:  %(program)s [--dom|--sax|--write] [infile [outfile]]
 """
-__version__ = '$Revision: 1.1 $'
+__version__ = '$Revision: 1.2 $'
 
 import getopt
 import os
@@ -18,7 +18,7 @@ import sys
 # processing class.
 #
 import xml.dom.core
-import xml.sax.saxutils
+import xml.sax.writer
 import xml.utils
 
 
@@ -156,27 +156,26 @@ class SAXProcess(BaseProcess):
     internal state is maintained.
     """
     def initOutput(self):
-        saxout = self.saxout = xml.sax.saxutils.Canonizer(self.outfp)
+        info = xml.sax.writer.XMLDoctypeInfo()
+        info.add_element_container("personnel")
+        info.add_element_container("employee")
+        saxout = self.saxout = xml.sax.writer.PrettyPrinter(
+            self.outfp, dtdinfo=info)
         saxout.startDocument()
         saxout.startElement("personnel", {})
 
     def addRecord(self, lname, fname, type):
         saxout = self.saxout
-        saxout.ignorableWhitespace("\n  ", 0, 3)
         saxout.startElement("employee", {"type": type})
-        saxout.ignorableWhitespace("\n    ", 0, 5)
         saxout.startElement("lname", {})
         saxout.characters(lname, 0, len(lname))
         saxout.endElement("lname")
-        saxout.ignorableWhitespace("\n    ", 0, 5)
         saxout.startElement("fname", {})
         saxout.characters(fname, 0, len(fname))
         saxout.endElement("fname")
-        saxout.ignorableWhitespace("\n  ", 0, 3)
         saxout.endElement("employee")
 
     def finishOutput(self):
-        self.saxout.ignorableWhitespace("\n", 0, 1)
         self.saxout.endElement("personnel")
         self.saxout.endDocument()
 
