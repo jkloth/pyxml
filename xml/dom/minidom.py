@@ -1595,7 +1595,8 @@ def parse(file, parser=None, bufsize=None):
         return expatbuilder.parse(file)
     else:
         from xml.dom import pulldom
-        return _do_pulldom_parse(pulldom.parse, args, kwargs)
+        return _do_pulldom_parse(pulldom.parse, (file,), 
+            {'parser': parser, 'bufsize': bufsize})
 
 def parseString(string, parser=None):
     """Parse a file into a DOM from a string."""
@@ -1604,7 +1605,7 @@ def parseString(string, parser=None):
         return expatbuilder.parseString(string)
     else:
         from xml.dom import pulldom
-        return _do_pulldom_parse(pulldom.parseString, args, kwargs)
+        return _do_pulldom_parse(pulldom.parseString, (string,), {'parser': parser})
 
 def getDOMImplementation():
     return Document.implementation
