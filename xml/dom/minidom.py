@@ -18,7 +18,7 @@ import string
 _string = string
 del string
 
-from xml.dom import HierarchyRequestErr
+from xml.dom import HierarchyRequestErr, EMPTY_NAMESPACE
 
 # localize the types, and allow support for Unicode values if available:
 import types
@@ -331,7 +331,7 @@ class Attr(Node):
     ownerElement = None
     childNodeTypes = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
 
-    def __init__(self, qName, namespaceURI="", localName=None, prefix=None):
+    def __init__(self, qName, namespaceURI=EMPTY_NAMESPACE, localName=None, prefix=None):
         # skip setattr for performance
         d = self.__dict__
         d["localName"] = localName or qName
@@ -470,7 +470,7 @@ class Element(Node):
                       Node.COMMENT_NODE, Node.TEXT_NODE,
                       Node.CDATA_SECTION_NODE, Node.ENTITY_REFERENCE_NODE)
 
-    def __init__(self, tagName, namespaceURI=None, prefix="",
+    def __init__(self, tagName, namespaceURI=EMPTY_NAMESPACE, prefix="",
                  localName=None):
         Node.__init__(self)
         self.tagName = self.nodeName = tagName
