@@ -1,9 +1,9 @@
 '''
-core.py: `light' implementation of the Document Objet Model (core) level 1.
+core.py: `light' implementation of the Document Object Model (core) level 1.
 
 Reference: http://www.w3.org/TR/WD-DOM/level-one-core
 
-Deviations froc the specs:
+Deviations from the specs:
 
 -- there are no classes NodeList, EditableNodeList and NodeEnumerator,
 since node lists are simply implemented as lists.
@@ -20,242 +20,613 @@ which should be instanciated though a DOMFactory instance.
 I have added an alias, ``GI'' for ``tagName'', for compatibility
 with previous work.
 
-Typical usage (create document with empty <html> element):
+Typical usage XXX
 
 from xml.dom.core import *
 
-dom_factory = DOMFactory()
-document = dom_factory.createDocument()
-html_node = dom_factory.createElement('html', {})
-document.insertBefore(html_node, None)
+XXX example here
 ...
 
 '''
 
 import string
+from xml.utils import escape
 
-# Exceptions.
-NoSuchNodeException = 'No such node'
-NotMyChildException = 'Not my child'
-NotImplemented = 'Not implemented'
+# References inside square brackets, such as [1.5], are to a section in the
+# August 18th DOM Level One specification.
 
-# Node types.
+#
+# Module-level definitions
+#
 
-DOCUMENT = 0
-ELEMENT = 1
-ATTRIBUTE = 1
-PI = 3
-COMMENT = 4
-TEXT = 5
+# Exception codes [1.2]
+INDEX_SIZE_ERR              = 1
+DOMSTRING_SIZE_ERR          = 2
+HIERARCHY_REQUEST_ERR       = 3
+WRONG_DOCUMENT_ERR          = 4
+INVALID_CHARACTER_ERR       = 5
+NO_DATA_ALLOWED_ERR         = 6
+NO_MODIFICATION_ALLOWED_ERR = 7
+NOT_FOUND_ERR               = 8
+NOT_SUPPORTED_ERR           = 9
+INUSE_ATTRIBUTE_ERR         = 10
 
+# Exceptions (now changed to class-based. --amk)
+
+class DOMException:
+    def __init__(self, msg):
+        self.msg = msg
+        
+class IndexSizeException(DOMException):
+    code = INDEX_SIZE_ERR
+class DOMStringSizeException(DOMException):
+    code = DOMSTRING_SIZE_ERR
+class HierarchyRequestException(DOMException):
+    code = HIERARCHY_REQUEST_ERR
+class WrongDocumentException(DOMException):
+    code = WRONG_DOCUMENT_ERR
+class NoDataAllowedException(DOMException):
+    code = NO_DATA_ALLOWED_ERR
+class NoModificationAllowedException(DOMException):
+    code = NO_MODIFICATION_ALLOWED_ERR
+class NotFoundException(DOMException):
+    code = NOT_FOUND_ERR
+class NotSupportedException(DOMException):
+    code = NOT_SUPPORTED_ERR
+class InUseAttributeException:
+    code = INUSE_ATTRIBUTE_ERR
+
+# Old exceptions (deprecated)
+class NoSuchNodeException(DOMException): pass
+class NotMyChildException(DOMException): pass
+class NotImplementedException(DOMException): pass
+
+# Node types. 
+
+ELEMENT                = ELEMENT_NODE                = 1
+ATTRIBUTE              = ATTRIBUTE_NODE              = 2
+TEXT                   = TEXT_NODE                   = 3
+CDATA_SECTION          = CDATA_SECTION_NODE          = 4
+ENTITY_REFERENCE       = ENTITY_REFERENCE_NODE       = 5
+ENTITY                 = ENTITY_NODE                 = 6
+PROCESSING_INSTRUCTION = PROCESSING_INSTRUCTION_NODE = 7
+COMMENT                = COMMENT_NODE                = 8
+DOCUMENT               = DOCUMENT_NODE               = 9
+DOCUMENT_TYPE          = DOCUMENT_TYPE_NODE          = 10
+DOCUMENT_FRAGMENT      = DOCUMENT_FRAGMENT_NODE      = 11
+NOTATION               = NOTATION_NODE               = 12
+
+
+def hasFeature(feature, version = None):
+    """Test if the DOM implementation implements a specific feature.
+    feature -- package name of the feature to test.  In Level 1 DOM the
+               legal values are 'HTML' and 'XML'.
+    version -- version number of the package to test (optional)
+    """
+    feature=string.lower(feature)
+    
+    if feature == 'html': return 0
+    if feature == 'xml':
+        if version is None: return 1
+        if version == '1.0': return 1
+        return 0
+
+def createDocument():
+    d = _nodeData(DOCUMENT_NODE)
+    d.name = '#document'
+    d.value = d.attributes = None
+    d = Document(d, None, None)
+    d._document = d
+    return d
+
+import UserList, UserDict
+
+class NodeList(UserList.UserList):
+    """An ordered collection of nodes, equivalent to a Python list.  The only
+    difference is that an .item() method and a .length attribute are added.
+    """
+    item = UserList.UserList.__getitem__
+    get_length = UserList.UserList.__len__
+
+class NamedNodeMap(UserDict.UserDict):
+    """Used to represent a collection of nodes that can be accessed by name.
+    Equivalent to a Python dictionary, with various aliases added such as
+    getNamedItem and removeNamedItem.
+    """
+
+    getNamedItem = UserDict.UserDict.__getitem__
+    removeNamedItem = UserDict.UserDict.__delitem__
+    get_length = UserDict.UserDict.__len__
+    def setNamedItem(self, arg):
+        key = arg.nodeName
+        self.data[key] = arg
+
+    def item(self, index):
+        return self.data.values[ index ]
+
+class _nodeData:
+    """Class used for storing the data for a single node.  Instances of
+    this class should never be returned to users of the DOM implementation."""
+    def __init__(self, type):
+        self.type = type
+        self.children = []
+        self.name = self.value = self.attributes = None
+        
 class Node:
-	'''Base class for grove nodes in DOM model.'''
+	'''Base class for grove nodes in DOM model.  Proxies an instance
+        of the _nodeData class.'''
 
-	GI = None # Alias for tagName
-
-	def __init__(self, **d):
-		self._children = []
-		self._parent = None
-
-		for key, value in d.items():
-			setattr(self, key, value)
-		if hasattr(self, 'tagName'):
-			self.GI = self.tagName
-
+        def __init__(self, node, parent = None, document = None):
+            self._node = node
+            self._parent = parent
+            self._document = document
+                        
 	def index(self):
-		if self._parent:
-			return self._parent._children.index(self)
-		else:
-			return -1
+            "Return the index of this child in its parent's child list"
+            if self._parent:
+                return self._parent._node.children.index(self)
+            else:
+                return -1
 
-	# get/set
-	def getParentNode(self):
-		return self._parent
-	
-	def getChildren(self):
-		# XXX: should return a NodeList.
-		return self._children
+	# get/set attributes
 
-	def hasChildren(self):
-		return len(self._children) > 0
+        def get_nodeName(self):
+            return self._node.name
+        get_name = get_nodeName
+        
+        def get_nodeValue(self):
+            return self._node.value
+        get_value = get_nodeValue
+        
+	def get_nodeType(self):
+            return self._node.type
 
-	def getFirstChild(self):
-		if self.hasChildren():
-			return self._children[0]
-		else:
-			return None
+	def get_parentNode(self):
+            return self._parent
 
-	def getPreviousSibling(self):
-		i = self.index()
-		if i <= 0:
-			return None
-		else:
-			return self._parent._children[i - 1]
+	def get_childNodes(self):
+            L = self._node.children[:]
+            # Convert the list of _nodeData instances into a list of
+            # the appropriate Node subclasses
+            for i in range(len(L)):
+                L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self._document)
+            return NodeList(L)
 
-	def getNextSibling(self):
-		i = self.index()
-		assert self._parent._children[i] == self
-		if i == -1 or i == len(self._parent._children) - 1:
-			return None
-		else:
-			return self._parent._children[i + 1]
+	def get_firstChild(self):
+            if self._node.children:
+                n = self._node.children[0]
+                return NODE_CLASS[ n.type ] (n, self, self._document)
+            else:
+                return None
 
-	def appendChild(self, new_child):
-		'XXX: not in interface.'
+        def get_lastChild(self):
+            if self._node.children:
+                n = self._node.children[-1]
+                return NODE_CLASS[ n.type ] (n, self, self._document)
+            else:
+                return None
 
-		self._children.append(new_child)
-		new_child._parent = self
-		#new_child.document = self.document
+	def get_previousSibling(self):
+            if self._parent is None: return None
+            i = self.index()
+            if i <= 0:
+                return None
+            else:
+                n = self._parent._node.children[i - 1]
+                return NODE_CLASS[ n.type ] (n, self, self._document)
 
-	def insertBefore(self, new_child, ref_child):
-		if ref_child == None:
-			self.appendChild(new_child)
-			return
-		for i in range(0, len(self._children)):
-			if self._children[i] == ref_child:
-				self._children[i:i] = [new_child]
-				new_child._parent = self
-				#new_child.document = self.document
-				return
-		raise NotMyChildException
+	def get_nextSibling(self):
+            if self._parent is None: return None
+            L = self._parent._node.children
+            i = self.index()
+            if i == -1 or i == len(L) - 1:
+                return None
+            else:
+                return L[i + 1]
+
+        def get_attributes(self):
+            return self._node.attributes
+
+        def get_ownerDocument(self):
+            return self._document
+
+        # Methods
+
+	def insertBefore(self, newChild, refChild):
+            # XXX should check if newChild is a legal child,
+            # and raise HIERARCHY_REQUEST_ERR if it isn't
+
+            if newChild._document != self._document:
+                raise WrongDocumentException("newChild created from a different document")
+
+            if refChild == None:
+                self.appendChild(newChild)
+                return newChild
+            L = self._node.children ; n = refChild._node
+            for i in range(len(L)):
+                if L[i] == n:
+                    L[i:i] = [newChild._node]
+                    newChild._parent = self
+                    return newChild
+            raise NotFoundException("refChild not a child in insertBefore()")
 			
-	def replaceChild(self, old_child, new_child):
-		for i in range(0, len(self._children)):
-			if self._children[i] == old_child:
-				self._children[i] = new_child
-				new_child._parent = self
-				return old_child
-		raise NotMyChildException
+	def replaceChild(self, newChild, oldChild):
+            o = oldChild._node ; L = self._node.children
+            print o,L
+            for i in range(len(L)):
+                if L[i] == o:
+                    L[i] = newChild._node
+                    newChild._parent = self
+                    oldChild._parent = None
+                    return oldChild
+            raise NotFoundException("oldChild not a child of this node")
 			
-	def removeChild(self, old_child):
-		try:
-			i = self._children.index(old_child)
-			del self._children[i]
-		except ValueError:
-			raise NotMyChildException
+	def removeChild(self, oldChild):
+            try:
+                self._node.children.remove(oldChild._node)
+                oldChild._parent = None
+                return oldChild
+            except ValueError:
+                raise NotFoundException("oldChild is not a child of this node")
 			
+	def appendChild(self, newChild):
+            if newChild._document != self._document:
+                raise WrongDocumentException("newChild created from a different document")
 
-	def __str__(self):
-		from xml.dom.writer import XmlLineariser
-		w = XmlLineariser()
-		return w.linearise(self)
+            self._node.children.append(newChild._node)
+            newChild._parent = self
+            return newChild
+        
+	def hasChildNodes(self):
+            return len(self._node.children) > 0
+
+	def cloneNode(self, deep):
+            pass # XXX I don't understand the exact definition of cloneNode()
+
 			
+class CharacterData(Node):
+    # Attributes
+    def get_data(self):
+        return self._node.value
+    
+    def set_data(self, data):
+        self._node.value = data
+        
+    def __len__(self):
+        return len(self._node.value)
+    get_length = __len__
 
-class Document(Node):
-	NodeType = DOCUMENT
-	GI = "#DOCUMENT"
+    # Methods
+    def substringData(self, offset, count):
+        """Extracts a range of data from the object.
+        offset -- start of substring to extract count -- number of characters to extract"""
+        if offset<0:
+            raise IndexSizeException("Negative offset")
+        if offset>len(self._node.value):
+            raise IndexSizeException("Offset larger than size of data")
+        if count<0:
+            raise IndexSizeException("Negative-length substring requested")
 
-	def __init__(self):
-		Node.__init__(self)
-		self.elements_dict = None
-		self.documentElement = None
-	
-	# XXX: experimental, not in DOM.
-	#def add_element(self, node):
-	#	l = self.elements_dict.get(node.tagName)
-	#	if l:
-	#		l.append(node)
-	#	else:
-	#		self.elements_dict[node.tagName] = [node]
-	
-	def getElementsByTagName(self, name):
-		if self.elements_dict is not None:
-			return self.elements_dict.get(name, [])
-		else:
-			return self.documentElement.getElementsByTagName(name)
+        return self._node.value[offset:offset+count]
 
-	def getDocumentElement(self):
-	    return self.documentElement
+    def appendData(self, arg):
+        """Append the string to the end of the character data."""
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
+        self._node.value = self._node.value + arg
 
-	def setDocumentElement(self, node):
-	    self.documentElement = node
+    def insertData(self, offset, arg):
+        """Insert a string at the specified character offset.
+        offset -- character offset at which to insert
+        arg -- the string to insert"""
+        if offset<0:
+            raise IndexSizeException("Negative offset")
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
+        if offset>len(self._node.value):
+            raise IndexSizeException("Offset larger than size of data")
+        self._node.value = self._node.value[:offset] + arg + self._node.value[offset:]
 
+    def deleteData(self, offset, count):
+        """Remove a range of characters from the node.
+        offset -- start of substring to delete
+        count -- number of characters to delete"""
+        if offset<0:
+            raise IndexSizeException("Negative offset")
+        if offset>len(self._node.value):
+            raise IndexSizeException("Offset larger than size of data")
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
+        self._node.value = self._node.value[:offset] + self._node.value[offset+count:]        
+
+    def replaceData(self, offset, count, arg):
+        """Replace the characters starting at the specified offset
+        with the specified string.
+        offset -- start of substring to delete
+        count -- number of characters to delete
+        arg -- string with which the range will be replaced"""
+        if offset<0:
+            raise IndexSizeException("Negative offset")
+        if offset>len(self._node.value):
+            raise IndexSizeException("Offset larger than size of data")
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
+        self._node.value = self._node.value[:offset] + arg + self._node.value[offset+count:]
+
+    # XXX define __getslice__ & friends here...
+
+    def __str__(self):
+        return self._node.value
+    
+class Attr(Node):
+    def __init__(self, node, parent = None):
+        Node.__init__(self, node, parent, None)
+
+    def get_name(self):
+        return self._node.name
+
+    def get_value(self):
+        return self._node.value
+
+    def set_value(self, value):
+        self._node.value = value
+        self._node.specified = 1
+
+    def get_specified(self):
+        return self._node.specified
 
 class Element(Node):
-	NodeType = ELEMENT
+    def __init__(self, node, parent = None, document = None):
+        Node.__init__(self, node, parent, document)
+        
+    def __repr__(self):
+        return "<element '%s'>" % (self._node.name)
 
-	def __init__(self, tagName):
-		Node.__init__(self, tagName=tagName)
-		self.attributes = {}
+    def __str__(self):
+        s = "<" + self._node.name
+        for name, value in self._node.attributes.items():
+            s = s + " %s='%s'" % (name, value)
+        if len(self._node.children) == 0:
+            return s + "/>"
+        s = s + '>'
+        for child in self._node.children:
+            n = NODE_CLASS[ child.type ] (child, self, self._document)
+            s = s + str(n)
+        s = s + "</" + self._node.name + '>'
+        return s
 
-	def getTagName(self):
-	    return self.tagName
-		
-	def setAttribute(self, attribute):
-		# XXX
-		raise NotImplemented
+    # Attributes
+    
+    def get_tagName(self):
+        return self._node.name
 
-	def getElementsByTagName(self, name):
-		# XXX: Return list instead of NodeEnumerator.
-		l = []
-		for child in self._children:
-			if child.NodeType == ELEMENT:
-				l = l + child.getElementsByTagName(name)
-				if child.tagName == name:
-					l.append(child)
-		return l
+    # Methods
+    
+    def getAttribute(self, name):
+        if self._node.attributes.has_key(name):
+            return self._node.attributes[name]
+        else:
+            return ""
+    
+    def setAttribute(self, name, value):
+        self._node.attributes[name] = value
 
-	# XXX: not in DOM.
-	def set_attr(self, name, value):
-		self.attributes[name] = value
+    def removeAttribute(self, name):
+        if self._node.attributes.has_key(name):
+            del self._node.attributes[name]
+
+    def getAttributeNode(self, name):
+        if not self._node.attributes.has_key[ name ]:
+            return None
+        d = _nodeData()
+        d.name = name
+        d.value = self._node.attributes[name]
+        d.attributes = None
+        return Attr(d, None)
+
+    def setAttributeNode(self, newAttr):
+        if self._node.attributes.has_key[ newAttr._node.name ]:
+            d = _nodeData()
+            d.name = newAttr._node.name
+            d.value = self._node.attributes[ newAttr._node.name]
+            d.attributes = None
+            retval = Attr(d, None)
+        else: retval = None
+
+        self._node.attributes[ newAttr._node.name ] = newAttr._node.value
+        return retval
+
+    def removeAttributeNode(self, oldAttr):
+        # XXX this needs to know about DTDs to restore a default value
+        if self._node.attributes.has_key[ oldAttr._node.name ]:
+            d = _nodeData(ATTRIBUTE_NODE)
+            d.name = newAttr._node.name
+            d.value = self._node.attributes[ oldAttr._node.name ]
+            d.attributes = None
+            retval = Attr(d, None)
+            del self._node.attributes[ d.name ]
+            return retval
+        else: return None
+
+    def getElementsByTagName(self, name):
+        L = []
+        for child in self._node.children:
+            if child.type == ELEMENT:
+                d = Element(d, self, self._document)
+                if child.name == name:
+                    L.append(d)
+                L = L + d.getElementsByTagName(name)
+        return NodeList(L)
+
+    def normalize(self):
+        # XXX this should traverse its children and merge adjacent text nodes
+        pass
+    
+class Text(CharacterData):
+    def __str__(self):
+        return self._node.value
+
+    # Methods
+    
+    def splitText(self, offset):
+        n1 = self.substringData(0, offset)
+        n2 = self.substringData(offset, len(self) - offset)
+        # XXX delete this node, insert Text nodes from n1 and n2
+        pass # XXX
+    
+class Comment(CharacterData):
+    def __str__(self):
+        return '<-- %s -->' % self._node.value
+
+class CDATASection(Text):
+    """Represents CDATA sections, which are blocks of text that would
+    otherwise be regarded as markup."""
+    pass 
+
+class DocumentType(Node):
+    # Attributes
+    def get_name(self):
+        return self._node.name
+
+    def get_entities(self):
+        pass # XXX
+
+    def get_notations(self):
+        pass # XXX
+
+class Notation(Node):
+    # Attributes
+    def get_publicId(self):
+        pass # XXX
+        
+    def get_systemId(self):
+        pass # XXX
+        
+class Entity(Node):
+    def get_publicId(self):
+        pass # XXX
+
+    def get_systemId(self):
+        pass # XXX
+
+    def get_notationName(self):
+        pass # XXX
+
+class EntityReference(Node):
+    pass 
+
+class ProcessingInstruction(Node):
+    def __str__(self):
+        return "<? " + self._node.name + ' ' +self._node.target + ">"
+
+    def get_target(self):
+        return self._node.name
+
+    def get_data(self):
+        return self._node.target
+
+    def set_data(self, data):
+        self._node.target = data
 
 
-class Attribute(Node):
-	# XXX: not used!!!
-	NodeType = ATTRIBUTE
-	GI = "#ATTR"
+class Document(Node):
+    def __init__(self, node, parent = None, document = None):
+        Node.__init__(self, node, parent = None, document = None)
+        self.documentType = None
+        self.DOMImplementation = __import__(__name__)
 
+    def __str__(self):
+        s = '<?xml version="1.0"?>\n'
+        s = s + "<!DOCTYPE XXX>\n"
+        if len(self._node.children):
+            n = self._node.children[0]
+            n =  NODE_CLASS[ n.type ] (n, self, self._document)
+            s = s + str( n )
+        return s
 
-class Text(Node):
-	GI = "#PCDATA"
-	NodeType = TEXT
+    def createElement(self, tagName):
+        d = _nodeData(ELEMENT_NODE)
+        d.name = tagName
+        d.value = None
+        d.attributes = NamedNodeMap()
+        return Element(d, None, self)
 
-	def __str__(self):
-		return self.data
+    def createDocumentFragment(self):
+        pass #XXX
 
+    def createTextNode(self, data):
+        d = _nodeData(TEXT_NODE)
+        d.name = "#text"
+        d.value = data
+        d.attributes = None
+        return Text(d, None, self)
 
-class Comment(Node):
-	GI = "#COMMENT"
-	NodeType = COMMENT
-	data = ''
+    def createComment(self, data):
+        d = _nodeData(COMMENT_NODE)
+        d.name = "#comment"
+        d.value = data
+        d.attributes = None
+        return Comment(d, None, self)
 
-	def __str__(self):
-		return '<-- ?? -->' % self.data
+    def createCDATAsection(self, data):
+        d = _nodeData(CDATA_SECTION_NODE)
+        d.name = "#cdata-section"
+        d.value = data
+        d.attributes = None
+        return CDATASection(d, None, self)
 
+    def createProcessingInstruction(self, target, data):
+        d = _nodeData(PROCESSING_INSTRUCTION_NODE)
+        d.name = target
+        d.value = data
+        d.attributes = None
+        return ProcessingInstruction(d, None, self)
+        
+    def createAttribute(self, name):
+        d = _nodeData(ATTRIBUTE_NODE)
+        d.name = name
+        d.value = ""
+        d.attributes = None
+        return Attribute(d, None, self)
 
-class PI(Node):
-	GI = "#PI"
-	NodeType = PI
-	data = ''
+    def createEntityReference(self, name):
+        d = _nodeData(ENTITY_REFERENCE_NODE)
+        d.name = name
+        d.value = None
+        d.attributes = None
+        return EntityReference(d, None, self)
 
-	def __str__(self):
-		return '<? %s ?>' % self.data
+    def getElementsByTagName(self, tagname):
+        return self.documentElement.getElementsByTagName(name)
 
+    # Attributes
+    def get_doctype(self):
+        return self.documentType
+    def get_implementation(self):
+        return self.DOMImplementation
+    def get_documentElement(self):
+        n = self._node.children[0]
+        return NODE_CLASS[ n.type ] (n, self, self._document)
 
-# Auxiliary types.
+    
+class DocumentFragment(Node):
+    pass
 
-class DOMFactory:
-	def createDocumentContext(self):
-		return DocumentContext()
+# Dictionary mapping types to the corresponding class object
 
-	def createDocument(self):
-		return Document()
-
-	def createElement(self, tagName, attributes):
-		e = Element(tagName)
-		e.attributes = attributes
-		return e
-
-	def createAttribute(self, name, value):
-		a = Attribute()
-		a.name = name
-		a.value = value
-		
-	def createTextNode(self, data):
-		return Text(data=data)
-		
-	def createComment(self, data):
-		return Comment(data=data)
-		
+NODE_CLASS = {
+ELEMENT_NODE                : Element,
+ATTRIBUTE_NODE              : Attr, 
+TEXT_NODE                   : Text, 
+CDATA_SECTION_NODE          : CDATASection,
+ENTITY_REFERENCE_NODE       : EntityReference,
+ENTITY_NODE                 : Entity, 
+PROCESSING_INSTRUCTION_NODE : ProcessingInstruction, 
+COMMENT_NODE                : Comment,
+DOCUMENT_NODE               : Document,
+DOCUMENT_TYPE_NODE          : DocumentType,
+DOCUMENT_FRAGMENT_NODE      : DocumentFragment,
+NOTATION_NODE               : Notation
+}
 
 # vim:ts=2:ai
