@@ -20,7 +20,36 @@ elif sys.platform[:3] == 'mac':
 else:
     # Assume all other platforms are Unix-compatible; this is almost
     # certainly wrong. :)
-    FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c' 
+    FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
+
+ext_modules = []
+
+# Don't build pyexpat if the Python installation provides one.
+# FIXME: It should be build for binary distributions even if the core has it.
+build_pyexpat = 0
+try:
+    import pyexpat
+except ImportError:
+    build_pyexpat = 1
+
+if build_pyexpat:
+    ext_modules.append(
+        Extension('_xmlplus.parsers.pyexpat',
+                  define_macros = [('XML_NS', None)],
+                  include_dirs = [ 'extensions/expat/xmltok',
+                                   'extensions/expat/xmlparse' ], 
+                  sources = [ 'extensions/pyexpat.c',
+                              'extensions/expat/xmltok/xmltok.c',
+                              'extensions/expat/xmltok/xmlrole.c',
+                              'extensions/expat/xmlwf/xmlfile.c',
+                              'extensions/expat/xmlwf/xmlwf.c',
+                              'extensions/expat/xmlwf/codepage.c',
+                              'extensions/expat/xmlparse/xmlparse.c',
+                              'extensions/expat/xmlparse/hashtable.c',
+                              FILEMAP_SRC,
+                              ]
+                  ))
+                                  
 
 setup (name = "PyXML",
        version = "0.6.0",
@@ -42,21 +71,6 @@ setup (name = "PyXML",
                    '_xmlplus.unicode', '_xmlplus.utils'
                    ],
 
-       ext_modules = [Extension('_xmlplus.parsers.pyexpat',
-                     define_macros = [('XML_NS', None)],
-                     include_dirs = [ 'extensions/expat/xmltok',
-                                      'extensions/expat/xmlparse' ], 
-                     sources = [
-                                  'extensions/pyexpat.c',
-                                  'extensions/expat/xmltok/xmltok.c',
-                                  'extensions/expat/xmltok/xmlrole.c',
-                                  'extensions/expat/xmlwf/xmlfile.c',
-                                  'extensions/expat/xmlwf/xmlwf.c',
-                                  'extensions/expat/xmlwf/codepage.c',
-                                  'extensions/expat/xmlparse/xmlparse.c',
-                                  'extensions/expat/xmlparse/hashtable.c',
-                                  FILEMAP_SRC,
-                                  ] )
-                      ]
+       ext_modules = ext_modules
        )
 
