@@ -37,14 +37,12 @@ class Bookmarks:
     def dump_xbel(self,out=sys.stdout):
         out.write('<?xml version="1.0"?>\n'
                   '<!DOCTYPE xbel SYSTEM "xbel.dtd">\n'
-                  '<XBEL>\n')
-        out.write('  <INFO>\n')
-        out.write('    <OWNER>%s</OWNER>\n' % (self.owner,) )
-        out.write('  </INFO>\n')
+                  '<xbel>\n')
+        out.write("  <desc>%s's Bookmarks</desc>\n" % (self.owner,) )
 
         for folder in self.folders:
             folder.dump_xbel(out)
-        out.write("</XBEL>\n")
+        out.write("</xbel>\n")
 
     def dump_adr(self,out=sys.stdout):
         out.write("Opera Hotlist version 2.0\n\n")
@@ -97,11 +95,11 @@ class Folder(Node):
         self.children.append(child)
 
     def dump_xbel(self,out):
-        out.write("  <FOLDER>\n")
-        out.write("    <NAME>%s</NAME>\n" % self.name)
+        out.write("  <folder>\n")
+        out.write("    <title>%s</title>\n" % self.name)
         for child in self.children:
             child.dump_xbel(out)
-        out.write("  </FOLDER>\n")
+        out.write("  </folder>\n")
 
     def dump_adr(self,out):
         out.write("#FOLDER\n")
@@ -135,17 +133,19 @@ class Bookmark(Node):
         self.url=url
 
     def dump_xbel(self,out):
-        out.write("    <BOOKMARK>\n")
-        out.write("      <NAME>%s</NAME>\n" % self.name)
-        out.write("      <URL>%s</URL>\n" % self.url)
+        if self.visited!=None:
+            visited = 'visited="%s" ' % self.visited
+        else:
+            visited = ""
 
         if self.created!=None:
-            out.write("      <ADDED>%s</ADDED>\n" % self.created)
-
-        if self.visited!=None:
-            out.write("      <VISITED>%s</VISITED>\n" % self.visited)
+            created = 'added="%s" ' % self.created
+        else:
+            created = ""
             
-        out.write("    </BOOKMARK>\n")
+        out.write('    <bookmark href="%s" %s%s>\n' % (self.url, created, visited) )
+        out.write("      <title>%s</title>\n" % self.name)
+        out.write("    </bookmark>\n")
 
     def dump_adr(self,out):
         out.write("#URL\n")
