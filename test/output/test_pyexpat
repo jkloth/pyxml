@@ -1,24 +1,95 @@
 test_pyexpat
-start collection
-start quotation
-cdata We will perhaps eventually be writing only small modules which are identified by name as they are used to build larger ones, so that devices like indentation, rather than delimiters, might become feasible for expressing local structure in the source language.  
-start source
-cdata Donald E. Knuth, "Structured Programming with goto Statements", Computing Surveys, Vol 6 No 4, Dec. 1974
-end source
-cdata  
-end quotation
-cdata   
-start quotation
-cdata  The infinities aren't contagious except in that they often appear that way due to to their large size. 
-start source
-cdata Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998
-end source
-cdata  
-end quotation
-cdata   
-end collection
-Summary of XML parser upcalls:
-start elements: 5
-end elements: 5
-character data: 8
-processing instructions: 0
+OK.
+OK.
+OK.
+OK.
+PI:
+	'xml-stylesheet' 'href="stylesheet.css"'
+Comment:
+	' comment data '
+Notation declared: ('notation', None, 'notation.jpeg', None)
+Unparsed entity decl:
+	('unparsed_entity', None, 'entity.file', None, 'notation')
+Start element:
+	'root' {'attr1': 'value1', 'attr2': 'value2\341\275\200'}
+NS decl:
+	'myns' 'http://www.python.org/namespace'
+Start element:
+	'http://www.python.org/namespace!subelement' {}
+Character data:
+	'Contents of subelements'
+End element:
+	'http://www.python.org/namespace!subelement'
+End of NS decl:
+	'myns'
+Start element:
+	'sub2' {}
+Start of CDATA section
+Character data:
+	'contents of CDATA section'
+End of CDATA section
+End element:
+	'sub2'
+External entity ref: ('xml=http://www.w3.org/XML/1998/namespace\014external_entity', None, 'entity.file', None)
+End element:
+	'root'
+PI:
+	u'xml-stylesheet' u'href="stylesheet.css"'
+Comment:
+	u' comment data '
+Notation declared: (u'notation', None, u'notation.jpeg', None)
+Unparsed entity decl:
+	(u'unparsed_entity', None, u'entity.file', None, u'notation')
+Start element:
+	u'root' {u'attr1': u'value1', u'attr2': u'value2\u1F40'}
+NS decl:
+	u'myns' u'http://www.python.org/namespace'
+Start element:
+	u'http://www.python.org/namespace!subelement' {}
+Character data:
+	u'Contents of subelements'
+End element:
+	u'http://www.python.org/namespace!subelement'
+End of NS decl:
+	u'myns'
+Start element:
+	u'sub2' {}
+Start of CDATA section
+Character data:
+	u'contents of CDATA section'
+End of CDATA section
+End element:
+	u'sub2'
+External entity ref: (u'xml=http://www.w3.org/XML/1998/namespace\014external_entity', None, u'entity.file', None)
+End element:
+	u'root'
+PI:
+	u'xml-stylesheet' u'href="stylesheet.css"'
+Comment:
+	u' comment data '
+Notation declared: (u'notation', None, u'notation.jpeg', None)
+Unparsed entity decl:
+	(u'unparsed_entity', None, u'entity.file', None, u'notation')
+Start element:
+	u'root' {u'attr1': u'value1', u'attr2': u'value2\u1F40'}
+NS decl:
+	u'myns' u'http://www.python.org/namespace'
+Start element:
+	u'http://www.python.org/namespace!subelement' {}
+Character data:
+	u'Contents of subelements'
+End element:
+	u'http://www.python.org/namespace!subelement'
+End of NS decl:
+	u'myns'
+Start element:
+	u'sub2' {}
+Start of CDATA section
+Character data:
+	u'contents of CDATA section'
+End of CDATA section
+End element:
+	u'sub2'
+External entity ref: (u'xml=http://www.w3.org/XML/1998/namespace\014external_entity', None, u'entity.file', None)
+End element:
+	u'root'
