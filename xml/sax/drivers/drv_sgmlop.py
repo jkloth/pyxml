@@ -1,7 +1,7 @@
 """
 SAX driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.5 2000/05/15 20:21:49 lars Exp $
+$Id: drv_sgmlop.py,v 1.6 2000/09/26 14:43:11 loewis Exp $
 """
 
 version="0.11"

@@ -2,7 +2,7 @@
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
 
-$Id: dtdparser.py,v 1.5 2000/05/12 18:39:58 lars Exp $
+$Id: dtdparser.py,v 1.6 2000/09/26 14:43:10 loewis Exp $
 """
 
 from types import StringType

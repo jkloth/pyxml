@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.9 2000/09/20 06:15:22 loewis Exp $
+$Id: drv_pyexpat.py,v 1.10 2000/09/26 14:43:11 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.

@@ -3,7 +3,7 @@
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.
 #
-# $Id: charconv.py,v 1.4 2000/05/12 18:39:58 lars Exp $
+# $Id: charconv.py,v 1.5 2000/09/26 14:43:10 loewis Exp $
 
 import string
 

@@ -3,7 +3,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.9 2000/05/12 18:39:58 lars Exp $
+$Id: xmlval.py,v 1.10 2000/09/26 14:43:10 loewis Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time

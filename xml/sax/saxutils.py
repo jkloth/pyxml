@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.8 2000/09/20 06:15:21 loewis Exp $
+$Id: saxutils.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!

@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.11 2000/05/12 18:39:58 lars Exp $
+# $Id: xmlproc.py,v 1.12 2000/09/26 14:43:10 loewis Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.11 $"
+revision="$Revision: 1.12 $"
         
 # ==============================
 # A full well-formedness parser

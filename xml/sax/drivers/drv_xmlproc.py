@@ -1,7 +1,7 @@
 """
 A SAX driver for xmlproc
 
-$Id: drv_xmlproc.py,v 1.11 2000/05/15 20:21:49 lars Exp $
+$Id: drv_xmlproc.py,v 1.12 2000/09/26 14:43:11 loewis Exp $
 """
 
 version="0.95"

@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.8 2000/05/12 18:39:58 lars Exp $
+$Id: catalog.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
 """
 
 import string,sys

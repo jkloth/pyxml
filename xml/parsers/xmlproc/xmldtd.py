@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.10 2000/05/12 18:39:58 lars Exp $
+$Id: xmldtd.py,v 1.11 2000/09/26 14:43:10 loewis Exp $
 """
 
 import types

@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.10 2000/05/12 18:39:58 lars Exp $
+# $Id: xmlutils.py,v 1.11 2000/09/26 14:43:10 loewis Exp $
    
 import string,re,urlparse,os,sys
 

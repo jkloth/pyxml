@@ -1,7 +1,7 @@
 """
 Common code for the sgmllib, htmllib and xmllib parser drivers.
 
-$Id: pylibs.py,v 1.3 2000/05/15 20:21:49 lars Exp $
+$Id: pylibs.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
 """
 
 from xml.sax import saxlib,saxutils

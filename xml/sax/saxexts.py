@@ -1,7 +1,7 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.5 2000/09/16 06:18:37 loewis Exp $
+$Id: saxexts.py,v 1.6 2000/09/26 14:43:10 loewis Exp $
 """
 
 import saxlib,sys,string

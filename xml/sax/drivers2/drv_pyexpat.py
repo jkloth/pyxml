@@ -2,7 +2,7 @@
 SAX driver for the Pyexpat C module.  This driver works with
 pyexpat.__version__ == '1.5'.
 
-$Id: drv_pyexpat.py,v 1.3 2000/09/20 06:15:22 loewis Exp $
+$Id: drv_pyexpat.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
 """
 
 # Todo on driver:

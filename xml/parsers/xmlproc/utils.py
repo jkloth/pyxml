@@ -1,7 +1,7 @@
 """
 Some utilities for use with xmlproc.
 
-$Id: utils.py,v 1.1 2000/05/12 18:39:58 lars Exp $
+$Id: utils.py,v 1.2 2000/09/26 14:43:10 loewis Exp $
 """
 
 import xmlapp,sys,string,types

@@ -5,7 +5,7 @@ imitated) by clients that want to handle these functions themselves.
 Application is the class that receives document data from the parser,
 and is probably the one most people want.
 
-$Id: xmlapp.py,v 1.8 2000/05/12 18:39:58 lars Exp $
+$Id: xmlapp.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
 """
 
 import sys,urllib

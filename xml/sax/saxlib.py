@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: saxlib.py,v 1.7 2000/09/20 06:15:21 loewis Exp $
+$Id: saxlib.py,v 1.8 2000/09/26 14:43:10 loewis Exp $
 """
 
 version = '2.0beta'

@@ -1,7 +1,7 @@
 """
 SAX driver for htmllib.py
 
-$Id: drv_htmllib.py,v 1.3 2000/05/15 20:21:49 lars Exp $
+$Id: drv_htmllib.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
 """
 
 version="0.10"

@@ -1,7 +1,7 @@
 """
 A SAX driver for xmlproc with validation and DTD information.
 
-$Id: drv_xmlproc_val.py,v 1.7 2000/05/15 20:21:49 lars Exp $
+$Id: drv_xmlproc_val.py,v 1.8 2000/09/26 14:43:11 loewis Exp $
 """
 
 version="0.92"
