@@ -5,7 +5,9 @@ import string
 
 # The interface to the outside world
 
-# Todo: 3047 needed in Swedish, Norwegian and French
+# Todo:
+# - 3047 needed in Swedish, Norwegian and French
+# - 2024 ditto
 
 error_lists={}  # The hash of errors
 
@@ -62,6 +64,7 @@ english={
     2021: "Token '%s' in the value of the '%s' attribute is not a valid name",
     2022: "Notation attribute '%s' uses undeclared notation '%s'",
     2023: "Unparsed entity '%s' uses undeclared notation '%s'",
+    2024: "Cannot resolve relative URI '%s' when document URI unknown",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils

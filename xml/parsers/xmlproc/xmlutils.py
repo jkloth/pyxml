@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.21 2001/06/07 19:36:47 larsga Exp $
+# $Id: xmlutils.py,v 1.22 2001/08/08 07:21:46 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -811,17 +811,23 @@ def matches(regexp,str):
     mo=regexp.match(str)
     return mo!=None and len(mo.group(0))==len(str)
 
-def join_sysids_general(base,url):
-    if urlparse.urlparse(base)[0]=="":
-        if urlparse.urlparse(url)[0]=="":
-            return os.path.join(os.path.split(base)[0],url)
+def join_sysids_general(base, url):
+    "Resolves a URL relative to a base URL. The base can be None."
+    if urlparse.urlparse(url)[0] != "":
+        return url
+    elif urlparse.urlparse(base)[0] == "":
+        if urlparse.urlparse(url)[0] == "":
+            return os.path.join(os.path.split(base)[0], url)
         else:
             return url
     else:
-        return urlparse.urljoin(base,url)
+        return urlparse.urljoin(base, url)
 
-def join_sysids_win32(base,url):
-    if len(urlparse.urlparse(base)[0])<2: # Handles drive identifiers correctly
+def join_sysids_win32(base, url):
+    "Resolves a URL relative to a base URL. The base can be None."
+    if urlparse.urlparse(url)[0] != "":
+        return url
+    elif len(urlparse.urlparse(base)[0])<2: # Handles drive identifiers correctly
         if len(urlparse.urlparse(url)[0])<2:
             return os.path.join(os.path.split(base)[0],url)
         else:
@@ -831,10 +837,10 @@ def join_sysids_win32(base,url):
 
 # here join_sysids(base,url): is set to the correct function
 
-if sys.platform=="win32":
-    join_sysids=join_sysids_win32
+if sys.platform == "win32":
+    join_sysids = join_sysids_win32
 else:
-    join_sysids=join_sysids_general
+    join_sysids = join_sysids_general
     
 # --- Some useful regexps
 
@@ -842,10 +848,10 @@ if using_unicode:
     _re_flags = re.UNICODE
 else:
     _re_flags = 0
-    namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
+    namestart = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:" + \
                "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
-    namechars=namestart+"0123456789.·-"
-whitespace="\n\t \r"
+    namechars = namestart + "0123456789.·-"
+whitespace = "\n\t \r"
 
 reg_ws=re.compile("[\n\t \r]+",_re_flags)
 reg_ver=re.compile("[-a-zA-Z0-9_.:]+",_re_flags)
