@@ -1,13 +1,13 @@
 """
 SAX driver for the Java SAX parsers. Can only be used in Jython.
 
-$Id: drv_javasax.py,v 1.4 2002/03/05 22:31:55 larsga Exp $
+$Id: drv_javasax.py,v 1.5 2003/01/26 09:08:51 loewis Exp $
 """
 
 # --- Initialization
 
 version = "0.10"
-revision = "$Revision: 1.4 $"
+revision = "$Revision: 1.5 $"
 
 import string
 from xml.sax import xmlreader, saxutils
@@ -17,7 +17,7 @@ from xml.sax import _exceptions
 # we only work in jython
 import sys
 if sys.platform[:4] != "java":
-    raise SAXReaderNotAvailable("drv_javasax not available in CPython", None)
+    raise _exceptions.SAXReaderNotAvailable("drv_javasax not available in CPython", None)
 del sys
 
 # get the necessary Java SAX classes
