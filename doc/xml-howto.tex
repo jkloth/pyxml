@@ -1,12 +1,9 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.16 2002/05/15 15:14:04 akuchling Exp $
+% $Id: xml-howto.tex,v 1.17 2002/05/29 17:41:58 akuchling Exp $
 
 % TODO:
-%   Write outline of entire document
-%   Explain namespaces somewhere
-% XXX not covered: xml.marshal, scripts, namespaces, TREX/schemas, XSLT
-% XXX overview of parsers
+%    XXX not covered: DOM extensions, scripts
 
 \newcommand{\element}[1]{\code{#1}}
 \newcommand{\attribute}[1]{\code{#1}}
@@ -416,10 +413,11 @@ one.
   Classes for building DOM trees from various input sources:
   SAX1 and SAX2 parsers, \module{htmllib}, and directly using Expat.
 
-\item[\module{xml.marshal.generic}]
-  Marshals simple Python data types into an XML format.
-  The marshaller class can be subclassed in order to implement
-  marshalling into a different XML DTD.
+\item[\module{xml.marshal.generic}] 
+  Marshals simple Python data types into an XML format.  The
+  \class{Marshaller} and \class{Unmarshaller} classes can be
+  subclassed in order to implement marshalling into a different XML
+  DTD.
 
 \item[\module{xml.marshal.wddx}]
   Marshals Python objects into WDDX.  (This module is built on top 
@@ -1373,7 +1371,8 @@ The method names tell you what sort of input is expected, so
 opens the requested URI, and finally \method{*Node()} expects a node
 from a DOM tree.
 
-%XXX finish this section
+% XXX finish this section when XSLT is supported again
+
 
 \subsection{Related Links}
 
@@ -1381,6 +1380,52 @@ The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and has links
 to the XSLT specifications and to friendlier tutorials.
 
 \end{comment}
+
+
+%==========================================================================
+\section{Marshalling Into XML}
+
+The \module{xml.marshal} package contains code for marshalling Python
+data types and objects into XML.  The \module{xml.marshal.generic}
+module uses a simple DTD of its own, and provides \class{Marshaller}
+and \class{Unmarshaller} classes that can be subclassed to marshal
+objects using a different DTD.  As an example, \module{xml.marshal.wddx} 
+marshals Python objects into the WDDX DTD.
+
+The interface is the same as the standard Python \module{marshal}
+module: \function{dump(\var{value}, \var{file})} and
+\function{dumps(\var{value})} convert \var{value} into XML and either
+write it to the given file or return it as a string, while
+\function{load(\var{file})} and \function{loads(\var{string})}
+perform the reverse conversion.  For example:
+
+\begin{verbatim}
+>>> generic.dumps( (1, 2.0, 'name', [2,3,5,7]) )
+"""<?xml version="1.0"?>
+<marshal>
+  <tuple>
+    <int>1</int>
+    <float>2.0</float>
+    <string>name</string>
+    <list id="i2">
+      <int>2</int>
+      <int>3</int>
+      <int>5</int>
+      <int>7</int>
+    </list>
+  </tuple>
+</marshal>"""
+>>>
+\end{verbatim}
+
+(The output has been pretty-printed for clarity.)
+
+Note that, at least in the \module{generic} module, strings are simply
+incorporated in the XML output and therefore can't contain control
+characters that are illegal in XML.  If you need to marshal such
+strings, you'll have to encode them using the \module{binascii} module
+before calling the \function{dump()} function. 
+
 
 %==========================================================================
 \section{Acknowledgements \label{section-acks}}
