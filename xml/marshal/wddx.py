@@ -1,5 +1,8 @@
 from generic import *
 
+"""WDDX marshalling
+"""
+
 # WDDX marshalling can be either "strict", in which Python objects
 # with no good WDDX equivalent cause a marshalling exception, or
 # "loose", in which WDDX takes extra steps to prevent marshalling
