@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.10 2002/05/10 16:58:19 akuchling Exp $
+% $Id: xml-howto.tex,v 1.11 2002/05/10 21:02:53 akuchling Exp $
 
 % TODO:
 %   Read over DOM section
@@ -393,24 +393,14 @@ one.
   Provides a stream of DOM elements.  This module can make it easy 
   to write certain types of DTD-specific processing code.
 
-\item[\module{dom.TreeWalker}]
-  Provides the \class{TreeWalker} class for multidirectional iteration 
-  over nodes.
+\item[\module{dom.ext}]
+  Various DOM-related extensions for pretty-printing DOM trees as XML or XHTML.
 
 \item[\module{dom.ext.Dom2Sax}]
   A parser to generate SAX events from a DOM tree.
 
-\item[\module{dom.ext.Printer}]
-  Classes to print XML from a DOM tree.
-
 \item[\module{dom.ext.Visitor}]
   Classes for walking over a DOM tree.
-
-\item[\module{dom.ext.XHtml2HtmlPrinter}]
-  Classes for printing an XHTML DOM tree as HTML.
-  
-\item[\module{dom.ext.XHtmlPrinter}]
-  Classes for printing an HTML DOM tree as XHTML.
 
 \item[\module{dom.ext.c14n}]
   Takes a DOM tree and outputs a text stream containing the
@@ -438,7 +428,8 @@ one.
   accelerator module.
 
 \item[\module{xml.parsers.xmlproc}]
-  A validating XML parser.
+  A validating XML parser.  Usually you'll want to use xmlproc via SAX or
+  some other higher-level interface.
 
 \item[\module{xml.sax}]
   SAX1 and SAX2 support for Python.
@@ -453,18 +444,15 @@ one.
   (for Jython), Expat, \module{sgmllib}, xmlproc.
 
 \item[\module{sax.handler}] 
-  Contains the core SAX2 handler classes \class{ContentHandler}, 
-  \class{DTDHandler}, \class{EntityResolver},
-  and \class{ErrorHandler}.
+  Contains the core SAX2 handler classes \class{ContentHandler},
+  \class{DTDHandler}, \class{EntityResolver}, and
+  \class{ErrorHandler}.  Also contains symbolic names for the various
+  SAX2 features and properties.
 
-\item[\module{sax.saxexts}]
-  SAX1 extensions.  This contains various factory classes that create
-  parser objects, and the \function{make_parser()} function.
 
 \item[\module{sax.sax2exts}]
-  SAX2 extensions.  Like its SAX1 counterpart, this module contains
-  various factory classes that create parser objects, and the
-  \function{make_parser()} function.
+  SAX2 extensions.  This contains various factory classes that create
+  parser objects, and is how SAX2 parsers are used.
 
 \item[\module{sax.saxlib}]
   Contains two SAX2 handler classes, \class{DeclHandler} and
@@ -1151,6 +1139,6 @@ to the XSLT specifications and to friendlier tutorials.
 
 The author would like to thank the following people for offering
 suggestions, corrections and assistance with various drafts of this
-article: Rich Salz.
+article: Fred~L. Drake, Jr., Martin von L\"owis, Rich Salz.
 
 \end{document}
