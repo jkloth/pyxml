@@ -31,9 +31,9 @@ class Types:
 
 import types
 try:
-    g_stringTypes= [types.StringType, types.UnicodeType]
+    g_stringTypes = [types.StringType, types.UnicodeType]
 except:
-    g_stringTypes= [types.StringType]
+    g_stringTypes = [types.StringType]
 
 ### Node Set Functions ###
 
@@ -148,7 +148,8 @@ def String(context, object=None):
 
 def Concat(context, *args):
     """Function: <string> concat(<string>, <string>, ...)"""
-    return reduce(lambda a,b: a + Conversions.StringValue(b), args, '')
+    return reduce(lambda a,b,c=context: a + Conversions.StringValue(b),
+                  args, '')
 
 
 def StartsWith(context, outer, inner):
@@ -223,17 +224,18 @@ def Normalize(context, st=None):
 
 def Translate(context, source, fromChars, toChars):
     """Function: <string> translate(<string>, <string>, <string>)"""
-    remove_chars = ''
     source = Conversions.StringValue(source)
     fromChars = Conversions.StringValue(fromChars)
     toChars = Conversions.StringValue(toChars)
-    if len(fromChars) > len(toChars):
-        remove_chars = fromChars[len(toChars):]
-        fromChars = fromChars[:len(toChars)]
-    translator = string.maketrans(fromChars, toChars)
-    result = string.translate(source, translator)
-    for char in remove_chars:
-        result = string.replace(result, char, '')
+
+    # string.maketrans/translate do not handle unicode
+    translate = {}
+    for from_char, to_char in map(None, fromChars, toChars):
+        translate[ord(from_char)] = to_char
+
+    result = reduce(lambda a, b, t=translate:
+                    a + (t.get(ord(b), b) or ''),
+                    source, '')
     return result
 
 ### Boolean Functions ###

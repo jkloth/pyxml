@@ -8,12 +8,11 @@
 A Parsed Token that represents a absolute location path in the parsed tree.
 WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
 
-Copyright (c) 2000, 2001 Fourthought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.xpath import ParsedToken
-from xml.dom import Node
 
 
 class ParsedAbsoluteLocationPath(ParsedToken.ParsedToken):
@@ -22,15 +21,12 @@ class ParsedAbsoluteLocationPath(ParsedToken.ParsedToken):
         self._child = child
 
     def select(self, context):
-        if context.node.nodeType == Node.DOCUMENT_NODE:
-            root = context.node
-        else:
-            root = context.node.ownerDocument
         if self._child == None:
-            return [root]
+            return [context.node.ownerDocument]
 
         origState = context.copyNodePosSize()
 
+        root = context.node.ownerDocument
         context.setNodePosSize((root,1,1))
         rt = self._child.select(context)
 

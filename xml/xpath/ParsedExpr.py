@@ -6,10 +6,10 @@
 #
 """
 The implementation of all of the expression pared tokens.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string, UserList, types
@@ -84,18 +84,24 @@ class ParsedNLiteralExpr(ParsedLiteralExpr):
     def __repr__(self):
         return str(self._nliteral)
 
+from xml.xpath import RuntimeException, Error
 
 class ParsedVariableReferenceExpr(ParsedExpr):
     def __init__(self,name):
         ParsedExpr.__init__(self)
         self._name = name
         self._key = SplitQName(name[1:])
+        return
 
     def evaluate(self, context):
         """Returns a string"""
         (prefix, local) = self._key
         expanded = (prefix and context.processorNss.get(prefix) or '', local)
-        return context.varBindings.get(expanded, '')
+        try:
+            return context.varBindings[expanded]
+        except:
+            raise RuntimeException(Error.UNDEFINED_VARIABLE,
+                                   expanded[0], expanded[1])
 
     def __repr__(self):
         return self._name
@@ -458,7 +464,7 @@ class ParsedEqualityExpr(ParsedExpr):
             op = ' != '
         return repr(self._left) + op + repr(self._right)
 
-        
+
 
 class ParsedRelationalExpr(ParsedExpr):
     def __init__(self, op, left, right):

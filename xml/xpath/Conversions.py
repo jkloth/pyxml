@@ -22,7 +22,6 @@ from xml.xpath import Util
 from xml.xpath import NAMESPACE_NODE
 from xml.utils import boolean
 
-
 import types
 try:
     g_stringTypes= [types.StringType, types.UnicodeType]
@@ -36,7 +35,14 @@ def BooleanEvaluate(exp, context):
 
 
 def StringValue(object):
+#def StringValue(object, context=None):
+    #print "StringValue context", context
+    #if context:
+    #    cache = context.stringValueCache
+    #else:
+    #    cache = None
     for func in g_stringConversions:
+        #handled, result = func(object, cache)
         handled, result = func(object)
         if handled:
             break
@@ -85,41 +91,9 @@ def NodeSetValue(object):
 
 def CoreStringValue(object):
     """Get the string value of any object"""
-    object_type = type(object)
-    if object_type in g_stringTypes:
-        return 1, object
-    elif object_type in [types.IntType, types.LongType]:
-        return 1, `object`
-    elif object_type == types.FloatType:
-        if str(object) == 'nan':
-            return 1,'NaN'
-        return 1, "%g"%(object)
-    elif boolean.IsBooleanType(object):
-        return 1, str(object)
-    elif hasattr(object, 'nodeType'):
-        node_type = object.nodeType
-        if node_type == Node.ELEMENT_NODE:
-            #The concatenation of all text descendants
-            text_elem_children = filter(lambda x: x.nodeType in [Node.TEXT_NODE,Node.CDATA_SECTION_NODE, Node.ELEMENT_NODE], object.childNodes)
-            return 1, reduce(lambda x, y: CoreStringValue(x)[1] + CoreStringValue(y)[1], text_elem_children, '')
-        elif node_type == Node.ATTRIBUTE_NODE:
-            return 1, object.value
-        elif node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE,Node.CDATA_SECTION_NODE]:
-            return 1, object.data
-##	elif node_type == Node.CDATA_SECTION_NODE:
-##	    return 1, object.data.replace('&', '&amp;').replace('<', '&lt;')
-        elif node_type == Node.DOCUMENT_NODE:
-            #Use the String value of the document root
-            return 1, StringValue(object.documentElement)
-##        elif node_type == Node.DOCUMENT_FRAGMENT_NODE:
-##            #The concatenation of all descendants
-##            return 1, reduce(lambda x, y: StringValue(x) + StringValue(y), object.childNodes, '')
-        elif node_type == NAMESPACE_NODE:
-            return 1, object.value
-    elif object_type == types.ListType:
-        return 1, (object and CoreStringValue(object[0])[1] or '')
-    # Don't know what it is
-    return 0, None
+    # See bottom of file for conversion functions
+    result = _strConversions.get(type(object), _strUnknown)(object)
+    return result is not None, result
 
 
 def CoreNumberValue(object):
@@ -161,3 +135,70 @@ g_stringConversions = [CoreStringValue]
 g_numberConversions = [CoreNumberValue]
 g_booleanConversions = [CoreBooleanValue]
 #g_nodeSetConversions = [CoreNodeSetValue]
+
+
+def _strInstance(object):
+    if hasattr(object, 'stringValue'):
+        return object.stringValue
+    if hasattr(object, 'nodeType'):
+        node_type = object.nodeType
+        if node_type == Node.ELEMENT_NODE:
+            # The concatenation of all text descendants
+            text_elem_children = filter(lambda x:
+                                        x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE],
+                                        object.childNodes)
+            return reduce(lambda x, y:
+                          CoreStringValue(x)[1] + CoreStringValue(y)[1],
+                          text_elem_children,
+                          '')
+        if node_type in [Node.ATTRIBUTE_NODE, NAMESPACE_NODE]:
+            return object.value
+        if node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE]:
+            return object.data
+        if node_type == Node.DOCUMENT_NODE:
+            # Use the String value of the document root
+            return StringValue(object.documentElement)
+    return None
+        
+def _strElementInstance(object):
+    if hasattr(object, 'stringValue'):
+        return object.stringValue
+    if object.nodeType == Node.ELEMENT_NODE:
+        # The concatenation of all text descendants
+        text_elem_children = filter(
+            lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE],
+            object.childNodes
+            )
+        return reduce(lambda x, y:
+                      CoreStringValue(x)[1] + CoreStringValue(y)[1],
+                      text_elem_children,
+                      '')
+
+_strUnknown = lambda x: None
+
+_strConversions = {
+    types.StringType : str,
+    types.IntType : str,
+    types.LongType : str,
+    types.FloatType : lambda x: x is NaN and 'NaN' or '%g' % x,
+    boolean.BooleanType : str,
+    types.InstanceType : _strInstance,
+    types.ListType : lambda x: x and _strConversions[type(x[0])](x[0]) or '',
+}
+
+try:
+    from Ft.Lib import cDomlettec
+    _strConversions.update({
+        cDomlettec.DocumentType : lambda x: _strDocumentInstance(x.documentElement),
+        cDomlettec.ElementType : _strElementInstance,
+        cDomlettec.TextType : lambda x: x.data,
+        cDomlettec.CommentType : lambda x: x.data,
+        cDomlettec.ProcessingInstructionType : lambda x: x.data,
+        cDomlettec.AttrType : lambda x: x.value,
+        })
+except:
+    pass
+
+if hasattr(types, 'UnicodeType'):
+    _strConversions[types.UnicodeType] = unicode
+

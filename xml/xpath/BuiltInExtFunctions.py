@@ -14,10 +14,9 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import re, string, urllib
 from xml.dom import Node
-from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE
-from xml.utils import boolean
 from xml.dom.Text import Text
-
+from xml.utils import boolean
+from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE
 
 def Version(context):
     from Ft.__init__ import __version__
@@ -126,7 +125,7 @@ def IsoTime(context):
 
 def Evaluate(context, expr):
     import xml.xpath
-    return xml.xpath.Evaluate(Conversions.StringValue(expr), context=context)
+    return xml.xpath.Evaluate(Conversions.StringValue(st), context=context)
 
 
 ##

@@ -44,8 +44,11 @@ class ParsedPredicateList(ParsedToken.ParsedToken):
                     position = (reverse and size - ctr) or (ctr + 1)
                     context.setNodePosSize((node, position, size))
                     res = pred.evaluate(context)
-                    if type(res) in NumberTypes and res == position:
-                        nodeList.append(node)
+                    if type(res) in NumberTypes:
+                        # This must be separate to prevent falling into
+                        # the boolean check.
+                        if res == position:
+                            nodeList.append(node)
                     elif Conversions.BooleanValue(res):
                         nodeList.append(node)
                     ctr = ctr + 1

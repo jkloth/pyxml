@@ -31,6 +31,8 @@ class Context:
         self.processorNss = processorNss or {}
         self._cachedNss = None
         self._cachedNssNode = None
+        self.stringValueCache = {}
+        return
 
     def __repr__(self):
         return "<Context at %s: Node=%s, Postion=%d, Size=%d>" % (
