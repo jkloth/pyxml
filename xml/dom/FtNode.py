@@ -370,8 +370,20 @@ class FtNode(Event.EventTarget, Node):
     def _4dom_validateNode(self, newNode):
         if not newNode.nodeType in self.__class__._allowedChildren:
             raise HierarchyRequestErr()
+        self._4dom_raiseIfAncestor(newNode)
         if self.ownerDocument != newNode.ownerDocument:
             raise WrongDocumentErr()
+
+    def _4dom_raiseIfAncestor(self, node):
+        "Helper function that raises if node is an ancestor of self or self."
+        n = self
+        if n is node:
+            raise HierarchyRequestErr()
+        if node.hasChildNodes():
+            while n is not None:
+                n = n.parentNode
+                if n is node:
+                    raise HierarchyRequestErr()
 
     def _4dom_setHierarchy(self, parent, previous, next):
         self.__dict__['__parentNode'] = parent
