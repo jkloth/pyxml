@@ -1,13 +1,12 @@
 TODO list:
-	* Shift to the new public CVS server
-        * Namespace support for DOM(major thing)
+        * Namespace support for DOM conforming to DOM Level 2 draft 
+	  (a major thing)
 (SAX namespace support can wait and see what the current effort to revise
 SAX will produce in a few months; SAX2 may add a standard filter for
 namespaces or something similar.) 
         * Integrate widestring support with the PyExpat module (major thing)
 	* Speed up the builder class somehow, and do some performance tests
 	* Change HTMLBuilder to use SAX instead of SGMLlib
-	* Update CREDITS file (move it to an XML format?)
 	* Switch to /F's Unicode module, probably
 	* Make more passes over the documentation
 	* More demo programs 
@@ -41,5 +40,6 @@ least make it more generic)
 	* NodeList returned from .getElementsByTagName should be live.
 (Hard, and doesn't seem to be very useful; AMK doesn't really care.)
 
+	* DOM Level 2 changes
 
 
