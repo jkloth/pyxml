@@ -5,9 +5,11 @@ The parser is more flexible on the input format than is required to support
 the W3C profile, but all accepted date/time values are legal ISO 8601 dates.
 The tostring() method only generates formatted dates that are conformant to
 the profile.
+
+This module was written by Fred L. Drake, Jr. <fdrake@acm.org>.
 """
 
-__version__ = '$Revision: 1.1 $'
+__version__ = '1.0'
 
 import string
 import time
@@ -53,7 +55,6 @@ def tostring(t, timezone=0):
         hours = timezone / (60 * 60)
         minutes = (timezone % (60 * 60)) / 60
         tzspecifier = "%c%02d:%02d" % (sign, hours, minutes)
-        print tzspecifier
     else:
         tzspecifier = "Z"
     psecs = t - int(t)
@@ -83,12 +84,14 @@ def ctime(t):
 import re
 
 __date_re = ("(?P<year>\d\d\d\d)"
-             "(?:(?P<dsep>-|)(?P<month>\d\d)(?:(?P=dsep)(?P<day>\d\d))?)?")
+             "(?:(?P<dsep>-|)"
+                "(?:(?P<julian>\d\d\d)"
+                  "|(?P<month>\d\d)(?:(?P=dsep)(?P<day>\d\d))?))?")
 __tzd_re = "(?P<tzd>[-+](?P<tzdhours>\d\d)(?::?(?P<tzdminutes>\d\d))|Z)"
-__time_re = ("(?P<hours>\d\d)(?P<tsep>:|)(?P<minutes>\d\d)"
-             "(?:(?P=tsep)(?P<seconds>\d\d(?:[.,]\d+)?))"
-             + __tzd_re)
 __tzd_rx = re.compile(__tzd_re)
+__time_re = ("(?P<hours>\d\d)(?P<tsep>:|)(?P<minutes>\d\d)"
+             "(?:(?P=tsep)(?P<seconds>\d\d(?:[.,]\d+)?))?"
+             + __tzd_re)
 
 __datetime_re = "%s(?:T%s)?" % (__date_re, __time_re)
 __datetime_rx = re.compile(__datetime_re)
@@ -98,6 +101,9 @@ del re
 
 def __extract_date(m):
     year = string.atoi(m.group("year"), 10)
+    julian = m.group("julian")
+    if julian:
+        return __find_julian(year, string.atoi(julian, 10))
     month = string.atoi(m.group("month"), 10)
     day = 1
     if month is None:
@@ -158,3 +164,23 @@ def __extract_tzd(m):
     return offset
 
 
+def __find_julian(year, julian):
+    month = julian / 30 + 1
+    day = julian % 30 + 1
+    jday = None
+    while jday != julian:
+        t = time.mktime((year, month, day, 0, 0, 0, 0, 0, 0))
+        jday = time.gmtime(t)[-2]
+        diff = abs(jday - julian)
+        if jday > julian:
+            if diff < day:
+                day = day - diff
+            else:
+                month = month - 1
+                day = 31
+        elif jday < julian:
+            if day + diff < 28:
+                day = day + diff
+            else:
+                month = month + 1
+    return year, month, day
