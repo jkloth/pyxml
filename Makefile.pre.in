@@ -354,4 +354,4 @@ expat/libexpat.a:
 
 # XXX
 test: default
-	cd test ; python testxml.py
+	cd test ; PYTHONPATH=.. python testxml.py

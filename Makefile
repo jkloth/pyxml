@@ -147,15 +147,15 @@ OPT=		-g -O2
 LDFLAGS=	
 LDLAST=		
 DEFS=		-DHAVE_CONFIG_H
-LIBS=		-lieee -lm -ldl  -lpthread
+LIBS=		-lieee -ldl 
 LIBM=		-lm
 LIBC=		
 RANLIB=		ranlib
-MACHDEP=	linux2
+MACHDEP=	linux-i386
 SO=		.so
 LDSHARED=	gcc -shared
-CCSHARED=	-fpic
-LINKFORSHARED=	-Xlinker -export-dynamic
+CCSHARED=	-fPIC
+LINKFORSHARED=	-rdynamic
 
 # Install prefix for architecture-independent files
 prefix=		/usr
@@ -369,7 +369,7 @@ expat/libexpat.a:
 
 # XXX
 test: default
-	cd test ; python testxml.py
+	cd test ; PYTHONPATH=.. python testxml.py
 # Rules appended by makedepend
 
 sgmlop.o: $(srcdir)/sgmlop.c; $(CC) $(CCSHARED) $(CFLAGS)  -c $(srcdir)/sgmlop.c

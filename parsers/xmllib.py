@@ -478,7 +478,6 @@ class SlowXMLParser:
 # accelerated XML parser
 
 class FastXMLParser:
-
     # Interface -- initialize and reset this instance
     def __init__(self, verbose=0):
 	self.verbose = verbose

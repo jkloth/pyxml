@@ -2,7 +2,7 @@
 # Top-level program for XML test suite
 #
 
-import sys, regrtest, getopt, string
+import regrtest
 
 if __name__ == '__main__':
     tests = regrtest.findtests(testdir = '.', stdtests = [], nottests = [])

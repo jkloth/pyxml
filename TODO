@@ -2,9 +2,11 @@ TODO list:
 
 	* Make more passes over the documentation
 	* Produce plain-text versions of the docs
-	* More demo programs
+	* More demo programs (add qtfmt.py)
+	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite
 	* Should PyPointers go in this version?
+	* xmllib.py : bugs (different ones) in both fast & slow versions
 
 After 1.0 final:
-	* Start working on DOM again
+	* Start working on DOM again (July 20 draft)

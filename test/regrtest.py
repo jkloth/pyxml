@@ -31,6 +31,24 @@ import traceback
 import test_support
 
 def main( tests = None, testdir = None ):
+    """Execute a test suite.
+
+    This also parses command-line options and modifies its behaviour
+    accordingly. 
+
+    tests -- a list of strings containing test names (optional)
+    testdir -- the directory in which to look for tests (optional)
+
+    Users other than the Python test suite will certainly want to
+    specify testdir; if it's omitted, the directory containing the
+    Python test suite is searched for.  
+
+    If the tests argument is omitted, the tests listed on the
+    command-line will be used.  If that's empty, too, then all *.py
+    files beginning with test_ will be used.
+    
+    """
+    
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'vgqx')
     except getopt.error, msg:
@@ -115,6 +133,13 @@ def findtests(testdir = None, stdtests = STDTESTS, nottests = NOTTESTS):
     return stdtests + tests
 
 def runtest(test, generate, verbose, testdir = None):
+    """Run a single test.
+    test -- the name of the test
+    generate -- if true, generate output, instead of running the test
+    and comparing it to a previously created output file
+    verbose -- if true, print more messages
+    testdir -- test directory
+    """
     test_support.unload(test)
     if not testdir: testdir = findtestdir()
     outputdir = os.path.join(testdir, "output")

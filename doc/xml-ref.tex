@@ -81,6 +81,11 @@ prepared with a list of HTML parsers.  Simply call its
 \method{make_parser()} method to get a \class{Parser} object. 
 \end{datadesc}
 
+\begin{classdesc}{ParserFactory}{}
+A general class to be used by applications for creating parsers on
+foreign systems where the list of installed parsers is unknown.
+\end{classdesc}
+
 \begin{datadesc}{SGMLParserFactory}
 An instance of the \class{ParserFactory} class that's already been
 prepared with a list of SGML parsers.  Simply call its
@@ -136,11 +141,6 @@ Returns true if the parser is validating, false otherwise.
 \begin{methoddesc}{reset}{}
 Makes the parser start parsing afresh.
 \end{methoddesc}
-
-\begin{classdesc}{ParserFactory}{}
-A general class to be used by applications for creating parsers on
-foreign systems where it is unknown which parsers exist.
-\end{classdesc}
 
 \subsection{\class{ParserFactory} methods}
 
@@ -219,25 +219,25 @@ This is the basic interface for SAX error handlers. If you create an object
 \end{classdesc}
 
 \begin{classdesc}{HandlerBase}{}
-Default base class for handlers. This class implements the
-    default behaviour for four SAX interfaces, inheriting from them all
-: \class{EntityResolver},
-    \class{DTDHandler}, \class{DocumentHandler}, and \class{ErrorHandler}.  Rather
-    than implementing those full interfaces, you may simply extend
-    this class and override the methods that you need. Note that the
-    use of this class is optional, since you are free to implement the
+Default base class for handlers. This class implements the default
+    behaviour for four SAX interfaces, inheriting from them all:
+    \class{EntityResolver}, \class{DTDHandler},
+    \class{DocumentHandler}, and \class{ErrorHandler}.  Rather than
+    implementing those full interfaces, you may simply extend this
+    class and override the methods that you need. Note that the use of
+    this class is optional, since you are free to implement the
     interfaces directly if you wish.
 \end{classdesc}
 
 \begin{classdesc}{Locator}{}
 Interface for associating a SAX event with a document
 location. A locator object will return valid results only during
-calls to SAXDocumentHandler methods; at any other time, the
-results are unpredictable.
+calls to methods of the \class{SAXDocumentHandler} class; 
+at any other time, the results are unpredictable.
 \end{classdesc}
 
 \begin{classdesc}{Parser}{}
-Basic interface for SAX (Simple API for XML) parsers. All SAX
+Basic interface for SAX parsers. All SAX
     parsers must implement this basic interface: it allows users to
     register handlers for different types of events and to initiate a
     parse from a URI, a character stream, or a byte stream. SAX
@@ -250,8 +250,8 @@ Encapsulate an XML error or warning. This class can contain
     basic error or warning information from either the XML parser or
     the application: you can subclass it to provide additional
     functionality, or to add localization. Note that although you will
-    receive a SAXException as the argument to the handlers in the
-    ErrorHandler interface, you are not actually required to throw
+    receive a \exception{SAXException} as the argument to the handlers in the
+    \class{ErrorHandler} interface, you are not actually required to throw
     the exception; instead, you can simply read the information in
     it.
 \end{classdesc}
@@ -259,19 +259,25 @@ Encapsulate an XML error or warning. This class can contain
 \begin{classdesc}{SAXParseException}{msg, exception, locator}
 Encapsulate an XML parse error or warning.
     
-This exception will include information for locating the error in
-    the original XML document. Note that although the application will
-    receive a SAXParseException as the argument to the handlers in the
-    ErrorHandler interface, the application is not actually required
-    to throw the exception; instead, it can simply read the
-    information in it and take a different action.
+This exception will include information for locating the error in the
+    original XML document. Note that although the application will
+    receive a \exception{SAXParseException} as the argument to the
+    handlers in the \class{ErrorHandler} interface, the application is not
+    actually required to throw the exception; instead, it can simply
+    read the information in it and take a different action.
 
-Since this exception is a subclass of \class{SAXException}, it inherits
+Since this exception is a subclass of \exception{SAXException}, it inherits
     the ability to wrap another exception.
 \end{classdesc}
 
 
 \subsection{\class{AttributeList} methods}
+
+The \class{AttributeList} class support some of the behaviour of
+Python dictionaries; the \method{len()}, \method{has_key()},
+\method{keys()} methods are available, and \code{attr['href']} will
+retrieve the value of the \attribute{href} attribute.  There are also
+additional methods specific to \class{AttributeList}:
 
 \begin{methoddesc}{getLength}{}
 Return the number of attributes in the list.
@@ -423,6 +429,11 @@ Return a message for this exception.
 
 \subsection{\class{SAXParseException} methods}
 
+The \class{SAXParseException} class has a \member{locator}
+attribute, containing an instance of the \class{Locator} class, which
+represents the location in the document where the parse error
+occurred.  The following methods are delegated to this instance.
+
 \begin{methoddesc}{getColumnNumber}{}
 Return the column number of the end of the text where the exception
 	occurred.
@@ -460,7 +471,7 @@ A SAX document handler that produces naive ESIS output.
 
 \begin{classdesc}{EventBroadcaster}{list}
 Takes a list of objects and forwards any method calls received
-    to all objects in the list. The attribute list holds the list and
+    to all objects in the list. The attribute \member{list} holds the list and
     can freely be modified by clients.
 \end{classdesc}
 
@@ -488,11 +499,4 @@ Return the public identifier for the location.
 Return the system identifier for the location.
 \end{methoddesc}
 
-\section{Related Links}
-
-Collects all the links from the preceding sections, and more besides...
-
 \end{document}
-
-
-

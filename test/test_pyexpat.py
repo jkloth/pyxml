@@ -1,9 +1,17 @@
 # Very simple test - Parse a file and print what happens
 import sys
-from xml.parsers import pyexpat
 import sys
 import os
 
+try:
+	from xml.parsers import pyexpat
+except ImportError:
+	# Possibly the pyexpat module hasn't been installed; we may be
+	# running an initial "make test" just after compiling the
+	# package.  Try importing pyexpat directly.
+	import pyexpat
+	 
+	
 class Outputter:
 	def __init__(self, verbose=0):
 		self.startcount = 0

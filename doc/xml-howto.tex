@@ -118,12 +118,11 @@ The rest of this HOWTO will assume that you're familiar with the
 relevant terminology.  Most section will use XML terms such as
 \emph{element} and \emph{attribute}; section~\ref{DOM} on the Document
 Object Model will assume that you've read the relevant Working Draft,
-and are familiar with things like XXXIterators and XXXNodes.
+and are familiar with things like Iterators and Nodes.
 Section~\ref{SAX} does not require that you have experience with the
 Java SAX implentations.
 
 \subsection{Related Links}
-
 
 \section{Installing the XML Toolkit}
 
@@ -134,7 +133,7 @@ or the RPM from \url{XXX}.  To compile from source on a \UNIX{} platform,
 simply perform the following steps.
 
 \begin{enumerate}
-\item Get a copy of the source distribution from \url{XXX}.  Unpack it with the following command.
+\item Get a copy of the source distribution from \url{http://www.python.org/topics/xml/download.html}.  Unpack it with the following command.
 
 \begin{verbatim}
 gzip -dc xml-package.tgz | tar -xvf -
@@ -527,7 +526,8 @@ you'll probably use it in your own code.  XML treats whitespace very
 flexibly; you can include extra spaces or newlines wherever you like.
 This means that you must normalize the whitespace before comparing
 attribute values or element content; otherwise the comparision might
-produce a wrong result because of different use of whitespace.
+produce a wrong result due to the content of two elements having
+different amounts of whitespace.
 
 \begin{verbatim}
     def characters(self, ch, start, length):
@@ -640,12 +640,11 @@ The World Wide Web Consortium's DOM page.
 
 \section{Glossary}
 
-XML has given
-rise to a sea of acronyms and terms.  This section will list the most
-significant terms, and sketch their relevance.
+XML has given rise to a sea of acronyms and terms.  This section will
+list the most significant terms, and sketch their relevance.
 
 Many of the following definitions are taken from Lars Marius Garshol's
-SGML glossary, at \url{http://www.stud.ifi.uio.no/\~ larsga/download/diverse/sgmlglos.html}.
+SGML glossary, at \url{http://www.stud.ifi.uio.no/\~larsga/download/diverse/sgmlglos.html}.
 
 \begin{definitions}
 \term{DOM (Document Object Model)}
@@ -671,8 +670,7 @@ SAX is a simple standardized API for XML parsers developed by the
 contributors to the xml-dev mailing list. The interface is mostly
 language-independent, as long as the language is object-oriented; the
 first implementation was written for Java, but a Python implementation
-is also available.  SAX is supported by many
-XML parsers.
+is also available.  SAX is supported by many XML parsers.
           
 \term{XML (eXtensible Markup Language)}
 %
@@ -689,8 +687,9 @@ manner, and also provides a way to convert XML documents to
 HTML.
 \end{definitions}
           
-\section{Related Links}
-
-Collects all the links from the preceding sections, and more besides...
+%\section{Related Links}
+%
+%This section collects all
+%the links from the preceding sections.
 
 \end{document}
