@@ -58,14 +58,17 @@ class NsHandler:
 
         for curr_attrib_key,curr_attrib_value in attribs.items():
             (prefix, local) = SplitQName(curr_attrib_key)
+            qname = local
             if local == 'xmlns':
                 namespace = XMLNS_NAMESPACE
-                attr = self._ownerDoc.createAttributeNS(namespace,
-                                                         local + ':' + prefix)
+                if prefix:
+                    qname = local + ':' + prefix
+                attr = self._ownerDoc.createAttributeNS(namespace, qname)
             else:
+                if prefix:
+                    qname = prefix + ':' + local
                 namespace = prefix and self._namespaces.get(prefix, None) or None
-                attr = self._ownerDoc.createAttributeNS(namespace,
-                                                         (prefix and prefix + ':' + local) or local)
+                attr = self._ownerDoc.createAttributeNS(namespace, qname)
             attr.value = curr_attrib_value
             new_element.setAttributeNodeNS(attr)
         self._nodeStack.append(new_element)
