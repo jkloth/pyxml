@@ -8,13 +8,13 @@ print 'Testing utils.escape'
 print 'These pairs of strings should all be identical'
 
 v1, v2 = escape('&<>'), '&amp;&lt;&gt;'
-print v1 == v2, repr(v1), repr(v2)
+print int(v1 == v2), repr(v1), repr(v2)
 v1, v2 = escape('foo&amp;bar'), 'foo&amp;amp;bar'
-print v1 == v2, repr(v1), repr(v2)
+print int(v1 == v2), repr(v1), repr(v2)
 v1, v2 = escape('< test > &', {'test': '&myentity;'}), '&lt; &myentity; &gt; &amp;'
-print v1 == v2, repr(v1), repr(v2)
+print int(v1 == v2), repr(v1), repr(v2)
 v1, v2 = escape('&\'"<>', {'"': '&quot;', "'": '&apos;'}), '&amp;&apos;&quot;&lt;&gt;'
-print v1 == v2, repr(v1), repr(v2)
+print int(v1 == v2), repr(v1), repr(v2)
 
 # Test the iso8601 module
 
