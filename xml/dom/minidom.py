@@ -790,6 +790,28 @@ class Text(CharacterData):
     def writexml(self, writer, indent="", addindent="", newl=""):
         _write_data(writer, "%s%s%s"%(indent, self.data, newl))
 
+    # DOM Level 3 (WD 9 April 2002)
+
+    def _get_wholeText(self):
+        L = [self.data]
+        n = self.previousSibling
+        while n is not None:
+            if n.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+                L.insert(0, n.data)
+                n = n.previousSibling
+            else:
+                break
+        n = self.nextSibling
+        while n is not None:
+            if n.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+                L.append(n.data)
+                n = n.nextSibling
+            else:
+                break
+        return ''.join(L)
+
+defproperty(Text, "wholeText",
+            doc="The text of all logically-adjacent text nodes.")
 
 class CDATASection(Text):
     # Make sure we don't add an instance __dict__ if we don't already
@@ -1049,7 +1071,7 @@ class Document(Node, DocumentLS):
     def createCDATASection(self, data):
         if not isinstance(data, StringTypes):
             raise TypeError, "node contents must be a string"
-        c = CDATASection(data)
+        c = CDATASection()
         c.data = data
         c.ownerDocument = self
         return c
