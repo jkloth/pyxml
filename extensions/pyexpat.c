@@ -239,7 +239,7 @@ RC_HANDLER( int, ExternalEntityRef,
 		
 
 
-// File reading copied from cPickle
+/* File reading copied from cPickle */
 
 #define UNLESS(E) if (!(E))
 
@@ -304,6 +304,14 @@ xmlparse_Parse( xmlparseobject *self, PyObject *args )
 	if( PyErr_Occurred() ){	
 		return NULL;
 	}
+	else if (rv == 0) {
+		PyErr_Format(ErrorObject, "%s: line %i, column %i",
+			     XML_ErrorString( XML_GetErrorCode(self->itself) ),
+			     XML_GetErrorLineNumber(self->itself),
+			     XML_GetErrorColumnNumber(self->itself) );
+		return NULL;
+	}
+
 	return Py_BuildValue("i", rv);
 }
 
@@ -373,8 +381,8 @@ xmlparse_ParseFile( xmlparseobject *self, PyObject *args )
 		  int bytes_read;
 		  void *buf = XML_GetBuffer(self->itself, BUF_SIZE);
 		  if (buf == NULL) {
-			// FIXME: throw exception for no memory
-			return NULL;
+			  /* FIXME: throw exception for no memory */
+			  return NULL;
 		  }
 
 		  if( fp ){
@@ -427,7 +435,7 @@ xmlparse_GetBase( xmlparseobject *self, PyObject *args ){
     PyObject *rc;
 
     if( PyTuple_Size( args )!=0 ){
-        PyArg_ParseTuple(args, "()" ); // get good error reporting
+	    PyArg_ParseTuple(args, "()" ); /* get good error reporting */
         return NULL;
     }
     base=XML_GetBase( self->itself );
@@ -673,7 +681,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.3 $";
+	char *rev="$Revision: 1.4 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
@@ -686,7 +694,7 @@ initpyexpat(){
 	/* Add some symbolic constants to the module */
 	d = PyModule_GetDict(m);
 	ErrorObject = PyString_FromString("pyexpat.error");
-	// PyDict_SetItemString(d, "error", ErrorObject);
+	PyDict_SetItemString(d, "error", ErrorObject);
 
 	PyDict_SetItemString(d,"__version__",
 			     PyString_FromStringAndSize(rev+11,
@@ -854,6 +862,6 @@ static struct HandlerInfo handler_info[]=
 	(xmlhandlersetter)XML_SetExternalEntityRefHandler,
 	my_ExternalEntityRefHandler },
 
-{NULL, NULL, NULL } // sentinel
+{NULL, NULL, NULL } /* sentinel */
 };
 
