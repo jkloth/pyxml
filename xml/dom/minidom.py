@@ -536,6 +536,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
             except KeyError:
                 node = Attr(attname)
                 node.ownerDocument = self._ownerElement.ownerDocument
+                self.setNamedItem(node)
             node.value = value
         else:
             if not isinstance(value, Attr):
