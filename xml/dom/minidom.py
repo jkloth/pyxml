@@ -470,7 +470,7 @@ class Element(Node):
                       Node.COMMENT_NODE, Node.TEXT_NODE,
                       Node.CDATA_SECTION_NODE, Node.ENTITY_REFERENCE_NODE)
 
-    def __init__(self, tagName, namespaceURI=EMPTY_NAMESPACE, prefix="",
+    def __init__(self, tagName, namespaceURI=EMPTY_NAMESPACE, prefix=None,
                  localName=None):
         Node.__init__(self)
         self.tagName = self.nodeName = tagName
@@ -756,7 +756,7 @@ def _nssplit(qualifiedName):
     if len(fields) == 2:
         return fields
     elif len(fields) == 1:
-        return ('', fields[0])
+        return (None, fields[0])
 
 
 class DocumentType(Node):

@@ -244,7 +244,7 @@ class PrintVisitor(Visitor):
         if self._isXhtml or not self._html:
             namespaces = ''
             if self._isXhtml:
-                nss = {'xml': XML_NAMESPACE, '': XHTML_NAMESPACE}
+                nss = {'xml': XML_NAMESPACE, None: XHTML_NAMESPACE}
             else:
                 nss = ext.GetAllNs(node)
             if self._nsHints:

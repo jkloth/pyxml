@@ -131,7 +131,7 @@ class Document(FtNode):
                 raise NamespaceErr()
             return Attr(self, qualifiedName, XMLNS_NAMESPACE, 'xmlns', prefix)
         elif namespaceURI == '':
-            raise NamespaceErr("Use None instead of ''for empty namespace")
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         else:
             if (not namespaceURI and prefix) or (not prefix and namespaceURI):
                 raise NamespaceErr()
@@ -164,12 +164,12 @@ class Document(FtNode):
         if prefix and not namespaceURI:
             raise NamespaceErr()
         elif namespaceURI == '':
-            raise NamespaceErr("Use None instead of ''for empty namespace")
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         return Element(self, qualifiedName, namespaceURI, prefix, localName)
 
     def getElementsByTagNameNS(self,namespaceURI,localName):
         if namespaceURI == '':
-            raise NamespaceErr("Use None instead of ''for empty namespace")
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         nodeList = implementation._4dom_createNodeList([])
         root = self.documentElement
         if root:

@@ -48,7 +48,7 @@ class PullDOM(xml.sax.ContentHandler):
             self._xmlns_attrs = []
         self._xmlns_attrs.append((prefix or 'xmlns', uri))
         self._ns_contexts.append(self._current_context.copy())
-        self._current_context[uri] = prefix or ''
+        self._current_context[uri] = prefix or None
 
     def endPrefixMapping(self, prefix):
         self._current_context = self._ns_contexts.pop()

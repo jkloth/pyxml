@@ -222,7 +222,7 @@ def GetAllNs(node):
         for attr in node.attributes.values():
             if attr.namespaceURI == XMLNS_NAMESPACE:
                 if attr.localName == 'xmlns':
-                    nss[''] = attr.value
+                    nss[None] = attr.value
                 else:
                     nss[attr.localName] = attr.value
             elif attr.namespaceURI:
@@ -255,9 +255,9 @@ def SplitQName(qname):
         if len(fields) == 1:
             #Note: we could gain a tad more performance by interning 'xmlns'
             if qname == 'xmlns':
-                sName = ('', 'xmlns')
+                sName = (None, 'xmlns')
             else:
-                sName = ('', qname)
+                sName = (None, qname)
         elif len(fields) == 2:
             if fields[0] == 'xmlns':
                 sName = (fields[1], 'xmlns')
@@ -279,7 +279,7 @@ def SeekNss(node, nss=None):
             for attr in child.attributes.values():
                 if attr.namespaceURI == XMLNS_NAMESPACE:
                     if attr.localName == 'xmlns':
-                        nss[''] = attr.value
+                        nss[None] = attr.value
                     else:
                         nss[attr.localName] = attr.value
                 elif attr.namespaceURI:

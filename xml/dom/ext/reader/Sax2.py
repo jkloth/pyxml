@@ -26,7 +26,7 @@ from xml.dom.ext import reader
 
 class NsHandler:
     def initState(self, ownerDoc=None):
-        self._namespaces = {'xml': XML_NAMESPACE,'':EMPTY_NAMESPACE}
+        self._namespaces = {'xml': XML_NAMESPACE,None:EMPTY_NAMESPACE}
         self._namespaceStack = []
         return
 
