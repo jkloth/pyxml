@@ -14,6 +14,10 @@ class HtmlBuilder(SGMLParser, Builder):
     from htmlentitydefs import entitydefs
     
     def __init__(self, ignore_mismatched_end_tags = 0):
+	"""HtmlBuilder constructor:
+        ignore_mismatched_end_tags -- Boolean; if true, ending tags without
+                                      a corresponding start tag are ignored.
+	"""
 	SGMLParser.__init__(self)
 	Builder.__init__(self)
 
@@ -42,6 +46,10 @@ class HtmlBuilder(SGMLParser, Builder):
 	    'TD': ('TH', 'TD', 'TR'),
 	}
 
+	# Names of entities that will be converted to their character
+	# representation.  Entities not listed here will be left as 
+	# entity references.
+	self.expand_entities = ('lt', 'gt', 'apos', 'quot')
     
     def unknown_starttag(self, tag, attrs):
 	tag = string.upper(tag)
@@ -98,11 +106,17 @@ class HtmlBuilder(SGMLParser, Builder):
     def handle_comment(self, s):
 	Builder.comment(self, s)
 
+    def handle_entityref(self, name):
+        table = self.entitydefs
+        if name in self.expand_entities and table.has_key(name):
+            self.handle_data(table[name])
+        else:
+	    Builder.entityref(self, name)
 
 # Test.
 if __name__ == '__main__':
     import sys
-    b = HtmlBuilder(ignore_mismatched_end_tags = 1)
+    b = HtmlBuilder()
     b.feed(open(sys.argv[1]).read())
     b.close()
 #    print b.document
