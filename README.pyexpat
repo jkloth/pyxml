@@ -11,23 +11,23 @@ Using the pyexpat module
 
 The pyexpat module exports two functions:
 ParserCreate(encoding) Creates a new parser object. The optional
-	encoding arg (a string) specifies the encoding.
+        encoding arg (a string) specifies the encoding.
 ErrorString(number) Return a string corresponding to the given error
-	number.
+        number.
 
 Parser objects have one method:
 Parse(data, isfinal) Parse some data. If the optional isfinal arg is 1 
-	this is the last bit of data. Raises an exception in case of
-	an error, the error attributes have information on the error.
+        this is the last bit of data. Raises an exception in case of
+        an error, the error attributes have information on the error.
 
 Parser objects have the following attributes:
 
 StartElementHandler, EndElementHandler, CharacterDataHandler,
 ProcessingInstructionHandler - The Python handlers called for various
-	events. See below for the signatures.
+        events. See below for the signatures.
 ErrorCode, ErrorLineNumber, ErrorColumnNumber, ErrorByteIndex -
-	Readonly integers giving information on the current parse
-	error.
+        Readonly integers giving information on the current parse
+        error.
 
 Testing it
 ----------
@@ -45,5 +45,5 @@ Please report problems to xml-sig@python.org.
 The author is Jack Jansen, jack@cwi.nl. The expat proper was written
 by James Clark and can be found at http://www.jclark.com/xml/ .
 
-	Jack Jansen, CWI, Amsterdam
-	jack@cwi.nl
+        Jack Jansen, CWI, Amsterdam
+        jack@cwi.nl
