@@ -1,6 +1,4 @@
 from xml.dom.transformer import *
-from xml.dom.dc_builder import DcBuilder
-from xml.dom.pyhtml import *
 from xml.dom.writer import HtmlWriter
 
 test_text = """<?xml>
