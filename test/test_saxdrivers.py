@@ -1,5 +1,5 @@
 # regression test for SAX drivers
-# $Id: test_saxdrivers.py,v 1.5 2001/12/30 12:19:16 loewis Exp $
+# $Id: test_saxdrivers.py,v 1.6 2002/07/01 18:42:04 fdrake Exp $
 
 from xml.sax.saxutils import XMLGenerator, ContentGenerator
 from xml.sax import handler, SAXReaderNotAvailable
@@ -7,6 +7,14 @@ import xml.sax.saxexts
 import xml.sax.sax2exts
 from cStringIO import StringIO
 from test.test_support import verbose, TestFailed, findfile
+
+try:
+    import warnings
+except ImportError:
+    pass
+else:
+    warnings.filterwarnings("ignore", ".* xmllib .* obsolete.*",
+                            DeprecationWarning, 'xmllib$')
 
 tests=0
 fails=0
