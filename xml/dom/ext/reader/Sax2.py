@@ -231,11 +231,14 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
 
         for ((attr_ns,lname),value) in attribs.items():
             if attr_ns is not None:
-                # FIXME : get the try out of the loop
                 try:
                     attr_qname = attribs.getQNameByName((attr_ns,lname))
-                except KeyError: # pyexpat doesn't report qnames...
-                    attr_qname = string.join((self._nsuri2pref[namespace][-1],lname),':') 
+                except KeyError:# pyexpat doesn't report qnames...
+                    attr_prefix = self._nsuri2pref[namespace][-1]
+                    if attr_prefix is None: # I'm not sure that this is possible
+                        attr_qname = lname
+                    else:
+                        attr_qname = string.join((attr_prefix,lname),':') 
             else:
                 attr_qname = lname
             attr = self._ownerDoc.createAttributeNS(attr_ns, attr_qname)
