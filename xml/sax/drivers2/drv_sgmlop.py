@@ -1,7 +1,7 @@
 """
 SAX2 driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.2 2001/12/14 14:38:57 loewis Exp $
+$Id: drv_sgmlop.py,v 1.3 2001/12/14 16:47:19 syt Exp $
 """
 
 version = "0.1"
@@ -60,7 +60,7 @@ class SaxParser(SGMLParser, XMLReader):
             self.documentStarted = 1
         SGMLParser.feed(self,buffer)
 
-    def prepareParser(self):
+    def prepareParser(self, source):
         # not used
         pass
         
