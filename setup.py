@@ -16,15 +16,12 @@ else:
     # tree.  This is a bit clumsy, but I don't see a better way to do
     # this at the moment. 
     
-    from distutils.command.build import Build
-    from distutils.command.install_ext import InstallExt
-    
     # XXX should detect whether to use the unixfilemap or readfilemap
     # depending on the platform
     FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
     
     setup (name = "PyXML",
-           version = "0.5.3",
+           version = "0.5.4",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
