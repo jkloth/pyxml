@@ -99,6 +99,9 @@ class HtmlBuilder(SGMLParser, Builder):
 	    if start_tag == tag:
 		break
 
+    def unknown_charref(self, ref):
+	raise BadHTMLError, ('Unknown character reference: &#' + ref + ';')
+
     def handle_data(self, s):
 	#print `s`
 	Builder.text(self, s)
