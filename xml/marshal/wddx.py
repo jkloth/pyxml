@@ -140,7 +140,7 @@ class WDDXMarshaller(Marshaller):
         self.m_unimplemented(value, dict)
 
     def m_recordset(self, value, dict):
-        L = ['<recordSet rowCount="%i" fieldNames="%s">' %
+        L = ['<recordset rowCount="%i" fieldNames="%s">' %
              (len(value), string.join(value.fields, ','))]
         for f in value.fields:
             recs = value[f]
@@ -149,7 +149,7 @@ class WDDXMarshaller(Marshaller):
                 L = L + self._marshal(r, dict)
             L.append('</field>')
 
-        L.append('</recordSet>')
+        L.append('</recordset>')
         return L
 
     def m_list(self, value, dict):
@@ -203,7 +203,7 @@ class WDDXUnmarshaller(Unmarshaller):
         'array': ('um_start_list', 'um_end_list'),
         'struct': ('um_start_dictionary', 'um_end_dictionary'),
         'var': ('um_start_var', None),
-        'recordSet': ('um_start_recordset', 'um_end_recordset'),
+        'recordset': ('um_start_recordset', 'um_end_recordset'),
         'field': ('um_start_field', 'um_end_field'),
         }
 
