@@ -378,7 +378,8 @@ class Attr(Node):
         d = self.__dict__
         if name in ("value", "nodeValue"):
             d["value"] = d["nodeValue"] = value
-            d["childNodes"][0].data = value
+            d2 = self.childNodes[0].__dict__
+            d2["data"] = d2["nodeValue"] = value
             if self.ownerElement is not None:
                 _clear_id_cache(self.ownerElement)
         elif name in ("name", "nodeName"):
@@ -412,6 +413,10 @@ class Attr(Node):
         self.childNodes[0].data = value
 
     def unlink(self):
+        # This implementation does not call the base implementation
+        # since most of that is not needed, and the expense of the
+        # method call is not warranted.  We duplicate the removal of
+        # children, but that's all we needed from the base class.
         elem = self.ownerElement
         if elem is not None:
             del elem._attrs[self.nodeName]
@@ -420,7 +425,9 @@ class Attr(Node):
                 self._is_id = False
                 elem._magic_id_nodes -= 1
                 self.ownerDocument._magic_id_count -= 1
-        Node.unlink(self)
+        for child in self.childNodes:
+            child.unlink()
+        del self.childNodes[:]
 
     def _get_isId(self):
         if self._is_id:
