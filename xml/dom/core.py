@@ -143,7 +143,7 @@ class NodeList(UserList.UserList):
         # to it, so that the NodeList is always up-to-date.
         self.data = list
         self._document = document
-
+	
     def __repr__(self):
         s = '<NodeList [ '
         for i in range(len(self.data)):
@@ -303,12 +303,22 @@ class Node:
     ##Node_counter = 0
 
     def __init__(self, node, document = None):
-        self._node = node
-        assert isinstance(node, _nodeData)
-        assert isinstance(document, _nodeData) or (document is None)
+	d = self.__dict__
+	d['_node'] = node
+	d['nodeType'] = node.type
+	d['nodeName'] = node.name
 
-        if document is not None: self._document = document
-        else: self._document = None
+	if not isinstance(node, _nodeData):
+	    raise ValueError, ( "node parameter isn't a _nodeData instance: "
+	                        + repr(node) )
+	
+	if not (isinstance(document, _nodeData) or (document is None) ):
+	    raise ValueError, ( "document parameter isn't a _nodeData instance: "
+	                        + repr(document) )
+	    
+
+        if document is not None: d['_document'] = document
+        else: d['_document'] = None
 ##        Node.Node_counter = Node.Node_counter + 1
 
 ##    def __del__(self):
@@ -323,14 +333,23 @@ class Node:
     # to attributes such as .parentNode are redirected into calls to 
     # get_parentNode or set_parentNode.
     def __getattr__(self, key):
-        if key[0:4] == 'get_' or key[0:4] == 'set_':
-            raise AttributeError, repr(key[4:])
-        func = getattr(self, 'get_'+key)
-        return func()
+	# Check if it's a class attribute
+	if hasattr(self.__class__, key):
+	    return getattr(self.__class__, key)
+
+	# Otherwise, look for a get_X attribute on the class, and call it
+	if key[0:1] != '_':
+	    k2 = 'get_' + key
+	    if hasattr(self.__class__, k2):
+		meth = getattr(self.__class__, k2)
+		return meth(self)
+	
+	raise AttributeError, repr(key)
 
     def __setattr__(self, key, value):
-        if hasattr(self, 'set_'+key):
-            func = getattr(self, 'set_'+key)
+        if (not self.__dict__.has_key(key) and 
+	    hasattr(self.__class__, 'set_'+key) ):
+            func = getattr(self.__class__, 'set_'+key)
             func( value )
         self.__dict__[key] = value
 
@@ -735,8 +754,9 @@ class CharacterData(Node):
         return Text(d, self._document)
     
 class Attr(Node):
-    childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
     
+    childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
+        
     def __init__(self, node, document = None):
         Node.__init__(self, node, document)
 
@@ -791,13 +811,14 @@ class Attr(Node):
     def get_nextSibling(self): return None
     
 class Element(Node):
+    
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
                       TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
     
     def __init__(self, node, document = None):
         Node.__init__(self, node, document)
-        self.nodeName = node.name
-        self.ns_prefix = {}         # Dictionary for namespaces
+        self.__dict__['nodeName'] = node.name
+        self.__dict__['ns_prefix'] = {}         # Dictionary for namespaces
         
     def __repr__(self):
         return "<Element '%s'>" % (self._node.name)
@@ -844,7 +865,9 @@ class Element(Node):
 
         if self._node.attributes.has_key(name):
             n = self._node.attributes[name]
-            assert n.type == ATTRIBUTE_NODE
+	    if n.type != ATTRIBUTE_NODE:
+		raise ValueError, ("Not an attribute node in .attributes: " 
+	                           + repr(n) )
             n = Attr(n, self._document)
             return n.toxml()
         else:
@@ -1128,9 +1151,9 @@ class Document(Node):
 
     def __init__(self, node, document = None):
         Node.__init__(self, node, None)
-        self.documentType = None
-        self.DOMImplementation = __import__(__name__)
-        self._document = node
+	d = self.__dict__
+	d['documentType'] = None
+	d['_document'] = node
 
     def get_nodeName(self):
         return "#document"
@@ -1252,7 +1275,7 @@ class Document(Node):
     def get_doctype(self):
         return self.documentType
     def get_implementation(self):
-        return self.DOMImplementation
+	return __import__(__name__)
 
     def get_childNodes(self):
         return NodeList(self._node.children, self._node)
