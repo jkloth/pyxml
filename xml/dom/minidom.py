@@ -508,6 +508,12 @@ class NamedNodeMap(NewStyle, GetattrMagic):
         del self._attrs[node.name]
         del self._attrsNS[(node.namespaceURI, node.localName)]
 
+    def __getstate__(self):
+        return self._attrs, self._attrsNS, self._ownerElement
+
+    def __setstate__(self, state):
+        self._attrs, self._attrsNS, self._ownerElement = state
+
 defproperty(NamedNodeMap, "length",
             doc="Number of nodes in the NamedNodeMap.")
 
@@ -958,9 +964,12 @@ class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
 
     def __getitem__(self, name_or_tuple):
         if isinstance(name_or_tuple, _TupleType):
-            return self.getNamedItemNS(*name_or_tuple)
+            node = self.getNamedItemNS(*name_or_tuple)
         else:
-            return self.getNamedItem(name_or_tuple)
+            node = self.getNamedItem(name_or_tuple)
+        if node is None:
+            raise KeyError, name_or_tuple
+        return node
 
     def item(self, index):
         if index < 0:
@@ -985,6 +994,12 @@ class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
     def setNamedItemNS(self, node):
         raise xml.dom.NoModificationAllowedErr(
             "NamedNodeMap instance is read-only")
+
+    def __getstate__(self):
+        return [self._seq]
+
+    def __setstate__(self, state):
+        self._seq = state[0]
 
 defproperty(ReadOnlySequentialNamedNodeMap, "length",
             doc="Number of entries in the NamedNodeMap.")
@@ -1206,6 +1221,12 @@ class ElementInfo(NewStyle):
         """Returns true iff the identified attribute is a DTD-style ID."""
         return False
 
+    def __getstate__(self):
+        return self.tagName
+
+    def __setstate__(self, state):
+        self.tagName = state
+
 class Document(Node, DocumentLS):
     _child_node_types = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
                          Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
@@ -1370,6 +1391,19 @@ class Document(Node, DocumentLS):
         a.ownerDocument = self
         a.value = ""
         return a
+
+    # A couple of implementation-specific helpers to create node types
+    # not supported by the W3C DOM specs:
+
+    def _create_entity(self, name, publicId, systemId, notationName):
+        e = Entity(name, publicId, systemId, notationName)
+        e.ownerDocument = self
+        return e
+
+    def _create_notation(self, name, publicId, systemId):
+        n = Notation(name, publicId, systemId)
+        n.ownerDocument = self
+        return n
 
     def getElementById(self, id):
         if not self._elem_info:
