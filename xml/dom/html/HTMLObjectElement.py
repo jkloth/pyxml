@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLObjectElement(HTMLElement):
@@ -75,7 +76,7 @@ class HTMLObjectElement(HTMLElement):
 
     def _set_declare(self, value):
         if value:
-            self.setAttribute("DECLARE", None)
+            self.setAttribute("DECLARE", "DECLARE")
         else:
             self.removeAttribute("DECLARE")
 

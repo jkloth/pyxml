@@ -12,50 +12,45 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
-Event = implementation._4dom_fileImport('Event')
+from DOMImplementation import implementation
+import Event
 
-DOMException = dom.DOMException
-NoModificationAllowedErr = dom.NoModificationAllowedErr
-NotFoundErr = dom.NotFoundErr
-HierarchyRequestErr = dom.HierarchyRequestErr
-WrongDocumentErr = dom.WrongDocumentErr
-InvalidCharacterErr = dom.InvalidCharacterErr
+from xml.dom import Node
+from xml.dom import NoModificationAllowedErr
+from xml.dom import NamespaceErr
+from xml.dom import NotFoundErr
+from xml.dom import NotSupportedErr
+from xml.dom import HierarchyRequestErr
+from xml.dom import WrongDocumentErr
+from xml.dom import InvalidCharacterErr
+from xml.dom import UnspecifiedEventTypeErr
 
-import re, copy, sys
+import re, copy
 #FIXME: should allow combining characters: fix when Python gets Unicode
-g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
+g_namePattern = re.compile(r'[a-zA-Z_:][\w\.\-_:]*\Z')
+g_pattPrefix = re.compile(r'[a-zA-Z_][\w\.\-_]*\Z')
 
-import types
-StringTypes = [types.StringType]
-if sys.version[0] == '2':
-    StringTypes.append(types.UnicodeType)
-
-class Node(dom.Node,Event.EventTarget):
+class FtNode(Event.EventTarget, Node):
     """
     Encapsulates the pieces that DOM builds on the basic tree structure,
     Which is implemented by composition of TreeNode
     """
 
-    # Internally used node types
-    # Node types up to 200 are reserved by W3C
-    _NODE_LIST                  = 201
-    _NAMED_NODE_MAP             = 202
-
     nodeType = None
+
     # Children that this node is allowed to have
     _allowedChildren = []
 
-    def __init__(self, ownerDocument, namespaceURI, prefix, localName):
+    def __init__(self,
+                 ownerDocument,
+                 namespaceURI=None,
+                 prefix=None,
+                 localName=None):
         Event.EventTarget.__init__(self)
-        self.__dict__['__nodeName'] = ''
-        self.__dict__['__nodeValue'] = ''
+        self.__dict__['__nodeName'] = None
+        self.__dict__['__nodeValue'] = None
         self.__dict__['__parentNode'] = None
         self.__dict__['__childNodes'] = None
-        self.__dict__['__firstChild'] = None
-        self.__dict__['__lastChild'] = None
         self.__dict__['__previousSibling'] = None
         self.__dict__['__nextSibling'] = None
         self.__dict__['__attributes'] = None
@@ -73,7 +68,7 @@ class Node(dom.Node,Event.EventTarget):
         if attrFunc:
             return attrFunc(self)
         else:
-            return getattr(Node, name)
+            return getattr(FtNode, name)
 
     def __setattr__(self, name, value):
         #Make sure attribute is not read-only
@@ -99,7 +94,7 @@ class Node(dom.Node,Event.EventTarget):
         self.__dict__['__nodeValue'] = value
 
     def _get_nodeType(self):
-        return getattr(self.__class__,'nodeType')
+        return getattr(self.__class__, 'nodeType')
 
     def _get_parentNode(self):
         return self.__dict__['__parentNode']
@@ -108,10 +103,12 @@ class Node(dom.Node,Event.EventTarget):
         return self.__dict__['__childNodes']
 
     def _get_firstChild(self):
-        return self.__dict__['__firstChild']
+        cn = self.__dict__['__childNodes']
+        return cn and cn[0] or None
 
     def _get_lastChild(self):
-        return self.__dict__['__lastChild']
+        cn = self.__dict__['__childNodes']
+        return cn and cn[-1] or None
 
     def _get_previousSibling(self):
         return self.__dict__['__previousSibling']
@@ -135,8 +132,15 @@ class Node(dom.Node,Event.EventTarget):
         # Check for invalid characters
         if not g_namePattern.match(value):
             raise InvalidCharacterErr()
-        #FIXME: Check for NAMESPACE_ERR
+        if (self.__dict__['__namespaceURI'] is None or
+            ':' in value or
+            (value == 'xml' and
+             self.__dict__['__namespaceURI'] != XML_NAMESPACE)):
+            raise NamespaceErr()
         self.__dict__['__prefix'] = value
+        self.__dict__['__nodeName'] = '%s:%s' % (
+            value,
+            self.__dict__['__localName'])
 
     def _get_localName(self):
         return self.__dict__['__localName']
@@ -144,17 +148,19 @@ class Node(dom.Node,Event.EventTarget):
     ### Methods ###
 
     def insertBefore(self, newChild, refChild):
-        if newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
-            self._4dom_insertDocFragmentBefore(newChild, refChild);
-        elif refChild == None:
-            return self.appendChild(newChild);
+        if refChild is None:
+            return self.appendChild(newChild)
+        elif newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
+            while newChild.firstChild:
+                self.insertBefore(newChild.firstChild, refChild)
         else:
             #Make sure the newChild is all it is cracked up to be
             self._4dom_validateNode(newChild)
 
             #Make sure the refChild is indeed our child
-            index = self._4dom_getChildIndex(refChild)
-            if index == -1:
+            try:
+                index = self.__dict__['__childNodes'].index(refChild)
+            except:
                 raise NotFoundErr()
 
             #Remove from old parent
@@ -164,172 +170,118 @@ class Node(dom.Node,Event.EventTarget):
             #Insert it
             self.__dict__['__childNodes'].insert(index, newChild)
 
-            #Setup the caches
-            if index == 0:
-                self.__dict__['__firstChild'] = newChild
-
             #Update the child caches
-            if index != 0:
-                if self.__dict__['__childNodes'][index-1].nextSibling != None:
-                    newChild._4dom_setNextSibling(self.__dict__['__childNodes'][index-1].nextSibling)
-                    newChild.nextSibling._4dom_setPreviousSibling(newChild)
-                newChild._4dom_setPreviousSibling(self.__dict__['__childNodes'][index-1])
-                self.__dict__['__childNodes'][index-1]._4dom_setNextSibling(newChild)
-            elif self.__dict__['__childNodes'].length >= 2:
-                newChild._4dom_setNextSibling(self.__dict__['__childNodes'][1])
-                self.__dict__['__childNodes'][1]._4dom_setPreviousSibling(newChild)
-            newChild._4dom_setParentNode(self)
+            newChild._4dom_setHierarchy(self, refChild.previousSibling, refChild)
 
             newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
             self._4dom_fireMutationEvent('DOMSubtreeModified')
-            return newChild
+        return newChild
 
     def replaceChild(self, newChild, oldChild):
         if newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
-            self._4dom_replaceDocumentFragment(newChild, oldChild)
+            refChild = oldChild.nextSibling
+            self.removeChild(oldChild)
+            self.insertBefore(newChild, refChild)
         else:
             self._4dom_validateNode(newChild)
             #Make sure the oldChild is indeed our child
-            index = self._4dom_getChildIndex(oldChild)
-            if index == -1:
+            try:
+                index = self.__dict__['__childNodes'].index(oldChild)
+            except:
                 raise NotFoundErr()
 
             self.__dict__['__childNodes'][index] = newChild
             if newChild.parentNode is not None:
                 newChild.parentNode.removeChild(newChild)
                 
-            newChild._4dom_setNextSibling(oldChild.nextSibling)
-            newChild._4dom_setPreviousSibling(oldChild.previousSibling)
-
-            if newChild.nextSibling:
-                newChild.nextSibling._4dom_setPreviousSibling(newChild)
-            if newChild.previousSibling:
-                newChild.previousSibling._4dom_setNextSibling(newChild)
-            newChild._4dom_setParentNode(self)
-
+            newChild._4dom_setHierarchy(self,
+                                        oldChild.previousSibling,
+                                        oldChild.nextSibling)
 
             oldChild._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
-            oldChild._4dom_setNextSibling(None)
-            oldChild._4dom_setPreviousSibling(None)
-            oldChild._4dom_setParentNode(None)
+            oldChild._4dom_setHierarchy(None, None, None)
             
-            if self.__dict__['__childNodes'].length:
-                self.__dict__['__firstChild'] = self.__dict__['__childNodes'][0]
-                self.__dict__['__lastChild'] = self.__dict__['__childNodes'][-1]
-
             newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
             self._4dom_fireMutationEvent('DOMSubtreeModified')
-            return oldChild
+        return oldChild
 
     def removeChild(self, childNode):
         #Make sure the childNode is indeed our child
         #FIXME: more efficient using list.remove()
-        index = self._4dom_getChildIndex(childNode)
-        if index == -1:
+        try:
+            self.__dict__['__childNodes'].remove(childNode)
+        except:
             raise NotFoundErr()
         childNode._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
         self._4dom_fireMutationEvent('DOMSubtreeModified')
-        del self.childNodes[index]
-        #Adjust caches
-        if self.__dict__['__childNodes'].length:
-            self.__dict__['__firstChild'] = self.__dict__['__childNodes'][0]
-            self.__dict__['__lastChild'] = self.__dict__['__childNodes'][-1]
-            if index != 0:
-                if childNode.nextSibling:
-                    childNode.nextSibling._4dom_setPreviousSibling(childNode.previousSibling)
-                childNode.previousSibling._4dom_setNextSibling(childNode.nextSibling)
-            else:
-                self.childNodes[0]._4dom_setPreviousSibling(None)
-        else:
-            self.__dict__['__firstChild'] = None
-            self.__dict__['__lastChild'] = None
-        childNode._4dom_setNextSibling(None)
-        childNode._4dom_setPreviousSibling(None)
-        childNode._4dom_setParentNode(None)
+
+        # Adjust caches
+        prev = childNode.previousSibling
+        next = childNode.nextSibling
+        if prev:
+            prev.__dict__['__nextSibling'] = next
+        if next:
+            next.__dict__['__previousSibling'] = prev
+
+        childNode._4dom_setHierarchy(None, None, None)
         return childNode
 
     def appendChild(self, newChild):
         if newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
-            self._4dom_appendDocumentFragment(newChild)
+            while newChild.childNodes:
+                self.appendChild(newChild.childNodes[0])
         else:
             self._4dom_validateNode(newChild)
-            #Remove from old parent
+            # Remove from old parent
             if newChild.parentNode != None:
                 newChild.parentNode.removeChild(newChild);
+
+            last = self.lastChild
             self.childNodes.append(newChild)
-            #Adjust our pointers
-            if self.__dict__['__childNodes'].length == 1:
-                self.__dict__['__firstChild'] = newChild
-            self.__dict__['__lastChild'] = newChild
-            #Adjust our child's pointers
-            if self.__dict__['__childNodes'].length >= 2:
-                newChild._4dom_setPreviousSibling(self.__dict__['__childNodes'][-2])
-                self.__dict__['__childNodes'][-2]._4dom_setNextSibling(newChild)
-            newChild._4dom_setParentNode(self)
+            newChild._4dom_setHierarchy(self, last, None)
+
             newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
             self._4dom_fireMutationEvent('DOMSubtreeModified')
-            return newChild
+        return newChild
 
     def hasChildNodes(self):
         return self.__dict__['__childNodes'].length != 0
 
     def cloneNode(self, deep, newOwner=None, readOnly=0):
         # Get constructor values
-        if hasattr(self, '__getinitargs__'):
-            args = self.__getinitargs__()
-        else:
-            args = []
-
-        # Create the copy
-        newNode = apply(self.__class__, args)
+        clone = self._4dom_clone(newOwner or self.ownerDocument)
 
         # Set when cloning EntRef children
-        if readOnly:
-            newNode._4dom_setReadOnly(readOnly)
-
-        # Get the current state
-        getstate = getattr(self, '__getstate__', None)
-        if getstate:
-            state = getstate()
-        else:
-            state = {}
-
-        # Set when clone is used for import
-        if newOwner:
-            newNode._4dom_setOwnerDocument(newOwner)
-
-        # Assign the current state to the copy
-        setstate = getattr(newNode, '__setstate__', None)
-        if setstate:
-            setstate(state)
-        else:
-            newNode.__dict__.update(state)
+        readOnly and clone._4dom_setReadOnly(readOnly)
 
         # Copy the child nodes if deep
-        if deep or self.nodeType == Node.ATTRIBUTE_NODE:
+        if deep and self.nodeType != Node.ATTRIBUTE_NODE:
             # Children of EntRefs are cloned readOnly
             if self.nodeType == Node.ENTITY_REFERENCE_NODE:
                 readOnly = 1
                 
             for child in self.childNodes:
                 new_child = child.cloneNode(1, newOwner, readOnly)
-                newNode.appendChild(new_child)
+                clone.appendChild(new_child)
 
-        return newNode
+        return clone
 
     def normalize(self):
-        #This one needs to join all adjacent text nodes
-        node = self.__dict__['__firstChild']
-        if not node:
-            return
-        while node and node.nextSibling:
+        # This one needs to join all adjacent text nodes
+        node = self.firstChild
+        while node:
             if node.nodeType == Node.TEXT_NODE:
                 next = node.nextSibling
                 while next and next.nodeType == Node.TEXT_NODE:
                     node.appendData(next.data)
                     node.parentNode.removeChild(next)
                     next = node.nextSibling
+                if not node.length:
+                    # Remove any empty text nodes
+                    node.parentNode.removeChild(node)
             elif node.nodeType == Node.ELEMENT_NODE:
+                for attr in node.attributes:
+                    attr.normalize()
                 node.normalize()
             node = node.nextSibling
 
@@ -341,7 +293,7 @@ class Node(dom.Node,Event.EventTarget):
     #
     def dispatchEvent(self, evt):
         if not evt.type:
-            raise Event.EventError(UNSPECIFIED_EVENT_TYPE)
+            raise UnspecifiedEventTypeErr()
 
         # the list of my ancestors for capture or bubbling
         # we are lazy, so we initialize this list only if required
@@ -387,11 +339,21 @@ class Node(dom.Node,Event.EventTarget):
         return evt._4dom_preventDefaultCalled
 
 
+    ### Unsupported, undocumented DOM Level 3 methods ###
+    ### documented in the Python binding ###
+    
+    def isSameNode(other):
+        return self == other
+    
+    ### Internal Methods ###
 
     #Functions not defined in the standard
     #All are fourthought internal functions
     #and should only be called by you if you specifically
     #don't want your program to run :)
+
+    def _4dom_setattr(self, name, value):
+        self.__dict__[name] = value
 
     def _4dom_fireMutationEvent(self,eventType,target=None,
                                  relatedNode=None,prevValue=None,
@@ -404,50 +366,21 @@ class Node(dom.Node,Event.EventTarget):
             evt.attrChange = attrChange
             evt.target.dispatchEvent(evt)
             
-    def _4dom_appendDocumentFragment(self, frag):
-        """Insert all of the top level nodes"""
-        head = frag.firstChild
-        while head != None:
-            frag.removeChild(head)
-            self.appendChild(head)
-            head = frag.firstChild
-        return frag
-
-    def _4dom_insertDocFragmentBefore(self,frag,oldChild):
-        """Insert all of the top level nodes before the oldChild"""
-        head = frag.firstChild
-        while head != None:
-            frag.removeChild(head)
-            self.insertBefore(head,oldChild)
-            head = frag.firstChild
-        return frag
-
-    def _4dom_replaceDocumentFragment(self,frag,oldChild):
-        #Do a insertBefore on oldChild->NextSibling
-        nextSib = oldChild.nextSibling;
-        #get rid of the old Child
-        self.removeChild(oldChild);
-        if nextSib == None:
-            self._4dom_appendDocumentFragment(frag);
-        else:
-            self._4dom_insertDocFragmentBefore(frag,nextSib);
-        return oldChild
-
     def _4dom_validateNode(self, newNode):
         if not newNode.nodeType in self.__class__._allowedChildren:
             raise HierarchyRequestErr()
         if self.ownerDocument != newNode.ownerDocument:
             raise WrongDocumentErr()
 
-    def _4dom_validateString(self, value):
-        if type(value) not in StringTypes:
-            raise InvalidCharacterErr()
-        return value
-
-    def _4dom_getChildIndex(self,child):
-        if child in self.__dict__['__childNodes']:
-            return self.__dict__['__childNodes'].index(child)
-        return -1
+    def _4dom_setHierarchy(self, parent, previous, next):
+        self.__dict__['__parentNode'] = parent
+        if previous:
+            previous.__dict__['__nextSibling'] = self
+        self.__dict__['__previousSibling'] = previous
+        self.__dict__['__nextSibling'] = next
+        if next:
+            next.__dict__['__previousSibling'] = self
+        return
 
     def _4dom_setParentNode(self, parent):
         self.__dict__['__parentNode'] = parent
@@ -466,6 +399,9 @@ class Node(dom.Node,Event.EventTarget):
 
     ### Helper Functions For Cloning ###
 
+    def _4dom_clone(self, owner):
+        raise NotSupportedErr('Subclass must override')
+
     def __getinitargs__(self):
         return (self.__dict__['__ownerDocument'],
                 self.__dict__['__namespaceURI'],
@@ -474,10 +410,14 @@ class Node(dom.Node,Event.EventTarget):
                 )
 
     def __getstate__(self):
-        return {'__nodeValue':self.nodeValue}
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
+        return self.__dict__['__childNodes']
+    
+    def __setstate__(self, children):
+        self.__dict__['__childNodes'].extend(list(children))
+        prev = None
+        for child in children:
+            child._4dom_setHierarchy(self, prev, None)
+            prev = child
 
     ### Attribute Access Mappings ###
 

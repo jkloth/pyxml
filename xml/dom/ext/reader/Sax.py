@@ -16,10 +16,9 @@ import sys, string, cStringIO
 from xml.sax import saxlib, saxexts, drivers
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import DocumentType, Document
-from xml.dom import Node
 from xml.dom import implementation
 from xml.dom.ext import SplitQName, ReleaseNode
-
+from xml.dom.ext import reader
 
 class XmlDomGenerator(saxlib.HandlerBase):
     def __init__(self, keepAllWs=0):
@@ -34,11 +33,9 @@ class XmlDomGenerator(saxlib.HandlerBase):
         if ownerDoc == None:
             dt = implementation.createDocumentType('', '', '')
             self._ownerDoc = implementation.createDocument('', None, dt)
-            self._ownerDoc.__dict__['_4dom_isNsAware'] = 0
             self._rootNode = self._ownerDoc
         else:
             self._ownerDoc = ownerDoc
-            self._ownerDoc.__dict__['_4dom_isNsAware'] = 0
             #Create a docfrag to hold all the generated nodes.
             self._rootNode = self._ownerDoc.createDocumentFragment()
 
@@ -97,7 +94,6 @@ class XmlDomGenerator(saxlib.HandlerBase):
         If the white-space occurs outside the root element, there is no place
         for it in the DOM and it must be discarded.
         """
-        #if self._keepAllWs and self._nodeStack[-1].nodeType == Node.DOCUMENT_NODE:
         if self._keepAllWs:
             self._currText = self._currText + ch[start:start+length]
 
@@ -115,7 +111,7 @@ class XmlDomGenerator(saxlib.HandlerBase):
         raise exception
 
 
-class Reader:
+class Reader(reader.Reader):
     def __init__(self, validate=0, keepAllWs=0, catName=None,
                  saxHandlerClass=XmlDomGenerator, parser=None):
         #Create an XML DOM from SAX events

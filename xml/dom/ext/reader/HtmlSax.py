@@ -22,19 +22,19 @@ from xml.dom import implementation
 
 
 class HtmlDomGenerator:
-    def __init__(self, doc=None, keepAllWs=0):
+    def __init__(self, ownerDoc=None, keepAllWs=0):
         """
         If None is passed in as the doc, set up an empty document to act
         as owner and also add all elements to this document
         """
-        if doc == None:
+        if ownerDoc == None:
             self._ownerDoc = implementation.createHTMLDocument('')
             de = self._ownerDoc.documentElement
             self._ownerDoc.removeChild(de)
             xml.dom.ext.ReleaseNode(de)
             self._rootNode = self._ownerDoc
         else:
-            self._ownerDoc = doc
+            self._ownerDoc = ownerDoc
             #Create a docfrag to hold all the generated nodes.
             self._rootNode = self._ownerDoc.createDocumentFragment()
 
@@ -43,6 +43,7 @@ class HtmlDomGenerator:
         self._nodeStack.append(self._rootNode)
         self._keepAllWs = keepAllWs
         self._currText = ''
+        return
 
     def getRootNode(self):
         self._completeTextNode()

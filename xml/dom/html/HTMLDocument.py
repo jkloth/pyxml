@@ -11,9 +11,16 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import Node
+from xml.dom import NotSupportedErr
+
 from xml.dom.Document import Document
-from xml.dom import implementation, Node, ext
-import string
+from xml.dom import implementation
+from xml.dom import ext
+
+import string, sys
+
+from xml.dom.html import HTML_DTD
 
 class HTMLDocument(Document):
 
@@ -27,8 +34,7 @@ class HTMLDocument(Document):
 
         self.__dict__['__cookie'] = ''
         self.__dict__['__writable'] = 0
-        self.__dict__['__htmlModules'] = __import__('xml.dom.html').dom.html
-        self.__dict__['_4dom_isNsAware'] = 0
+        self.__dict__['_html'] = vars(sys.modules['xml.dom.html'])
 
     ### Attribute Methods ###
 
@@ -61,16 +67,15 @@ class HTMLDocument(Document):
         return body
 
     def _set_body(self, newBody):
-        targetName = newBody.tagName
-        if not targetName in ['BODY','FRAMESET']:
-            targetName = 'BODY'
-        oldBody = self.getElementsByTagName(targetName)
-        if oldBody:
-            #Replace with the given body
-            oldBody[0].parentNode.replaceChild(newBody, oldBody[0])
+        elements = self.getElementsByTagName('FRAMESET')
+        if not elements:
+            elements = self.getElementsByTagName('BODY')
+        if elements:
+            # Replace the existing one
+            elements[0].parentNode.replaceChild(newBody, elements[0])
         else:
-            #Insert
-            self.documentElement.appendChild(body)
+            # Add it
+            self.documentElement.appendChild(newBody)
 
     def _get_cookie(self):
         return self.__dict__['__cookie']
@@ -99,16 +104,14 @@ class HTMLDocument(Document):
         return self.__dict__['__referrer']
 
     def _get_title(self):
-        title = ''
         elements = self.getElementsByTagName('TITLE')
         if elements:
             #Take the first
             title = elements[0]
             title.normalize()
-            #Get first text node
-            text = filter(lambda x: x.nodeType == Node.TEXT_NODE, title.childNodes)
-            title = text[0].data
-        return title
+            if title.firstChild:
+                return title.firstChild.data
+        return ''
 
     def _set_title(self, title):
         # See if we can find the title
@@ -131,7 +134,7 @@ class HTMLDocument(Document):
         self.__dict__['__writable'] = 0
 
     def getElementsByName(self, elementName):
-        return self.getElementsByAttribute('*', 'NAME', elementName)
+        return self._4dom_getElementsByAttribute('*', 'NAME', elementName)
 
     def open(self):
         #Clear out the doc
@@ -155,16 +158,34 @@ class HTMLDocument(Document):
         self.write(st)
 
 
+    def getElementByID(self, ID):
+        hc = self._4dom_getElementsByAttribute('*','ID',ID)
+        if hc.length != 0:
+            return hc[0]
+        return None
+
     ### Overridden Methods ###
 
     def createElement(self, tagName):
         return self._4dom_createHTMLElement(tagName)
 
-    def getElementByID(self, ID):
-        hc = self.getElementsByAttribute('*','ID',ID)
-        if hc.length != 0:
-            return hc[0]
-        return None
+    def createAttribute(self, name):
+        return Document.createAttribute(self, string.upper(name))
+
+    def createCDATASection(*args, **kw):
+        raise NotSupportedErr()
+
+    def createEntityReference(*args, **kw):
+        raise NotSupportedErr()
+
+    def createProcessingInstruction(*args, **kw):
+        raise NotSupportedErr()
+
+    def _4dom_createEntity(*args, **kw):
+        raise NotSupportedErr()
+
+    def _4dom_createNotation(*args, **kw):
+        raise NotSupportedErr()
 
     ### Internal Methods ###
 
@@ -191,28 +212,25 @@ class HTMLDocument(Document):
         return head
 
     def _4dom_createHTMLElement(self, tagName):
-        from xml.dom.html import HTMLElement
-        #We only except strings
-        #See if tag name is in the lookup table
-        normTagName = string.capitalize(tagName)
-        if normTagName in NoClassTags:
-            return HTMLElement.HTMLElement(self, tagName)
-        if HTMLTagMap.has_key(normTagName):
-            className = HTMLTagMap[normTagName]
-        else:
-            className = normTagName
-        klass = 'HTML%sElement' % className
-        if not hasattr(self.__dict__['__htmlModules'], klass):
-            #Try to import it
-            try:
-                m = __import__('xml.dom.html.%s' % klass)
-            except ImportError:
-                raise TypeError('Unknown HTML Element %s' % tagName)
-        m = getattr(self.__dict__['__htmlModules'], klass)
-        c = getattr(m, klass)
-        rt = c(self, tagName)
+        lowered = string.lower(tagName)
+        if not HTML_DTD.has_key(lowered):
+            raise TypeError('Unknown HTML Element: %s' % tagName)
 
-        return rt
+        if lowered in NoClassTags:
+            from HTMLElement import HTMLElement
+            return HTMLElement(self, tagName)
+
+        #FIXME: capitalize() broken with unicode in Python 2.0
+        #normTagName = string.capitalize(tagName)
+        capitalized = string.upper(tagName[0]) + lowered[1:]
+        element = HTMLTagMap.get(capitalized, capitalized)
+        module = 'HTML%sElement' % element
+        if not self._html.has_key(module):
+            #Try to import it (should never fail)
+            __import__('xml.dom.html.%s' % module)
+        # Class and module have the same name
+        klass = getattr(self._html[module], module)
+        return klass(self, tagName)
 
     def cloneNode(self, deep):
         clone = HTMLDocument()
@@ -265,71 +283,73 @@ class HTMLDocument(Document):
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                             Document._readOnlyAttrs + _readComputedAttrs.keys())
 
-
-HTMLTagMap =    {'Isindex':     'IsIndex'
-                ,'Optgroup':    'OptGroup'
-                ,'Textarea':    'TextArea'
-                ,'Fieldset':    'FieldSet'
-                ,'Ul':          'UList'
-                ,'Ol':          'OList'
-                ,'Dl':          'DList'
-                ,'Dir':         'Directory'
-                ,'Li':          'LI'
-                ,'P':           'Paragraph'
-                ,'H1':          'Heading'
-                ,'H2':          'Heading'
-                ,'H3':          'Heading'
-                ,'H4':          'Heading'
-                ,'H5':          'Heading'
-                ,'H6':          'Heading'
-                ,'Q':           'Quote'
-                ,'Blockquote':  'Quote'
-                ,'Br':          'BR'
-                ,'Basefont':    'BaseFont'
-                ,'Hr':          'HR'
-                ,'A':           'Anchor'
-                ,'Img':         'Image'
-                ,'Caption':     'TableCaption'
-                ,'Col':         'TableCol'
-                ,'Colgroup':    'TableCol'
-                ,'Td':          'TableCell'
-                ,'Th':          'TableCell'
-                ,'Tr':          'TableRow'
-                ,'Thead':       'TableSection'
-                ,'Tbody':       'TableSection'
-                ,'Tfoot':       'TableSection'
-                ,'Frameset':    'FrameSet'
-                ,'Iframe':      'IFrame'
-                ,'Form':        'Form'
+# HTML tags that don't map directly to a class name
+HTMLTagMap =    {'Isindex':     'IsIndex',
+                 'Optgroup':    'OptGroup',
+                 'Textarea':    'TextArea',
+                 'Fieldset':    'FieldSet',
+                 'Ul':          'UList',
+                 'Ol':          'OList',
+                 'Dl':          'DList',
+                 'Dir':         'Directory',
+                 'Li':          'LI',
+                 'P':           'Paragraph',
+                 'H1':          'Heading',
+                 'H2':          'Heading',
+                 'H3':          'Heading',
+                 'H4':          'Heading',
+                 'H5':          'Heading',
+                 'H6':          'Heading',
+                 'Q':           'Quote',
+                 'Blockquote':  'Quote',
+                 'Br':          'BR',
+                 'Basefont':    'BaseFont',
+                 'Hr':          'HR',
+                 'A':           'Anchor',
+                 'Img':         'Image',
+                 'Caption':     'TableCaption',
+                 'Col':         'TableCol',
+                 'Colgroup':    'TableCol',
+                 'Td':          'TableCell',
+                 'Th':          'TableCell',
+                 'Tr':          'TableRow',
+                 'Thead':       'TableSection',
+                 'Tbody':       'TableSection',
+                 'Tfoot':       'TableSection',
+                 'Frameset':    'FrameSet',
+                 'Iframe':      'IFrame',
+                 'Form':        'Form',
+                 'Ins' :        'Mod',
+                 'Del' :        'Mod',
                 }
 
 #HTML Elements with no specific DOM Interface of their own
-NoClassTags =   ['Sub'
-                ,'Sup'
-                ,'Span'
-                ,'Bdo'
-                ,'Tt'
-                ,'I'
-                ,'B'
-                ,'U'
-                ,'S'
-                ,'Strike'
-                ,'Big'
-                ,'Small'
-                ,'Em'
-                ,'Strong'
-                ,'Dfn'
-                ,'Code'
-                ,'Samp'
-                ,'Kbd'
-                ,'Var'
-                ,'Cite'
-                ,'Acronym'
-                ,'Abbr'
-                ,'Dd'
-                ,'Dt'
-                ,'Noframes'
-                ,'Noscript'
-                ,'Address'
-                ,'Center'
-                ]
+NoClassTags =   ['sub',
+                 'sup',
+                 'span',
+                 'bdo',
+                 'tt',
+                 'i',
+                 'b',
+                 'u',
+                 's',
+                 'strike',
+                 'big',
+                 'small',
+                 'em',
+                 'strong',
+                 'dfn',
+                 'code',
+                 'samp',
+                 'kbd',
+                 'var',
+                 'cite',
+                 'acronym',
+                 'abbr',
+                 'dd',
+                 'dt',
+                 'noframes',
+                 'noscript',
+                 'address',
+                 'center',
+                 ]

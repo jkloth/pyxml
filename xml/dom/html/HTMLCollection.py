@@ -11,6 +11,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+from xml.dom import Node
 from xml.dom import NoModificationAllowedErr
 from xml.dom.html import HTML_NAME_ALLOWED
 import UserList
@@ -53,17 +54,22 @@ class HTMLCollection(UserList.UserList):
     def namedItem(self, name):
         found_node = None
         for node in self:
+            # IDs take presedence over NAMEs
             if node.getAttribute('ID') == name:
-                return node
-            if not found_node and node.getAttribute('NAME') == name \
-            and node.tagName in HTML_NAME_ALLOWED:
                 found_node = node
+                break
+            if not found_node and node.getAttribute('NAME') == name \
+               and node.tagName in HTML_NAME_ALLOWED:
+                # We found a node with NAME attribute, but we have to wait
+                # until all nodes are done (one might have an ID that matches)
+                found_node = node
+        print 'found:', found_node 
         return found_node
 
     ### Overridden Methods ###
 
     def __repr__(self):
-        st = "<HTMLCollection at %s: [" % (id(self))
+        st = "<HTMLCollection at %x: [" % (id(self))
         if len(self):
             for i in self[:-1]:
                 st = st + repr(i) + ', '

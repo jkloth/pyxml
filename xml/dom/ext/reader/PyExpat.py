@@ -12,7 +12,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import sys, string, cStringIO
+import os, sys, string, cStringIO
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import Node
 from xml.dom import implementation
@@ -20,21 +20,21 @@ from xml.dom.ext import SplitQName, ReleaseNode
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
 from xml.dom import Element
 from xml.dom import Attr
+from xml.dom.ext import reader
 
-class Reader:
+from xml.parsers import expat
+
+class Reader(reader.Reader):
     def __init__(self):
         return
 
-    def releaseNode(self, node):
-        ReleaseNode(node)
-
-    def initState(self, doc=None):
+    def initState(self, ownerDoc=None):
         self._ownerDoc = None
         self._rootNode = None
         #Set up the stack which keeps track of the nesting of DOM nodes.
         self._nodeStack = []
-        if doc:
-            self._ownerDoc = doc
+        if ownerDoc:
+            self._ownerDoc = ownerDoc
             #Create a docfrag to hold all the generated nodes.
             self._rootNode = self._ownerDoc.createDocumentFragment()
             self._nodeStack.append(self._rootNode)
@@ -43,12 +43,11 @@ class Reader:
         self._orphanedNodes = []
         self._namespaces = {'xml': XML_NAMESPACE}
         self._namespaceStack = []
-        self._keepAllWs = keepAllWs
         self._currText = ''
         return
 
     def initParser(self):
-        self.parser=pyexpat.ParserCreate()
+        self.parser = expat.ParserCreate()
         self.parser.StartElementHandler = self.startElement
         self.parser.EndElementHandler = self.endElement
         self.parser.CharacterDataHandler = self.characters
@@ -60,26 +59,18 @@ class Reader:
         self.parser.UnparsedEntityDeclHandler = self.unparsedEntityDecl
         return
     
-    def fromStream(self, stream, doc=None, stripElements=None):
-        if not self._override:
-            self.initParser()
-        self.initState(doc, stripElements)
+    def fromStream(self, stream, ownerDoc=None):
+        self.initParser()
+        self.initState(ownerDoc)
         success = self.parser.ParseFile(stream)
         if not success:
-            ReleaseNode(self._rootNode)
-            ReleaseNode(self._ownerDoc)
-            raise Ft.Lib.FtException(Ft.Lib.Error.XML_PARSE_ERROR, (self.parser.ErrorLineNumber, self.parser.ErrorColumnNumber, pyexpat.ErrorString(self.parser.ErrorCode)))
+            from xml.dom.ext import FtDomException
+            from xml.dom import XML_PARSE_ERR
+            if self._rootNode: ReleaseNode(self._rootNode)
+            if self._ownerDoc: ReleaseNode(self._ownerDoc)
+            raise FtDomException(XML_PARSE_ERR, (self.parser.ErrorLineNumber, self.parser.ErrorColumnNumber, expat.ErrorString(self.parser.ErrorCode)))
         self._completeTextNode()
         return self._rootNode or self._ownerDoc
-
-    def fromUri(self, uri, doc=None, stripElements=None):
-        if os.path.exists(uri):
-            stream = open(uri)
-        else:
-            stream = urllib.urlopen(uri)
-        rt = self.fromStream(stream, doc,stripElements)
-        stream.close()
-        return rt
 
     def _initRootNode(self, docElementUri, docElementName):
         if not self._dt:

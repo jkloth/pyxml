@@ -11,13 +11,10 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from xml.dom import Node
+from FtNode import FtNode
 
-Node = implementation._4dom_fileImport('FtNode').Node
-
-class DocumentFragment(Node):
+class DocumentFragment(FtNode):
     nodeType = Node.DOCUMENT_FRAGMENT_NODE
     _allowedChildren = [Node.ELEMENT_NODE,
                         Node.PROCESSING_INSTRUCTION_NODE,
@@ -27,18 +24,21 @@ class DocumentFragment(Node):
                         Node.ENTITY_REFERENCE_NODE]
 
     def __init__(self, ownerDocument):
-        Node.__init__(self, ownerDocument, '', '', '')
+        FtNode.__init__(self, ownerDocument)
         self.__dict__['__nodeName'] = '#document-fragment'
 
     ### Overridden Methods ###
 
     def __repr__(self):
-        return '<DocumentFragment Node at %s: with %d children>' % (
+        return '<DocumentFragment Node at %x: with %d children>' % (
                 id(self),
-                self.childNodes.length
+                len(self.childNodes),
                 )
 
     ### Helper Functions For Cloning ###
+
+    def _4dom_clone(self, owner):
+        return self.__class__(owner)
 
     def __getinitargs__(self):
         return (self.ownerDocument,

@@ -11,12 +11,15 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-from xml.dom.DOMImplementation import DOMImplementation
+from xml.dom import DOMImplementation
 
-class HTMLDOMImplementation(DOMImplementation):
+# Add the HTML feature
+DOMImplementation.FEATURES_MAP['HTML'] = 2.0
+
+class HTMLDOMImplementation(DOMImplementation.DOMImplementation):
 
     def __init__(self):
-        DOMImplementation.__init__(self)
+        DOMImplementation.DOMImplementation.__init__(self)
 
     def createHTMLDocument(self, title):
         from xml.dom.html import HTMLDocument

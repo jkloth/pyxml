@@ -75,7 +75,7 @@ class HTMLSelectElement(HTMLElement):
 
     def _set_disabled(self,disabled):
         if disabled:
-            self.setAttribute('DISABLED', '')
+            self.setAttribute('DISABLED', 'DISABLED')
         else:
             self.removeAttribute('DISABLED')
 
@@ -86,7 +86,7 @@ class HTMLSelectElement(HTMLElement):
 
     def _set_multiple(self,mult):
         if mult:
-            self.setAttribute('MULTIPLE', '')
+            self.setAttribute('MULTIPLE', 'MULTIPLE')
         else:
             self.removeAttribute('MULTIPLE')
 

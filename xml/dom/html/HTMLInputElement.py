@@ -53,7 +53,7 @@ class HTMLInputElement(HTMLElement):
     def _set_checked(self,checked):
         if self._get_type() in ['Radio','Checkbox']:
             if checked:
-                self.setAttribute('CHECKED', None)
+                self.setAttribute('CHECKED', 'CHECKED')
             else:
                 self.removeAttribute('CHECKED')
         else:
@@ -76,7 +76,7 @@ class HTMLInputElement(HTMLElement):
 
     def _set_disabled(self,disabled):
         if disabled:
-            self.setAttribute('DISABLED', None)
+            self.setAttribute('DISABLED', 'DISABLED')
         else:
             self.removeAttribute('DISABLED')
 
@@ -115,7 +115,7 @@ class HTMLInputElement(HTMLElement):
     def _set_readOnly(self,readOnly):
         if self._get_type() in ['Text','Password']:
             if readOnly:
-                self.setAttribute('READONLY', None)
+                self.setAttribute('READONLY', 'READONLY')
             else:
                 self.removeAttribute('READONLY')
         else:

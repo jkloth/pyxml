@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLHRElement(HTMLElement):
@@ -36,7 +37,7 @@ class HTMLHRElement(HTMLElement):
 
     def _set_noShade(self, value):
         if value:
-            self.setAttribute("NOSHADE", None)
+            self.setAttribute("NOSHADE", "NOSHADE")
         else:
             self.removeAttribute("NOSHADE")
 

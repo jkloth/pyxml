@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLTextAreaElement(HTMLElement):
@@ -67,7 +68,7 @@ class HTMLTextAreaElement(HTMLElement):
 
     def _set_disabled(self, value):
         if value:
-            self.setAttribute("DISABLED", None)
+            self.setAttribute("DISABLED", "DISABLED")
         else:
             self.removeAttribute("DISABLED")
 
@@ -90,7 +91,7 @@ class HTMLTextAreaElement(HTMLElement):
 
     def _set_readonly(self, value):
         if value:
-            self.setAttribute("READONLY", None)
+            self.setAttribute("READONLY", "READONLY")
         else:
             self.removeAttribute("READONLY")
 

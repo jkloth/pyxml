@@ -11,13 +11,11 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from xml.dom import Node
+from DOMImplementation import implementation
+from FtNode import FtNode
 
-Node = implementation._4dom_fileImport('FtNode').Node
-
-class EntityReference(Node):
+class EntityReference(FtNode):
     nodeType = Node.ENTITY_REFERENCE_NODE
     _allowedChildren = [Node.ELEMENT_NODE,
                         Node.PROCESSING_INSTRUCTION_NODE,
@@ -29,10 +27,13 @@ class EntityReference(Node):
 
     def __init__(self, ownerDocument, name):
         #Note: the Entity's name is treated as nodeName
-        Node.__init__(self, ownerDocument, '', '', '')
+        FtNode.__init__(self, ownerDocument)
         self.__dict__['__nodeName'] = name
 
     ### Helper Functions For Cloning ###
+
+    def _4dom_clone(self, owner):
+        return self.__class__(owner, self.nodeName)
 
     def __getinitargs__(self):
         return (self.ownerDocument,
@@ -40,7 +41,7 @@ class EntityReference(Node):
                 )
 
     def __repr__(self):
-        return '<Entity Reference Node at %s: Name = "%s">' % (
+        return '<EntityReference Node at %x: %s>' % (
             id(self),
-            self.nodeName
+            repr(self.nodeName)
             )

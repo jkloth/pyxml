@@ -37,7 +37,7 @@ class HTMLScriptElement(HTMLElement):
 
     def _set_defer(self, value):
         if value:
-            self.setAttribute("DEFER", None)
+            self.setAttribute("DEFER", "DEFER")
         else:
             self.removeAttribute("DEFER")
 

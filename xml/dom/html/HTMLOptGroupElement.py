@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLOptGroupElement(HTMLElement):
@@ -30,7 +31,7 @@ class HTMLOptGroupElement(HTMLElement):
 
     def _set_disabled(self, value):
         if value:
-            self.setAttribute("DISABLED", None)
+            self.setAttribute("DISABLED", "DISABLED")
         else:
             self.removeAttribute("DISABLED")
 

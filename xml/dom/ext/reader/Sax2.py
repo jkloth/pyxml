@@ -12,9 +12,8 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import sys, string, cStringIO
-from xml.sax import saxlib, saxexts
-import Sax2Lib
+import sys, string, cStringIO, os, urllib
+from xml.sax import saxlib, saxutils, sax2exts, handler
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import Node
 from xml.dom import implementation
@@ -22,97 +21,13 @@ from xml.dom.ext import SplitQName, ReleaseNode
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
 from xml.dom import Element
 from xml.dom import Attr
+from xml.dom.ext import reader
 
-class XmlDomGenerator(saxlib.HandlerBase,
-                      Sax2Lib.LexicalHandler,
-                      Sax2Lib.DTDDeclHandler,
-                      Sax2Lib.NamespaceHandler):
-    def __init__(self, keepAllWs=0):
-        self._keepAllWs = keepAllWs
-        return
 
+class NsHandler:
     def initState(self, ownerDoc=None):
-        self._ownerDoc = None
-        self._rootNode = None
-        #Set up the stack which keeps track of the nesting of DOM nodes.
-        self._nodeStack = []
-        if ownerDoc:
-            self._ownerDoc = ownerDoc
-            #Create a docfrag to hold all the generated nodes.
-            self._rootNode = self._ownerDoc.createDocumentFragment()
-            self._nodeStack.append(self._rootNode)
-        self._dt = None
-        self._xmlDecl = None
-        self._orphanedNodes = []
         self._namespaces = {'xml': XML_NAMESPACE}
         self._namespaceStack = []
-        self._currText = ''
-        return
-
-    def _initRootNode(self, docElementUri, docElementName):
-        if not self._dt:
-            self._dt = implementation.createDocumentType(docElementName,'','')
-        self._ownerDoc = implementation.createDocument(docElementUri, docElementName, self._dt)
-        if self._xmlDecl:
-            decl_data = 'version="%s"' % (
-                    self._xmlDecl['version']
-                    )
-            if self._xmlDecl['encoding']:
-                decl_data = decl_data + ' encoding="%s"'%(
-                    self._xmlDecl['encoding']
-                    )
-            if self._xmlDecl['standalone']:
-                decl_data = decl_data + ' standalone="%s"'%(
-                    self._xmlDecl['standalone']
-                    )
-            xml_decl_node = self._ownerDoc.createProcessingInstruction(
-                'xml',
-                decl_data
-                )
-            self._ownerDoc.insertBefore(xml_decl_node, self._ownerDoc.docType)
-        before_doctype = 1
-        for o_node in self._orphanedNodes:
-            if o_node[0] == 'pi':
-                pi = self._ownerDoc.createProcessingInstruction(
-                    o_node[1],
-                    o_node[2]
-                    )
-                if before_doctype:
-                    self._ownerDoc.insertBefore(pi, self._dt)
-                else:
-                    self._ownerDoc.appendChild(pi)
-            elif o_node[0] == 'comment':
-                comment = self._ownerDoc.createComment(o_node[1])
-                if before_doctype:
-                    self._ownerDoc.insertBefore(comment, self._dt)
-                else:
-                    self._ownerDoc.appendChild(comment)
-            elif o_node[0] == 'doctype':
-                before_doctype = 0
-        self._rootNode = self._ownerDoc
-        self._nodeStack.append(self._rootNode)
-        return
-
-    def _completeTextNode(self):
-        #Note some parsers don;t report ignorable white space properly
-        if self._currText and len(self._nodeStack) and self._nodeStack[-1].nodeType != Node.DOCUMENT_NODE:
-            new_text = self._ownerDoc.createTextNode(self._currText)
-            self._nodeStack[-1].appendChild(new_text)
-        self._currText = ''
-        return
-
-    def getRootNode(self):
-        self._completeTextNode()
-        return self._rootNode
-
-    #Overridden DocumentHandler methods
-    def processingInstruction (self, target, data):
-        if self._rootNode:
-            self._completeTextNode()
-            pi = self._ownerDoc.createProcessingInstruction(target, data)
-            self._nodeStack[-1].appendChild(pi)
-        else:
-            self._orphanedNodes.append(('pi', target, data))
         return
 
     def startElement(self, name, attribs):
@@ -169,7 +84,122 @@ class XmlDomGenerator(saxlib.HandlerBase,
             self._nodeStack[-1].appendChild(new_element)
         return
 
-    def ignorableWhitespace(self, ch, start, length):
+
+class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
+                      saxlib.DeclHandler):
+    def __init__(self, keepAllWs=0):
+        self._keepAllWs = keepAllWs
+        return
+
+    def initState(self, ownerDoc=None):
+        self._ownerDoc = None
+        self._rootNode = None
+        #Set up the stack which keeps track of the nesting of DOM nodes.
+        self._nodeStack = []
+        if ownerDoc:
+            self._ownerDoc = ownerDoc
+            #Create a docfrag to hold all the generated nodes.
+            self._rootNode = self._ownerDoc.createDocumentFragment()
+            self._nodeStack.append(self._rootNode)
+        self._dt = None
+        self._xmlDecl = None
+        self._orphanedNodes = []
+        self._currText = ''
+        NsHandler.initState(self, ownerDoc)
+        return
+
+    def _initRootNode(self, docElementUri, docElementName):
+        if not self._dt:
+            self._dt = implementation.createDocumentType(docElementName,'','')
+        self._ownerDoc = implementation.createDocument(docElementUri, docElementName, self._dt)
+        if self._xmlDecl:
+            decl_data = 'version="%s"' % (
+                    self._xmlDecl['version']
+                    )
+            if self._xmlDecl['encoding']:
+                decl_data = decl_data + ' encoding="%s"'%(
+                    self._xmlDecl['encoding']
+                    )
+            if self._xmlDecl['standalone']:
+                decl_data = decl_data + ' standalone="%s"'%(
+                    self._xmlDecl['standalone']
+                    )
+            xml_decl_node = self._ownerDoc.createProcessingInstruction(
+                'xml',
+                decl_data
+                )
+            self._ownerDoc.insertBefore(xml_decl_node, self._ownerDoc.docType)
+        before_doctype = 1
+        for o_node in self._orphanedNodes:
+            if o_node[0] == 'pi':
+                pi = self._ownerDoc.createProcessingInstruction(
+                    o_node[1],
+                    o_node[2]
+                    )
+                if before_doctype:
+                    self._ownerDoc.insertBefore(pi, self._dt)
+                else:
+                    self._ownerDoc.appendChild(pi)
+            elif o_node[0] == 'comment':
+                comment = self._ownerDoc.createComment(o_node[1])
+                if before_doctype:
+                    self._ownerDoc.insertBefore(comment, self._dt)
+                else:
+                    self._ownerDoc.appendChild(comment)
+            elif o_node[0] == 'doctype':
+                before_doctype = 0
+        self._rootNode = self._ownerDoc
+        self._nodeStack.append(self._rootNode)
+        return
+
+    def _completeTextNode(self):
+        #Note some parsers don't report ignorable white space properly
+        if self._currText and len(self._nodeStack) and self._nodeStack[-1].nodeType != Node.DOCUMENT_NODE:
+            new_text = self._ownerDoc.createTextNode(self._currText)
+            self._nodeStack[-1].appendChild(new_text)
+        self._currText = ''
+        return
+
+    def getRootNode(self):
+        self._completeTextNode()
+        return self._rootNode
+
+    #Overridden DocumentHandler methods
+    def processingInstruction(self, target, data):
+        if self._rootNode:
+            self._completeTextNode()
+            pi = self._ownerDoc.createProcessingInstruction(target, data)
+            self._nodeStack[-1].appendChild(pi)
+        else:
+            self._orphanedNodes.append(('pi', target, data))
+        return
+
+    def startElementNS(self, name, qname, attribs):
+        namespace = name[0]
+        local = name[1]
+        if self._ownerDoc:
+            new_element = self._ownerDoc.createElementNS(namespace, qname)
+        else:
+            self._initRootNode(namespace, qname)
+            new_element = self._ownerDoc.documentElement
+
+        for attr_qname in attribs.getQNames():
+            attr_ns = attribs.getNameByQName(attr_qname)[0]
+            attr = self._ownerDoc.createAttributeNS(attr_ns, attr_qname)
+            attr.value = attribs.getValueByQName(attr_qname)
+            new_element.setAttributeNodeNS(attr)
+        self._nodeStack.append(new_element)
+        return
+
+    def endElementNS(self, name, qname):
+        self._completeTextNode()
+        new_element = self._nodeStack[-1]
+        del self._nodeStack[-1]
+        if new_element != self._ownerDoc.documentElement:
+            self._nodeStack[-1].appendChild(new_element)
+        return
+
+    def ignorableWhitespace(self, chars):
         """
         If 'keepAllWs' permits, add ignorable white-space as a text node.
         A Document node cannot contain text nodes directly.
@@ -177,11 +207,11 @@ class XmlDomGenerator(saxlib.HandlerBase,
         for it in the DOM and it must be discarded.
         """
         if self._keepAllWs and self._nodeStack[-1].nodeType !=  Node.DOCUMENT_NODE:
-            self._currText = self._currText + ch[start:start+length]
+            self._currText = self._currText + chars
         return
 
-    def characters(self, ch, start, length):
-        self._currText = self._currText + ch[start:start+length]
+    def characters(self, chars):
+        self._currText = self._currText + chars
         return
 
     #Overridden LexicalHandler methods
@@ -240,11 +270,10 @@ class XmlDomGenerator(saxlib.HandlerBase,
         raise exception
 
 
-class Reader:
+class Reader(reader.Reader):
     def __init__(self, validate=0, keepAllWs=0, catName=None,
                  saxHandlerClass=XmlDomGenerator, parser=None):
-        #Create an XML DOM from SAX events
-        self.parser = parser or (validate and saxexts.XMLValParserFactory.make_parser()) or  saxexts.XMLParserFactory.make_parser()
+        self.parser = parser or (validate and sax2exts.XMLValParserFactory.make_parser()) or sax2exts.XMLParserFactory.make_parser()
         if catName:
             #set up the catalog, if there is one
             from xml.parsers.xmlproc import catalog
@@ -253,19 +282,28 @@ class Reader:
                 )
             self.parser.setEntityResolver(cat_handler)
         self.handler = saxHandlerClass(keepAllWs)
-        self.parser.setDocumentHandler(self.handler)
+        self.parser.setContentHandler(self.handler)
         self.parser.setDTDHandler(self.handler)
         self.parser.setErrorHandler(self.handler)
+        self.parser.setProperty(handler.property_lexical_handler, self.handler)
+        try:
+            self.parser.setProperty(handler.property_declaration_handler, self.handler)
+        except:
+            pass
         return
 
-    def releaseNode(self, node):
-        ReleaseNode(node)
-
-    def fromStream(self, stream, ownerDocument=None):
-        self.handler.initState(ownerDoc=ownerDocument)
-        self.parser.parseFile(stream)
-        return self.handler.getRootNode()
-
+    def fromStream(self, stream, ownerDoc=None):
+        self.handler.initState(ownerDoc=ownerDoc)
+        #self.parser.parseFile(stream)
+        s = saxutils.prepare_input_source(stream)
+        self.parser.parse(s)
+        rt = self.handler.getRootNode()
+        #if hasattr(self.parser.parser,'deref'):
+        #    self.parser.parser.deref()
+        #self.parser.parser = None
+        #self.parser = None
+        #self.handler = None
+        return rt
 
 ########################## Deprecated ##############################
     

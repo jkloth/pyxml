@@ -12,14 +12,10 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from NodeFilter import NodeFilter
 
-NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
-
-DOMException = dom.DOMException
-NotSupportedErr = dom.NotSupportedErr
+from xml.dom import NoModificationAllowedErr
+from xml.dom import NotSupportedErr
 
 class TreeWalker:
     def __init__(self, root, whatToShow, filter, expandEntityReferences):
@@ -29,7 +25,7 @@ class TreeWalker:
         self.__dict__['__expandEntityReferences'] = expandEntityReferences
         self.__dict__['__currentNode'] = root
 
-    ### Attribute Access Methods -- Node.attr ###
+    ### Attribute Access Methods -- xxx.attr ###
 
     def __getattr__(self, name):
         attrFunc = self._readComputedAttrs.get(name)
@@ -48,7 +44,7 @@ class TreeWalker:
         else:
             self.__dict__[name] = value
 
-    ### Attribute Methods -- Node._get_attr() ###
+    ### Attribute Methods -- xxx._get_attr() ###
 
     def _get_root(self):
         return self.__dict__['__root']

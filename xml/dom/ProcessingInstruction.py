@@ -11,17 +11,14 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from xml.dom import Node
+from FtNode import FtNode
 
-Node = implementation._4dom_fileImport('FtNode').Node
-
-class ProcessingInstruction(Node):
+class ProcessingInstruction(FtNode):
     nodeType = Node.PROCESSING_INSTRUCTION_NODE
 
     def __init__(self,ownerDocument,target,data):
-        Node.__init__(self,ownerDocument,'','','')
+        FtNode.__init__(self,ownerDocument,'','','')
         self.__dict__['__nodeName'] = target
         self.__dict__['__nodeValue'] = data
 
@@ -37,15 +34,19 @@ class ProcessingInstruction(Node):
     ### Overridden Methods ###
 
     def __repr__(self):
-        return "<Processing Instruction at %s: target = '%s%s', data = '%s%s'>" % (
+        data = self.data
+        if len(data) > 20:
+            data = data[20:] + '...'
+        return "<ProcessingInstruction at %x: target='%s' data='%s'>" % (
             id(self),
-            self.target[:20],
-            len(self.target) > 20 and "..." or "",
-            self.data[:20],
-            len(self.data) > 20 and "..." or ""
+            self.target,
+            data
             )
 
     ### Helper Functions For Cloning ###
+
+    def _4dom_clone(self, owner):
+        return self.__class__(owner, self.target, self.data)
 
     def __getinitargs__(self):
         return (self.ownerDocument,
@@ -55,16 +56,16 @@ class ProcessingInstruction(Node):
 
     ### Attribute Access Mappings ###
 
-    _readComputedAttrs = Node._readComputedAttrs.copy()
+    _readComputedAttrs = FtNode._readComputedAttrs.copy()
     _readComputedAttrs.update({'target':_get_target,
                                'data':_get_data
                                })
 
 
-    _writeComputedAttrs = Node._writeComputedAttrs.copy()
+    _writeComputedAttrs = FtNode._writeComputedAttrs.copy()
     _writeComputedAttrs.update({'data':_set_data
                                 })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
-                            Node._readOnlyAttrs + _readComputedAttrs.keys())
+                            FtNode._readOnlyAttrs + _readComputedAttrs.keys())

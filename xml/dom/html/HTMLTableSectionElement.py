@@ -14,6 +14,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import string
 from xml.dom import implementation
 from xml.dom.html.HTMLElement import HTMLElement
+from xml.dom import IndexSizeErr
 
 class HTMLTableSectionElement(HTMLElement):
 

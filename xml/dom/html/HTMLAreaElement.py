@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLAreaElement(HTMLElement):
@@ -54,7 +55,7 @@ class HTMLAreaElement(HTMLElement):
 
     def _set_noHref(self, value):
         if value:
-            self.setAttribute("NOHREF", None)
+            self.setAttribute("NOHREF", "NOHREF")
         else:
             self.removeAttribute("NOHREF")
 

@@ -90,7 +90,7 @@ class HTMLTableCellElement(HTMLElement):
 
     def _set_noWrap(self,nowrap):
         if nowrap:
-            self.setAttribute('NOWRAP', None)
+            self.setAttribute('NOWRAP', 'NOWRAP')
         else:
             self.removeAttribute('NOWRAP')
 

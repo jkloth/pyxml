@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLImageElement(HTMLElement):
@@ -72,7 +73,7 @@ class HTMLImageElement(HTMLElement):
 
     def _set_isMap(self, value):
         if value:
-            self.setAttribute("ISMAP", None)
+            self.setAttribute("ISMAP", "ISMAP")
         else:
             self.removeAttribute("ISMAP")
 

@@ -12,13 +12,11 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from xml.dom import Node
+from DOMImplementation import implementation
+from FtNode import FtNode
 
-Node = implementation._4dom_fileImport('FtNode').Node
-
-class Entity(Node):
+class Entity(FtNode):
     nodeType = Node.ENTITY_NODE
     _allowedChildren = [Node.ELEMENT_NODE,
                         Node.PROCESSING_INSTRUCTION_NODE,
@@ -29,29 +27,39 @@ class Entity(Node):
                         ]
 
     def __init__(self, ownerDocument, publicId, systemId, notationName):
-        Node.__init__(self, ownerDocument, '', '', '')
+        FtNode.__init__(self, ownerDocument)
         self.__dict__['__nodeName'] = '#entity'
-        self.__dict__['__publicId'] = publicId
-        self.__dict__['__systemId'] = systemId
-        self.__dict__['__notationName'] = notationName
+        self.__dict__['publicId'] = publicId
+        self.__dict__['systemId'] = systemId
+        self.__dict__['notationName'] = notationName
         
     ### Attribute Methods ###
 
     def _get_systemId(self):
-        return self.__dict__['__systemId']
+        return self.systemId
     
     def _get_publicId(self):
-        return self.__dict__['__publicId']
+        return self.publicId
 
     def _get_notationName(self):
-        return self.__dict__['__notationName']
+        return self.notationName
         
    ### Overridden Methods ###
 
     def __repr__(self):
-        return '<Entity Node at %s: PublicId = "%s" SystemId = "%s" Notation Name = "%s">' % (id(self),self.publicId,self.systemId,self.notationName)
+        return '<Entity Node at %x: Public="%s" System="%s" Notation="%s">' % (
+            id(self),
+            self.publicId,
+            self.systemId,
+            self.notationName)
 
     ### Helper Functions For Cloning ###
+
+    def _4dom_clone(self, owner):
+        return self.__class__(owner,
+                              self.publicId,
+                              self.systemId,
+                              self.notationName)
 
     def __getinitargs__(self):
         return (self.ownerDocument,
@@ -62,15 +70,15 @@ class Entity(Node):
 
     ### Attribute Access Mappings ###
 
-    _readComputedAttrs = Node._readComputedAttrs.copy()
+    _readComputedAttrs = FtNode._readComputedAttrs.copy()
     _readComputedAttrs.update({'publicId':_get_publicId,
                                'systemId':_get_systemId,
                                'notationName':_get_notationName
                                })
 
 
-    _writeComputedAttrs = Node._writeComputedAttrs.copy()
+    _writeComputedAttrs = FtNode._writeComputedAttrs.copy()
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
-                            Node._readOnlyAttrs + _readComputedAttrs.keys())
+                            FtNode._readOnlyAttrs + _readComputedAttrs.keys())

@@ -32,7 +32,7 @@ class HTMLOptionElement(HTMLElement):
 
     def _set_disabled(self,disabled):
         if disabled:
-            self.setAttribute('DISABLED', None)
+            self.setAttribute('DISABLED', 'DISABLED')
         else:
             self.removeAttribute('DISABLED')
 
@@ -65,7 +65,7 @@ class HTMLOptionElement(HTMLElement):
 
     def _set_selected(self, selected):
         if selected:
-            self.setAttribute('SELECTED', None)
+            self.setAttribute('SELECTED', 'SELECTED')
         else:
             self.removeAttribute('SELECTED')
 

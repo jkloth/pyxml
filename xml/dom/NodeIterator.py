@@ -12,115 +12,118 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from NodeFilter import NodeFilter
 
-NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
-
-DOMException = dom.DOMException
-NoModificationAllowedErr = dom.NoModificationAllowedErr
-InvalidStateErr = dom.InvalidStateErr
+from xml.dom import NoModificationAllowedErr
+from xml.dom import InvalidStateErr
 
 class NodeIterator:
-    def __init__(self, root, whatToShow, filter, expandEntityReferences):
-        self.__dict__['__root'] = root
-        self.__dict__['__filter'] = filter
-        self.__dict__['__expandEntityReferences'] = expandEntityReferences
-        self.__dict__['__whatToShow'] = whatToShow
-        self.__dict__['__nodeStack'] = []
-        self.__dict__['__detached'] = 0
 
-    def __setattr__(self,name,value):
-        raise NoModificationAllowedErr()
+    def __init__(self, root, whatToShow, filter, expandEntityReferences):
+        self.__dict__['root'] = root
+        self.__dict__['filter'] = filter
+        self.__dict__['expandEntityReferences'] = expandEntityReferences
+        self.__dict__['whatToShow'] = whatToShow
+        self.__dict__['_atStart'] = 1
+        self.__dict__['_atEnd'] = 0
+        self.__dict__['_current'] = root
+        self.__dict__['_nodeStack'] = []
+        self.__dict__['_detached'] = 0
+
+    def __setattr__(self, name, value):
+        if name in ['root', 'filter', 'expandEntityReferences', 'whatToShow']:
+            raise NoModificationAllowedErr()
+        self.__dict__[name] = value
 
     def _get_root(self):
-        return self.__dict__['__root']
+        return self.root
 
     def _get_filter(self):
-        return self.__dict__['__filter']
+        return self.filter
 
     def _get_expandEntityReferences(self):
-        return self.__dict__['__expandEntityReferences']
+        return self.expandEntityReferences
 
     def _get_whatToShow(self):
-        return self.__dict__['__whatToShow']
+        return self.whatToShow
     
     def nextNode(self):
-        if self.__dict__['__detached']:
+        if self._detached:
             raise InvalidStateErr()
-        next_node = self.__advance()
-        while next_node and not (self.__checkWhatToShow(next_node) and self.__checkFilter(next_node) == NodeFilter.FILTER_ACCEPT):
-            next_node = self.__advance()
+        next_node = self._advance()
+        while (next_node and not (
+            self._checkWhatToShow(next_node) and
+            self._checkFilter(next_node) == NodeFilter.FILTER_ACCEPT)):
+            next_node = self._advance()
         return next_node
 
     def previousNode(self):
-        if self.__dict__['__detached']:
+        if self._detached:
             raise InvalidStateErr()
-        prev_node = self.__regress()
-        while prev_node and not (self.__checkWhatToShow(prev_node) and self.__checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT):
-            prev_node = self.__regress()
+        prev_node = self._regress()
+        while (prev_node and not (
+            self._checkWhatToShow(prev_node) and
+            self._checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT)):
+            prev_node = self._regress()
         return prev_node
         
     def detach(self):
-        self.__dict__['__detached'] = 1
+        self._detached = 1
 
-    def __advance(self):
-        #Deasil?  --Uche
-        if not self.__dict__['__nodeStack']:
-            self.__dict__['__nodeStack'].append(self.__dict__['__root'])
-            return self.__dict__['__root']
-        index = 1
-        for sub_root in self.__dict__['__nodeStack'][1:]:
-            #FIXME: getChildIndex Not DOM compliant
-            if getChildNodeIndex(self.__dict__['__nodeStack'][index-1],sub_root) == -1:
-                self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
-                break
-            index = index + 1
-        curr_node = self.__dict__['__nodeStack'][-1].firstChild
-        #If there are no children, back-track until we find a node with an unvisited sibling
-        index = len(self.__dict__['__nodeStack'])
-        while not curr_node and index > 1:
-            curr_node = self.__dict__['__nodeStack'][index-1].nextSibling
-            index = index - 1
-        if curr_node:
-            self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
-            self.__dict__['__nodeStack'].append(curr_node)
-        return curr_node
+    def _advance(self):
+        node = None
+        if self._atStart:
+            # First time through
+            self._atStart = 0
+            node = self._current
+        elif not self._atEnd:
+            current = self._current
+            if current.firstChild:
+                # Do children first
+                node = current.firstChild
+            else:
+                # Now try the siblings
+                while current is not self.root:
+                    if current.nextSibling:
+                        node = current.nextSibling
+                        break
+                    # We are at the end of a branch, starting going back up
+                    current = current.parentNode
+                else:
+                    node = None
+            if node:
+                self._current = node
+            else:
+                self._atEnd = 1
+        return node
 
-    def __regress(self):
-        #Widdershins?  --Uche
-        if not self.__dict__['__nodeStack']:
-            return None
-        index = 1
-        for sub_root in self.__dict__['__nodeStack'][1:]:
-            if getChildNodeIndex(self.__dict__['__nodeStack'][index-1],sub_root) == -1:
-                self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
-                break
-            index = index + 1
-        result = self.__dict__['__nodeStack'][-1]
+    def _regress(self):
+        node = None
+        if self._atEnd:
+            self._atEnd = 0
+            node = self._current
+        elif not self._atStart:
+            current = self._current
+            if current is self.root:
+                node = None
+            elif current.previousSibling:
+                node = current.previousSibling
+                if node.lastChild:
+                    node = node.lastChild
+            else:
+                node = current.parentNode
+            if node:
+                self._current = node
+            else:
+                self._atStart = 1
+        return node
 
-        curr_node = self.__dict__['__nodeStack'][-1].previousSibling
-        del self.__dict__['__nodeStack'][-1]
-        while curr_node:
-            self.__dict__['__nodeStack'].append(curr_node)
-            curr_node = curr_node.lastChild
-
-        return result
-
-    def __checkWhatToShow(self, node):
+    def _checkWhatToShow(self, node):
         show_bit = 1 << (node.nodeType - 1)
-        return self.__dict__['__whatToShow'] & show_bit
+        return self.whatToShow & show_bit
 
-    def __checkFilter(self, node):
-        if self.__dict__['__filter']:
-            return self.__dict__['__filter'].acceptNode(node)
+    def _checkFilter(self, node):
+        if self.filter:
+            return self.filter.acceptNode(node)
         else:
             return NodeFilter.FILTER_ACCEPT
-
-
-
-def getChildNodeIndex(pNode,child):
-    if child in pNode.childNodes:
-        return pNode.childNodes.index(child)
-    return -1

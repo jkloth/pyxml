@@ -15,14 +15,25 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import sys,string
 
-import xml.dom
 from xml.dom import Node
-from xml.dom.NodeIterator import NodeIterator
 from xml.dom.NodeFilter import NodeFilter
-from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
+from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE, DOMException
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE
 import re
 
+
+import types
+if (sys.hexversion >> 8) > 0x10502:
+    IsDOMString = lambda s: type(s) in [types.StringType, types.UnicodeType]
+else:
+    IsDOMString = lambda s: type(s) == types.StringType
+
+class FtDomException(DOMException):
+    def __init__(self, *args):
+        apply(DOMException.__init__,(self,)+ args)
+        return
+
+        
 NodeTypeDict = {
     Node.ELEMENT_NODE : "Element",
     Node.ATTRIBUTE_NODE : "Attr",
@@ -47,41 +58,42 @@ def Print(root, stream=sys.stdout, encoding='UTF-8'):
     if not hasattr(root, "nodeType"):
         return
     from xml.dom.ext import Printer
-    nss_hints = SeekNss(root)
-    visitor = Printer.PrintVisitor(stream, encoding, nss_hints)
+    nss = SeekNss(root)
+    visitor = Printer.PrintVisitor(stream, encoding, nsHints=nss)
     Printer.PrintWalker(visitor, root).run()
     return
 
 
 def PrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  ',
-                width=80, preserveElements=None):
+                preserveElements=None):
     if not hasattr(root, "nodeType"):
         return
     from xml.dom.ext import Printer
     nss_hints = SeekNss(root)
     preserveElements = preserveElements or []
-    if hasattr(root.ownerDocument,'isHtml') and root.ownerDocument.isHtml():
+    if hasattr(root.ownerDocument, 'getElementsByName'):
         #We don't want to insert any whitespace into HTML inline elements
         preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
-    visitor = Printer.PrettyPrintVisitor(stream, encoding, indent, width,
-                                         preserveElements, nss_hints)
+    visitor = Printer.PrintVisitor(stream, encoding, indent,
+                                   preserveElements, nss_hints)
     Printer.PrintWalker(visitor, root).run()
     stream.write('\n')
     return
 
 
-def XHtmlPrettyPrint(root,stream=sys.stdout, encoding='UTF-8',indent=' ',newLine='\n'):
+def XHtmlPrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  '):
     if not hasattr(root, "nodeType"):
         return
-    from xml.dom.ext import XHtmlPrinter
 
-    visitor = XHtmlPrinter.XHtmlPrintVisitor(stream, encoding, indent, newLine)
+    from xml.dom.ext import XHtmlPrinter
+    visitor = XHtmlPrinter.XHtmlPrintVisitor(stream, encoding, indent)
     Printer.PrintWalker(visitor, root).run()
-    stream.write(newLine)
+    stream.write('\n')
     return
 
-def XHtmlPrint(root,stream=sys.stdout, encoding='UTF-8'):
-    XHtmlPrettyPrint(root,stream,encoding,'','')
+
+def XHtmlPrint(root, stream=sys.stdout, encoding='UTF-8'):
+    XHtmlPrettyPrint(root, stream, encoding, '')
     
 
 def ReleaseNode(node):
@@ -161,7 +173,7 @@ def GetElementById(startNode, targetId):
     value
     '''
     result = None
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeIterator.SHOW_ELEMENT, None, 0)
+    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT, None, 0)
     curr_node = snit.nextNode()
     while not result and curr_node:
         attrs = curr_node.attributes
@@ -181,7 +193,7 @@ def XmlSpaceState(node):
     xml_space_state = ''
     while not(xml_space_state or root_reached):
         if node.nodeType == Node.ELEMENT_NODE:
-            xml_space_state = node.getAttributeNS(xml.dom.XML_NAMESPACE, 'space')
+            xml_space_state = node.getAttributeNS(XML_NAMESPACE, 'space')
             if xml_space_state not in valid_values: xml_space_state = ''
         parent_node = node.parentNode
         if not (parent_node and parent_node.nodeType == Node.ELEMENT_NODE):
@@ -200,7 +212,10 @@ def GetAllNs(node):
             nss[node.prefix] = node.namespaceURI
         for attr in node.attributes.values():
             if attr.namespaceURI == XMLNS_NAMESPACE:
-                nss[attr.localName] = attr.value
+                if attr.localName == 'xmlns':
+                    nss[''] = attr.value
+                else:
+                    nss[attr.localName] = attr.value
             elif attr.namespaceURI:
                 nss[attr.prefix] = attr.namespaceURI
     if node.parentNode:

@@ -11,17 +11,13 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
+from CharacterData import CharacterData
 
-CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
-DOMException = dom.DOMException
-IndexSizeErr = dom.IndexSizeErr
-
+from xml.dom import Node
+from xml.dom import IndexSizeErr
 
 class Text(CharacterData):
-    nodeType = dom.Node.TEXT_NODE
+    nodeType = Node.TEXT_NODE
 
     def __init__(self, ownerDocument, data):
         CharacterData.__init__(self, ownerDocument, data)
@@ -30,40 +26,19 @@ class Text(CharacterData):
     ### Methods ###
 
     def splitText(self, offset):
-        offset = int(offset)
-        if offset >= self.length or offset < 0:
+        if not (0 < offset < self.length):
             raise IndexSizeErr()
-        cur = self.data
-        next = cur[offset:]
-        cur = cur[:offset]
-        self.data = cur
-        n = self.ownerDocument.createTextNode(next)
-        p = self.parentNode
-        ns = self.nextSibling
-        if p == None:
-            return n
-        if ns == None:
-            p.appendChild(n)
-        else:
-            p.insertBefore(n, ns)
-        return n
+        data = self.data
+        first = data[:int(offset)]
+        second = data[int(offset):]
+        node = self.ownerDocument.createTextNode(second)
+        self._set_data(first)
+        parent = self.parentNode
+        if parent:
+            sibling = self.nextSibling
+            if sibling:
+                parent.insertBefore(node, self.nextSibling)
+            else:
+                parent.appendChild(node)
+        return node
 
-    ### Overridden Methods ###
-
-    def __repr__(self):
-        # Trim to a managable size
-        if len(self.data) > 20:
-            data = self.data[:20] + '...'
-        else:
-            data = self.data
-
-        # Escape unprintable chars
-        import string
-        for ws in ['\t','\n','\r']:
-            data = string.replace(data, ws, '\\0x%x' % ord(ws))
-
-        st = "<Text Node at %x: data = '%s'>" % (
-                id(self),
-                data
-                )
-        return st

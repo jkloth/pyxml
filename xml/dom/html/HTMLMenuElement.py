@@ -16,6 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
+from xml.dom import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLMenuElement(HTMLElement):
@@ -30,7 +31,7 @@ class HTMLMenuElement(HTMLElement):
 
     def _set_compact(self, value):
         if value:
-            self.setAttribute("COMPACT", None)
+            self.setAttribute("COMPACT", "COMPACT")
         else:
             self.removeAttribute("COMPACT")
 

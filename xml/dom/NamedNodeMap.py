@@ -11,34 +11,26 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import DOMImplementation
-implementation = DOMImplementation.implementation
-dom = implementation._4dom_fileImport('')
-
-Node = implementation._4dom_fileImport('FtNode').Node
-
-DOMException = dom.DOMException
-NoModificationAllowedErr = dom.NoModificationAllowedErr
-NotFoundErr = dom.NotFoundErr
-WrongDocumentErr = dom.WrongDocumentErr
-InuseAttributeErr = dom.InuseAttributeErr
-
 import UserDict
-import string
+
+from xml.dom import Node
+from xml.dom import NoModificationAllowedErr
+from xml.dom import NotFoundErr
+from xml.dom import NotSupportedErr
+from xml.dom import WrongDocumentErr
+from xml.dom import InuseAttributeErr
 
 class NamedNodeMap(UserDict.UserDict):
-    # For internal purposes
-    nodeType = Node._NAMED_NODE_MAP
-
-    def __init__(self, owner=None):
+    def __init__(self, ownerDoc=None):
         UserDict.UserDict.__init__(self)
-        self._ownerDocument = owner
+        self._ownerDocument = ownerDoc
+        self._positions = []
 
-    ### Attribute Methods ###
+    ### Attribute Access Methods ###
 
     def __getattr__(self, name):
         if name == 'length':
-            return self._get_length()
+            return len(self)
         return getattr(NamedNodeMap, name)
 
     def __setattr__(self, name, value):
@@ -46,87 +38,93 @@ class NamedNodeMap(UserDict.UserDict):
             raise NoModificationAllowedErr()
         self.__dict__[name] = value
 
+    ### Attribute Methods ###
+
     def _get_length(self):
-        return self.__len__()
+        return len(self)
 
     ### Methods ###
 
     def item(self, index):
-        try:
-            return self[self.keys()[int(index)]]
-        except IndexError:
-            return None
+        if 0 <= index < len(self):
+            return self[self._positions[int(index)]]
+        return None
 
     def getNamedItem(self, name):
         return self.get(name)
 
-    def getNamedItemNS(self, namespaceURI, localName):
-        if namespaceURI == None:
-            namespaceURI = ''
-        return self.get((namespaceURI, localName))
+    def removeNamedItem(self, name):
+        old = self.get(name)
+        if not old:
+            raise NotFoundErr()
+        del self[name]
+        self._positions.remove(name)
+        return old
 
     def setNamedItem(self, arg):
         if self._ownerDocument != arg.ownerDocument:
             raise WrongDocumentErr()
         if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
             raise InuseAttributeErr()
-        retval = self.get(arg.nodeName)
-        self[arg.nodeName] = arg
+        name = arg.nodeName
+        retval = self.get(name)
+        UserDict.UserDict.__setitem__(self, name, arg)
+        if not retval:
+            self._positions.append(name)
         return retval
+
+    def getNamedItemNS(self, namespaceURI, localName):
+        return self.get((namespaceURI, localName))
 
     def setNamedItemNS(self, arg):
         if self._ownerDocument != arg.ownerDocument:
             raise WrongDocumentErr()
         if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
             raise InuseAttributeErr()
-        retval = self.get((arg.namespaceURI, arg.localName))
-        self[(arg.namespaceURI, arg.localName)] = arg
+        name = (arg.namespaceURI, arg.localName)
+        retval = self.get(name)
+        UserDict.UserDict.__setitem__(self, name, arg)
+        if not retval:
+            self._positions.append(name)
         return retval
 
-    def removeNamedItem(self, name):
-        oldNode = self.get(name)
-        if not oldNode:
+    def removeNamedItemNS(self, namespaceURI, localName):
+        name = (namespaceURI, localName)
+        old = self.get(name)
+        if not old:
             raise NotFoundErr()
         del self[name]
-        return oldNode
-
-    def removeNamedItemNS(self, namespaceURI, localName):
-        if namespaceURI == None:
-            namespaceURI = ''
-        oldNode = self.get((namespaceURI, localName))
-        if not oldNode:
-            raise NotFoundErr()
-        del self[(namespaceURI, localName)]
-        return oldNode
+        self._positions.remove(name)
+        return old
 
     ### Overridden Methods ###
 
     def __getitem__(self, index):
         if type(index) == type(0):
-            return self[self.keys()[index]]
-        else:
-            return UserDict.UserDict.__getitem__(self, index)
+            index = self._positions[index]
+        return UserDict.UserDict.__getitem__(self, index)
+
+    def __setitem__(self, index, item):
+        raise NotSupportedErr()
 
     def __repr__(self):
-        st = "<NamedNodeMap at %s: {"%(id(self))
+        st = "<NamedNodeMap at %x: {" % (id(self))
         for k in self.keys():
             st = st + repr(k) + ': ' + repr(self[k]) + ', '
         if len(self):
             st = st[:-2]
         return st + '}>'
 
-    ### Helper Methods for Cloning ###
-
-    def __getinitargs__(self):
-        return (self._ownerDocument,)
-
-    def __getstate__(self):
-        return self.data
-
-    def __setstate__(self, state):
-        self.data = state
-
     ### Internal Methods ###
 
     def _4dom_setOwnerDocument(self, newOwner):
         self._ownerDocument = newOwner
+
+    def _4dom_clone(self, owner):
+        nnm = self.__class__(owner)
+        for item in self:
+            if item.localName:
+                nnm.setNamedItemNS(item._4dom_clone(owner))
+            else:
+                nnm.setNamedItem(item._4dom_clone(owner))
+        return nnm

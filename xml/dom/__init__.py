@@ -5,10 +5,10 @@
 # Documentation:        http://docs.4suite.com/4DOM/__init__.py.html
 #
 """
-WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
+WWW: http://4suite.org/4DOM         e-mail: support@4suite.org
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 
@@ -36,7 +36,7 @@ class Node:
     NOTATION_NODE               = 12
 
 
-#ExceptionCode
+# DOMException codes
 INDEX_SIZE_ERR                 = 1
 DOMSTRING_SIZE_ERR             = 2
 HIERARCHY_REQUEST_ERR          = 3
@@ -53,84 +53,126 @@ INVALID_MODIFICATION_ERR       = 13
 NAMESPACE_ERR                  = 14
 INVALID_ACCESS_ERR             = 15
 
+# EventException codes
+UNSPECIFIED_EVENT_TYPE_ERR     = 0
+
+# Fourthought specific codes
+FT_EXCEPTION_BASE = 1000
+XML_PARSE_ERR = FT_EXCEPTION_BASE + 1
+
+#RangeException codes
+BAD_BOUNDARYPOINTS_ERR = 1
+INVALID_NODE_TYPE_ERR = 2
+
+
 class DOMException(Exception):
-    def __init__(self, *args):
-        if len(args) >= 1:
-            self.code = args[0]
-        self.args = args
-        Exception.__init__(self, g_errorMessages[self.code])
+    def __init__(self, code, msg=''):
+        self.code = code
+        self.msg = msg or DOMExceptionStrings[code]
 
-    def _derived_init(*args):
-        """Initializer method that does not expect a code argument,
-        for use in derived classes."""
-        if len(args) == 1:
-            # If no explicit message was passed, use the default message
-            args = args[0], g_errorMessages[args[0].code]
-        apply(Exception.__init__, args)
+    def __str__(self):
+        return self.msg
 
-    def _get_code(self):
-        return self.code
+class EventException(Exception):
+    def __init__(self, code, msg=''):
+        self.code = code
+        self.msg = msg or EventExceptionStrings[code]
+        return
 
+    def __str__(self):
+        return self.msg
+
+class RangeException(Exception):
+    def __init__(self, code, msg):
+        self.code = code
+        self.msg = msg or RangeExceptionStrings[code]
+        Exception.__init__(self, self.msg)
+
+class FtException(Exception):
+    def __init__(self, code, *args):
+        self.code = code
+        self.msg = FtExceptionStrings[code] % args
+        return
+
+    def __str__(self):
+        return self.msg
 
 class IndexSizeErr(DOMException):
-    code = INDEX_SIZE_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INDEX_SIZE_ERR, msg)
 
-class DomstringSizeErr(DOMException):
-    code = DOMSTRING_SIZE_ERR
-    __init__ = DOMException._derived_init
+class DOMStringSizeErr(DOMException):
+    def __init__(self, msg=''):
+        DOMException.__init__(self, DOMSTRING_SIZE_ERR, msg)
 
 class HierarchyRequestErr(DOMException):
-    code = HIERARCHY_REQUEST_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, HIERARCHY_REQUEST_ERR, msg)
 
 class WrongDocumentErr(DOMException):
-    code = WRONG_DOCUMENT_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, WRONG_DOCUMENT_ERR, msg)
 
 class InvalidCharacterErr(DOMException):
-    code = INVALID_CHARACTER_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INVALID_CHARACTER_ERR, msg)
 
 class NoDataAllowedErr(DOMException):
-    code = NO_DATA_ALLOWED_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, NO_DATA_ALLOWED_ERR, msg)
 
 class NoModificationAllowedErr(DOMException):
-    code = NO_MODIFICATION_ALLOWED_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, NO_MODIFICATION_ALLOWED_ERR, msg)
 
 class NotFoundErr(DOMException):
-    code = NOT_FOUND_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, NOT_FOUND_ERR, msg)
 
 class NotSupportedErr(DOMException):
-    code = NOT_SUPPORTED_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, NOT_SUPPORTED_ERR, msg)
 
 class InuseAttributeErr(DOMException):
-    code = INUSE_ATTRIBUTE_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INUSE_ATTRIBUTE_ERR, msg)
 
 class InvalidStateErr(DOMException):
-    code = INVALID_STATE_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INVALID_STATE_ERR, msg)
 
 class SyntaxErr(DOMException):
-    code = SYNTAX_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, SYNTAX_ERR, msg)
 
 class InvalidModificationErr(DOMException):
-    code = INVALID_MODIFICATION_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INVALID_MODIFICATION_ERR, msg)
 
 class NamespaceErr(DOMException):
-    code = NAMESPACE_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, NAMESPACE_ERR, msg)
 
 class InvalidAccessErr(DOMException):
-    code = INVALID_ACCESS_ERR
-    __init__ = DOMException._derived_init
+    def __init__(self, msg=''):
+        DOMException.__init__(self, INVALID_ACCESS_ERR, msg)
+
+class UnspecifiedEventTypeErr(EventException):
+    def __init__(self, msg=''):
+        EventException.__init__(self, UNSPECIFIED_EVENT_TYPE_ERR, msg)
+
+class XmlParseErr(FtException):
+    def __init__(self, msg=''):
+        FtException.__init__(self, XML_PARSE_ERR, msg)
+
+#Specific Range Exceptions
+class BadBoundaryPointsErr(RangeException):
+    def __init__(self, msg=''):
+        RangeException.__init__(self, BAD_BOUNDARYPOINTS_ERR, msg)
+
+class InvalidNodeTypeErr(RangeException):
+    def __init__(self, msg=''):
+        RangeException.__init__(self, INVALID_NODE_TYPE_ERR, msg)
 
 from xml.dom import DOMImplementation
 
@@ -144,7 +186,11 @@ DOMImplementation.implementation = implementation
 
 XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace"
 XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
+XHTML_NAMESPACE = "http://www.w3.org/1999/xhtml"
 
-locale = 'en_US'
-locale_module = __import__('xml.dom.'+locale, globals(), locals(), ['g_errorMessages'])
-g_errorMessages = locale_module.__dict__['g_errorMessages']
+import MessageSource
+DOMExceptionStrings = MessageSource.__dict__['DOMExceptionStrings']
+EventExceptionStrings = MessageSource.__dict__['EventExceptionStrings']
+FtExceptionStrings = MessageSource.__dict__['FtExceptionStrings']
+RangeExceptionStrings = MessageSource.__dict__['RangeExceptionStrings']
+

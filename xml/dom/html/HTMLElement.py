@@ -55,10 +55,42 @@ class HTMLElement(Element):
 
     ### Overridden Methods ###
 
+    def getAttribute(self, name):
+        attr = self.attributes.getNamedItem(string.upper(name))
+        return attr and attr.value or ''
+
+    def getAttributeNode(self, name):
+        return self.attributes.getNamedItem(string.upper(name))
+
+    def getElementsByTagName(self, tagName):
+        return Element.getElementsByTagName(self, string.upper(tagName))
+
+    def hasAttribute(self, name):
+        return self.attributes.getNamedItem(string.upper(name)) is not None
+
+    def removeAttribute(self, name):
+        attr = self.attributes.getNamedItem(string.upper(name))
+        attr and self.removeAttributeNode(attr)
+
+    def setAttribute(self, name, value):
+        Element.setAttribute(self, string.upper(name), value)
+
     def _4dom_validateString(self, value):
         return value
 
     ### Helper Functions For Cloning ###
+
+    def _4dom_clone(self, owner):
+        e = self.__class__(owner,
+                           self.tagName)
+        for attr in self.attributes:
+            clone = attr._4dom_clone(owner)
+            if clone.localName is None:
+                e.attributes.setNamedItem(clone)
+            else:
+                self.attributes.setNamedItemNS(clone)
+            clone._4dom_setOwnerElement(self)
+        return e
 
     def __getinitargs__(self):
         return (self.ownerDocument,
@@ -66,8 +98,6 @@ class HTMLElement(Element):
         )
 
     ### Attribute Access Mappings ###
-
-    from xml.dom.Element import Element
 
     _readComputedAttrs = Element._readComputedAttrs.copy()
     _readComputedAttrs.update ({

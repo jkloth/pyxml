@@ -15,8 +15,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import string, re
 from xml.dom import Node
 from xml.dom.ext.Visitor import Visitor, WalkerInterface
-from xml.dom import ext, XMLNS_NAMESPACE
-from xml.dom.html import HTML_4_TRANSITIONAL_INLINE, HTML_FORBIDDEN_END
+from xml.dom import ext, XMLNS_NAMESPACE, XML_NAMESPACE, XHTML_NAMESPACE
+from xml.dom.html import TranslateHtmlCdata
+from xml.dom.html import HTML_4_TRANSITIONAL_INLINE
+from xml.dom.html import HTML_FORBIDDEN_END
+from xml.dom.html import HTML_BOOLEAN_ATTRS
 
 ILLEGAL_LOW_CHARS = '[\x01-\x08\x0B-\x0C\x0E-\x1F]'
 SURROGATE_BLOCK = '[\xF0-\xF7][\x80-\xBF][\x80-\xBF][\x80-\xBF]'
@@ -34,7 +37,7 @@ g_charToEntity = {
 
 try:
     #The following stanza courtesy Martin von Loewis
-    import codecs # Python 1.5 only
+    import codecs # Python 1.6+ only
     from types import UnicodeType
     def utf8_to_code(text, encoding):
         encoder = codecs.lookup(encoding)[0] # encode,decode,reader,writer
@@ -102,16 +105,33 @@ def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0):
 
 
 class PrintVisitor(Visitor):
-    def __init__(self, stream, encoding, nsHints=None):
-        self._namespaces = [{}]
-        self._nsHints = nsHints or {}
+    def __init__(self, stream, encoding, indent='', plainElements=None, nsHints=None, isXhtml=0):
         self.stream = stream
         self.encoding = encoding
+        # Namespaces
+        self._namespaces = [{}]
+        self._nsHints = nsHints or {}
+        # PrettyPrint
+        self._indent = indent
+        self._depth = 0
+        self._inText = 0
+        self._plainElements = plainElements or []
+        # HTML support
+        self._html = None
+        self._isXhtml = isXhtml
+        return
+
+    def _tryIndent(self):
+        if not self._inText and self._indent:
+            self.stream.write('\n' + str(self._indent*self._depth))
         return
 
     def visit(self, node):
-        nodeType = node.nodeType
+        if self._html is None:
+            # Set HTMLDocument flag here for speed
+            self._html = hasattr(node.ownerDocument, 'getElementsByName')
 
+        nodeType = node.nodeType
         if node.nodeType == Node.ELEMENT_NODE:
             return self.visitElement(node)
 
@@ -149,13 +169,11 @@ class PrintVisitor(Visitor):
             return self.visitNotation(node)
 
         # It has a node type, but we don't know how to handle it
-        raise "Unknown node type: Node=" + str(node)
+        raise Exception("Unknown node type: %s" % repr(node))
 
     def visitNodeList(self, node, exclude=None):
         for curr in node:
-            if exclude and exclude == curr:
-                continue
-            self.visit(curr)
+            curr is not exclude and self.visit(curr)
         return
 
     def visitNamedNodeMap(self, node):
@@ -165,24 +183,26 @@ class PrintVisitor(Visitor):
 
     def visitAttr(self, node):
         if node.namespaceURI == XMLNS_NAMESPACE:
+            # Skip namespace declarations
             return
-        if hasattr(node.ownerDocument,'isHtml') and node.ownerDocument.isHtml() and len(node.childNodes) == 0:
-            st = ' ' + node.name
-        else:
-            text = TranslateCdata(node.value, self.encoding)
+        self.stream.write(' ' + node.name)
+        value = node.value
+        if value or not self._html:
+            text = TranslateCdata(value, self.encoding)
             text, delimiter = TranslateCdataAttr(text)
-            st = " %s=%s%s%s" % (node.name, delimiter, text, delimiter)
-        self.stream.write(st)
+            self.stream.write("=%s%s%s" % (delimiter, text, delimiter))
         return
 
     def visitProlog(self):
-        self.stream.write("<?xml version='1.0' encoding='%s'?>" % (self.encoding or 'UTF-8'))
+        self.stream.write("<?xml version='1.0' encoding='%s'?>" % (
+            self.encoding or 'utf-8'
+            ))
+        self._inText = 0
+        return
 
     def visitDocument(self, node):
-        if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
-            self.visitProlog()
-        if node.doctype != None:
-            self.visit(node.doctype)
+        not self._html and self.visitProlog()
+        node.doctype and self.visitDocumentType(node.doctype)
         self.visitNodeList(node.childNodes, exclude=node.doctype)
         return
 
@@ -191,12 +211,16 @@ class PrintVisitor(Visitor):
         return
 
     def visitElement(self, node):
-        #FIXME: Borrow opt from Sax2
         self._namespaces.append(self._namespaces[-1].copy())
-        self.stream.write('<' + node.tagName)
-        if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
-            st = ''
-            nss = ext.GetAllNs(node)
+        inline = node.tagName in self._plainElements
+        not inline and self._tryIndent()
+        self.stream.write('<%s' % node.tagName)
+        if self._isXhtml or not self._html:
+            namespaces = ''
+            if self._isXhtml:
+                nss = {'xml': XML_NAMESPACE, '': XHTML_NAMESPACE}
+            else:
+                nss = ext.GetAllNs(node)
             if self._nsHints:
                 self._nsHints.update(nss)
                 nss = self._nsHints
@@ -205,199 +229,118 @@ class PrintVisitor(Visitor):
             for prefix in nss.keys():
                 if not self._namespaces[-1].has_key(prefix) or self._namespaces[-1][prefix] != nss[prefix]:
                     if prefix:
-                        st = st + ' xmlns:' + prefix + "='" + nss[prefix] + "'"
+                        xmlns = " xmlns:%s='%s'" % (prefix, nss[prefix])
                     else:
-                        st = st + ' xmlns' + "='" + nss[prefix] + "'"
+                        xmlns = " xmlns='%s'" % nss[prefix]
+                    namespaces = namespaces + xmlns
+                    
                 self._namespaces[-1][prefix] = nss[prefix]
-            self.stream.write(st)
-        self.visitNamedNodeMap(node.attributes)
+            self.stream.write(namespaces)
+        for attr in node.attributes.values():
+            self.visitAttr(attr)
         if len(node.childNodes):
             self.stream.write('>')
+            self._depth = self._depth + 1
             self.visitNodeList(node.childNodes)
-            if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml() or (node.tagName not in HTML_FORBIDDEN_END):
-                self.stream.write('</' + node.tagName + '>')
-        elif not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
+            self._depth = self._depth - 1
+            if not self._html or (node.tagName not in HTML_FORBIDDEN_END):
+                not (self._inText and inline) and self._tryIndent()
+                self.stream.write('</%s>' % node.tagName)
+        elif not self._html:
             self.stream.write('/>')
         elif node.tagName not in HTML_FORBIDDEN_END:
-            self.stream.write('></' + node.tagName + '>')
+            self.stream.write('></%s>' % node.tagName)
         else:
             self.stream.write('>')
         del self._namespaces[-1]
+        self._inText = 0
         return
 
     def visitText(self, node):
-        self.stream.write(TranslateCdata(node.data, self.encoding))
+        text = node.data
+        if self._indent:
+            text = string.strip(text) and text
+        if text:
+            if self._html:
+                text = TranslateHtmlCdata(text, self.encoding)
+            else:
+                text = TranslateCdata(text, self.encoding)
+            self.stream.write(text)
+            self._inText = 1
+        return
 
-    def visitDocumentType(self, node):
-        if node.systemId != '':
-            self.__emptyReturn = 0
-            self.stream.write("<!DOCTYPE " + node.name)
-            if node.publicId != '':
-                self.stream.write(' PUBLIC "' + node.publicId + '"')
-            self.stream.write(' SYSTEM "' + node.systemId + '" ')
-            if node.entities.length or node.notations.length:
-                self.stream.write('[')
-                self.visitNamedNodeMap(node.entities)
-                self.visitNamedNodeMap(node.notations)
-                self.stream.write(']')
+    def visitDocumentType(self, doctype):
+        self._tryIndent()
+        self.stream.write('<!DOCTYPE %s' % doctype.name)
+        if doctype.systemId and '"' in doctype.systemId:
+            system = "'%s'" % doctype.systemId
+        else:
+            system = '"%s"' % doctype.systemId
+        if doctype.publicId and '"' in doctype.publicId:
+            # We should probably throw an error
+            # Valid characters:  <space> | <newline> | <linefeed> |
+            #                    [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+            public = "'%s'" % doctype.publicId
+        else:
+            public = '"%s"' % doctype.publicId
+        if doctype.publicId and doctype.systemId:
+            self.stream.write(' PUBLIC %s %s' % (public, system))
+        elif doctype.systemId:
+            self.stream.write(' SYSTEM %s' % system)
+        if doctype.entities or doctype.notations:
+            self.stream.write(' [')
+            self._depth = self._depth + 1
+            self.visitNamedNodeMap(doctype.entities)
+            self.visitNamedNodeMap(doctype.notations)
+            self._depth = self._depth - 1
+            self._tryIndent()
+            self.stream.write(']>')
+        else:
             self.stream.write('>')
+        self._inText = 0
         return
 
     def visitEntity(self, node):
-        st = "<!ENTITY %s "%(node.nodeName)
-        if (node.publicId):
-            st = st + "PUBLIC %s "%(node.publicId)
-        if (node.systemId):
-            st = st + "SYSTEM %s "%(node.systemId)
-        if (node.notationName):
-            st = st + "NDATA %s "%(node.notationName)
-        self.stream.write(st + '>')
+        """Visited from a NamedNodeMap in DocumentType"""
+        self._tryIndent()
+        self.stream.write('<!ENTITY %s' % (node.nodeName))
+        node.publicId and self.stream.write(' PUBLIC %s' % node.publicId)
+        node.systemId and self.stream.write(' SYSTEM %s' % node.systemId)
+        node.notationName and self.stream.write(' NDATA %s' % node.notationName)
+        self.stream.write('>')
         return
 
     def visitNotation(self, node):
-        st = "<!NOTATION %s "%(node.nodeName)
-        if (node.publicId):
-            st = st + "PUBLIC %s "%(node.publicId)
-        if (node.systemId):
-            st = st + "SYSTEM %s "%(node.systemId)
-        self.stream.write(st + '>')
+        """Visited from a NamedNodeMap in DocumentType"""
+        self._tryIndent()
+        self.stream.write('<!NOTATION %s' % node.nodeName)
+        node.publicId and self.stream.write(' PUBLIC %s' % node.publicId)
+        node.systemId and self.stream.write(' SYSTEM %s' % node.systemId)
+        self.stream.write('>')
         return
 
     def visitCDATASection(self, node):
-        self.stream.write('<![CDATA[')
-        self.stream.write(node.data)
-        self.stream.write(']]>')
+        self._tryIndent()
+        self.stream.write('<![CDATA[%s]]>' % (node.data))
+        self._inText = 0
         return
 
     def visitComment(self, node):
-        self.stream.write('<!--')
-        self.stream.write(node.data)
-        self.stream.write('-->')
+        self._tryIndent()
+        self.stream.write('<!--%s-->' % (node.data))
+        self._inText = 0
         return
 
     def visitEntityReference(self, node):
-        self.stream.write('&')
-        self.stream.write(node.nodeName)
-        self.stream.write(';')
+        self.stream.write('&%s;' % node.nodeName)
+        self._inText = 1
         return
 
     def visitProcessingInstruction(self, node):
-        self.stream.write('<?')
-        self.stream.write(node.target + ' ')
-        self.stream.write(node.data)
-        self.stream.write('?>')
+        self._tryIndent()
+        self.stream.write('<?%s %s?>' % (node.target, node.data))
+        self._inText = 0
         return
-
-
-class PrettyPrintVisitor(PrintVisitor):
-    def __init__(self, stream, encoding, indent, width, plainElements, nsHints=None):
-        self.encoding = encoding
-        self._indent = indent
-        self._depth = 0
-        self._width = width
-        self._plainElements = plainElements
-        self._printPlain = 0
-        self._prevNodeIsText = 0
-        self._emptyReturn = 0
-        self._namespaces = [{}]
-        self._nsHints = nsHints or {}
-        self.stream = stream
-        return
-
-    def visitProlog(self):
-        PrintVisitor.visitProlog(self)
-        self.stream.write("\n")
-
-    def visitElement(self, node):
-        if self._printPlain:
-            PrintVisitor.visitElement(self, node)
-            return
-        self._namespaces.append(self._namespaces[-1].copy())
-        if node.tagName in self._plainElements:
-            #We don't want to insert whitespace into any flagged element
-            #FIXME: handle xml:preserve?
-            return self.visitPlainElement(node)
-        if self._prevNodeIsText or self._emptyReturn:
-            self._prevNodeIsText = 0
-            self._emptyReturn = 0
-            self.stream.write('<' + node.tagName)
-        else:
-            self.stream.write('\n' + self._indent*self._depth + '<' + node.tagName)
-        if not hasattr(node.ownerDocument,"isXml") or node.ownerDocument.isXml():
-            st = ''
-            nss = ext.GetAllNs(node)
-            if self._nsHints:
-                self._nsHints.update(nss)
-                nss = self._nsHints
-                self._nsHints = {}
-            del nss['xml']
-            for prefix in nss.keys():
-                if not self._namespaces[-1].has_key(prefix) or self._namespaces[-1][prefix] != nss[prefix]:
-                    if prefix:
-                        st = st + ' xmlns:' + prefix + "='" + nss[prefix] + "'"
-                    else:
-                        st = st + ' xmlns' + "='" + nss[prefix] + "'"
-                self._namespaces[-1][prefix] = nss[prefix]
-            self.stream.write(st)
-        self.visitNamedNodeMap(node.attributes)
-        #st = string.rstrip(st)
-        st = ''
-        if len(node.childNodes):
-            self.stream.write('>')
-            self._depth = self._depth + 1
-            self.visitNodeList(node.childNodes)
-            self._depth = self._depth - 1
-            if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml() or (node.tagName not in HTML_FORBIDDEN_END):
-                if self._prevNodeIsText:
-                    self._prevNodeIsText = 0
-                    self.stream.write('</' + node.tagName + '>')
-                else:
-                    self.stream.write('\n' + self._indent*self._depth + '</' + node.tagName + '>')
-        elif not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
-            self.stream.write('/>')
-        elif node.tagName not in HTML_FORBIDDEN_END:
-            self.stream.write('></' + node.tagName + '>')
-        else:
-            self.stream.write('>')
-        del self._namespaces[-1]
-        return
-
-    def visitPlainElement(self, node):
-        self._printPlain = 1
-        if self._prevNodeIsText or self._emptyReturn:
-            self._prevNodeIsText = 0
-            self._emptyReturn = 0
-            self.stream.write('<' + node.tagName + ' ')
-        else:
-            self.stream.write('\n' + self._indent*self._depth + '<' + node.tagName + ' ')
-        self.visitNamedNodeMap(node.attributes)
-        if len(node.childNodes):
-            self.stream.write('>')
-            self._depth = self._depth + 1
-            self.visitNodeList(node.childNodes)
-            self._depth = self._depth - 1
-            if self._prevNodeIsText:
-                self._prevNodeIsText = 0
-                self.stream.write('</' + node.tagName + '>')
-            else:
-                self.stream.write('\n' + self._depth*self._indent + '</' + node.tagName + '>')
-        elif not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
-            self.stream.write('/>')
-        elif node.tagName not in HTML_FORBIDDEN_END:
-            self.stream.write('></' + node.tagName + '>')
-        else:
-            self.stream.write('>')
-        self._printPlain = 0
-        return
-
-    def visitText(self, node):
-        self._prevNodeIsText = 1
-        return PrintVisitor.visitText(self, node)
-
-    def visitDocumentType(self, node):
-        self._emptyReturn = 1
-        return PrintVisitor.visitDocumentType(self, node)
-
 
 
 class PrintWalker(WalkerInterface):
@@ -413,4 +356,3 @@ class PrintWalker(WalkerInterface):
 
     def run(self):
         return self.step()
-

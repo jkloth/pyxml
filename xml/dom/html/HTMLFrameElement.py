@@ -70,7 +70,7 @@ class HTMLFrameElement(HTMLElement):
 
     def _set_noResize(self, value):
         if value:
-            self.setAttribute("NORESIZE", None)
+            self.setAttribute("NORESIZE", "NORESIZE")
         else:
             self.removeAttribute("NORESIZE")
 
