@@ -282,7 +282,8 @@ def SeekNss(node, nss=None):
                         nss[''] = attr.value
                     else:
                         nss[attr.localName] = attr.value
-            elif attr.namespaceURI:
-                nss[attr.prefix] = attr.namespaceURI
+                elif attr.namespaceURI:
+                    nss[attr.prefix] = attr.namespaceURI
             SeekNss(child, nss)
     return nss
+
