@@ -766,7 +766,7 @@ class DocumentType(Node):
         pass # XXX
 
     def toxml(self):
-        return '<!DOCTYPE %s XXX>\n' % (self._node.name,)
+        return '<!DOCTYPE %s>\n' % (self._node.name,)
         
 class Notation(Node):
     readonly = 1    # This is a read-only class
