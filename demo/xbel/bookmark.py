@@ -29,8 +29,8 @@ class Bookmarks:
 
     def add_bookmark(self,name=None,
                      added=None, visited=None, modified=None,
-                     href=None):
-        nb=Bookmark(name,added,visited,modified,href)
+                     href=None, desc = None):
+        nb=Bookmark(name,added,visited,modified,href, desc = desc)
 
         if self.folder_stack!=[]:
             self.folder_stack[-1].add_child(nb)
@@ -43,7 +43,7 @@ class Bookmarks:
         if self.folder_stack!=[]:
             self.folder_stack[-1].add_child(s)
         else:
-            self.folders.append(nb)
+            self.folders.append(s)
         return s
 
     def leave_folder(self):
@@ -125,12 +125,13 @@ class Bookmarks:
 
 class Node:
     def __init__(self, name, added=None,
-                 visited=None, modified=None, id=None):
+                 visited=None, modified=None, id=None, desc=None):
         self.title = name
         self.added = added
         self.visited = visited
         self.modified = modified
         self.id = id
+        self.desc = desc
 
     def update_ids(self, ids, aliases):
         if self.id:
@@ -148,8 +149,8 @@ class Node:
 class Folder(Node):
 
     def __init__(self, name, added = None, info = None, id=None,
-                 folded = 'yes', icon = None, toolbar = 'no'):
-        Node.__init__(self, name, added=added, id=None)
+                 folded = 'yes', icon = None, toolbar = 'no', desc=None):
+        Node.__init__(self, name, added=added, id=None,desc=desc)
         self.children=[]
         self.info = None
         self.folded = None
@@ -193,7 +194,9 @@ class Folder(Node):
         out.write("  <folder%s%s%s%s%s>\n" % (ID, added, folded, icon, toolbar))
         out.write("    <title>%s</title>\n" % esc_enc(self.title) )
         if self.info:
-            out.write("    <info>%s</info>" % encode(self.info))
+            out.write("    <info>%s</info>\n" % encode(self.info))
+        if self.desc:
+            out.write("    <desc>%s</desc>\n" % encode(self.desc))
         for child in self.children:
             child.dump_xbel(out)
         out.write("  </folder>\n")
@@ -227,6 +230,10 @@ class Folder(Node):
             added = ""
         out.write("  <DT><H3%s%s%s>%s</H3>\n" %
                   (folded,added,ID,encode(self.title)))
+        if self.desc:
+            out.write("  <DD>%s\n" %
+                      (encode(self.desc)))
+            
         out.write("  <DL><p>\n")
 
         for child in self.children:
@@ -250,8 +257,8 @@ class Folder(Node):
 class Bookmark(Node):
 
     def __init__(self, name, added=None, visited=None,
-                 modified=None, href=None, info=None, id = None):
-        Node.__init__(self,name,added,visited,modified, id=id)
+                 modified=None, href=None, info=None, id = None, desc = None):
+        Node.__init__(self,name,added,visited,modified, id=id, desc=desc)
         self.href = href
         self.info = info
 
@@ -279,7 +286,9 @@ class Bookmark(Node):
                   ( esc_enc(self.href), ID, added, visited, modified) )
         out.write("      <title>%s</title>\n" % esc_enc(self.title) )
         if self.info:
-            out.write("    <info>%s</info>" % encode(self.info))
+            out.write("    <info>%s</info>\n" % encode(self.info))
+        if self.desc:
+            out.write("    <desc>%s</desc>\n" % encode(self.desc))
         out.write("    </bookmark>\n")
 
     def dump_adr(self,out):
@@ -302,7 +311,8 @@ class Bookmark(Node):
         out.write("    <DT><A HREF=\"%s\"%s%s%s>%s</A>\n" %
                   (encode(self.href),added,visited,modified,
                    esc_enc(self.title)))
-
+        if self.desc:
+            out.write("    <DD>%s\n" %(encode(self.desc)))
     def dump_lynx(self, out):
         out.write("<LI><A HREF=\"%s\">%s</A>\n" % (self.href, self.title) )
 

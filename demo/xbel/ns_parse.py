@@ -26,6 +26,8 @@ class NetscapeHandler(handler.ContentHandler):
         self.href     = None
         self.visited  = None
         self.modified = None
+        self.latest   = None
+        self.desc = ""
 
     def startElement(self,name,attrs):
         name = string.lower( name )
@@ -68,6 +70,15 @@ class NetscapeHandler(handler.ContentHandler):
                 value = string.split(d['content'], "charset=")
                 if len(value) == 2:
                     the_parser.setProperty(handler.property_encoding, value[1])
+        elif name in ('dt','dl'):
+            if self.desc and not self.latest.desc:
+                self.latest.desc = self.desc
+            self.desc = ""
+            self.curr_elem = ''
+        elif name=='dd':
+            self.cur_elem = 'dd'
+            self.desc = ""
+
 
     def characters(self,data):
 ##        print 'char', self.cur_elem, data[start:start+length]
@@ -76,12 +87,15 @@ class NetscapeHandler(handler.ContentHandler):
             folder.id = self.id
             folder.folded = self.folded
             folder.added = self.added
+            self.latest = folder
         elif self.cur_elem=="a":
             self.bookmark = self.bookmark+data
         elif self.cur_elem=="title":
             self.bms.title = self.bms.title + data
         elif self.cur_elem=="h1":
             self.bms.desc = self.bms.desc + data
+        elif self.cur_elem=="dd":
+            self.desc = self.desc + data
 
     def skippedEntity(self, name):
         self.characters(htmlentitydefs.entitydefs[name])
@@ -90,18 +104,22 @@ class NetscapeHandler(handler.ContentHandler):
         name = string.lower( name )
 ##        print 'end', name
         if name=="a":
-            self.bms.add_bookmark(self.bookmark,
-                                  added = self.added,
-                                  visited = self.visited,
-                                  modified = self.modified,
-                                  href = self.url)
-        if name=="h3":
+            self.latest = self.bms.add_bookmark(self.bookmark,
+                                                added = self.added,
+                                                visited = self.visited,
+                                                modified = self.modified,
+                                                href = self.url)
+        elif name=="h3":
             self.cur_elem=None
         elif name=="dl":
             self.bms.leave_folder()
         elif name == self.cur_elem:
             self.cur_elem=None
-
+            
+    def endDocument(self):
+        if self.desc and not self.latest.desc:
+            self.latest.desc = self.desc
+        
 # --- Test-program
 
 if __name__ == '__main__':
