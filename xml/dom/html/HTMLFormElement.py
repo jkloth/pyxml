@@ -10,6 +10,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+import string
 from xml.dom import ext
 from xml.dom.Node import Node
 from xml.dom import implementation

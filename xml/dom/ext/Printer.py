@@ -32,7 +32,6 @@ g_charToEntity = {
         ']]>': ']]&gt;',
         }
 
-
 try:
     #The following stanza courtesy Martin von Loewis
     import codecs # Python 1.5 only
@@ -62,17 +61,17 @@ def TranslateCdataAttr(characters):
     '''Handles normalization and some intelligence about quoting'''
     if not characters:
         return '', "'"
-    apos_count = string.find(characters, "'")
-    quot_count = string.find(characters, '"')
-    if apos_count > quot_count:
+    if "'" in characters:
         delimiter = '"'
-        new_chars = string.replace(characters, '"', '&quot;')
+        new_chars = re.sub('"', '&quot;', characters)
     else:
         delimiter = "'"
-        new_chars = string.replace(characters, "'", '&apos;')
+        new_chars = re.sub("'", '&apos;', characters)
     #FIXME: There's more to normalization
     #Convert attribute new-lines to character entity
-    new_chars = re.sub('\n', '&#10;', new_chars)
+    # characters is possibly shorter than new_chars (no entities)
+    if "\n" in characters:
+        new_chars = re.sub('\n', '&#10;', new_chars)
     return new_chars, delimiter
 
 
@@ -81,11 +80,12 @@ def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0):
     if not characters:
         return ''
     if not markupSafe:
-        new_string, num_subst = re.subn(
-            g_cdataCharPattern,
-            lambda m, d=g_charToEntity: d[m.group()],
-            characters
-            )
+        if g_cdataCharPattern.search(characters):
+            new_string = g_cdataCharPattern.subn(
+                lambda m, d=g_charToEntity: d[m.group()],
+                characters)[0]
+        else:
+            new_string = characters
         if prev_chars[-2:] == ']]' and characters[0] == '>':
             new_string = '&gt;' + new_string[1:]
     else:
@@ -93,7 +93,10 @@ def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0):
     #Note: use decimal char entity rep because some browsers are broken
     #FIXME: This will bomb for high characters.  Should, for instance, detect
     #The UTF-8 for 0xFFFE and put out &#xFFFE;
-    new_string, num_subst = re.subn(XML_ILLEGAL_CHAR_PATTERN, lambda m: '&#%i;'%ord(m.group()), new_string)
+    if XML_ILLEGAL_CHAR_PATTERN.search(new_string):
+        new_string = XML_ILLEGAL_CHAR_PATTERN.subn(
+            lambda m: '&#%i;' % ord(m.group()),
+            new_string)[0]
     new_string = utf8_to_code(new_string, encoding)
     return new_string
 
@@ -173,7 +176,7 @@ class PrintVisitor(Visitor):
         return
 
     def visitProlog(self):
-        self.stream.write("<?xml version='1.0' encoding='%s'>" % (self.encoding or 'UTF-8'))
+        self.stream.write("<?xml version='1.0' encoding='%s'?>" % (self.encoding or 'UTF-8'))
 
     def visitDocument(self, node):
         if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():

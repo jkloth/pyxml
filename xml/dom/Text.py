@@ -49,32 +49,6 @@ class Text(CharacterData):
             p.insertBefore(n, ns)
         return n
 
-    ### Internal Methods ###
-
-    def _4dom_joinText(self,node1,node2):
-        #Create the new text node with Combined data
-        newChild = self.ownerDocument.createTextNode(node1.data + node2.data)
-
-        #Find where to add it 
-        p1 = node1.parentNode
-        p2 = node2.parentNode
-
-        #Try to put it on the tree
-        if (p1,p2) == (None,None):
-            #Nothing we can do
-            pass
-        elif p1 == None:
-            #We know p2 is good, put it on that tree
-            p2.replaceChild(newChild,node2)
-        elif p2 == None:
-            #We know p1 is good, go for that tree
-            p1.replaceChild(newChild,node1)
-        else:
-            #They are both good, go for p1
-            p2.removeChild(node2)
-            p1.replaceChild(newChild,node1)
-        return newChild
-
     ### Overridden Methods ###
 
     def __repr__(self):

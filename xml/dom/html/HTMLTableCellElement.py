@@ -86,7 +86,7 @@ class HTMLTableCellElement(HTMLElement):
         self.setAttribute('HEIGHT',height)
 
     def _get_noWrap(self):
-        return self.hasAttributeNode('NOWRAP')
+        return self.hasAttribute('NOWRAP')
 
     def _set_noWrap(self,nowrap):
         if nowrap:

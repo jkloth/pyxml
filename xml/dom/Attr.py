@@ -16,7 +16,7 @@ import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 Node = implementation._4dom_fileImport('Node').Node
-
+MutationEvent = implementation._4dom_fileImport('Event').MutationEvent
 
 class Attr(Node):
     nodeType = Node.ATTRIBUTE_NODE
@@ -45,12 +45,26 @@ class Attr(Node):
         return str
 
     def _set_value(self, value):
-        if value is not None:
-            nl = [self.ownerDocument.createTextNode(value)]
-        else:
-            nl = []
-        self.__dict__['__childNodes'] = implementation._4dom_createNodeList(nl)
-        return
+        owner = self.__dict__['__ownerElement']
+        old_value = self.value
+        if value != old_value:
+            if value is not None:
+                nl = [self.ownerDocument.createTextNode(value)]
+            else:
+                nl = []
+                attrChange = MutationEvent.REMOVAL
+
+            self.__dict__['__childNodes'] = implementation._4dom_createNodeList(nl)
+
+            if owner:
+                owner._4dom_fireMutationEvent('DOMAttrModified',
+                                              relatedNode=self,
+                                              prevValue=old_value,
+                                              newValue=value,
+                                              attrName=self.name,
+                                              attrChange=MutationEvent.MODIFICATION)
+                owner._4dom_fireMutationEvent('DOMSubtreeModified')
+
 
     def _get_ownerElement(self):
         return self.__dict__['__ownerElement']

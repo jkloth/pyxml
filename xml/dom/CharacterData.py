@@ -21,6 +21,12 @@ DOMException = dom.DOMException
 INDEX_SIZE_ERR = dom.INDEX_SIZE_ERR
 SYNTAX_ERR = dom.SYNTAX_ERR
 
+import types
+try:
+    g_stringTypes= [types.StringType, types.UnicodeType]
+except:
+    g_stringTypes= [types.StringType]
+
 class CharacterData(Node):
     def __init__(self, ownerDocument, data):
         Node.__init__(self, ownerDocument, '', '', '')
@@ -33,10 +39,14 @@ class CharacterData(Node):
         return self.__dict__['__nodeValue']
 
     def _set_data(self, data):
-        if data != None and type(data) != type(''):
+        if data != None and type(data) not in g_stringTypes:
             raise DOMException(SYNTAX_ERR)
+        old_value = self.__dict__['__nodeValue']
         self.__dict__['__nodeValue'] = data
         self.__dict__['__length'] = len(data)
+        self._4dom_fireMutationEvent('DOMCharacterDataModified',
+                                     prevValue=old_value,
+                                     newValue=data)        
 
     def _get_length(self):
         return self.__dict__['__length']
@@ -49,30 +59,45 @@ class CharacterData(Node):
         return self.data[int(offset):int(offset+count)]
 
     def appendData(self, arg):
-        if type(arg) != type(''):
+        if type(arg) not in g_stringTypes:
             raise DOMException(SYNTAX_ERR)
+        old_value = self.__dict__['__nodeValue']
         self._set_data(self.data + arg)
+        self._4dom_fireMutationEvent('DOMCharacterDataModified',
+                                     prevValue=old_value,
+                                     newValue=self.__dict__['__nodeValue'])
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return
         
     def insertData(self, offset, arg):
-        if type(arg) != type(''):
+        if type(arg) not in g_stringTypes:
             raise DOMException(SYNTAX_ERR)
         if offset < 0 or offset >= self.__dict__['__length']:
             raise DOMException(INDEX_SIZE_ERR)
         st = self.__dict__['__nodeValue']
+        old_value = st
         st = st[:int(offset)] + arg + st[int(offset):]
         self._set_data(st)
+        self._4dom_fireMutationEvent('DOMCharacterDataModified',
+                                     prevValue=old_value,
+                                     newValue=st)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return
 
     def deleteData(self, offset, count):
         if count < 0 or offset < 0 or offset >= self.__dict__['__length']:
             raise DOMException(INDEX_SIZE_ERR);
+        old_value = self.__dict__['__nodeValue']
         st = self.data[:int(offset)] + self.data[int(offset+count):]
         self._set_data(st);
+        self._4dom_fireMutationEvent('DOMCharacterDataModified',
+                                     prevValue=old_value,
+                                     newValue=st)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return
 
     def replaceData(self, offset, count, arg):  
-        if type(arg) != type(''):
+        if type(arg) not in g_stringTypes:
             raise DOMException(SYNTAX_ERR)
         #Really a delete, then an insert
         self.deleteData(offset, count)

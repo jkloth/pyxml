@@ -125,20 +125,29 @@ from xml.dom.html import HTMLDOMImplementation
 htmlImplementation = HTMLDOMImplementation.HTMLDOMImplementation()
 
 try:
-    # if the wstring module is found, use it
-    from xml.unicode.iso8859 import wstring
-    wstring.install_alias('ISO-8859-1','ISO_8859-1:1987')
+    #The following stanza courtesy Martin von Loewis
+    import codecs # Python 1.5 only
+    from types import UnicodeType
+    def utf8_to_code(text, encoding):
+        encoder = codecs.lookup(encoding)[0] # encode,decode,reader,writer
+        if type(text) is not UnicodeType:
+            text = unicode(text, "utf-8")
+        return encoder(text)[0] # result,size
 except ImportError:
-    # otherwise, try 1.6/2.0 Unicode code
-    class _wstring:
-        def from_utf(self,str):
-            return unicode(self,"utf-8")
-        try:
-            # If it is 1.5.2, delay errors until non-UTF-8 output is used
-            ConvertError = UnicodeError
-        except NameError:
-            ConvertError = "not supported"
-    wstring=_wstring()
+    def utf8_to_code(text, encoding):
+        encoding = string.upper(encoding)
+        if encoding == 'UTF-8':
+            return text
+        from xml.unicode.iso8859 import wstring
+        wstring.install_alias('ISO-8859-1', 'ISO_8859-1:1987')
+        #Note: Pass through to wstrop.  This means we don't play nice and
+        #Escape characters that are not in the target encoding.
+        ws = wstring.from_utf8(text)
+        text = ws.encode(encoding)
+        #This version would skip all untranslatable chars: see wstrop.c
+        #text = ws.encode(encoding, 1)
+        return text
+
 
 import re, string
 g_xmlIllegalCharPattern = re.compile('[\x01-\x08\x0B-\x0D\x0E-\x1F\x80-\xFF]')
@@ -173,15 +182,7 @@ def TranslateHtmlCdata(characters, encoding='UTF-8', prev_chars=''):
         new_string = '&gt;' + new_string[1:]
     new_string, num_subst = re.subn(g_utf8TwoBytePattern, ConvertChar,
                                     new_string)
-    encoding = string.upper(encoding)
-    if encoding == 'UTF-8':
-        pass
-    else:
-        try: 
-            ws = wstring.from_utf8(new_string)
-            new_string = ws.encode(encoding)
-        except wstring.ConvertError:
-            raise Exception('Unsupported output encoding')
+    new_string = utf8_to_code(new_string, encoding)
     #Note: use decimal char entity rep because some browsers are broken
     new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#%i;'%ord(m.group()), new_string)
     return new_string

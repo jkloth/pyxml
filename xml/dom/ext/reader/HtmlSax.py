@@ -28,46 +28,46 @@ class HtmlDomGenerator:
         as owner and also add all elements to this document
         """
         if doc == None:
-            self.__ownerDoc = implementation.createHTMLDocument('')
-            de = self.__ownerDoc.documentElement
-            self.__ownerDoc.removeChild(de)
+            self._ownerDoc = implementation.createHTMLDocument('')
+            de = self._ownerDoc.documentElement
+            self._ownerDoc.removeChild(de)
             xml.dom.ext.ReleaseNode(de)
-            self.__rootNode = self.__ownerDoc
+            self._rootNode = self._ownerDoc
         else:
-            self.__ownerDoc = doc
+            self._ownerDoc = doc
             #Create a docfrag to hold all the generated nodes.
-            self.__rootNode = self.__ownerDoc.createDocumentFragment()
+            self._rootNode = self._ownerDoc.createDocumentFragment()
 
         #Set up the stack which keeps track of the nesting of DOM nodes.
-        self.__nodeStack = []
-        self.__nodeStack.append(self.__rootNode)
-        self.__keepAllWs = keepAllWs
-        self.__currText = ''
+        self._nodeStack = []
+        self._nodeStack.append(self._rootNode)
+        self._keepAllWs = keepAllWs
+        self._currText = ''
 
     def getRootNode(self):
-        self.__completeTextNode()
-        return self.__rootNode
+        self._completeTextNode()
+        return self._rootNode
 
-    def __completeTextNode(self):
-        if self.__currText:
-            new_text = self.__ownerDoc.createTextNode(self.__currText)
-            self.__nodeStack[-1].appendChild(new_text)
-            self.__currText = ''
+    def _completeTextNode(self):
+        if self._currText:
+            new_text = self._ownerDoc.createTextNode(self._currText)
+            self._nodeStack[-1].appendChild(new_text)
+            self._currText = ''
 
     #Overridden DocumentHandler methods
     def startElement(self, name, attribs):
-        self.__completeTextNode()
-        new_element = self.__ownerDoc.createElement(name)
+        self._completeTextNode()
+        new_element = self._ownerDoc.createElement(name)
 
         for curr_attrib_key in attribs.keys():
             new_element.setAttribute(curr_attrib_key, attribs[curr_attrib_key])
-        self.__nodeStack.append(new_element)
+        self._nodeStack.append(new_element)
 
     def endElement(self, name):
-        self.__completeTextNode()
-        new_element = self.__nodeStack[-1]
-        del self.__nodeStack[-1]
-        self.__nodeStack[-1].appendChild(new_element)
+        self._completeTextNode()
+        new_element = self._nodeStack[-1]
+        del self._nodeStack[-1]
+        self._nodeStack[-1].appendChild(new_element)
 
     def ignorableWhitespace(self, ch, start, length):
         """
@@ -76,11 +76,11 @@ class HtmlDomGenerator:
         If the white-space occurs outside the root element, there is no place
         for it in the DOM and it must be discarded.
         """
-        if self.__keepAllWs and self.__nodeStack[-1].nodeType !=  Node.DOCUMENT_NODE:
-            self.__currText = self.__currText + ch[start:start+length]
+        if self._keepAllWs and self._nodeStack[-1].nodeType !=  Node.DOCUMENT_NODE:
+            self._currText = self._currText + ch[start:start+length]
 
     def characters(self, ch, start, length):
-        self.__currText = self.__currText + ch[start:start+length]
+        self._currText = self._currText + ch[start:start+length]
 
 
     #Overridden ErrorHandler methods

@@ -63,7 +63,7 @@ class HTMLTableSectionElement(HTMLElement):
 
     def insertRow(self,index):
         rows = self._get_rows()
-        if index < 0 or index >= len(rows):
+        if index < 0 or index > len(rows):
             raise DOMException(INDEX_SIZE_ERR)
         rows = self._get_rows()
         newRow = self.ownerDocument.createElement('TR')

@@ -40,15 +40,16 @@ class HTMLSelectElement(HTMLElement):
         if index < 0 or index >= len(options):
             raise DOMException(INDEX_SIZE_ERR)
 
-        for ctr in range(hc.length):
-            node = hc.item(ctr)
+        for ctr in range(len(options)):
+            node = options.item(ctr)
             if ctr == index:
                 node._set_selected(1)
             else:
                 node._set_selected(0)
 
     def _get_value(self):
-        node = self._get_options.item(self._get_selected())
+        options = self._get_options()
+        node = options.item(self._get_selectedIndex())
         if node.hasAttribute('VALUE'):
             value = node.getAttribute('VALUE')
         elif node.firstChild:

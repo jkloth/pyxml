@@ -54,6 +54,11 @@ class HTMLElement(Element):
     def _set_className(self,className):
         self.setAttribute('CLASSNAME',className)
 
+    ### Overridden Methods ###
+
+    def _4dom_validateString(self, value):
+        return value
+
     ### Helper Functions For Cloning ###
 
     def __getinitargs__(self):

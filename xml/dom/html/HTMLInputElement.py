@@ -49,7 +49,7 @@ class HTMLInputElement(HTMLElement):
 
     def _get_checked(self):
         if self._get_type() in ['Radio', 'Checkbox']:
-            return self.hasAttributeNode('CHECKED')
+            return self.hasAttribute('CHECKED')
         else:
             raise DOMException(INVALID_ACCESS_ERR)
 
@@ -75,7 +75,7 @@ class HTMLInputElement(HTMLElement):
         self._set_value(value)
 
     def _get_disabled(self):
-        return self.hasAttributeNode('DISABLED')
+        return self.hasAttribute('DISABLED')
 
     def _set_disabled(self,disabled):
         if disabled:
@@ -121,7 +121,8 @@ class HTMLInputElement(HTMLElement):
                 self.setAttribute('READONLY', None)
             else:
                 self.removeAttribute('READONLY')
-        raise DOMException(INVALID_ACCESS_ERR)
+        else:
+            raise DOMException(INVALID_ACCESS_ERR)
 
     def _get_size(self):
         return self.getAttribute('SIZE')
@@ -151,7 +152,7 @@ class HTMLInputElement(HTMLElement):
         self.setAttribute('TABINDEX',str(tabIndex))
 
     def _get_type(self):
-        return string.capitalized(self.getAttribute('TYPE'))
+        return string.capitalize(self.getAttribute('TYPE'))
 
     def _get_useMap(self):
         return self.getAttribute('USEMAP')

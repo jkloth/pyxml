@@ -63,7 +63,7 @@ class HTMLDocument(Document):
         return body
 
     def _set_body(self, newBody):
-        targetName = body.tagName
+        targetName = newBody.tagName
         if not targetName in ['BODY','FRAMESET']:
             targetName = 'BODY'
         oldBody = self.getElementsByTagName(targetName)
@@ -105,7 +105,8 @@ class HTMLDocument(Document):
         elements = self.getElementsByTagName('TITLE')
         if elements:
             #Take the first
-            title = elements[0].normalize()
+            title = elements[0]
+            title.normalize()
             #Get first text node
             text = filter(lambda x: x.nodeType == Node.TEXT_NODE, title.childNodes)
             title = text[0].data
@@ -115,14 +116,16 @@ class HTMLDocument(Document):
         # See if we can find the title
         title_nodes = self.getElementsByTagName('TITLE')
         if title_nodes:
-            # We will replace the title node data with the new title
-            title_nodes[0].data = title
+            title_node = title_nodes[0]
+            title_node.normalize()
+            if title_node.firstChild:
+                title_node.firstChild.data = title
+                return 
         else:
-            text = self.createTextNode(title)
             title_node = self.createElement('TITLE')
-            title_node.appendChild(text)
-            #Try and find the HEAD node
             self._4dom_getHead().appendChild(title_node)
+        text = self.createTextNode(title)
+        title_node.appendChild(text)
 
     ### Methods ###
 

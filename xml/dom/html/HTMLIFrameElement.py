@@ -89,10 +89,10 @@ class HTMLIFrameElement(HTMLElement):
     def _set_src(self, value):
         self.setAttribute("SRC", value)
 
-    def _get_Width(self):
+    def _get_width(self):
         return self.getAttribute("WIDTH")
 
-    def _set_Width(self, value):
+    def _set_width(self, value):
         self.setAttribute("WIDTH", value)
 
     ### Attribute Access Mappings ###
@@ -109,7 +109,7 @@ class HTMLIFrameElement(HTMLElement):
         "name" : _get_name,
         "scrolling" : _get_scrolling,
         "src" : _get_src,
-        "Width" : _get_Width
+        "Width" : _get_width
         })
 
     _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
@@ -123,7 +123,7 @@ class HTMLIFrameElement(HTMLElement):
         "name" : _set_name,
         "scrolling" : _set_scrolling,
         "src" : _set_src,
-        "Width" : _set_Width
+        "Width" : _set_width
         })
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

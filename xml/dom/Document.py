@@ -21,6 +21,7 @@ dom = implementation._4dom_fileImport('')
 
 Node = implementation._4dom_fileImport('Node').Node
 Text = implementation._4dom_fileImport('Text')
+Event = implementation._4dom_fileImport('Event')
 SplitQName = implementation._4dom_fileImport('ext').SplitQName
 
 DOMException = dom.DOMException
@@ -248,6 +249,9 @@ class Document(Node):
     def _4dom_addSingle(self, node):
         '''Make sure only one Element node is added to a Document'''
         if node.nodeType == Node.ELEMENT_NODE:
+            self._4dom_validateNode(node)
+            if node.parentNode != None:
+                node.parentNode.removeChild(node)
             if self.__dict__['__documentElement']:
                 raise DOMException(HIERARCHY_REQUEST_ERR)
             self.__dict__['__documentElement'] = node
@@ -261,14 +265,14 @@ class Document(Node):
         return Node.insertBefore(self, newChild, oldChild)
 
     def replaceChild(self, newChild, oldChild):
-        if newChild.nodeType == Node.ELEMENT_NODE \
-        and oldChild.nodeType != Node.ELEMENT_NODE \
-        and self.__dict__['__documentElement']:
-            raise DOMException(HIERARCHY_REQUEST_ERR)
+        if newChild.nodeType != Node.DOCUMENT_FRAGMENT_NODE:
+            root = self.__dict__['__documentElement']
+            if root in [oldChild, newChild]:
+                self.__dict__['__documentElement'] = None
+            else:
+                raise DOMException(HIERARCHY_REQUEST_ERR)
         replaced = Node.replaceChild(self, newChild, oldChild)
-        if self.documentElement == replaced:
-            if newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
-                newChild = newChild.firstChild
+        if newChild.nodeType == Node.ELEMENT_NODE:
             self.__dict__['__documentElement'] = newChild
         return replaced
 
@@ -281,8 +285,7 @@ class Document(Node):
         return node
 
     #DocumentEvent interface
-    import Event
-    def createEvent(eventType):
+    def createEvent(self,eventType):
         if eventType in Event.supportedEvents:
             #Only mutation events are supported
             return Event.MutationEvent(eventType)

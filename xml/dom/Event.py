@@ -36,13 +36,20 @@ class EventTarget:
     """
     def __init__(self):
         self.listeners = {}
+        self.capture_listeners = {}
         for etype in supportedEvents:
             self.listeners[etype] = []
+            self.capture_listeners[etype] = []
         return
 
     def addEventListener(self, etype, listener, useCapture):
-        if listener not in listeners[etype]:
-            self.listeners[etype].append(listener)
+        if useCapture:
+            if listener not in self.capture_listeners[etype]:
+                self.capture_listeners[etype].append(listener)
+        else:
+            if listener not in self.listeners[etype]:
+                self.listeners[etype].append(listener)
+            
         return
 
     def removeEventListener(self, etype, listener, useCapture):
@@ -50,11 +57,10 @@ class EventTarget:
         return
 
     def dispatchEvent(self, evt):
-        #No bubbling or capturing yet
-        for listener in self.listeners[evt.type]:
-            listener.handleEvent(evt)
-        return evt._4dom_preventDefaultCalled
-
+        # The actual work is done in the implementing class
+        # since EventTarget has no idea of the DOM hierarchy
+        pass
+        
 
 class EventListener:
     def __init__(self):
@@ -69,14 +75,16 @@ class Event:
     AT_TARGET = 2
     BUBBLING_PHASE = 3
 
-    def __init__(self, target=None, currNode=None):
-        self.target = target
-        self.currentNode = currNode
+    def __init__(self, eventType):
+        self.target = None
+        self.currentTarget = None
         self.eventPhase = Event.CAPTURING_PHASE
+        self.type = eventType
+        self.timeStamp = 0
         return
 
     def stopPropagation(self):
-        pass
+        self._4dom_propagate = 0
 
     def preventDefault(self):
         self._4dom_preventDefaultCalled = 1
@@ -86,11 +94,15 @@ class Event:
         self.bubbles = canBubbleArg
         self.cancelable = cancelableArg
         self._4dom_preventDefaultCalled = 0
+        self._4dom_propagate = 1
         return
 
 
 class MutationEvent(Event):
     #Whether or not the event bubbles
+    MODIFICATION = 1
+    ADDITION = 2
+    REMOVAL = 3
     eventSpec = {
         "DOMSubtreeModified": 1,
         "DOMNodeInserted": 1,
@@ -101,16 +113,16 @@ class MutationEvent(Event):
         "DOMCharacterDataModified": 1
         }
 
-    def __init__(self, target=None, currNode=None):
-        Event.__init__(self)
+    def __init__(self, eventType):
+        Event.__init__(self,eventType)
         return
 
-    def initMutationEvent(self, typeArg, canBubbleArg, cancelableArg, relatedNodeArg, prevValueArg, newValueArg, attrNameArg):
-        Event.initEvent(eventTypeArg, canBubbleArg, cancelableArg)
-        self.relatedNode = relatedNode
+    def initMutationEvent(self, eventTypeArg, canBubbleArg, cancelableArg,
+                          relatedNodeArg, prevValueArg, newValueArg, attrNameArg):
+        Event.initEvent(self,eventTypeArg, canBubbleArg, cancelableArg)
+        # FIXME : make these attributes readonly
         self.relatedNode = relatedNodeArg
         self.prevValue = prevValueArg
-        self.nextValue = nextValueArg
         self.newValue = newValueArg
         self.attrName = attrNameArg
         #No mutation events are cancelable

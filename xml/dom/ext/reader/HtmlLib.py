@@ -90,47 +90,61 @@ class HtmlToDomParser(SGMLParser):
         return self.stack[0]
 
 
+class Reader:
+    def __init__(self):
+        return
+
+    def fromStream(self, stream, ownerDocument=None):
+        p = HtmlToDomParser()
+        d = p.toDom(stream.read(), ownerDocument)
+
+        #d is a DF
+        #if ownerDocument != None or DF.childNodes() has a HTML tag put it in a document
+        toDoc = None
+        if ownerDocument != None:
+            toDoc = ownerDocument
+        else:
+            children = d.childNodes
+            for child in children:
+                if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
+                    toDoc = p.ownerDoc
+                    break
+        if toDoc:
+            #Convert to a document
+            for child in d.childNodes:
+                if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
+                    newNode = toDoc.importNode(child, 1)
+                    toDoc.replaceChild(newNode, toDoc.documentElement)
+                elif child.nodeType != Node.TEXT_NODE:
+                    toDoc.appendChild(child)
+            d = toDoc
+        return d
+
+
+########################## Deprecated ##############################
+
 def FromHtmlStream(fp, ownerDocument=None):
-    return FromHtml(fp.read(), ownerDocument)
+    return Reader().fromStream(fp, ownerDocument)
 
 
 def FromHtmlFile(fileName, ownerDocument=None):
     f = open(fileName,'r')
-    rv = FromHtmlStream(f,ownerDocument)
+    r = Reader().fromStream(f, ownerDocument)
     f.close()
-    return rv
+    return r
 
 
 def FromHtmlUrl(url, ownerDocument=None):
     f = urllib.urlopen(url)
-    rv = FromHtmlStream(f,ownerDocument)
+    r = Reader().fromStream(f, ownerDocument)
     f.close()
-    return rv
+    return f
 
 
-def FromHtml(str, ownerDocument=None):
-    p = HtmlToDomParser()
-    d = p.toDom(str,ownerDocument)
-
-    #d is a DF
-    #if ownerDocument != None or DF.childNodes() has a HTML tag put it in a document
-    toDoc = None
-    if ownerDocument != None:
-        toDoc = ownerDocument
-    else:
-        children = d.childNodes
-        for child in children:
-            if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
-                toDoc = p.ownerDoc
-                break
-    if toDoc:
-        #Convert to a document
-        for child in d.childNodes:
-            if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
-                newNode = toDoc.importNode(child, 1)
-                toDoc.replaceChild(newNode, toDoc.documentElement)
-            elif child.nodeType != Node.TEXT_NODE:
-                toDoc.appendChild(child)
-        d = toDoc
-    return d
+def FromHtml(text, ownerDocument=None):
+    import cStringIO
+    stream = cStringIO.StringIO(text)
+    r = Reader().fromStream(stream, ownerDocument)
+    stream.close
+    return r
 

@@ -15,6 +15,7 @@ from xml.dom.html.HTMLElement import HTMLElement
 from xml.dom import DOMException
 from xml.dom import INDEX_SIZE_ERR
 from xml.dom import implementation
+from xml.dom.NodeFilter import NodeFilter
 import string
 
 class HTMLTableElement(HTMLElement):
@@ -56,12 +57,7 @@ class HTMLTableElement(HTMLElement):
         if len(nl):
             self.replaceChild(capt, nl[0])
         else:
-            #The caption should be first
-            first = self.firstChild
-            if not first:
-                self.insertBefore(capt, first)
-            else:
-                self.appendChild(capt)
+            self.insertBefore(capt, self.firstChild)
 
     def _get_cellPadding(self):
         return self.getAttribute('CELLPADDING')
@@ -85,17 +81,12 @@ class HTMLTableElement(HTMLElement):
         rows = []
         tHead = self._get_tHead()
         if tHead:
-            hc = tHead._get_rows()
-            rows = rows + hc
-        tBodies = self._get_tBodies()
-        for tb in tBodies:
-            hc = tb._get_rows()
-            rows = rows + hc
+            rows.extend(list(tHead._get_rows()))
         tFoot = self._get_tFoot()
         if tFoot:
-            hc  = tFoot._get_rows()
-            for row in hc:
-                rows.append(row)
+            rows.extend(list(tFoot._get_rows()))
+        for tb in self._get_tBodies():
+            rows.extend(list(tb._get_rows()))
         return implementation._4dom_createHTMLCollection(rows)
 
     def _get_rules(self):
@@ -112,38 +103,40 @@ class HTMLTableElement(HTMLElement):
 
     def _get_tBodies(self):
         bodies = []
-        children = self.childNodes
-        for child in children:
-            if child.tagName == 'TBODY':
+        for child in self.childNodes:
+            if child.nodeName == 'TBODY':
                 bodies.append(child)
         return implementation._4dom_createHTMLCollection(bodies)
 
     def _get_tFoot(self):
-        children = self.childNodes
-        for child in children:
-            if child.tagName == 'TFOOT':
+        for child in self.childNodes:
+            if child.nodeName == 'TFOOT':
                 return child
         return None
 
     def _set_tFoot(self, newFooter):
         oldFooter = self._get_tFoot()
-        if not footer:
+        if not oldFooter:
             # TFoot goes after THead
+            iter = self.ownerDocument.createNodeIterator(self.firstChild,
+                                                         NodeFilter.SHOW_ELEMENT,
+                                                         None, 0)
             ref = None
-            child = self.firstChild
-            while not ref and child:
-                if child.tagName == 'THEAD':
-                    ref = child.nextSibling
-                elif child.tagName == 'TBODY':
-                    ref = child
-                child = child.nextSibling
+            node = iter.nextNode()
+            while not ref and node:
+                tagName = node.tagName
+                if tagName == 'THEAD':
+                    ref = iter.nextNode()
+                elif tagName == 'TBODY':
+                    ref = node
+                node = iter.nextNode()
             self.insertBefore(newFooter, ref)
         else:
             self.replaceChild(newFooter, oldFooter)
 
     def _get_tHead(self):
         for child in self.childNodes:
-            if child.tagName == 'THEAD':
+            if child.nodeName == 'THEAD':
                 return child
         return None
 
@@ -154,21 +147,25 @@ class HTMLTableElement(HTMLElement):
         else:
             # We need to put the new Thead in the correct spot
             # Look for a TFOOT or a TBODY
+            iter = self.ownerDocument.createNodeIterator(self.firstChild,
+                                                         NodeFilter.SHOW_ELEMENT,
+                                                         None, 0)
             ref = None
-            child = self.firstChild
-            while not ref and child:
-                if child.tagName == 'TFOOT':
-                    ref = child
-                elif child.tagName == 'TBODY':
-                    ref = child
-                elif child.tagName in ['COL','COLGROUP']:
-                    name = child.tagName
-                    child = child.nextSibling
-                    while child.tagName == name:
-                        child = child.nextSibling
-                    ref = child
-                elif child.tagName == 'CAPTION':
-                    ref = child.nextSibling
+            node = iter.nextNode()
+            while not ref and node:
+                tagName = node.tagName
+                if tagName == 'TFOOT':
+                    ref = node
+                elif tagName == 'TBODY':
+                    ref = node
+                elif tagName in ['COL','COLGROUP']:
+                    node = iter.nextNode()
+                    while node.tagName == tagName:
+                        node = iter.nextNode()
+                    ref = node
+                elif tagName == 'CAPTION':
+                    ref = iter.nextNode()
+                node = iter.nextNode()
             self.insertBefore(newHead, ref)
 
     def _get_width(self):

@@ -22,12 +22,11 @@ class ProcessingInstruction(Node):
 
     def __init__(self,ownerDocument,target,data):
         Node.__init__(self,ownerDocument,'','','')
-        self.__dict__['__nodeName'] = '#processing-instruction'
-        self.__dict__['__target'] = target
+        self.__dict__['__nodeName'] = target
         self.__dict__['__nodeValue'] = data
 
     def _get_target(self):
-        return self.__dict__['__target']
+        return self.__dict__['__nodeName']
 
     def _get_data(self):
         return self.__dict__['__nodeValue']

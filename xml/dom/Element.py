@@ -18,6 +18,7 @@ dom = implementation._4dom_fileImport('')
 Node = implementation._4dom_fileImport('Node').Node
 
 ext = implementation._4dom_fileImport('ext')
+Event = implementation._4dom_fileImport('Event')
 INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
 WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
 NAMESPACE_ERR = dom.NAMESPACE_ERR
@@ -62,12 +63,15 @@ class Element(Node):
         return att.value
 
     def setAttribute(self, name, value):
-        ownerDoc = self.ownerDocument
-        #Blindly use it
-        #Will raise the INVALID_CHARACTER_ERR if needed
-        att = ownerDoc.createAttribute(name)
-        att.value=value
-        self.setAttributeNode(att)
+        if self.hasAttribute(name):
+            att = self.getAttributeNode(name)
+            att.value = value
+        else:
+            attrChange = Event.MutationEvent.ADDITION
+            att = self.ownerDocument.createAttribute(name)
+            att.value = self._4dom_validateString(value)
+            self.setAttributeNode(att)
+        # the mutation event is fired in Attr.py
 
     def removeAttribute(self, name):
         try:
@@ -77,6 +81,11 @@ class Element(Node):
                 raise err
             return
         old._4dom_setOwnerElement(None)
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=self.getAttributeNode(name),
+                                     attrName=name,
+                                     attrChange=Event.MutationEvent.REMOVAL)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
 
     def getAttributeNode(self, name):
         return self.attributes.getNamedItem(name)
@@ -89,20 +98,46 @@ class Element(Node):
                 raise DOMException(WRONG_DOCUMENT_ERR)
         if node.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
+
+        old_att = None
+        if self.hasAttribute(node.name):
+            attrChange = Event.MutationEvent.REMOVAL
+            old_att = self.getAttributeNode(node.name)
+
         rt = self.attributes.setNamedItem(node)
+        
         node._4dom_setOwnerElement(self)
+        if old_att:
+            self._4dom_fireMutationEvent('DOMAttrModified',
+                                         relatedNode=old_att,
+                                         prevValue=old_att.value,
+                                         attrName=old_att.name,
+                                         attrChange=Event.MutationEvent.REMOVAL)
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=node,
+                                     newValue=node.value,
+                                     attrName=node.name,
+                                     attrChange=Event.MutationEvent.ADDITION)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return rt
 
     def removeAttributeNode(self, node):
         old = self.getAttributeNode(node.name)
         if old != None:
             self.removeAttribute(node.name)
+            name = node.name
         else:
             old = self.getAttributeNodeNS(node.namespaceURI, node.localName)
             if old != None:
                 self.removeAttributeNS(node.namespaceURI, node.localName)
+                name = node.localName
             else:
                 raise DOMException(NOT_FOUND_ERR)
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=node,
+                                     attrName=name,
+                                     attrChange=Event.MutationEvent.REMOVAL)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return old
 
     def getElementsByTagName(self,tagName):
@@ -126,11 +161,15 @@ class Element(Node):
         return ''
 
     def setAttributeNS(self, namespaceURI, qualifiedName, value):
-        if not g_namePattern.match(qualifiedName):
-            raise DOMException(INVALID_CHARACTER_ERR)
-        att = self.ownerDocument.createAttributeNS(namespaceURI, qualifiedName)
-        att.nodeValue = value
-        self.setAttributeNodeNS(att)
+        if self.hasAttributeNS(namespaceURI, qualifiedName):
+            att = self.getAttributeNodeNS(namespaceURI, qualifiedName)
+            att.value = value
+        else:
+            if not g_namePattern.match(qualifiedName):
+                raise DOMException(INVALID_CHARACTER_ERR)
+            att = self.ownerDocument.createAttributeNS(namespaceURI, qualifiedName)
+            att.value = value
+            self.setAttributeNodeNS(att)
         return
 
     def removeAttributeNS(self, namespaceURI, localName):
@@ -140,6 +179,11 @@ class Element(Node):
                 old._4dom_setOwnerElement(None)
         except DOMException, e:
             pass
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=self.getAttributeNodeNS(namespaceURI,localName),
+                                     attrName=localName,
+                                     attrChange=Event.MutationEvent.REMOVAL)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return None
 
     def getAttributeNodeNS(self, namespaceURI, localName):
@@ -152,8 +196,27 @@ class Element(Node):
             raise DOMException(WRONG_DOCUMENT_ERR)
         if node.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
+
+        old_att = None
+        if self.hasAttribute(node.name):
+            attrChange = Event.MutationEvent.REMOVAL
+            old_att = self.getAttributeNode(name)
+            old_value = att.value
+            
         rt = self.attributes.setNamedItemNS(node)
         node._4dom_setOwnerElement(self)
+        if old_att:
+            self._4dom_fireMutationEvent('DOMAttrModified',
+                                         relatedNode=old_att,
+                                         prevValue=old_value,
+                                         attrName=node.name,
+                                         attrChange=Event.MutationEvent.REMOVAL)
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=node,
+                                     newValue=node.value,
+                                     attrName=node.name,
+                                     attrChange=Event.MutationEvent.ADDITION)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         return rt
 
     def getElementsByTagNameNS(self, namespaceURI, localName):

@@ -28,7 +28,7 @@ class HTMLOptionElement(HTMLElement):
         self._set_selected(selected)
 
     def _get_disabled(self):
-        return self.hasAttributeNode('DISABLED')
+        return self.getAttributeNode('DISABLED') and 1 or 0
 
     def _set_disabled(self,disabled):
         if disabled:

@@ -11,11 +11,6 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-relevantEvents = [
-    "DOMNodeRemoved",
-    "DOMNodeRemovedFromDocument",
-    "DOMNodeInsertedIntoDocument"
-    ]
 
 import UserList
 import DOMImplementation
@@ -23,22 +18,16 @@ implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
 Node = implementation._4dom_fileImport('Node').Node
-Event = implementation._4dom_fileImport('Event')
 DOMException = dom.DOMException
 NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
 
 
-class NodeList(UserList.UserList, Event.EventListener):
+class NodeList(UserList.UserList):
     # For internal purposes
     nodeType = Node._NODE_LIST
 
-    def __init__(self, list=None, listener=0):
+    def __init__(self, list=None):
         UserList.UserList.__init__(self, list or [])
-        self.listener = listener
-        if listener and list:
-            for node in list:
-                for etype in relevantEvents:
-                    node.addEventListener(etype, self, 0)
         return
 
     ### Attribute Access Methods ###
@@ -71,17 +60,10 @@ class NodeList(UserList.UserList, Event.EventListener):
         else:
             return self[int(index)]
 
-    def handleEvent(evt):
-        pass
-
     #Not defined in the standard
     def contains(self, node):
         return node in self
 
-#    def append(self, obj):
-#        if self.listener:
-#            obj.addEventListener(etype, listener, useCapture)
-    
     def __repr__(self):
         st = "<NodeList at %s: ["%(id(self))
         if len(self):

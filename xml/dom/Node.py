@@ -15,6 +15,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
+Event = implementation._4dom_fileImport('Event')
 
 DOMException = dom.DOMException
 NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
@@ -27,8 +28,12 @@ import re, copy, sys
 #FIXME: should allow combining characters: fix when Python gets Unicode
 g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
 
+import types
+StringTypes = [types.StringType]
+if sys.version[0] == '2':
+    StringTypes.append(types.UnicodeType)
 
-class Node:
+class Node(Event.EventTarget):
     """
     Encapsulates the pieces that DOM builds on the basic tree structure,
     Which is implemented by composition of TreeNode
@@ -58,6 +63,7 @@ class Node:
     _allowedChildren = []
 
     def __init__(self, ownerDocument, namespaceURI, prefix, localName):
+        Event.EventTarget.__init__(self)
         self.__dict__['__nodeName'] = ''
         self.__dict__['__nodeValue'] = ''
         self.__dict__['__parentNode'] = None
@@ -188,6 +194,8 @@ class Node:
                 self.__dict__['__childNodes'][1]._4dom_setPreviousSibling(newChild)
             newChild._4dom_setParentNode(self)
 
+            newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
+            self._4dom_fireMutationEvent('DOMSubtreeModified')
             return newChild
 
     def replaceChild(self, newChild, oldChild):
@@ -214,15 +222,17 @@ class Node:
             newChild._4dom_setParentNode(self)
 
 
-            
+            oldChild._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
             oldChild._4dom_setNextSibling(None)
             oldChild._4dom_setPreviousSibling(None)
             oldChild._4dom_setParentNode(None)
-
+            
             if self.__dict__['__childNodes'].length:
                 self.__dict__['__firstChild'] = self.__dict__['__childNodes'][0]
                 self.__dict__['__lastChild'] = self.__dict__['__childNodes'][-1]
 
+            newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
+            self._4dom_fireMutationEvent('DOMSubtreeModified')
             return oldChild
 
     def removeChild(self, childNode):
@@ -231,6 +241,8 @@ class Node:
         index = self._4dom_getChildIndex(childNode)
         if index == -1:
             raise DOMException(NOT_FOUND_ERR)
+        childNode._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
         del self.childNodes[index]
         #Adjust caches
         if self.__dict__['__childNodes'].length:
@@ -268,6 +280,8 @@ class Node:
                 newChild._4dom_setPreviousSibling(self.__dict__['__childNodes'][-2])
                 self.__dict__['__childNodes'][-2]._4dom_setNextSibling(newChild)
             newChild._4dom_setParentNode(self)
+            newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
+            self._4dom_fireMutationEvent('DOMSubtreeModified')
             return newChild
 
     def hasChildNodes(self):
@@ -310,7 +324,7 @@ class Node:
             # Children of EntRefs are cloned readOnly
             if self.nodeType == Node.ENTITY_REFERENCE_NODE:
                 readOnly = 1
-
+                
             for child in self.childNodes:
                 new_child = child.cloneNode(1, newOwner, readOnly)
                 newNode.appendChild(new_child)
@@ -319,33 +333,91 @@ class Node:
 
     def normalize(self):
         #This one needs to join all adjacent text nodes
-        curr_node = self.__dict__['__firstChild']
-        if not curr_node:
+        node = self.__dict__['__firstChild']
+        if not node:
             return
-        while curr_node:
-            while curr_node.nextSibling != None:
-                if curr_node.nodeType == Node.TEXT_NODE and \
-                    curr_node.nextSibling.nodeType == Node.TEXT_NODE:
-                        #Join the next one and this one
-                        curr_node = curr_node._4dom_joinText(curr_node,curr_node.nextSibling)
-                else:
-                    curr_node = curr_node.nextSibling
-            curr_node = curr_node.nextSibling
-
-        #Normalize the elements
-        for child in self.__dict__['__childNodes']:
-            if child.nodeType == Node.ELEMENT_NODE:
-                child.normalize()
-        return
+        while node and node.nextSibling:
+            if node.nodeType == Node.TEXT_NODE:
+                next = node.nextSibling
+                while next and next.nodeType == Node.TEXT_NODE:
+                    node.appendData(next.data)
+                    node.parentNode.removeChild(next)
+                    next = node.nextSibling
+            elif node.nodeType == Node.ELEMENT_NODE:
+                node.normalize()
+            node = node.nextSibling
 
     def supports(self, feature, version):
         return implementation.hasFeature(feature,version)
+
+    #
+    # Event Target interface implementation
+    #
+    def dispatchEvent(self, evt):
+        if not evt.type:
+            raise Event.EventError(UNSPECIFIED_EVENT_TYPE)
+
+        # the list of my ancestors for capture or bubbling
+        # we are lazy, so we initialize this list only if required
+        if evt._4dom_propagate and \
+           (evt.eventPhase == evt.CAPTURING_PHASE or evt.bubbles):
+            ancestors = [self]
+            while  ancestors[-1].parentNode :
+                ancestors.append(ancestors[-1].parentNode)
+
+        # event capture
+        if evt._4dom_propagate and evt.eventPhase == evt.CAPTURING_PHASE :
+            ancestors.reverse()
+            for a in ancestors[:-1]:
+                evt.currentTarget = a
+                for captor in a.capture_listeners[evt.type]:
+                    captor.handleEvent(evt)
+                if not evt._4dom_propagate:
+                    break
+            # let's put back the list in the right order
+            # and move on to the next phase
+            ancestors.reverse()
+            evt.eventPhase = evt.AT_TARGET
+
+
+        # event handling by the target
+        if evt._4dom_propagate and evt.eventPhase == evt.AT_TARGET :
+            evt.currentTarget = self
+            for listener in self.listeners[evt.type]:
+                listener.handleEvent(evt)
+            # prepare for the next phase, if necessary
+            if evt.bubbles:
+                evt.eventPhase = evt.BUBBLING_PHASE
+
+        # event bubbling
+        if evt._4dom_propagate and evt.eventPhase == evt.BUBBLING_PHASE :
+            for a in ancestors[1:]:
+                evt.currentTarget = a
+                for listener in a.listeners[evt.type]:
+                    listener.handleEvent(evt)
+                if not evt._4dom_propagate:
+                    break
+                
+        return evt._4dom_preventDefaultCalled
+
+
 
     #Functions not defined in the standard
     #All are fourthought internal functions
     #and should only be called by you if you specifically
     #don't want your program to run :)
 
+    def _4dom_fireMutationEvent(self,eventType,target=None,
+                                 relatedNode=None,prevValue=None,
+                                 newValue=None,attrName=None,attrChange=None):
+        if self.supports('MutationEvents', 2.0):
+            evt = self.ownerDocument.createEvent(eventType)
+            evt.target = target or self
+            evt.initMutationEvent(eventType,evt.eventSpec[eventType],0,
+                                  relatedNode,prevValue,newValue,attrName)
+            evt.attrChange = attrChange
+            evt.target.dispatchEvent(evt)
+            
     def _4dom_appendDocumentFragment(self, frag):
         """Insert all of the top level nodes"""
         head = frag.firstChild
@@ -380,6 +452,11 @@ class Node:
             raise DOMException(HIERARCHY_REQUEST_ERR)
         if self.ownerDocument != newNode.ownerDocument:
             raise DOMException(WRONG_DOCUMENT_ERR)
+
+    def _4dom_validateString(self, value):
+        if type(value) not in StringTypes:
+            raise DOMException(INVALID_CHARACTER_ERR)
+        return value
 
     def _4dom_getChildIndex(self,child):
         if child in self.__dict__['__childNodes']:
