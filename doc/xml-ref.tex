@@ -50,12 +50,12 @@ has to be filled in later, or rewritten, or verified, or something.
   release.
 \end{notice}
 
-Starting with PyXML 0.8, some features of the DOM Level 3 working
+Starting with PyXML 0.8, some features of the DOM Level~3 working
 drafts are being added.  These features are based on working drafts
 and will be changed as the drafts are updated.  Use at your own risk.
 
 \begin{excdesc}{ValidationErr}
-  New exception.  The validation features of the Level 3 DOM can raise
+  New exception.  The validation features of the Level~3 DOM can raise
   this exception when validation constraints are not met.  The rest of
   the validation features have not been implemented, but any Python
   DOM implementation would use the same exception, so it is offered at
@@ -64,7 +64,7 @@ and will be changed as the drafts are updated.  Use at your own risk.
 
 % Written this way so I can copy the table line into the docs when
 % this gets integrated.
-The additional exception code defined in the Level 3 DOM specification
+The additional exception code defined in the Level~3 DOM specification
 map to the exception described above:
 
 \begin{tableii}{l|l}{constant}{Constant}{Exception}
@@ -72,7 +72,7 @@ map to the exception described above:
 \end{tableii}
 
 The \class{Node} class has grown a number of additional constants
-useful for some of the new methods added in DOM Level 3.  These
+useful for some of the new methods added in DOM Level~3.  These
 constants are:  \constant{TREE_POSITION_PRECEDING},
 \constant{TREE_POSITION_FOLLOWING}, \constant{TREE_POSITION_ANCESTOR},
 \constant{TREE_POSITION_DESCENDENT},
@@ -84,17 +84,18 @@ Additional classes have been added to provide access to constants and
 serve as base classes for implementations:
 
 \begin{classdesc*}{UserDataHandler}
-  The DOM Level 3 ``Core'' feature adds a method
+  The DOM Level~3 Core adds a method
   \method{setUserData()} which accepts an instance conforming to the
   \class{UserDataHandler} interface.  This class provides the
   constants used as arguments to the \method{handle()} of that
   interface.  The constants provided are \constant{NODE_CLONED},
   \constant{NODE_IMPORTED}, \constant{NODE_DELETED}, and
-  \constant{NODE_RENAMED}.
+  \constant{NODE_RENAMED}.  Implementation classes may choose to
+  subclass from this class, but there is no reason for them to do so.
 \end{classdesc*}
 
 \begin{classdesc*}{DOMError}
-  The DOM Level 3 ``Core'' feature adds support for a user-settable
+  The DOM Level~3 Core feature adds support for a user-settable
   error handler.  This class provides the constants used to indicate
   the severity of an error, and may be used as a base class by DOM
   implementations.  These constants should be used to test the value
@@ -102,6 +103,52 @@ serve as base classes for implementations:
   constants provided are \constant{SEVERITY_WARNING},
   \constant{SEVERITY_ERROR}, and \constant{SEVERITY_FATA_ERROR}.
 \end{classdesc*}
+
+
+\subsection{UserDataHandler Objects \label{userdatahandler}}
+
+The \class{UserDataHandler} interface, introduced in the DOM Level~3
+Core (draft) specification, is used to allow DOM clients to manage
+node-specific application data stored using the \method{setUserData()}
+method on nodes.
+
+\class{UserDataHandler} implementations need only define one method:
+
+\begin{methoddesc}[UserDataHandler]{handle}{operation, key, data, src, dest}
+  This method is called for a few particular events in the lifespan
+  the node on which it was registered.  For each type of event,
+  \var{operation} indicates the specific operation being performed on
+  the node, \var{key} gives the key for which \var{data} and the
+  handler object were registered, \var{data} is the actual data
+  object, and \var{src} is the node on which the handler was
+  registered.  The \var{dest} argument will always be either
+  \code{None} or a different node, depending on the specific
+  operation.
+
+  If \var{operation} is \constant{NODE_CLONED}, then \var{dest} is the
+  clone of \var{src}; \var{src} and \var{dest} will always belong to
+  the same document unless \var{src} is a
+  \constant{DOCUMENT_TYPE_NODE}.
+
+  It \var{operation} is \constant{NODE_IMPORTED}, then \var{dest} is
+  the imported version of \var{src}, and belongs to a different
+  document.
+
+  If \var{operation} is \constant{NODE_RENAMED}, then \var{src} and
+  \var{dest} are intended to represent the same node, but different
+  node objects are used.  This is \emph{not} called when
+  \method{Document.renameNode()} does not create a new node instance.
+
+  If \var{operation} is \constant{NODE_DELETED}, then \var{src} is
+  about to be deleted (not just removed from the document tree), and
+  \var{dest} is \code{None}.  It is not expected that Python
+  implementations of the DOM will implement this, since doing so
+  properly may interfere with the reclamation of unused nodes.
+
+  The constants passed as the values for the \var{operation} argument
+  of this method are available from the
+  \class{xml.dom.UserDataHandler} class.
+\end{methoddesc}
 
 
 \section{\module{xml.dom.ext.c14n} ---
@@ -144,17 +191,135 @@ prefixes will be used.
 \end{funcdesc}
 
 
+\section{\module{xml.dom.minidom} Extensions}
+
+The implementation of the \module{xml.dom.minidom} in PyXML contains
+support for more of the DOM Level~2 Core specification than the
+version packaged in Python, and incorporates partial support for the
+draft DOM Level~3 Core and Load/Save specifications.  This additional
+support includes the interfaces documented for the
+\refmodule{xml.dom.xmlbuilder} module.
+
+This section describes the major extensions beyond what's document for
+this module in the \citetitle
+[http://www.python.org/doc/2.2.1/lib/module-xml.dom.minidom.html]
+{Python Library Reference} for Python 2.2.1.
+
+These additional \class{Node} atttributes have been implemented or
+changed:
+
+\begin{methoddesc}[Node]{toxml}{\optional{encoding}}
+  The optional \var{encoding} argument has been added to the
+  \method{toxml()} method.  When specified and not \code{None}, the
+  output document uses the given encoding.
+  \versionadded{0.8}
+\end{methoddesc}
+
+\begin{methoddesc}[Node]{isSupported}{feature, version}
+  This is equivalent to calling \code{hasFeature(\var{feature},
+  \var{version})} on the corresponding \class{DOMImplementation}
+  object.  Added in DOM Level~2 Core.
+\end{methoddesc}
+
+\begin{methoddesc}[Node]{getInterface}{feature}
+  Return the interface object for the current node that supports the
+  \var{feature} feature if \code{isSupported(\var{feature}, None)}
+  returns true, otherwise returns \code{None}.  It is not expected
+  that Python DOM implementations will normally need this, but a DOM
+  implementation that adds substantial new functionality may want to
+  require the use of this method to provide access to a helper object
+  that implements extension-specific methods
+  Added in DOM Level~3.
+\end{methoddesc}
+
+\begin{methoddesc}[Node]{getUserData}{key}
+  Retrieve the data registered with the node for the key \var{key}
+  using \method{setUserData()}.  Returns None if no data was
+  registered for \var{key}.
+  Added in DOM Level~3.
+\end{methoddesc}
+
+\begin{methoddesc}[Node]{setUserData}{key, data, handler}
+  Set the object \var{data} to be associated with a key \var{key} on
+  the current node.  \var{key} can be any hashable object, and will be
+  used as a dictionary key.  Any previous value registered for the
+  same value of \var{key} will be discarded.
+
+  The \var{handler} argument should be \code{None} or an
+  implementation of the \class{UserDataHandler} interface.
+  Added in DOM Level~3.
+\end{methoddesc}
+
+These additional \class{Text} attributes have been added based on the
+Level~3 drafts.  These are also available on \class{CDATASection}
+nodes.
+
+\begin{memberdesc}[Text]{wholeText}
+  Returns the textual content for a contiguous range of nodes of type
+  \constant{TEXT_NODE} and \constant{CDATA_SECTION_NODE} nodes
+  containing the current node.
+\end{memberdesc}
+
+\begin{methoddesc}[Text]{replaceWholeText}{content}
+  Replace a contiguous range of nodes of type \constant{TEXT_NODE} and
+  \constant{CDATA_SECTION_NODE} nodes containing the current node,
+  with a single node containing the text \var{content}.  Returns the
+  node containing \var{content}.  If \var{content} is an empty string,
+  removes the entire range of affected nodes and returns \code{None}.
+\end{methoddesc}
+
+These methods and attributes have been added to the \class{Document}
+interface:
+
+\begin{memberdesc}[Document]{actualEncoding}
+  The encoding used by the parser, if it was overridden by source
+  context (such as HTTP headers) rather than determined based on the
+  bytes of the source document.  If only the source document was used
+  to determine the encoding, this is \code{None}
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\begin{memberdesc}[Document]{encoding}
+  The encoding specified in the XML declaration, or \code{None} if the
+  declaration or \attribute{encoding} pseudo-attribute were omitted.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\begin{memberdesc}[Document]{standalone}
+  If the \attribute{standalone} pseudo-attribute was given in the
+  document's XML declaration, this will be \code{True} if the value
+  was \samp{yes} or \code{False} if the value was \samp{no}.  If the
+  XML declaration or \attribute{standalone} pseudo-attribute were
+  omitted, this will be \code{None}.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\begin{memberdesc}[Document]{version}
+  The value of the \attribute{version} pseudo-attribute from the XML
+  declaration, if present, or \code{None}.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\begin{methoddesc}[Document]{importNode}{node, deep}
+  Added in DOM Level~2.
+\end{methoddesc}
+
+\begin{methoddesc}[Document]{renameNode}{node, namespaceURI, name}
+  Added in DOM Level~3.
+\end{methoddesc}
+
+
 \section{\module{xml.dom.xmlbuilder} ---
-         DOM Level 3 Load/Save Interface}
+         DOM Level~3 Load/Save Interface}
 
 \declaremodule{}{xml.dom.xmlbuilder}
-\modulesynopsis{DOM Level 3 Load/Save interface.}
+\modulesynopsis{DOM Level~3 Load/Save interface.}
 \sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
 
 \versionadded{0.8}
 
 \begin{notice}[warning]
-  The \module{xml.dom.xmlbuilder} represents the DOM Level 3 Load/Save
+  The \module{xml.dom.xmlbuilder} represents the DOM Level~3 Load/Save
   interface, which is only defined in a W3C working draft at this
   time.  The Python API presented here is modelled on the 9 April 2002
   version of the working draft, and is expected to change as new
@@ -162,7 +327,7 @@ prefixes will be used.
   versions of this interface will not be preserved.
 \end{notice}
 
-This module provides API support for the DOM Level 3 Load/Save
+This module provides API support for the DOM Level~3 Load/Save
 specification.  It includes an implementation of the loading
 components of that specification only at this time.
 
