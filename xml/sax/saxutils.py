@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.18 2001/01/27 09:03:52 loewis Exp $
+$Id: saxutils.py,v 1.19 2001/03/20 07:19:46 loewis Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -169,12 +169,18 @@ class XMLGenerator(handler.ContentHandler):
     def startElementNS(self, name, qname, attrs):
         if name[0] is None:
             name = name[1]
+        elif self._current_context[name[0]] is None:
+            # default namespace
+            name = name[1]
         else:
             name = self._current_context[name[0]] + ":" + name[1]
         self._out.write('<' + name)
 
-        for pair in self._undeclared_ns_maps:
-            self._out.write(' xmlns:%s="%s"' % pair)
+        for k,v in self._undeclared_ns_maps:
+            if k is None:
+                self._out.write(' xmlns="%s"' % v)
+            else:
+                self._out.write(' xmlns:%s="%s"' % (k,v))
         self._undeclared_ns_maps = []
 
         for (name, value) in attrs.items():
@@ -187,6 +193,8 @@ class XMLGenerator(handler.ContentHandler):
         # Python 2.0b2 requires us to use the recorded prefix for
         # name[0], though
         if name[0] is None:
+            qname = name[1]
+        elif self._current_context[name[0]] is None:
             qname = name[1]
         else:
             qname = self._current_context[name[0]] + ":" + name[1]
