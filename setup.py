@@ -71,8 +71,7 @@ it requires at least Python 1.6
                    '_xmlplus.marshal',
                    '_xmlplus.parsers', '_xmlplus.parsers.xmlproc', 
                    '_xmlplus.sax', '_xmlplus.sax.drivers',
-                   '_xmlplus.sax.drivers2',
-                   '_xmlplus.unicode', '_xmlplus.utils'
+                   '_xmlplus.sax.drivers2', '_xmlplus.utils'
                    ],
 
        ext_modules = ext_modules

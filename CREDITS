@@ -66,7 +66,8 @@
   
   <xml-hacker>
     <name> Martin von Löwis </name>
-    <task> Unicode wide-string module </task>
+    <task> Original unicode wide-string module </task>
+    <task> Synchronization of Python 2 and PyXML </task>
   </xml-hacker>
   
   <xml-hacker>

@@ -16,10 +16,6 @@ Available options:
 """
 
 import string, re, cgi, types
-try:
-    from xml.unicode import wstring  # For fixing UTF-8 encoding
-except ImportError:
-    wstring = None
     
 def simplify(t, indent="", width=79):
     """Strip out redundant spaces, and insert newlines to 
@@ -219,11 +215,10 @@ class QuotationDocHandler(saxlib.HandlerBase):
 	if self.newqt != None:
             s = ch[start:start+length]
 
-            if wstring is not None:
-                # Undo the UTF-8 encoding, converting to ISO Latin1, which
-                # is the default character set used for HTML.
-                s = wstring.from_utf8(s)
-                s = s.encode('LATIN1')
+            # Undo the UTF-8 encoding, converting to ISO Latin1, which
+            # is the default character set used for HTML.
+            s = unicode(s,'utf-8')
+            s = s.encode('latin-1')
 
             self.newqt.stack[-1] = self.newqt.stack[-1] + s
 
