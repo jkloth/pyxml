@@ -16,14 +16,14 @@ from xml.ns import XMLNS
 import re
 import StringIO
 
-_attrs = lambda E: E._get_attributes() or []
-_children = lambda E: E._get_childNodes() or []
+_attrs = lambda E: E.attributes or []
+_children = lambda E: E.childNodes or []
 
 def _sorter(n1, n2):
     '''Sorting predicate for non-NS attributes.'''
-    i = cmp(n1._get_namespaceURI(), n2._get_namespaceURI())
+    i = cmp(n1.namespaceURI, n2.namespaceURI)
     if i: return i
-    return cmp(n1._get_localName(), n2._get_localName())
+    return cmp(n1.localName, n2.localName)
 
 class _implementation:
     '''Implementation class for C14N.'''
@@ -39,7 +39,7 @@ class _implementation:
 
     def __init__(self, node, write, nsdict={}, stripspace=0, nocomments=1):
 	'''Create and run the implementation.'''
-	if node._get_nodeType() != Node.ELEMENT_NODE:
+	if node.nodeType != Node.ELEMENT_NODE:
 	    raise TypeError, 'Non-element node'
 	self.write, self.stripspace, self.nocomments = \
 		write, stripspace, nocomments
@@ -51,28 +51,28 @@ class _implementation:
 	# Collect the initial list of xml:XXX attributes.
 	xmlattrs = []
 	for a in _attrs(node):
-	    if a._get_namespaceURI() == XMLNS.XML:
-		n = a._get_localName()
+	    if a.namespaceURI == XMLNS.XML:
+		n = a.localName
 		xmlattrs.append(n)
 
 	# Walk up and get all xml:XXX attributes we inherit.
-	parent, inherited = node._get_parentNode(), []
+	parent, inherited = node.parentNode, []
 	while parent:
-	    if parent._get_nodeType() != Node.ELEMENT_NODE: break
+	    if parent.nodeType != Node.ELEMENT_NODE: break
 	    for a in _attrs(parent):
-		if a._get_namespaceURI() != XMLNS.XML: continue
-		n = a._get_localName()
+		if a.namespaceURI != XMLNS.XML: continue
+		n = a.localName
 		if n not in xmlattrs:
 		    xmlattrs.append(n)
 		    inherited.append(a)
-	    parent = parent._get_parentNode()
+	    parent = parent.parentNode
 
 	self._do_element(node, inherited)
 	self.ns_stack.pop()
 
     def _do_text(self, node):
 	'Process a text node.'
-	s = node._get_data() \
+	s = node.data \
 		.replace("&", "&amp;") \
 		.replace("<", "&lt;") \
 		.replace(">", "&gt;") \
@@ -90,8 +90,8 @@ class _implementation:
 	'''
 	W = self.write
 	W('<?')
-	W(node._get_nodeName())
-	s = node._get_data()
+	W(node.nodeName)
+	s = node.data
 	if s:
 	    W(' ')
 	    W(s)
@@ -106,7 +106,7 @@ class _implementation:
 	if self.nocomments: return
 	W = self.write
 	W('<!--')
-	W(node._get_data())
+	W(node.data)
 	W('-->')
     handlers[Node.COMMENT_NODE] =_do_comment
 
@@ -128,7 +128,7 @@ class _implementation:
 
     def _do_element(self, node, initialattrlist = []):
 	'Process an element (and its children).'
-	name = node._get_nodeName()
+	name = node.nodeName
 	parent_ns = self.ns_stack[-1]
 	my_ns = { 'xmlns': parent_ns.get('xmlns', XMLNS.BASE) }
 	W = self.write
@@ -138,36 +138,35 @@ class _implementation:
 	# Divide attributes into NS definitions and others.
 	nsnodes, others = [], initialattrlist[:]
 	for a in _attrs(node):
-	    if a._get_namespaceURI() == XMLNS.BASE:
+	    if a.namespaceURI == XMLNS.BASE:
 		nsnodes.append(a)
 	    else:
 		others.append(a)
 
 	# Namespace attributes: update dictionary; if not already
 	# in parent, output it.
-	nsnodes.sort(lambda n1, n2: \
-		cmp(n1._get_localName(), n2._get_localName()))
+	nsnodes.sort(lambda n1, n2: cmp(n1.localName, n2.localName))
 	for a in nsnodes:
-	    n = a._get_nodeName()
+	    n = a.nodeName
 	    if n == "xmlns:":
 		key, n = "", "xmlns"
 	    else:
-		key = a._get_localName()
-	    v = my_ns[key] = a._get_nodeValue()
+		key = a.localName
+	    v = my_ns[key] = a.nodeValue
 	    pval = parent_ns.get(key, None)
 	    if v != pval: self._do_attr(n, v)
 
 	# Other attributes: sort and output.
 	others.sort(_sorter)
-	for a in others: self._do_attr(a._get_nodeName(), a._get_value())
+	for a in others: self._do_attr(a.nodeName, a.value)
 
 	W('>')
 
 	self.ns_stack.append(my_ns)
 	for c in _children(node):
-	    _implementation.handlers[c._get_nodeType()](self, c)
+	    _implementation.handlers[c.nodeType](self, c)
 	    # XXX Ignore unknown node types?
-	    #handler = _implementation.handlers.get(c._get_nodeType(), None)
+	    #handler = _implementation.handlers.get(c.nodeType, None)
 	    #if handler: handler(self, c)
 	self.ns_stack.pop()
 	W('</%s>' % (name,))
@@ -219,9 +218,9 @@ content here on two lines.
     reader = PyExpat.Reader()
     dom = reader.fromString(text)
     for e in _children(dom):
-	if e._get_nodeType() != Node.ELEMENT_NODE: continue
+	if e.nodeType != Node.ELEMENT_NODE: continue
 	for ee in _children(e):
-	    if ee._get_nodeType() != Node.ELEMENT_NODE: continue
+	    if ee.nodeType != Node.ELEMENT_NODE: continue
 	    print '\n', '=' * 60
 	    print Canonicalize(ee, nsdict={'spare':'foo'}, stripspace=1)
 	    print '-' * 60
