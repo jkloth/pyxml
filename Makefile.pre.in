@@ -317,7 +317,8 @@ clobber:	clean
 distclean:	clobber
 		-rm -f Setup
 
-LIBSUBDIRS = arch dom parsers parsers/xmlproc sax sax/drivers unicode utils
+LIBSUBDIRS = arch dom marshal parsers parsers/xmlproc \
+	     sax sax/drivers unicode utils
 
 libinstall:	
 	# Create directories, if required
