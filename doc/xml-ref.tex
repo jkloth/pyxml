@@ -856,6 +856,7 @@ name of the object.  Attributes on that object define symbolic names
 
 
 \begin{classdesc*}{SCHEMA}
+  Namespaces defined for the W3C XML Schema specification.
 
   \begin{memberdesc}{BASE}
   \end{memberdesc}
@@ -927,6 +928,47 @@ name of the object.  Attributes on that object define symbolic names
 
   \begin{memberdesc}{BIND_MIME}
     The URI of the namespace for MIME-type bindings for WSDL.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+\begin{classdesc*}{DCMI}
+    The Dublin Core Metadata Initiative (DCMI) defines a commonly-used
+    set of general metadata elements.  There is a base set of
+    elements, a variety of refinements of those, a set of value
+    encodings, and a \emph{type vocabulary} used to describe what
+    something described in metadata actually is (for example, a text,
+    a physical object, a collection).
+
+    Documentation on the Dublin Core, including recommendations for
+    encoding Dublin Core metadata in XML and HTML/XHTML can be found
+    at the \ulink{DCMI website}{http://dublincore.org/}.
+
+  \begin{memberdesc}{BASE}
+    Prefix for all DCMI-defined namespaces.  This is not normally used
+    directly, as it does not correspond to a specific namespace.
+  \end{memberdesc}
+
+  \begin{memberdesc}{DCMES}
+  \memberline{DCMES_1_1}
+    Namespace for the core element set, as defined in
+    \citetitle[http://dublincore.org/documents/dces/]{Dublin Core
+    Metadata Element Set, Version 1.1: Reference Description}.
+  \end{memberdesc}
+
+  \begin{memberdesc}{TERMS}
+    Namespace for the refinements and non-core metadata elements
+    defined in
+    \citetitle[http://dublincore.org/documents/dcmi-terms/]{DCMI
+    Metadata Terms} sections 3 (``Other Elements and Element
+    Refinements'') and 4 (``Encoding Schemes'').
+  \end{memberdesc}
+
+  \begin{memberdesc}{TYPE}
+    Namespace for the types of objects described in metadata, using
+    the controlled vocabulary defined in the
+    \citetitle[http://dublincore.org/documents/dcmi-type-vocabulary/]
+    {DCMI Type Vocabulary}.
   \end{memberdesc}
 \end{classdesc*}
 

@@ -205,6 +205,33 @@ class RNG:
     BASE = "http://relaxng.org/ns/structure/1.0"
 
 
+class DCMI:
+    """Dublin Core Metadata Initiative
+
+    The DCMI defines a commonly-used set of general metadata elements.
+    There is a base set of elements, a variety of refinements of
+    those, a set of value encodings, and a 'type vocabulary' used to
+    describe what something described in metadata actually is (a text,
+    a physical object, a collection, etc.).
+
+    Documentation on the Dublin Core, including recommendations for
+    encoding Dublin Core metadata in XML and HTML/XHTML can be found
+    at http://dublincore.org/.
+    """
+    # not used directly:
+    BASE = "http://purl.org/dc/"
+
+    # the core element set:
+    DCMES_1_1 = BASE + "elements/1.1/"
+    DCMES = DCMES_1_1
+
+    # standardized additions and refinements:
+    TERMS = BASE + "terms/"
+
+    # type vocabulary:
+    TYPE = BASE + "dcmitype/"
+
+
 class _Namespace:
     """Base class for Namespace classes.
 
