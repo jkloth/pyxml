@@ -1,18 +1,16 @@
 TODO list:
+        * Namespace support (major thing)
+        * Integrate widestring support with the PyExpat module (major thing)
 	* Make more passes over the documentation
 	* More demo programs 
 	* Add READMEs to existing demo programs
         * Re-indent everything to 4-space indents
 	* saxlib.AttributeList should really support all dictionary behaviour
-	* Flesh out the test suite
-	* Should PyPointers be added?
+	* Flesh out the test suite, especially the DOM portion
+	* Should PyPointers be added?  (Answer: no)
 	* Update the Windows DLLs
 
-test/
-	* Add xmlarch tests to test suite
-
 demo/xbel/	
-	* Implement dump_lynx method in bookmark.py
 	* Update all the software to match the current XBEL DTD
 
 dom/
@@ -22,7 +20,7 @@ reference to the second one.  Call .normalize() on the parent.  The
 second Text node has now vanished, so calls using it will now crash.
 How to fix?  (Replace w/ empty Text node?)
 	* Add indentation & pretty-printing to .toxml()
-
+	* Implement reading of SGML documents for FileReader
 	* Should check that Document node has only one Element child
 before changing anything (DocumentFragments complicate this)
 
