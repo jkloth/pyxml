@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.12 2001/05/13 12:51:52 loewis Exp $
+$Id: catalog.py,v 1.13 2001/08/15 21:39:15 larsga Exp $
 """
 
 import string,sys
@@ -159,20 +159,21 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
 
 class CatalogManager(CatalogApp):
 
-    def __init__(self,error_handler=None):
-        self.__public={}
-        self.__system={}
-        self.__delegations=[]
-        self.__document=None
+    def __init__(self, error_handler = None):
+        self.__public = {}
+        self.__system = {}
+        self.__delegations = []
+        self.__document = None
         self.__doctypes = {} # docelem -> sysid
-        self.__base=None
+        self.__base = None
+        self.__sgmldecl = None
 
         # Keeps track of sysid base even if we recurse into other catalogs
         self.__catalog_stack=[] 
 
         self.err = error_handler or xmlapp.ErrorHandler(None)
-        self.parser_fact=CatParserFactory()
-        self.parser=None
+        self.parser_fact = CatParserFactory()
+        self.parser = None
 
     # --- application interface
 
@@ -235,11 +236,14 @@ class CatalogManager(CatalogApp):
         catalog_manager.parse_catalog(self.__resolve_sysid(sysid))
         self.__delegations.append((prefix,catalog_manager))
 
-    def handle_document(self,sysid):
-        self.__document=self.__resolve_sysid(sysid)
+    def handle_document(self, sysid):
+        self.__document = self.__resolve_sysid(sysid)
 
+    def handle_sgmldecl(self, sysid):
+        self.__sgmldecl = self.__resolve_sysid(sysid)
+        
     def handle_doctype(self, docelem, sysid):
-        self.__doctypes[docelem] = sysid
+        self.__doctypes[docelem] = self.__resolve_sysid(sysid)
 
     # --- client services
 
@@ -253,7 +257,10 @@ class CatalogManager(CatalogApp):
         return list
         
     def get_document_sysid(self):
-        return self.remap_sysid(self.__document)
+        return self.__document
+
+    def get_sgmldecl(self):
+        return self.__sgmldecl
 
     def remap_sysid(self,sysid):
         try:
@@ -301,7 +308,10 @@ class xmlproc_catalog:
 
     def get_document_sysid(self):
         return self.catalog.get_document_sysid()
-        
+
+    def get_sgmldecl(self):
+        return self.catalog.get_sgmldecl()
+    
     def resolve_pe_pubid(self,pubid,sysid): 
         if pubid==None:
             return self.catalog.remap_sysid(sysid)
