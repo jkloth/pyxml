@@ -95,7 +95,7 @@ else:
     else:
         xmlbo = "21"
     define_macros = [
-        ('HAVE_EXPAT_H',None),
+        ('HAVE_EXPAT_H', None),
         ('XML_BYTE_ORDER', xmlbo),
         ]
     include_dirs = ['extensions/expat/lib']
