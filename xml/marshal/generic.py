@@ -290,7 +290,8 @@ class Unmarshaller(saxlib.HandlerBase):
         """
         self.data_stack = []
         self.dict = {}
-
+        self.accumulating_chars = 0
+        
     def load(self, file):
         "Unmarshal one value, reading it from a file-like object"
         # Instantiate a new object; unmarshalling isn't thread-safe
@@ -358,7 +359,8 @@ class Unmarshaller(saxlib.HandlerBase):
         if sm is not None: return sm(name,attrs)
 
     def characters(self, ch, start, length):
-        self.data_stack[-1].append(ch[start:start+length])
+        if self.accumulating_chars:
+            self.data_stack[-1].append(ch[start:start+length])
 
     def endElement(self, name):
         # Call the ending method
@@ -382,6 +384,7 @@ class Unmarshaller(saxlib.HandlerBase):
 
     def um_start_generic(self, name, attrs):
         self.data_stack.append( [] )
+        self.accumulating_chars = 1
 
     um_start_float = um_start_long = um_start_string = um_start_generic
     um_start_complex = um_start_code = um_start_none = um_start_generic
@@ -391,25 +394,30 @@ class Unmarshaller(saxlib.HandlerBase):
         ds = self.data_stack
         # might need to convert unicode string to byte string
         ds[-1] = str(string.join(ds[-1], ""))
+        self.accumulating_chars = 0
 
     def um_end_int(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
         ds[-1] = string.atoi( ds[-1] )
+        self.accumulating_chars = 0
 
     def um_end_long(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
         ds[-1] = string.atol( ds[-1] )
+        self.accumulating_chars = 0
 
     def um_end_float(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
         ds[-1] = string.atof( ds[-1] )
+        self.accumulating_chars = 0
 
     def um_end_none(self, name):
         ds = self.data_stack
         ds[-1] = None
+        self.accumulating_chars = 0
 
     def um_end_complex(self, name):
         ds = self.data_stack
@@ -417,6 +425,7 @@ class Unmarshaller(saxlib.HandlerBase):
         c = string.split(c)
         c = float(c[0]) + float(c[1])*1j
         ds[-1:] = [c]
+        self.accumulating_chars = 0
 
     def um_end_code(self, name):
         import marshal, base64
@@ -424,6 +433,7 @@ class Unmarshaller(saxlib.HandlerBase):
         s = string.join(ds[-1], "")
         s = base64.decodestring( s )
         ds[-1] = marshal.loads(s)
+        self.accumulating_chars = 0
 
     # Trickier stuff: dictionaries, lists, tuples.
     def um_start_list(self, name, attrs):
@@ -552,6 +562,7 @@ def test(load, loads, dump, dumps, test_values,
         if do_assert:
             assert item==output and item==output2 and output==output2
 
+
 # Classes used in the test suite
 class _A:
     def __repr__(self): return '<A instance>'
@@ -582,5 +593,18 @@ def runtests():
     recursive_list.append( recursive_list )
     test(load, loads, dump, dumps, [ recursive_list ], do_assert=0)
 
+    # Try unmarshalling XML with extra harmless whitespace (as if it was
+    # pretty-printed)
+    output = loads("""<?xml version="1.0"?>
+<marshal>
+  <tuple>
+    <float> 1.0 </float>
+    <string>abc</string>
+    <list id="i2" />
+  </tuple>
+</marshal>""")
+    assert output == (1.0, 'abc', [])
+    
+    
 if __name__ == '__main__':
     runtests()
