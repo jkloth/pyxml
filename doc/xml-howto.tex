@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.19 2002/08/27 13:27:53 fdrake Exp $
+% $Id: xml-howto.tex,v 1.20 2002/08/28 03:52:04 fdrake Exp $
 
 % TODO:
 %    XXX not covered: DOM extensions, scripts
@@ -60,13 +60,50 @@ standards, but it's far from being complete because making it complete
 would require a full-length book and not a short HOWTO. There's no
 better way to get a completely accurate (if rather dry) description
 than to read the original W3C Recommendations; you can find links to
-them in section~\ref{section-xml-links}, ``Related Links''.  If you already
+them below.  If you already
 know what XML is, you can skip the rest of this section.
 
 Later sections of this HOWTO assume that you're familiar with XML
 terminology.  Most sections will use XML terms such as \emph{element}
 and \emph{attribute}.  Section~\ref{SAX} does not require that you
 have experience with any of the various Java SAX implentations.
+
+
+\begin{seealso}
+  \seetitle[http://www.w3.org/TR/REC-xml]
+           {Extensible Markup Language (XML) 1.0 (Second Edition)}
+           {For the full details of XML's syntax, the definitive
+            source is the XML 1.0 specification.  However, like all
+            specifications it's quite formal and isn't intended to be
+            a friendly introduction or a tutorial.  An annotated
+            version of the standard, is also available, and there are
+            many more informal tutorials and books available to
+            introduce you to XML at greater (or lesser) length.}
+
+  \seetitle[http://www.xml.com/xml/pub/a/axml/axmlintro.html]
+           {The Annotated XML Specification}
+           {This annotated version of the XML specification, produced
+            by Tim Bray, is quite helpful in clarifying the
+            specification's intent.  It is presented as a
+            richly-hyperlinked document that makes navigation easy,
+            and evokes a sense of what hypertext was meant to be.}
+
+  \seetitle[http://xml.coverpages.org/]{The XML Cover Pages}
+           {An extensive collection of links to XML and SGML
+            resources, including a news page that's updated every few
+            days.  If you can only remember one XML-related URL,
+            remember this one.
+            \citetitle[http://www.ibiblio.org/xml/]{Cafe con Leche}
+            is another good resource.}
+
+  \seetitle[http://www.xml.org/xml/xmldev.shtml]
+           {xml-dev mailing list}
+           {This is a high-traffic list for implementation and
+            development of XML standards.  Be warned: Some people
+            might find the discussion too focused on vague theorizing
+            about information representation, and not on inventing new
+            standards and tools or applying existing standards.}
+\end{seealso}
 
 
 \subsection{Elements, Attributes and Entities}
@@ -227,32 +264,6 @@ the DTD.  A document is valid if all the elements occur in the right
 order, and in the right number of repetitions.
 
 
-\subsection{Related Links\label{section-xml-links}}
-
-For the full details of XML's syntax, the definitive source is the XML
-1.0 specification, available on the Web at
-\url{http://www.w3.org/TR/xml-spec.html}.  However, like all
-specifications it's quite formal and isn't intended to be a friendly
-introduction or a tutorial.  The annotated version of the standard, at
-\url{http://www.xml.com/xml/pub/a/axml/axmlintro.html}, is quite helpful
-in clarifying the specification's intent.  There are also many more
-informal tutorials and books available to introduce you to XML at
-greater length.
-
-The XML Cover Pages, at \url{http://xml.coverpages.org}, are an
-extensive collection of links to XML and SGML resources, including a
-news page that's updated every few days.  If you can only remember one
-XML-related URL, remember this one.  Cafe con Leche, 
-at \url{http://www.ibiblio.org/xml/}, is another good resource.
-
-The xml-dev mailing list is a high-traffic list for implementation and
-development; see \url{http://www.xml.org/xml/xmldev.shtml} for
-archives and subscription information.  Be warned: Some people might
-find the discussion too focused on vague theorizing about information
-representation, and not on inventing new standards and tools or
-applying existing standards.
-
-
 %==========================================================================
 \section{XML-Related Standards\label{section-standards}}
 
@@ -262,23 +273,24 @@ This section will quickly introduce some of these related
 technologies, paying particular attention to those that are supported
 by the Python/XML package.
 
-\begin{itemize}
+\begin{definitions}
 
-  \item[\textbf{SAX}] 
-The Simple API for XML isn't a standard in the formal sense that XML
-or ANSI C are.  Rather, SAX is an informal specification originally
-designed by David Megginson with input from many people on the xml-dev
-mailing list.  SAX defines an event-driven interface for parsing XML.
-To use SAX, you must create Python class instances which implement a
-specified interface, and the parser will then call various methods on
-those objects.  See section~\ref{section-SAX}.
+\term{SAX}
+  The Simple API for XML isn't a standard in the formal sense that XML
+  or ANSI C are.  Rather, SAX is an informal specification originally
+  designed by David Megginson with input from many people on the
+  xml-dev mailing list.  SAX defines an event-driven interface for
+  parsing XML.  To use SAX, you must create Python class instances
+  which implement a specified interface, and the parser will then call
+  various methods on those objects.  See section~\ref{section-SAX}.
 
-  \item[\textbf{DOM}] 
-The Document Object Model specifies a tree-based representation for an
-XML document, as opposed to the event-driven processing provided by
-SAX.  See section~\ref{section-DOM}.
+\term{DOM}
+  The Document Object Model specifies a tree-based representation for
+  an XML document, as opposed to the event-driven processing provided
+  by SAX.  See section~\ref{section-DOM}.
 
-  \item[\textbf{Namespaces}] One XML document can refer to elements
+\term{Namespaces}
+  One XML document can refer to elements
   from more than one DTD.  (Such documents can no longer be validated
   using DTDs, though other schema languages such as RELAX NG can
   handle namespaces.) For example, a document might contain both some
@@ -287,30 +299,30 @@ SAX.  See section~\ref{section-DOM}.
   the Scalable Vector Graphics DTD.  All the relevant modules in the
   PyXML module can be used for namespace-aware processing.
 
-  \item[\textbf{XPath and XPointer}]
+\term{XPath and XPointer}
   XPath is a language for referring to parts of an XML document.  With
-XPath you can refer to paragraph number N, or ``all paragraphs of
-class \samp{warning}'', or all chapters that have one or more
-subsections.
-XPointer defines a way to use XPath declarations as the fragment
-identifier in a URL to point at a part of an XML document.
-See section~\ref{section-XPath}.
+  XPath you can refer to paragraph number N, or ``all paragraphs of
+  class \samp{warning}'', or all chapters that have one or more
+  subsections.
+  XPointer defines a way to use XPath declarations as the fragment
+  identifier in a URL to point at a part of an XML document.
+  See section~\ref{section-XPath}.
 
-  \item[\textbf{XSLT}] 
-XSLT is a general tool for transforming one XML document
-into another document, specifying the transformation using 
-another XML document called a \dfn{stylesheet}.
-\begin{comment}
+\term{XSLT}
+  XSLT is a general tool for transforming one XML document
+  into another document, specifying the transformation using 
+  another XML document called a \dfn{stylesheet}.
+  \begin{comment}
   See section~\ref{section-XSLT}.
-\end{comment}
+  \end{comment}
 
-  \item[\textbf{RDF}] 
+\term{RDF}
   The Resource Description Format is for describing metadata about 
   other resources.  The PyXML package doesn't contain any support
   for RDF, but a Python library called Redfoot
   (\url{http://redfoot.sf.net}) is available.
 
-\end{itemize}
+\end{definitions}
 
 
 %==========================================================================
@@ -554,7 +566,7 @@ implement those interfaces that are relevant to your application.
 
 The SAX interfaces are:
 
-\begin{tableii}{|c|p{4in}|}{code}{Interface}{Purpose}
+\begin{tableii}{l|p{4in}}{class}{Interface}{Purpose}
 
 \lineii{ContentHandler}{Called for general document events.  This
 interface is the heart of SAX; its methods are called for the start of
@@ -601,6 +613,16 @@ parser.setContentHandler(dh)
 # Parse the file; your handler's methods will get called
 parser.parse(sys.stdin)
 \end{verbatim}
+
+
+\begin{seealso}
+  \seetitle[http://www.saxproject.org/]{The SAX Home Page}
+           {This website has the most recent copy of the
+            specification, and lists SAX implementations for various
+            languages and platforms.  Much of the information is
+            somewhat Java-centric, though.}
+\end{seealso}
+
 
 \subsection{Starting Out}
 
@@ -981,14 +1003,6 @@ no namespace is specified for an element or attribute, the URI will
 given given as \code{None}.
 
 
-\subsection{Related Links}
-
-The SAX home page is \url{http://www.megginson.com/SAX/}.  This has
-the most recent copy of the specification, and lists SAX
-implementations for various languages and platforms.  At the moment
-it's somewhat Java-centric, though.
-
-
 %==========================================================================
 \section{DOM: The Document Object Model}
 \label{section-DOM}
@@ -1024,6 +1038,25 @@ Model, because there are lots of interfaces and lots of
 methods. Luckily, the DOM Recommendation is quite readable, so I'd
 recommend that you read it to get a complete picture of the available
 interfaces.  This section will only be a partial overview.
+
+
+\begin{seealso}
+  \seetitle[http://www.w3.org/TR/REC-DOM-Level-1/]
+           {Document Object Model (DOM) Level 1}
+           {The first version of the DOM endorsed by the W3C.  Unlike
+            most standards, this one is actually pretty readable,
+            particularly if you're only interested in the Core XML
+            interfaces.}
+
+  \seetitle[http://www.w3.org/DOM/DOMTR]
+           {Document Object Model (DOM) Technical Reports}
+           {Level 2 of the DOM has been defined, adding more
+            specialized features such as support for XML namespaces,
+            events, and ranges.  DOM Level 3 is still being worked on,
+            and will add yet more features.  This overview provides a
+            concise summary of the current status of each
+            specification, and links to the latest version of each.}
+\end{seealso}
 
 
 \subsection{Getting A DOM Tree}
@@ -1131,7 +1164,7 @@ perform many tasks using just the interface provided by \class{Node}.
 
 First, there are the attributes provided by all \class{Node} instances:
 
-\begin{tableii}{|l|l|}{member}{Attribute}{Meaning}
+\begin{tableii}{l|l}{member}{Attribute}{Meaning}
   \lineii{nodeType}{Integer constant giving the type of this node: 
 \constant{ELEMENT_NODE}, \constant{TEXT_NODE}, etc.}
   \lineii{nodeName}{Name of this node.  For some types of node, such
@@ -1169,7 +1202,7 @@ Next, there are the methods.  If a node is already a child of node 1
 and is added as a child of node 2, it will automatically be removed
 from node 1; nodes always have exactly zero or one parents.
 
-\begin{tableii}{|l|l|}{method}{Method}{Effect}
+\begin{tableii}{l|l}{method}{Method}{Effect}
   \lineii{appendChild(\var{newChild})}{Add \var{newChild} as a child
 of this node, adding it to the end of the list of children.
 }
@@ -1282,22 +1315,6 @@ while 1:
 %XmlSpaceState,  GetAllNs, SeekNSS, 
 
 
-
-\subsection{Related Links}
-
-The DOM Level 1 Recommendation is at
-\url{http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/}.  Unlike most
-standards, this one is actually pretty readable, particularly if you're only
-interested in the Core XML interfaces.
-
-Level 2 of the DOM has also been defined, adding more specialized
-features such as support for XML namespaces, events, and ranges.  DOM
-Level 3 is still being worked on, and will add yet more features.  The
-World Wide Web Consortium's DOM page at \url{http://www.w3.org/DOM/DOMTR}
-has pointers to the specifications and current drafts for these higher
-DOM levels.
-
-
 %==========================================================================
 \section{XPath and XPointer\label{section-XPath}}
 
@@ -1305,7 +1322,7 @@ XPath is a relatively simple language for writing expressions that
 select a subset of the nodes in a DOM tree.  Here are some example
 XPath expressions, and what nodes they match:
 
-\begin{tableii}{|l|l|}{code}{Expression}{Meaning}
+\begin{tableii}{l|l}{code}{Expression}{Meaning}
   \lineii{child::para}{Selects all children of the context node
                        that are \element{para} elements.}
   \lineii{child::para[5]}{Selects the fifth child of the context node
@@ -1315,9 +1332,7 @@ XPath expressions, and what nodes they match:
   \lineii{ancestor::*}{Selects all ancestors of the context node}
 \end{tableii}
 
-Consult the XPath Recommendation (listed in
-section~\ref{section-xpath-links}, ``Related Links'') for the full
-syntax and grammar.
+Consult the XPath Recommendation for the full syntax and grammar.
 
 The \module{xml.xpath} package contains a parser and evaluator for
 XPath expressions.  The \function{Evaluate(\var{expr},
@@ -1334,10 +1349,11 @@ If \code{doc} is an appropriate DOM tree, then this will return a list
 containing the subset of nodes denoted by the XPath expression.
 
 
-\subsection{Related Links\label{section-xpath-links}}
-
-The XPath 1.0 Recommendation is at
-\url{http://www.w3.org/TR/1999/REC-xpath-19991116}.
+\begin{seealso}
+  \seetitle[http://www.w3.org/TR/xpath]
+           {XML Path Language (XPath), Version 1.0}
+           {The full specification for XPath.}
+\end{seealso}
 
 
 \begin{comment}
@@ -1389,13 +1405,14 @@ from a DOM tree.
 % XXX finish this section when XSLT is supported again
 
 
-\subsection{Related Links}
-
-The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and has links
-to the XSLT specifications and to friendlier tutorials.
+\begin{seealso}
+  \seetitle[http://www.w3.org/Style/XSL/]
+           {The Extensible Stylesheet Language (XSL)}
+           {The W3C's overview page on XSL has links to the XSLT
+            specifications and to friendlier tutorials.}
+\end{seealso}
 
 \end{comment}
-
 
 %==========================================================================
 \section{Marshalling Into XML}
