@@ -8,7 +8,6 @@ Shade, the Changing Man 7
 DOM tests:
 
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE xbel>
 <xbel>
   <?processing instruction?>
   <desc>No description</desc>

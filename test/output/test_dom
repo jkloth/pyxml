@@ -1,7 +1,6 @@
 test_dom
 Simple document
 <?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE doc>
 <doc>
   <title>This is a test</title>
   <h1>Don't panic</h1>
