@@ -16,7 +16,7 @@ Todo:
 
 import xml.dom
 
-from xml.dom import EMPTY_NAMESPACE
+from xml.dom import EMPTY_NAMESPACE, EMPTY_PREFIX
 from xml.dom.minicompat import *
 from xml.dom.xmlbuilder import DOMImplementationLS, DocumentLS
 
@@ -30,6 +30,8 @@ class Node(xml.dom.Node, GetattrMagic):
     ownerDocument = None
     nextSibling = None
     previousSibling = None
+
+    prefix = EMPTY_PREFIX # this is non-null only for NS elements and attributes
 
     def __nonzero__(self):
         return True
@@ -181,23 +183,7 @@ class Node(xml.dom.Node, GetattrMagic):
         self.childNodes[:] = L
 
     def cloneNode(self, deep):
-        clone = self._cloneNode(deep)
-        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
-                                     self, clone)
-        return clone
-
-    def _cloneNode(self, deep):
-        import new
-        clone = new.instance(self.__class__, self.__dict__.copy())
-        if hasattr(clone, "_user_data"):
-            del clone._user_data
-        if self._makeParentNodes:
-            clone.parentNode = None
-        if self.childNodes is not None:
-            clone.childNodes = NodeList()
-            if deep:
-                for child in self.childNodes:
-                    clone.appendChild(child.cloneNode(1))
+        clone = CloneNode(self,deep,self.ownerDocument or self)
         return clone
 
     def isSupported(self, feature, version):
@@ -213,6 +199,10 @@ class Node(xml.dom.Node, GetattrMagic):
             return self
         else:
             return None
+
+    def _get_localName(self):
+        #Overridden in Element and Attr where localName can be Non-Null
+        return None
 
     # The "user data" functions use a dictionary that is only present
     # if some user data has been set, so be careful not to assume it
@@ -261,6 +251,8 @@ class Node(xml.dom.Node, GetattrMagic):
 
 defproperty(Node, "firstChild", doc="First child node, or None.")
 defproperty(Node, "lastChild",  doc="Last child node, or None.")
+
+defproperty(Node, "localName", doc="Namespace-local name of this attribute.")
 
 
 def _appendChild(self, node):
@@ -320,7 +312,8 @@ class Attr(Node):
     attributes = None
     ownerElement = None
     childNodeTypes = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
-
+    specified = 0
+    
     def __init__(self, qName, namespaceURI=EMPTY_NAMESPACE, localName=None,
                  prefix=None):
         # skip setattr for performance
@@ -329,6 +322,10 @@ class Attr(Node):
         d["namespaceURI"] = namespaceURI
         d["prefix"] = prefix
         d['childNodes'] = NodeList()
+
+        #Add the single child node that represents the value of the attr
+        d['childNodes'].append(Text())
+
         # nodeValue and value are set elsewhere
 
     def _get_localName(self):
@@ -338,20 +335,11 @@ class Attr(Node):
         d = self.__dict__
         if name in ("value", "nodeValue"):
             d["value"] = d["nodeValue"] = value
+            d["childNodes"][0].data = value
         elif name in ("name", "nodeName"):
             d["name"] = d["nodeName"] = value
         else:
             d[name] = value
-
-    def cloneNode(self, deep):
-        clone = self._cloneNode(self, deep)
-        if clone.__dict__.has_key("ownerElement"):
-            del clone.ownerElement
-        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
-                                     self, clone)
-        return clone
-
-defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
 
 
 class NamedNodeMap(NewStyle, GetattrMagic):
@@ -482,19 +470,6 @@ class Element(Node):
     def _get_localName(self):
         return self.tagName.split(":", 1)[-1]
 
-    def _cloneNode(self, deep):
-        clone = Node._cloneNode(self, deep)
-        clone._attrs = {}
-        clone._attrsNS = {}
-        for attr in self._attrs.values():
-            node = attr._cloneNode(1)
-            clone._attrs[node.name] = node
-            clone._attrsNS[(node.namespaceURI, node.localName)] = node
-            node.ownerElement = clone
-            attr._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
-                                         attr, node)
-        return clone
-
     def unlink(self):
         for attr in self._attrs.values():
             attr.unlink()
@@ -619,8 +594,6 @@ class Element(Node):
 
 defproperty(Element, "attributes",
             doc="NamedNodeMap of attributes on the element.")
-defproperty(Element, "localName",
-            doc="Namespace-local name for this element.")
 
 
 def _setAttributeNode(self, attr):
@@ -669,23 +642,20 @@ class Childless:
             self.nodeName + " nodes do not have children")
 
 
-class Comment(Childless, Node):
-    nodeType = Node.COMMENT_NODE
-    nodeName = "#comment"
-
-    def __init__(self, data):
-        self.data = self.nodeValue = data
-
-    def writexml(self, writer, indent="", addindent="", newl=""):
-        writer.write("%s<!--%s-->%s" % (indent,self.data,newl))
-
-
 class ProcessingInstruction(Childless, Node):
     nodeType = Node.PROCESSING_INSTRUCTION_NODE
 
     def __init__(self, target, data):
         self.target = self.nodeName = target
         self.data = self.nodeValue = data
+
+    def __setattr__(self, name, value):
+        if name == "data" or name == "nodeValue":
+            self.__dict__['data'] = self.__dict__['nodeValue'] = value
+        elif name == "target" or name == "nodeName":
+            self.__dict__['target'] = self.__dict__['nodeName'] = value
+        else:
+            self.__dict__[name] = value
 
     def writexml(self, writer, indent="", addindent="", newl=""):
         writer.write("%s<?%s %s?>%s" % (indent,self.target, self.data, newl))
@@ -705,7 +675,7 @@ class CharacterData(Childless, Node):
 
     def __setattr__(self, name, value):
         if name == "data" or name == "nodeValue":
-            self.__dict__['data'] = value
+            self.__dict__['data'] = self.__dict__['nodeValue'] = value
         else:
             self.__dict__[name] = value
 
@@ -844,6 +814,17 @@ class Text(CharacterData):
 defproperty(Text, "wholeText",
             doc="The text of all logically-adjacent text nodes.")
 
+class Comment(Childless, CharacterData):
+    nodeType = Node.COMMENT_NODE
+    nodeName = "#comment"
+
+    def __init__(self, data):
+        self.data = self.nodeValue = data
+
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        writer.write("%s<!--%s-->%s" % (indent,self.data,newl))
+
+
 class CDATASection(Text):
     # Make sure we don't add an instance __dict__ if we don't already
     # have one, at least when that's possible:
@@ -980,26 +961,41 @@ class DOMImplementation(DOMImplementationLS):
             raise xml.dom.WrongDocumentErr(
                 "doctype object owned by another DOM tree")
         doc = self._createDocument()
-        if doctype is None:
-            doctype = self.createDocumentType(qualifiedName, None, None)
-        if not qualifiedName:
+
+        add_root_element = not (namespaceURI is None and qualifiedName is None and doctype is None)
+
+        #if doctype is None:
+        #    doctype = self.createDocumentType(qualifiedName, None, None)
+        
+        if not qualifiedName and add_root_element:
             # The spec is unclear what to raise here; SyntaxErr
             # would be the other obvious candidate. Since Xerces raises
             # InvalidCharacterErr, and since SyntaxErr is not listed
             # for createDocument, that seems to be the better choice.
             # XXX: need to check for illegal characters here and in
             # createElement.
+
+            #DOM Level III clears this up when talking about the return value
+            #of this function.  If namespaceURI, qName and DocType are
+            #Null the document is returned without a document element
+            #Otherwise if doctype or namespaceURI are not None
+            #Then we go back to the above problem
             raise xml.dom.InvalidCharacterErr("Element with no name")
-        prefix, localname = _nssplit(qualifiedName)
-        if prefix == "xml" \
-           and namespaceURI != "http://www.w3.org/XML/1998/namespace":
-            raise xml.dom.NamespaceErr("illegal use of 'xml' prefix")
-        if prefix and not namespaceURI:
-            raise xml.dom.NamespaceErr(
-                "illegal use of prefix without namespaces")
-        element = doc.createElementNS(namespaceURI, qualifiedName)
-        doc.appendChild(element)
-        doctype.parentNode = doctype.ownerDocument = doc
+
+        if add_root_element:
+            prefix, localname = _nssplit(qualifiedName)
+            if prefix == "xml" \
+               and namespaceURI != "http://www.w3.org/XML/1998/namespace":
+                raise xml.dom.NamespaceErr("illegal use of 'xml' prefix")
+            if prefix and not namespaceURI:
+                raise xml.dom.NamespaceErr(
+                    "illegal use of prefix without namespaces")
+            element = doc.createElementNS(namespaceURI, qualifiedName)
+            doc.appendChild(element)
+
+        if doctype:
+            doctype.parentNode = doctype.ownerDocument = doc
+
         doc.doctype = doctype
         doc.implementation = self
         return doc
@@ -1083,7 +1079,7 @@ class Document(Node, DocumentLS):
 
     def createDocumentFragment(self):
         d = DocumentFragment()
-        d.ownerDoc = self
+        d.ownerDocument = self
         return d
 
     def createElement(self, tagName):
@@ -1145,6 +1141,9 @@ class Document(Node, DocumentLS):
 
     def isSupported(self, feature, version):
         return self.implementation.hasFeature(feature, version)
+
+    def importNode(self,node,deep):
+        return CloneNode(node,deep,self)
 
     def writexml(self, writer, indent="", addindent="", newl="",
                  encoding = None):
@@ -1209,6 +1208,41 @@ class Document(Node, DocumentLS):
 
 defproperty(Document, "documentElement",
             doc="Top-level element of this document.")
+
+
+
+
+def CloneNode(node,deep,newOwnerDocument):
+    """
+    Clone a node and give it the new owner document.
+    Called by Node.cloneNode and Document.importNode
+    """
+    if node.nodeType == Node.ELEMENT_NODE:
+        clone = newOwnerDocument.createElementNS(node.namespaceURI,
+                                                 node.nodeName)
+        for attr in node.attributes.values():
+            clone.setAttributeNS(attr.namespaceURI,attr.nodeName,attr.value)
+
+        if deep:
+            for child in node.childNodes:
+                c = CloneNode(child,deep,newOwnerDocument)
+                clone.appendChild(c)
+
+    elif node.nodeType == Node.TEXT_NODE:
+        clone = newOwnerDocument.createTextNode(node.data)
+    elif node.nodeType == Node.CDATA_SECTION_NODE:
+        clone = newOwnerDocument.createCDATASection(node.data)
+    elif node.nodeType == PROCESSING_INSTRUCTION_NODE:
+        clone = newOwnerDocument.createProcessingInstruction(node.target,node.data)
+    elif node.nodeType == COMMENT_NODE:
+        clone = newOwnerDocument.createComment(node.data)
+    else:
+        raise Exception("Cannot clone node %s" % repr(node))
+
+    if hasattr(node,'_call_user_data_handler'):
+        node._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
+                                     node, clone)
+    return clone
 
 
 def _nssplit(qualifiedName):

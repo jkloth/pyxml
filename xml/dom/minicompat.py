@@ -97,7 +97,7 @@ if list is type([]):
         length = property(_get_length,
                           doc="The number of nodes in the NodeList.")
 
-    class EmptyNodeList(tuple):
+    class EmptyNodeList(list):
         __slots__ = ()
 
         def item(self, index):
@@ -113,7 +113,7 @@ else:
         return []
 
     def EmptyNodeList():
-        return ()
+        return []
 
 
 try:
