@@ -6,6 +6,9 @@
 #
 # History:
 # $Log: Printer.py,v $
+# Revision 1.5  2000/09/28 06:54:13  loewis
+# Don't try to decode Unicode objects.
+#
 # Revision 1.4  2000/09/27 23:45:25  uche
 # Update to 4DOM from 4Suite 0.9.1
 #
@@ -266,10 +269,13 @@ g_charToEntity = {
 
 
 try:
-    import codecs #will fail on 1.5
+    import codecs                     #will fail on 1.5
+    from types import UnicodeType
     def utf8_to_code(text, encoding):
         encoder = codecs.lookup(encoding)[0]       # encode,decode,reader,writer
-        return encoder(unicode(text, "utf-8"))[0] # result,size
+        if type(text) is not UnicodeType:
+            text = unicode(text, "utf-8")
+        return encoder(text)[0] # result,size
 except ImportError:
     def utf8_to_code(text, encoding):
         encoding = string.upper(encoding)
