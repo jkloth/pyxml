@@ -145,7 +145,7 @@ def _strInstance(object):
         if node_type == Node.ELEMENT_NODE:
             # The concatenation of all text descendants
             text_elem_children = filter(lambda x:
-                                        x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE],
+                                        x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE, Node.CDATA_SECTION_NODE],
                                         object.childNodes)
             return reduce(lambda x, y:
                           CoreStringValue(x)[1] + CoreStringValue(y)[1],
@@ -153,7 +153,7 @@ def _strInstance(object):
                           '')
         if node_type in [Node.ATTRIBUTE_NODE, NAMESPACE_NODE]:
             return object.value
-        if node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE]:
+        if node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE, Node.CDATA_SECTION_NODE]:
             return object.data
         if node_type == Node.DOCUMENT_NODE:
             # Use the String value of the document root
@@ -166,7 +166,7 @@ def _strElementInstance(object):
     if object.nodeType == Node.ELEMENT_NODE:
         # The concatenation of all text descendants
         text_elem_children = filter(
-            lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE],
+            lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE, Node.CDATA_SECTION_NODE],
             object.childNodes
             )
         return reduce(lambda x, y:
