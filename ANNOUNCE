@@ -15,6 +15,33 @@ http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.1-2.2.i386.rpm
 
 Changes in this version, compared to 0.8:
 
+  * Various bug fixes:
+    - tracing works now with pyexpat
+    - fix registry key for MSIE XBEL support
+    - correct ill-formedness of xmlproc.dtd2schema
+    - avoid adding comments and PIs in the internal subset as Document
+      children when building minidom trees
+    - properly close files in xml.dom.ext.reader.*
+
+  * XSLT is not installed anymore by default, specify --with-xslt
+    if desired
+
+  * Update Expat to 1.95.4
+
+  * Add features to xml.parsers.expat:
+    - new method "UseForeignDTD"
+    - new attribute "features"
+  
+  * Update to latest LS spec for xml.dom.expatbuilder.
+    Use expatbuilder if no parser is given to xml.dom.minidom.parse[String].
+
+  * Add DOM features to minidom: specified, {get|remove}NamedItem[NS],
+    target, getElementById, actualEncoding
+
+  * Add importNode and cloneNode for xml.dom.minidom.Document
+
+  * Use urllib2 instead of urllib throughout.
+
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
