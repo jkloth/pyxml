@@ -180,6 +180,8 @@ class WDDXMarshaller(Marshaller):
         dict[i] = 1
         L.append('<struct>')
         items = value.items()
+        # Sort the items so the order they're written in is
+        # deterministic; this is only needed to make testing easier.
         items.sort()
         for key, v in items:
             L.append('<var name="%s">' % key)
