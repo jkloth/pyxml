@@ -55,6 +55,7 @@ builder = xmlbuilder.DOMBuilder()
 builder.setFeature("namespace_declarations", 1)
 
 run_checks(builder,
+           #((nsuri, localName), value),
            [((XMLNS_NAMESPACE, "A"), "http://xml.python.org/a"),
             ((XMLNS_NAMESPACE, "a"), "http://xml.python.org/a"),
             ((XMLNS_NAMESPACE, "b"), "http://xml.python.org/b"),
@@ -66,6 +67,7 @@ run_checks(builder,
 builder.setFeature("namespace_declarations", 0)
 
 run_checks(builder,
+           #((nsuri, localName), value),
            [(("http://xml.python.org/a", "a"), "a"),
             (("http://xml.python.org/b", "b"), "b"),
             ])
