@@ -16,12 +16,14 @@ else:
     # tree.  This is a bit clumsy, but I don't see a better way to do
     # this at the moment. 
     
-    # XXX should detect whether to use the unixfilemap or readfilemap
-    # depending on the platform
-    FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
-    
+    # Use either unixfilemap or readfilemap depending on the platform
+    if sys.platform[:3] in ('win', 'mac'):
+        FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
+    else:
+        FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c' 
+   
     setup (name = "PyXML",
-           version = "0.5.4",
+           version = "0.5.3",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
