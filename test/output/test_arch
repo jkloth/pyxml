@@ -1,0 +1,44 @@
+test_arch
+HTML output: <?xml version="1.0" standalone="yes"?>
+<?test where="before"?>
+<?test where="after"?>
+<html bsup="sArcForm">
+  <head biblio="title">
+    <title date="19980721">A more complex sample</title>
+    </head>
+  <body>
+    <h1>The title</h1>
+    <p biblio="content" bsup="sArcNone">This is the
+      <b>complex</b>document.
+      </p>
+    </body>
+  </html>
+
+Bib1 output: ?test where="before"
+?test where="after"
+(biblio
+-
+
+-  
+(firstname
+Anationality norwegian
+-Geir Ove
+)firstname
+(lastname
+Aht #IMPLIED
+Amodified yes
+-Gronmo
+)lastname
+(note
+Aht address
+-You can reach me at 
+-grove@infotek.no
+)note
+-
+
+-  
+-
+
+)biblio
+
+Bib2 output: <?test where="before"?><?test where="after"?><biblio>&#10;  <firstname nationality="norwegian">Geir Ove</firstname><lastname ht="#IMPLIED" modified="yes">Gronmo</lastname><note ht="address">You can reach me at grove@infotek.no</note>&#10;  &#10;</biblio>
