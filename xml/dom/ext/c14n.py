@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2002/09/25 18:17:06 $ by $Author: rsalz $
+$Date: 2003/01/25 11:41:21 $ by $Author: loewis $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -53,7 +53,7 @@ except ImportError:
 
 _attrs = lambda E: (E.attributes and E.attributes.values()) or []
 _children = lambda E: E.childNodes or []
-_IN_XML_NS = lambda n: n.namespaceURI == XMLNS.XML
+_IN_XML_NS = lambda n: n.name.startswith("xmlns")
 _inclusive = lambda n: n.unsuppressedPrefixes == None
 
 
