@@ -55,8 +55,8 @@ INVALID_ACCESS_ERR             = 15
 
 class DOMException(Exception):
     def __init__(self, *args):
-	if len(args) >= 1:
-	    self.code = args[0]
+        if len(args) >= 1:
+            self.code = args[0]
         self.args = args
         Exception.__init__(self, g_errorMessages[self.code])
 
@@ -67,6 +67,9 @@ class DOMException(Exception):
             # If no explicit message was passed, use the default message
             args = args[0], g_errorMessages[args[0].code]
         apply(Exception.__init__, args)
+
+    def _get_code(self):
+        return self.code
 
 
 class IndexSizeErr(DOMException):
@@ -145,4 +148,3 @@ XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
 locale = 'en_US'
 locale_module = __import__('xml.dom.'+locale, globals(), locals(), ['g_errorMessages'])
 g_errorMessages = locale_module.__dict__['g_errorMessages']
-
