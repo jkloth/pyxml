@@ -297,6 +297,7 @@ class PrintVisitor(Visitor):
         return
 
     def visitDocumentType(self, doctype):
+        if not doctype.systemId and not doctype.publicId: return
         self._tryIndent()
         self._write('<!DOCTYPE %s' % doctype.name)
         if doctype.systemId and '"' in doctype.systemId:
