@@ -334,7 +334,10 @@ class SlowSGMLParser:
     # Example -- handle character reference, no need to override
     def handle_charref(self, name):
         try:
-            n = string.atoi(name)
+            if name[0] == 'x':
+                n = string.atoi(name[1:],16)
+            else:
+                n = string.atoi(name)
         except string.atoi_error:
             self.unknown_charref(name)
             return
