@@ -31,5 +31,5 @@ Testing XML-RPC marshalling...
 here is a string & a <fake tag> <?xml version="1.0"?><methodCall><string>here is a string &amp; a &lt;fake tag&gt;</string></methodCall>
 [12, 'Egypt', <TruthValue instance: False>, -31] <?xml version="1.0"?><methodCall><array><data><value><int>12</int></value><value><string>Egypt</string></value><value><boolean>0</boolean></value><value><int>-31</int></value></data></array></methodCall>
 {'lowerBound': 18, 'upperBound': 139, 'eggs': ['rhode island red', 'bantam']} <?xml version="1.0"?><methodCall><struct><member><name>lowerBound</name><value><int>18</int></value></member><member><name>upperBound</name><value><int>139</int></value></member><member><name>eggs</name><value><array><data><value><string>rhode island red</string></value><value><string>bantam</string></value></data></array></value></member></struct></methodCall>
-[u'lowerBound', 18, u'upperBound', 139, u'eggs', [u'rhode island red', u'bantam']]
-[u'lowerBound', 18, u'upperBound', 139, u'eggs', [u'rhode island red', u'bantam']]
+['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
+['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
