@@ -227,9 +227,19 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def _reset_lex_handler_prop(self):
         lex = self._lex_handler_prop
-        self._parser.CommentHandler = lex.comment
-        self._parser.StartCdataSectionHandler = lex.startCDATA
-        self._parser.EndCdataSectionHandler = lex.endCDATA
+        parser = self._parser
+        if lex is None:
+            parser.CommentHandler = None
+            parser.StartCdataSectionHandler = None
+            parser.EndCdataSectionHandler = None
+            parser.StartDoctypeDeclHandler = None
+            parser.EndDoctypeDeclHandler = None
+        else:
+            parser.CommentHandler = lex.comment
+            parser.StartCdataSectionHandler = lex.startCDATA
+            parser.EndCdataSectionHandler = lex.endCDATA
+            parser.StartDoctypeDeclHandler = self.start_doctype_decl
+            parser.EndDoctypeDeclHandler = lex.endDTD
 
     def reset(self):
         if self._namespaces:
@@ -328,6 +338,9 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def end_namespace_decl(self, prefix):
         self._cont_handler.endPrefixMapping(prefix)
+
+    def start_doctype_decl(self, name, pubid, sysid, has_internal_subset):
+        self._lex_handler_prop.startDTD(name, pubid, sysid)
 
     def unparsed_entity_decl(self, name, base, sysid, pubid, notation_name):
         self._dtd_handler.unparsedEntityDecl(name, pubid, sysid, notation_name)
