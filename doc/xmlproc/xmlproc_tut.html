@@ -28,10 +28,14 @@ together.
 <h2>The command-line parsers</h2>
 
 <P>
-xmlproc ships with two command-line parser applications that can be
-used to parse xml documents into ESIS or canonical XML and also to
-verify that documents are well-formed or valid. The diagram below
-shows how these applications use the xmlproc APIs.
+xmlproc ships with two command-line parser applications. They are not useful for
+incorporating xmlproc in your own applications, but can be used to check that
+xmlproc is working, to verify documents and also to see how the parser interprets
+documents, by making them output canonical XML or ESIS.
+</P>
+
+<P>
+The diagram below shows how these applications use the xmlproc APIs.
 </P>
 
 <img src="cmdline.gif" ALT="[Diagram #1]">
@@ -123,8 +127,8 @@ p.parse_resource("foo.xml")
 <HR>
 
 <ADDRESS>
-07.feb.99 04:29, 
-Lars Marius Garshol,
+11.feb.99 05:34, 
+<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>
 

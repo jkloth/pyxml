@@ -1,6 +1,6 @@
 """
 A command-line interface to the xmlproc parser. It continues parsing
-after even fatal errors, in order to be find more errors, since this
+even after fatal errors, in order to be find more errors, since this
 does not mean feeding data to the application after a fatal error
 (which would be in violation of the spec).
 """
@@ -9,7 +9,7 @@ usage=\
 """        
 Usage:
 
-  xpcmd.py [-l language] [-o format] [-n] urltodoc
+  xpcmd.py [-l language] [-o format] [-n] [--nowarn] urltodoc
 
   ---Options:  
   language: ISO 3166 language code for language to use in error messages
@@ -19,6 +19,7 @@ Usage:
             as well.) Can be omitted if a catalog is specified and contains
             a DOCUMENT entry.
   -n:       Report qualified names as 'URI name'. (Namespace processing.)
+  --nowarn: Don't write warnings to console.
 """
 
 # --- INITIALIZATION
@@ -29,7 +30,7 @@ from xml.parsers.xmlproc import xmlproc
 # --- Interpreting options
 
 try:
-    (options,sysids)=getopt.getopt(sys.argv[1:],"l:o:n")
+    (options,sysids)=getopt.getopt(sys.argv[1:],"l:o:n","nowarn")
 except getopt.error,e:
     print "Usage error: "+e
     print usage
@@ -38,10 +39,9 @@ except getopt.error,e:
 pf=None
 namespaces=0
 app=xmlproc.Application()
+warnings=1
 
 p=xmlproc.XMLProcessor()
-err=outputters.MyErrorHandler(p)
-p.set_error_handler(err)
 
 for option in options:
     if option[0]=="-l":
@@ -59,8 +59,13 @@ for option in options:
             print usage
     elif option[0]=="-n":
         namespaces=1
+    elif option[0]=="--nowarn":
+        warnings=0
 
 # Acting on option settings
+
+err=outputters.MyErrorHandler(p,warnings)
+p.set_error_handler(err)
 
 if namespaces:
     from xml.parsers.xmlproc import namespace
@@ -85,7 +90,12 @@ for sysid in sysids:
     print "Parsing '%s'" % sysid
     p.set_data_after_wf_error(0)
     p.parse_resource(sysid)
-    print "Parse complete, %d error(s) and %d warning(s)" % \
-          (err.errors,err.warnings)
+    print "Parse complete, %d error(s)" % err.errors,
+
+    if warnings:
+        print "and %d warning(s)" % err.warnings
+    else:
+        print
+    
     err.reset()
     p.reset()

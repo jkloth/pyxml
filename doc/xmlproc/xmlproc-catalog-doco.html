@@ -193,8 +193,9 @@ The CatalogParser class has these methods:
 </P>
 
 <DL>
-  <DT><CODE>def __init__(self):</CODE>
-  <DD>This just creates a parser ready for parsing.
+  <DT><CODE>def __init__(self,error_lang=None):</CODE>
+  <DD>This creates a parser ready for parsing. The error language can be set if desired, and accepts
+             the same values as xmlproc itself.
 
   <DT><CODE>def set_application(self,app):</CODE>
   <DD>This tells the parser where to send parse events. The
@@ -326,13 +327,16 @@ catalog file. The xmlproc_catalog class has these methods:
 </P>
 
 <DL>
-  <DT><CODE>def __init__(self,sysid,pf):</CODE>
-  <DD>Creates an xmlproc_catalog object, ready to be given to the
+  <DT><CODE>def __init__(self,sysid,pf,error_handler=None):</CODE>
+  <DD><P>Creates an xmlproc_catalog object, ready to be given to the
   xmlproc parser with the set_pubid_resolver method. The sysid
   parameter holds the system identifier of the catalog file to use and
   the pf parameter holds the
   <A HREF="#CatParserFactory">CatParserFactory</A> used to create
   catalog file parsers.
+
+  <P>The error_handler can be a reference to an error handler which
+  can receive notification of errors.
 </DL>
 
 <H3><A NAME="SAX_catalog">The SAX_catalog class</A></H3>
@@ -388,8 +392,8 @@ The support for XCatalog should be considered an experimental feature.
 <HR>
 
 <ADDRESS>
-28.jan.99 06:01, 
-Lars Marius Garshol,
+20.apr.99 05:58, 
+<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>
 

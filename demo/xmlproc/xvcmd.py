@@ -7,7 +7,7 @@ usage=\
 """
 Usage:
 
-  xvcmd.py [-c catalog] [-l language] [-o format] [-n] [urltodoc]
+  xvcmd.py [-c catalog] [-l language] [-o format] [-n] [--nowarn] [urltodoc]
 
   ---Options:  
   catalog:  path to catalog file to use to resolve public identifiers
@@ -18,6 +18,7 @@ Usage:
             as well.) Can be omitted if a catalog is specified and contains
             a DOCUMENT entry.
   -n:       Report qualified names as 'URI name'. (Namespace processing.)
+  --nowarn: Don't write warnings to console.
             
   Catalog files with URLs that end in '.xml' are assumed to be XCatalogs,
   all others are assumed to be SGML Open Catalogs.
@@ -34,33 +35,32 @@ import sys,getopt,os,outputters
 print "xmlproc version %s" % xmlval.version
 
 p=xmlval.XMLValidator()
-err=outputters.MyErrorHandler(p)
-
-p.set_error_handler(err)
 
 # --- Interpreting options
 
 try:
-    (options,sysids)=getopt.getopt(sys.argv[1:],"c:l:o:n")
+    (options,sysids)=getopt.getopt(sys.argv[1:],"c:l:o:n","nowarn")
 except getopt.error,e:
     print "Usage error: "+e
     print usage
     sys.exit(1)
     
+warnings=1
 cat=None
 pf=None
 namespaces=0
 app=xmlproc.Application()
+err_lang=None
 
 for option in options:
     if option[0]=="-c":
         cat=option[1]
-        pf=xcatalog.FancyParserFactory()
     elif option[0]=="-l":
         try:
             p.set_error_language(option[1])
+            err_lang=option[1]
         except KeyError:
-            print "Error language '%s' not available" % option[1]
+            print "Error: Language '%s' not available" % option[1]
     elif option[0]=="-o":
         if option[1]=="e" or option[1]=="E":
             app=outputters.ESISDocHandler()            
@@ -71,9 +71,14 @@ for option in options:
             print usage
     elif option[0]=="-n":
         namespaces=1
+    elif option[0]=="--nowarn":
+        warnings=0
 
 # Acting on option settings
-        
+
+err=outputters.MyErrorHandler(p,warnings)
+p.set_error_handler(err)
+
 if namespaces:
     from xml.parsers.xmlproc import namespace
 
@@ -82,17 +87,19 @@ if namespaces:
     p.set_application(nsf)
 else:
     p.set_application(app)
-        
-if cat==None and os.environ.has_key("XMLXCATALOG"):
+
+if cat!=None:
+    pf=xcatalog.FancyParserFactory(err_lang)
+elif cat==None and os.environ.has_key("XMLXCATALOG"):
     cat=os.environ["XMLXCATALOG"]
-    pf=xcatalog.XCatParserFactory()
+    pf=xcatalog.XCatParserFactory(err_lang)
 elif cat==None and os.environ.has_key("XMLSOCATALOG"):
     cat=os.environ["XMLSOCATALOG"]
-    pf=catalog.CatParserFactory()
+    pf=catalog.CatParserFactory(err_lang)
 
 if cat!=None:
     print "Parsing catalog file '%s'" % cat
-    cat=catalog.xmlproc_catalog(cat,pf)
+    cat=catalog.xmlproc_catalog(cat,pf,err)
     p.set_pubid_resolver(cat)
 
 if len(sysids)==0:
@@ -115,7 +122,10 @@ for sysid in sysids:
     print
     print "Parsing '%s'" % sysid
     p.parse_resource(sysid)
-    print "Parse complete, %d error(s) and %d warning(s)" % \
-          (err.errors,err.warnings)
+    print "Parse complete, %d error(s)" % err.errors,
+    if warnings:
+        print "and %d warning(s)" % err.warnings
+    else:
+        print
     err.reset()
     p.reset()

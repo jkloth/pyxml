@@ -6,7 +6,7 @@
 # This file is not useful in itself, it's imported by xvcmd.py and
 # xpcmd.py
 
-import sys
+import sys,string
 
 from xml.parsers.xmlproc import xmlapp
 
@@ -15,64 +15,95 @@ from xml.parsers.xmlproc import xmlapp
 class ESISDocHandler(xmlapp.Application):
 
     def __init__(self,writer=sys.stdout):
-        self.writer=writer
+	self.writer=writer
     
     def handle_pi(self,target,data):
-        self.writer.write("?"+target+" "+remainder+"\n")
+	self.writer.write("?"+target+" "+data+"\n")
 
     def handle_start_tag(self,name,amap):
-        self.writer.write("("+name+"\n")
-        for a_name in amap.keys():
-            self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
+	self.writer.write("("+name+"\n")
+	for a_name in amap.keys():
+	    self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
 
     def handle_end_tag(self,name):
-        self.writer.write(")"+name+"\n")
+	self.writer.write(")"+name+"\n")
 
-    def handle_data(self,data,start_ix,length):
-        self.writer.write("-"+data[start_ix:start_ix+length]+"\n")
+    def handle_data(self,data,start_ix,end_ix):
+	self.writer.write("-"+data[start_ix:end_ix]+"\n")
         
 # XML canonizer
 
 class Canonizer(xmlapp.Application):
 
     def __init__(self,writer=sys.stdout):
-        self.elem_level=0
-        self.writer=writer
+	self.elem_level=0
+	self.writer=writer
     
     def handle_pi(self,target, remainder):
-        if not target=="xml":
-            self.writer.write("<?"+target+" "+remainder+"?>")
+	if not target=="xml":
+	    self.writer.write("<?"+target+" "+remainder+"?>")
 
     def handle_start_tag(self,name,amap):
-        self.writer.write("<"+name)
-        
-        a_names=amap.keys()
-        a_names.sort()
+	self.writer.write("<"+name)
+	
+	a_names=amap.keys()
+	a_names.sort()
 
-        for a_name in a_names:
-            self.writer.write(" "+a_name+"=\"")
-            self.write_data(amap[a_name])
-            self.writer.write("\"")
-        self.writer.write(">")
-        self.elem_level=self.elem_level+1
+	for a_name in a_names:
+	    self.writer.write(" "+a_name+"=\"")
+	    self.write_data(amap[a_name])
+	    self.writer.write("\"")
+	self.writer.write(">")
+	self.elem_level=self.elem_level+1
 
     def handle_end_tag(self,name):
-        self.writer.write("</"+name+">")
-        self.elem_level=self.elem_level-1
+	self.writer.write("</"+name+">")
+	self.elem_level=self.elem_level-1
 
-    def handle_ignorable_data(self,data,start_ix,length):
-        self.characters(data,start_ix,length)
-        
-    def handle_data(self,data,start_ix,length):
-        if self.elem_level>0:
-            self.write_data(data[start_ix:start_ix+length])
-            
+    def handle_ignorable_data(self,data,start_ix,end_ix):
+        self.write_data(data[start_ix:end_ix])
+	
+    def handle_data(self,data,start_ix,end_ix):
+	if self.elem_level>0:
+            self.write_data(data[start_ix:end_ix])
+	    
     def write_data(self,data):
-        data=string.replace(data,"&","&amp;")
-        data=string.replace(data,"<","&lt;")
-        data=string.replace(data,"\"","&quot;")
-        data=string.replace(data,">","&gt;")
+	data=string.replace(data,"&","&amp;")
+	data=string.replace(data,"<","&lt;")
+	data=string.replace(data,"\"","&quot;")
+	data=string.replace(data,">","&gt;")
         data=string.replace(data,chr(9),"&#9;")
         data=string.replace(data,chr(10),"&#10;")
         data=string.replace(data,chr(13),"&#13;")
-        self.writer.write(data)
+	self.writer.write(data)
+
+# Error handler
+
+class MyErrorHandler(xmlapp.ErrorHandler):
+
+    def __init__(self,locator,warnings):
+	xmlapp.ErrorHandler.__init__(self,locator)
+        self.show_warnings=warnings
+        self.reset()
+
+    def get_location(self):
+	return "%s:%d:%d" % (self.locator.get_current_sysid(),\
+                               self.locator.get_line(),
+                               self.locator.get_column())
+	
+    def warning(self,msg):
+        if self.show_warnings:
+            print "W:%s: %s" % (self.get_location(),msg)
+            self.warnings=self.warnings+1
+
+    def error(self,msg):
+	self.fatal(msg)
+	
+    def fatal(self,msg):
+	print "E:%s: %s" % (self.get_location(),msg)
+	self.errors=self.errors+1
+
+    def reset(self):
+	self.errors=0
+	self.warnings=0        
+

@@ -5,26 +5,30 @@
   <META NAME="Author"    CONTENT="Lars Marius Garshol">
   <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
   <META NAME="Description" CONTENT="This is the home page of a free XML parser written in Python.">
-  <LINK REL=StyleSheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
+  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <LINK REL=top               HREF="index.html" TITLE="Tools for parsing XML with Python">
 </HEAD>
 
 <BODY>
 
+<DIV CLASS=partof>
+This page is a part of <A HREF="index.html">Tools for parsing XML with Python</A>.
+</DIV>
+
 <H1>xmlproc: A Python XML parser</H1>
 
 <TABLE CLASS="programinfo">
-<TR><TH ALIGN=left>Version:   <TD>0.60
+<TR><TH ALIGN=left>Version:   <TD>0.61
 <TR><TH ALIGN=left>Author:    <TD>Lars Marius Garshol
 <TR><TH ALIGN=left>Email:     <TD>larsga@ifi.uio.no
-<TR><TH ALIGN=left>Released:  <TD>06.Feb.99
-<TR><TH ALIGN=left>URL:      <TD><A HREF="http://www.stud.ifi.uio.no/~larsga/download/python/xml/xmlproc.html">Here</A>
+<TR><TH ALIGN=left>Released:  <TD>19.Apr.99
 </TABLE>
 
 <H2>What is xmlproc?</H2>
 
 <P>
 xmlproc is an XML parser written in Python. It is a nearly complete validating parser, with only
-minor deviations from the specificaiton (listed below). It supports both <A HREF="xmlproc-catalog-doco.html">SGML Open Catalogs and XCatalog 0.1</A>, as well as error
+minor deviations from the specification (listed below). It supports both <A HREF="xmlproc-catalog-doco.html">SGML Open Catalogs and XCatalog 0.1</A>, as well as error
 messages in different languages. xmlproc also supports namespaces. Access to DTD
 information is provided, as is a separate DTD parser. SAX drivers are provided with the
 parser.
@@ -57,6 +61,11 @@ Note that it is recommended to use xmlproc through the SAX API rather than
 directly, since this provides much greater freedom in the choice of parsers.
 (For example, you can switch to using Pyexpat which is written in C without
 changing your code.)
+</P>
+
+<P>
+<A HREF="http://www.stud.ifi.uio.no/~larsga/download/python/xml/saxlib.html">The SAX for Python</A> page has all you need
+to get started with using SAX in Python.
 </P>
 
 <H2>Getting xmlproc</H2>
@@ -112,19 +121,18 @@ since new releases will also be announced there.)
 </FORM>
 
 <P>
-As an alternative, an <A
-HREF="http://birk105.studby.uio.no/www_work/xsa/">XSA</A> document is
-provided <A
-HREF="http://www.stud.ifi.uio.no/~larsga/download/lmg.xsa">here</A>.
+As an alternative, an <A HREF="http://birk105.studby.uio.no/www_work/xsa/">XSA</A>
+document is provided <A HREF="http://www.stud.ifi.uio.no/~larsga/download/lmg.xsa">here</A>.
 </P>
 
 
 <HR>
 
 <ADDRESS>
-07.feb.99 04:30, 
-Lars Marius Garshol,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+20.apr.99 06:08, 
+<A HREF="http://www.stud.ifi.uio.no/~larsga/lmg.html">Lars Marius Garshol</A>,
+<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>. A part of 
+<A HREF="index.html">Tools for parsing XML with Python</A>.
 </ADDRESS>
 
 </BODY>
