@@ -1,0 +1,8 @@
+test_c14n
+Doing 1, <?xml version="1.0"?>\n\n<?xml-s... Created out1.xml
+Doing 2, <doc>\n   <clean>   </clean>\n  ... Created out2.xml
+Doing 3, <!DOCTYPE doc [<!ATTLIST e9 at... Created out3.xml
+Doing 4, <!DOCTYPE doc [ <!ATTLIST norm... Created out4.xml
+Doing 5, <!DOCTYPE doc [\n<!ATTLIST doc ... Created out5.xml
+Doing 6, <?xml version="1.0" encoding="... Created out6.xml
+Doing 7, <!DOCTYPE doc [\n<!ATTLIST e2 x... Created out7.xml

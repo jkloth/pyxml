@@ -195,45 +195,48 @@ If file (for input/output) is like xxx,name then xxx is used as an
 encoding (e.g., "utf-8,foo.txt").
 '''
 
-if len(sys.argv) == 1: sys.argv.append('-b')
+if __name__ != "__main__":
+    builtin()
+else:
+    if len(sys.argv) == 1: sys.argv.append('-b')
 
-import getopt
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "hbi:o:x:",
-	[ "help", "builtin", "in=", "out=", "xpath=", ])
-except getopt.GetoptError, e:
-    print sys.argv[0] + ':', e, '\nTry --help for help.\n'
-    sys.exit(1)
+    import getopt
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hbi:o:x:",
+            [ "help", "builtin", "in=", "out=", "xpath=", ])
+    except getopt.GetoptError, e:
+        print sys.argv[0] + ':', e, '\nTry --help for help.\n'
+        sys.exit(1)
 
-IN, OUT = sys.stdin, sys.stdout
-query = '(//. | //@* | //namespace::*)'
-for opt,arg in opts:
-    if opt in ('-h', '--help'):
-	usage()
-	sys.exit(0)
-    if opt in ('-b', '--builtin'):
-	builtin()
-	sys.exit(0)
-    elif opt in ('-i', '--in'):
-	if arg.find(',') == -1:
-	    IN = open(arg, 'r')
-	else:
-	    encoding, filename = arg.split(',')
-	    reader = codecs.lookup(encoding)[2]
-	    IN = reader(open(filename, 'r'))
-    elif opt in ('-o', '--out'):
-	if arg.find(',') == -1:
-	    OUT = open(arg, 'w')
-	else:
-	    encoding, filename = arg.split(',')
-	    writer = codecs.lookup(encoding)[3]
-	    OUT = writer(open(filename, 'w'))
-    elif opt in ('-x', '--xpath'):
-	query = arg
+    IN, OUT = sys.stdin, sys.stdout
+    query = '(//. | //@* | //namespace::*)'
+    for opt,arg in opts:
+        if opt in ('-h', '--help'):
+            usage()
+            sys.exit(0)
+        if opt in ('-b', '--builtin'):
+            builtin()
+            sys.exit(0)
+        elif opt in ('-i', '--in'):
+            if arg.find(',') == -1:
+                IN = open(arg, 'r')
+            else:
+                encoding, filename = arg.split(',')
+                reader = codecs.lookup(encoding)[2]
+                IN = reader(open(filename, 'r'))
+        elif opt in ('-o', '--out'):
+            if arg.find(',') == -1:
+                OUT = open(arg, 'w')
+            else:
+                encoding, filename = arg.split(',')
+                writer = codecs.lookup(encoding)[3]
+                OUT = writer(open(filename, 'w'))
+        elif opt in ('-x', '--xpath'):
+            query = arg
 
-r = PYE()
-dom = r.fromStream(IN)
-context = Context(dom)
-nodelist = xpath.Evaluate(query, context=context)
-c14n.Canonicalize(dom, OUT, subset=nodelist)
-OUT.close()
+    r = PYE()
+    dom = r.fromStream(IN)
+    context = Context(dom)
+    nodelist = xpath.Evaluate(query, context=context)
+    c14n.Canonicalize(dom, OUT, subset=nodelist)
+    OUT.close()
