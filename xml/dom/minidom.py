@@ -60,6 +60,9 @@ class Node(xml.dom.Node, GetattrMagic):
         else:
             return False
 
+    def _get_childNodes(self):
+        return self.childNodes
+
     def _get_firstChild(self):
         if self.childNodes:
             return self.childNodes[0]
@@ -339,6 +342,9 @@ class Attr(Node):
     def _get_localName(self):
         return self.nodeName.split(":", 1)[-1]
 
+    def _get_specified(self):
+        return self.specified
+
     def __setattr__(self, name, value):
         d = self.__dict__
         if name in ("value", "nodeValue"):
@@ -348,6 +354,20 @@ class Attr(Node):
             d["name"] = d["nodeName"] = value
         else:
             d[name] = value
+
+    def _set_prefix(self, value):
+        nsuri = self.namespaceURI
+        if value == "xmlns":
+            if self.namespaceURI and self.namespaceURI != XMLNS_NAMESPACE:
+                raise xml.dom.NamespaceErr(
+                    "illegal use of 'xmlns' prefix for the wrong namespace")
+        d = self.__dict__
+        d['prefix'] = prefix
+        if prefix is None:
+            newName = self.localName
+        else:
+            newName = "%s:%s" % (value, self.localName)
+        d['nodeName'] = d['name'] = newName
 
     def _set_value(self, value):
         d = self.__dict__
@@ -394,6 +414,12 @@ class NamedNodeMap(NewStyle, GetattrMagic):
             L.append(((node.namespaceURI, node.localName), node.value))
         return L
 
+    def has_key(self, key):
+        if isinstance(key, StringTypes):
+            return self._attrs.has_key(key)
+        else:
+            return self._attrsNS.has_key(key)
+
     def keys(self):
         return self._attrs.keys()
 
@@ -432,6 +458,32 @@ class NamedNodeMap(NewStyle, GetattrMagic):
                 raise TypeError, "value must be a string or Attr object"
             node = value
         self.setNamedItem(node)
+
+    def getNamedItem(self, name):
+        try:
+            return self._attrs[name]
+        except KeyError:
+            return None
+
+    def getNamedItemNS(self, namespaceURI, localName):
+        try:
+            return self._attrsNS[(namespaceURI, localName)]
+        except KeyError:
+            return None
+
+    def removeNamedItem(self, name):
+        n = self.getNamedItem(name)
+        del self._attrs[n.nodeName]
+        del self._attrsNS[(n.namespaceURI, n.localName)]
+        if n.__dict__.has_key('ownerElement'):
+            n.__dict__['ownerElement'] = None
+
+    def removeNamedItemNS(self, namespaceURI, localName):
+        n = self.getNamedItemNS(namespaceURI, localName)
+        del self._attrs[n.nodeName]
+        del self._attrsNS[(n.namespaceURI, n.localName)]
+        if n.__dict__.has_key('ownerElement'):
+            n.__dict__['ownerElement'] = None
 
     def setNamedItem(self, node):
         if not isinstance(node, Attr):
@@ -551,9 +603,12 @@ class Element(Node):
         self.removeAttributeNode(attr)
 
     def removeAttributeNode(self, node):
-        node.unlink()
-        del self._attrs[node.name]
+        try:
+            del self._attrs[node.name]
+        except KeyError:
+            raise xml.dom.NotFoundErr()
         del self._attrsNS[(node.namespaceURI, node.localName)]
+        node.unlink()
         # Restore this since the node is still useful and otherwise
         # unlinked
         node.ownerDocument = self.ownerDocument
@@ -666,6 +721,18 @@ class ProcessingInstruction(Childless, Node):
         self.target = self.nodeName = target
         self.data = self.nodeValue = data
 
+    def _get_data(self):
+        return self.data
+    def _set_data(self, value):
+        d = self.__dict__
+        d['data'] = d['nodeValue'] = value
+
+    def _get_target(self):
+        return self.target
+    def _set_target(self, value):
+        d = self.__dict__
+        d['target'] = d['nodeName'] = value
+
     def __setattr__(self, name, value):
         if name == "data" or name == "nodeValue":
             self.__dict__['data'] = self.__dict__['nodeValue'] = value
@@ -681,11 +748,13 @@ class ProcessingInstruction(Childless, Node):
 class CharacterData(Childless, Node):
     def _get_length(self):
         return len(self.data)
+    __len__ = _get_length
 
     def _get_data(self):
         return self.__dict__['data']
     def _set_data(self, data):
-        self.__dict__['data'] = data
+        d = self.__dict__
+        d['data'] = d['nodeValue'] = data
 
     _get_nodeValue = _get_data
     _set_nodeValue = _set_data
@@ -947,6 +1016,7 @@ class Identified:
         return self.systemId
 
 class Entity(Identified, Node):
+    attributes = None
     nodeType = Node.ENTITY_NODE
     nodeValue = None
 
@@ -957,6 +1027,7 @@ class Entity(Identified, Node):
     def __init__(self, name, publicId, systemId, notation):
         self.nodeName = name
         self.notationName = notation
+        self.childNodes = NodeList()
         self._identified_mixin_init(publicId, systemId)
 
 class Notation(Identified, Childless, Node):
@@ -1087,7 +1158,10 @@ class Document(Node, DocumentLS):
         return Node.appendChild(self, node)
 
     def removeChild(self, oldChild):
-        self.childNodes.remove(oldChild)
+        try:
+            self.childNodes.remove(oldChild)
+        except ValueError:
+            raise xml.dom.NotFoundErr()
         oldChild.nextSibling = oldChild.previousSibling = None
         oldChild.parentNode = None
         if self.documentElement is oldChild:
@@ -1160,6 +1234,9 @@ class Document(Node, DocumentLS):
         a.ownerDocument = self
         a.value = ""
         return a
+
+    def getElementById(self, id):
+        return None
 
     def getElementsByTagName(self, name):
         return _getElementsByTagNameHelper(self, name, NodeList())
@@ -1271,6 +1348,10 @@ def _clone_node(node, deep, newOwnerDocument):
                                                              node.data)
     elif node.nodeType == Node.COMMENT_NODE:
         clone = newOwnerDocument.createComment(node.data)
+    elif node.nodeType == Node.ATTRIBUTE_NODE:
+        clone = newOwnerDocument.createAttributeNS(node.namespaceURI,
+                                                   node.nodeName)
+        clone.value = node.value
     else:
         raise Exception("Cannot clone node %s" % repr(node))
 
