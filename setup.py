@@ -38,6 +38,7 @@ setup (name = "PyXML",
                    '_xmlplus.marshal',
                    '_xmlplus.parsers', '_xmlplus.parsers.xmlproc', 
                    '_xmlplus.sax', '_xmlplus.sax.drivers',
+                   '_xmlplus.sax.drivers2',
                    '_xmlplus.unicode', '_xmlplus.utils'
                    ],
 
