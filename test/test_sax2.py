@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax2.py,v 1.4 2002/09/10 16:11:14 fdrake Exp $
+# $Id: test_sax2.py,v 1.5 2002/09/10 21:37:29 fdrake Exp $
 
 from xml.sax import handler, make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -26,10 +26,8 @@ def confirm(outcome, name):
     global tests, fails
 
     tests = tests + 1
-    if outcome:
-        print "Passed", name
-    else:
-        print "Failed", name
+    if not outcome:
+        print "Failed " + name
         fails = fails + 1
 
 def test_make_parser2():
@@ -340,6 +338,20 @@ def test_expat_attrs_empty():
 
     return verify_empty_attrs(gather._attrs)
 
+def test_expat_nsattrs_qnames():
+    parser = make_parser()
+    parser.setFeature(handler.feature_namespaces, 1)
+    assert parser._namespaces
+    testhandler = AttrGatherer()
+    parser.setContentHandler(testhandler)
+    ns_uri = 'http://relaxng.org/ns/structure/1.0'
+    stream = StringIO("<grammar xmlns='%s' foo='bar'/>" % ns_uri)
+    parser.parse(stream)
+    attrs = testhandler._attrs
+
+    return attrs.getQNames() == ["foo"] and \
+           attrs.has_key((None, "foo"))
+
 def test_expat_attrs_wattr():
     parser = make_parser()
     parser.setFeature(handler.feature_namespaces, 0)
@@ -372,7 +384,7 @@ def test_expat_nsattrs_wattr():
 
     return attrs.getLength() == 1 and \
            attrs.getNames() == [(ns_uri, "attr")] and \
-           (attrs.getQNames() == [] or attrs.getQNames() == ['ns:attr']) and \
+           attrs.getQNames() == ['ns:attr'] and \
            len(attrs) == 1 and \
            attrs.has_key((ns_uri, "attr")) and \
            attrs.keys() == [(ns_uri, "attr")] and \
@@ -685,6 +697,5 @@ for (name, value) in items:
     if name[ : 5] == "test_":
         confirm(value(), name)
 
-print "%d tests, %d failures" % (tests, fails)
 if fails != 0:
     raise TestFailed, "%d of %d tests failed" % (fails, tests)
