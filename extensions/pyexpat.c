@@ -1715,9 +1715,17 @@ get_version_string(void)
 #define MODULE_INITFUNC initpyexpat
 #endif
 
-void MODULE_INITFUNC(void);  /* avoid compiler warnings */
+#ifndef PyMODINIT_FUNC
+#   ifdef MS_WINDOWS
+#       define PyMODINIT_FUNC __declspec(dllexport) void
+#   else
+#       define PyMODINIT_FUNC void
+#   endif
+#endif
 
-DL_EXPORT(void)
+PyMODINIT_FUNC MODULE_INITFUNC(void);  /* avoid compiler warnings */
+
+PyMODINIT_FUNC
 MODULE_INITFUNC(void)
 {
     PyObject *m, *d;
@@ -1772,7 +1780,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.70 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.71 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
