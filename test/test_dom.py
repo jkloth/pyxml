@@ -1,11 +1,11 @@
 
 import StringIO
+from xml.dom import Node        # MUST be first
 from xml.dom import implementation, DOMException
 from xml.dom import HIERARCHY_REQUEST_ERR, NOT_FOUND_ERR
-from xml.dom import INDEX_SIZE_ERR, INVALID_CHARACTER_ERR
+from xml.dom import INDEX_SIZE_ERR, INVALID_CHARACTER_ERR, SYNTAX_ERR
 from xml.dom.ext.reader.Sax import FromXml
 from xml.dom.ext import PrettyPrint
-from xml.dom import Node
 
 # Internal test function: traverse a DOM tree, then verify that all
 # the parent pointers are correct.  Do NOT take this function as an
@@ -309,7 +309,9 @@ check('e.getAttributeNode("dummy") == None', 'Element: empty getAttributeNode')
 
 try: e.setAttribute('dummy', attr)
 except DOMException,x:
-    assert x.code==INVALID_CHARACTER_ERR
+    assert x.code == SYNTAX_ERR
+# Spec says invalid character for name not value
+#    assert x.code==INVALID_CHARACTER_ERR
 else:
     print " *** Failed: setAttribute didn't raise InvalidCharacterException"
 
