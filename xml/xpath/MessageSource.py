@@ -1,4 +1,4 @@
-from xml.xpath import Error
+from xml.xpath import RuntimeException, CompiletimeException
 
 try:
     import os, gettext
@@ -10,17 +10,20 @@ except (ImportError, AttributeError, IOError):
     def _(msg):
         return msg
 
-g_errorMessages = {
-    Error.INTERNAL_ERROR: _('There is an internal bug in 4XPath.  Please report this error code to support@4suite.org: %s'),
-    Error.PROCESSING: _('Error evaluating expression.'),
+COMPILETIME = {
+    CompiletimeException.INTERNAL: _('There is an internal bug in 4XPath.  Please report this error code to support@4suite.org: %s'),
+    CompiletimeException.SYNTAX: _('Parse error at line %d, column %d: %s'),
+    CompiletimeException.PROCESSING: _('Error evaluating expression.'),
+    #CompiletimeException.: _(''),
+    }
 
-    Error.LEXICAL: _('FIXME'),
-    Error.SYNTAX: _('Syntax error in expression at location %s'),
+RUNTIME = {
+    RuntimeException.INTERNAL: _('There is an internal bug in 4XPath.  Please report this error code to support@4suite.org: %s'),
 
-    Error.NO_CONTEXT: _('An XPath Context object is required in order to evaluate an expression.'),
-    Error.UNDEFINED_VARIABLE: _('Variable undefined: (%s, %s).'),
-    
-    #Error.: _(''),
-
+    RuntimeException.NO_CONTEXT: _('An XPath Context object is required in order to evaluate an expression.'),
+    RuntimeException.UNDEFINED_VARIABLE: _('Variable undefined: ("%s", "%s").'),
+    RuntimeException.UNDEFINED_PREFIX: _('Undefined namespace prefix: "%s".'),
+    RuntimeException.WRONG_ARGUMENTS: _('Error in arguments to %s: %s'),
+    #RuntimeException.: _(''),
     }
 

@@ -2,41 +2,37 @@
 #
 # File Name:   ParsedAbbreviatedRelativeLocationPath.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedAbbreviatedRelativeLocationPath.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedAbbreviatedRelativeLocationPath.py.html
 #
 """
 A parsed token that represents a abbreviated relative location path.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-from xml.xpath import ParsedToken
 from xml.xpath import ParsedNodeTest
 from xml.xpath import ParsedPredicateList
 from xml.xpath import ParsedAxisSpecifier
 from xml.xpath import ParsedStep
-from xml.xpath import XPath
 
 import Set
 
-class ParsedAbbreviatedRelativeLocationPath(ParsedToken.ParsedToken):
+class ParsedAbbreviatedRelativeLocationPath:
     def __init__(self,left,right):
         """
         left can be a step or a relative location path
         right is only a step
         """
-        ParsedToken.ParsedToken.__init__(self,'ABBREVIATED_RELATIVE_LOCATION_PATH')
         self._left = left
         self._right = right
-        nt = ParsedNodeTest.ParsedNodeTest(XPath.NODE,'')
+        nt = ParsedNodeTest.ParsedNodeTest('node','')
         ppl = ParsedPredicateList.ParsedPredicateList([])
-        as = ParsedAxisSpecifier.ParsedAxisSpecifier(XPath.DESCENDANT_OR_SELF)
+        as = ParsedAxisSpecifier.ParsedAxisSpecifier('descendant-or-self')
         self._middle = ParsedStep.ParsedStep(as, nt, ppl)
 
-    def select(self, context):
-
+    def evaluate(self, context):
         res = []
         rt = self._left.select(context)
         l = len(rt)
@@ -58,8 +54,8 @@ class ParsedAbbreviatedRelativeLocationPath(ParsedToken.ParsedToken):
 
 
         context.setNodePosSize(origState)
-
         return res
+    select = evaluate
 
     def pprint(self, indent=''):
         print indent + str(self)

@@ -2,14 +2,14 @@
 #
 # File Name:            Util.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/Util.py.html
+# Documentation:        http://docs.4suite.org/4XSLT/Util.py.html
 #
 """
 General Utilities for XPath apps.
-WWW: http://4suite.com/4XSLT        e-mail: support@4suite.com
+WWW: http://4suite.org/4XSLT        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import os, glob, string
@@ -22,6 +22,17 @@ from xml.xpath import g_xpathRecognizedNodes, Compile
 g_documentOrderIndex = {}
 
 g_xmlSpaceDescendant = g_xmlSpaceAncestor = None
+
+
+def ElementsById(element, name):
+    elements = []
+    attrs = element.attributes
+    idattr = attrs.get(('', 'id')) or attrs.get(('', 'ID'))
+    idattr and idattr.value == name and elements.append(idattr.ownerElement)
+    for element in filter(lambda node: node.nodeType == Node.ELEMENT_NODE,
+                          element.childNodes):
+        elements.extend(ElementsById(element, name))
+    return elements
 
 
 def IndexDocument(doc):
@@ -45,10 +56,7 @@ def SortDocOrder(nList):
     if hasattr(nList[0], 'docIndex'):
         nList.sort(lambda a, b: cmp(a.docIndex, b.docIndex))
         return nList
-    if nList[0].nodeType == Node.DOCUMENT_NODE:
-        doc = nList[0]
-    else:
-        doc = nList[0].ownerDocument
+    doc = nList[0].ownerDocument or nList[0]
     IndexDocument(doc)
     global g_documentOrderIndex
     if g_documentOrderIndex.has_key(id(doc)):
@@ -96,8 +104,8 @@ def __IndexNode(node, curIndex, mapping):
 
 
 def IndexSort(left, right):
-    ldocId = id(left.ownerDocument)
-    rdocId = id(right.ownerDocument)
+    ldocId = id(left.ownerDocument or left)
+    rdocId = id(right.ownerDocument or right)
     if ldocId == rdocId:
         lid = id(left)
         rid = id(right)
@@ -128,4 +136,50 @@ def __recurseSort(test, toSort):
             break
     return result
 
+
+def NormalizeNode(node):
+    """NormalizeNode is used to prepare a DOM for XPath evaluation.
+
+    1.  Convert CDATA Sections to Text Nodes.
+    2.  Normalize all text nodes
+    """
+    node = node.firstChild
+    while node:
+        if node.nodeType == Node.CDATA_SECTION_NODE:
+            # If followed by a text node, add this data to it
+            if node.nextSibling and node.nextSibling.nodeType == Node.TEXT_NODE:
+                node.nextSibling.insertData(0, node.data)
+            elif node.data:
+                # Replace this node with a new text node
+                text = node.ownerDocument.createTextNode(node.data)
+                node.parentNode.replaceChild(text, node)
+                node = text
+            else:
+                # It is empty, get rid of it
+                next = node.nextSibling
+                node.parentNode.removeChild(node)
+                node = next
+                # Just in case it is None
+                continue
+        elif node.nodeType == Node.TEXT_NODE:
+            next = node.nextSibling
+            while next and next.nodeType in [Node.TEXT_NODE,
+                                             Node.CDATA_SECTION_NODE]:
+                node.appendData(next.data)
+                node.parentNode.removeChild(next)
+                next = node.nextSibling
+            if not node.data:
+                # Remove any empty text nodes
+                next = node.nextSibling
+                node.parentNode.removeChild(node)
+                node = next
+                # Just in case it is None
+                continue
+        elif node.nodeType == Node.ELEMENT_NODE:
+            for attr in node.attributes.values():
+                if len(attr.childNodes) > 1:
+                    NormalizeNode(attr)
+            NormalizeNode(node)
+        node = node.nextSibling
+    return
 

@@ -53,8 +53,7 @@ DIV_OPERATOR = 12
 MOD_OPERATOR = 13
 UNION_OPERATOR = 14
 
-from xml.xpath import XPath,ParsedExpr
-XPATH=XPath
+from xml.xpath import ParsedExpr, ParsedNodeTest
 from xml.xpath.ParsedAbsoluteLocationPath import ParsedAbsoluteLocationPath
 from xml.xpath.ParsedRelativeLocationPath import ParsedRelativeLocationPath
 from xml.xpath.ParsedAbbreviatedRelativeLocationPath import ParsedAbbreviatedRelativeLocationPath
@@ -69,7 +68,6 @@ from xml.xpath.ParsedPredicateList import ParsedPredicateList
 
 from xml.xpath.ParsedAbsoluteLocationPath import ParsedAbsoluteLocationPath
 from xml.xpath.ParsedRelativeLocationPath import ParsedRelativeLocationPath
-from xml.xpath.ParsedNodeTest import ParsedNodeTest
 
 # XSLT
 try:
@@ -94,27 +92,27 @@ class FtFactory:
 
     def createAbbreviatedStep(self,parent):
         if parent:
-            type = XPATH.PARENT
+            type = 'parent'
         else:
-            type = XPATH.SELF
+            type = 'self'
         return ParsedStep(ParsedAxisSpecifier(type),
-                          ParsedNodeTest(XPATH.NODE,""),
+                          ParsedNodeTest.ParsedNodeTest('node',""),
                           ParsedPredicateList([]))
 
     axisMap = {
-        ANCESTOR_AXIS: XPATH.ANCESTOR,
-        ANCESTOR_OR_SELF_AXIS: XPATH.ANCESTOR_OR_SELF,
-        ATTRIBUTE_AXIS: XPATH.ATTRIBUTE,
-        CHILD_AXIS: XPATH.CHILD,
-        DESCENDANT_AXIS: XPATH.DESCENDANT,
-        DESCENDANT_OR_SELF_AXIS: XPATH.DESCENDANT_OR_SELF,
-        FOLLOWING_AXIS: XPATH.FOLLOWING,
-        FOLLOWING_SIBLING_AXIS: XPATH.FOLLOWING_SIBLING,
-        NAMESPACE_AXIS: XPATH.NAMESPACE,
-        PARENT_AXIS: XPATH.PARENT,
-        PRECEDING_AXIS: XPATH.PRECEDING,
-        PRECEDING_SIBLING_AXIS: XPATH.PRECEDING_SIBLING,
-        SELF_AXIS: XPATH.SELF
+        ANCESTOR_AXIS: 'ancestor',
+        ANCESTOR_OR_SELF_AXIS: 'ancestor-or-self',
+        ATTRIBUTE_AXIS: 'attribute',
+        CHILD_AXIS: 'child',
+        DESCENDANT_AXIS: 'descendant',
+        DESCENDANT_OR_SELF_AXIS: 'descendant-or-self',
+        FOLLOWING_AXIS: 'following',
+        FOLLOWING_SIBLING_AXIS: 'following-sibling',
+        NAMESPACE_AXIS: 'namespace',
+        PARENT_AXIS: 'parent',
+        PRECEDING_AXIS: 'preceding',
+        PRECEDING_SIBLING_AXIS: 'preceding-sibling',
+        SELF_AXIS: 'self'
         }
         
     def createAxisSpecifier(self,axis):
@@ -122,36 +120,41 @@ class FtFactory:
         return ParsedAxisSpecifier(self.axisMap[axis])
 
     ntMap = {
-        COMMENT: XPATH.COMMENT,
-        TEXT: XPATH.TEXT,
-        PROCESSING_INSTRUCTION: XPATH.PROCESSING_INSTRUCTION,
-        NODE: XPATH.NODE
+        COMMENT: 'comment',
+        TEXT: 'text',
+        PROCESSING_INSTRUCTION: 'processing-instruction',
+        NODE: 'node'
         }
         
     def createNodeTest(self,type,val):
         if val is None:
             val = ""
-        return ParsedNodeTest(self.ntMap[type],val)
+        return ParsedNodeTest.ParsedNodeTest(self.ntMap[type],val)
 
     def createNameTest(self,prefix,local):
+        if local == '*':
+            if prefix:
+                return ParsedNodeTest.LocalNameTest(prefix)
+            else:
+                return ParsedNodeTest.PrincipalTypeTest()
         if prefix:
-            local = prefix + ":" + local
-        return ParsedNodeTest(XPATH.WILDCARD_NAME, local)
+            return ParsedNodeTest.QualifiedNameTest(prefix, local)
+        return ParsedNodeTest.NodeNameTest(local)
 
     opMap = {
         OR_OPERATOR: ParsedExpr.ParsedOrExpr,
         AND_OPERATOR: ParsedExpr.ParsedAndExpr,
         EQ_OPERATOR: (ParsedExpr.ParsedEqualityExpr,"="),
         NEQ_OPERATOR: (ParsedExpr.ParsedEqualityExpr, "!="),
-        LT_OPERATOR: (ParsedExpr.ParsedRelationalExpr, XPATH.LESS_THAN),
-        GT_OPERATOR: (ParsedExpr.ParsedRelationalExpr, XPATH.GREATER_THAN),
-        LE_OPERATOR: (ParsedExpr.ParsedRelationalExpr, XPATH.LESS_THAN_EQUAL),
-        GE_OPERATOR: (ParsedExpr.ParsedRelationalExpr, XPATH.GREATER_THAN_EQUAL),
-        PLUS_OPERATOR: (ParsedExpr.ParsedAdditiveExpr, "+"),
-        MINUS_OPERATOR: (ParsedExpr.ParsedAdditiveExpr, "-"),
-        TIMES_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, "*"),
-        DIV_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, XPATH.DIV),
-        MOD_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, XPATH.MOD),
+        LT_OPERATOR: (ParsedExpr.ParsedRelationalExpr, 0),
+        GT_OPERATOR: (ParsedExpr.ParsedRelationalExpr, 2),
+        LE_OPERATOR: (ParsedExpr.ParsedRelationalExpr, 1),
+        GE_OPERATOR: (ParsedExpr.ParsedRelationalExpr, 3),
+        PLUS_OPERATOR: (ParsedExpr.ParsedAdditiveExpr, 1),
+        MINUS_OPERATOR: (ParsedExpr.ParsedAdditiveExpr, -1),
+        TIMES_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, 0),
+        DIV_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, 1),
+        MOD_OPERATOR: (ParsedExpr.ParsedMultiplicativeExpr, 2),
         UNION_OPERATOR: ParsedExpr.ParsedUnionExpr,
         }
 
@@ -275,6 +278,7 @@ class SyntaxError(yappsrt.SyntaxError):
             fmt = "SyntaxError[@ char %s in '%s': %s]"
             return  fmt % (repr(self.pos), text, self.msg)
 
+#obsolete
 class Parser:
     def parseLocationPath(self, str):
         try:
@@ -304,3 +308,26 @@ def Compile(str):
 
 def CompilePattern(str):
     return parser.parsePattern(str)
+
+class Factory:
+    def __init__(self, cl):
+        self.new = cl
+
+class ExprParser:
+    def parse(self, str):
+        try:
+            from XPathGrammar import XPath,XPathScanner
+            return XPath(XPathScanner(str),factory).FullExpr()
+        except yappsrt.SyntaxError,e:
+            raise SyntaxError(e.pos, e.msg, str)
+ExprParserFactory = Factory(ExprParser)
+
+class PatternParser:
+    def parse(self, str):
+        try:
+            from XPathGrammar import XPath,XPathScanner
+            return XPath(XPathScanner(str),factory).FullPattern()
+        except yappsrt.SyntaxError,e:
+            raise SyntaxError(e.pos, e.msg, str)
+
+PatternParserFactory = Factory(PatternParser)

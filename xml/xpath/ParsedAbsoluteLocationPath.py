@@ -2,38 +2,34 @@
 #
 # File Name:   ParsedAbsoluteLocationPath.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedAbsoluteLocationPath.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedAbsoluteLocationPath.py.html
 #
 """
 A Parsed Token that represents a absolute location path in the parsed tree.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-from xml.xpath import ParsedToken
-
-
-class ParsedAbsoluteLocationPath(ParsedToken.ParsedToken):
+class ParsedAbsoluteLocationPath:
     def __init__(self, child):
-        ParsedToken.ParsedToken.__init__(self,'ABSOLUTE_LOCATION_PATH')
         self._child = child
 
-    def select(self, context):
-        if self._child == None:
-            return [context.node.ownerDocument]
+    def evaluate(self, context):
+        root = context.node.ownerDocument or context.node
+
+        if self._child is None:
+            return [root]
 
         origState = context.copyNodePosSize()
-
-        root = context.node.ownerDocument
         context.setNodePosSize((root,1,1))
         rt = self._child.select(context)
-
         context.setNodePosSize(origState)
 
         return rt
-
+    select = evaluate
+    
     def pprint(self, indent=''):
         print indent + str(self)
         self._child and self._child.pprint(indent + '  ')

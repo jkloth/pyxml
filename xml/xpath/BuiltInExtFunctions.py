@@ -2,21 +2,21 @@
 #
 # File Name:   BuiltInExtFunctions.py
 #
-# Docs:        http://docs.4suite.com/XPath/BuiltInExtFunctions.py.html
+# Docs:        http://docs.4suite.org/XPath/BuiltInExtFunctions.py.html
 #
 """
 4XPath-specific Extension functions
-WWW: http://4suite.com/XSLT        e-mail: support@4suite.com
+WWW: http://4suite.org/XSLT        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-import re, string, urllib
+import sys, re, string, urllib
 from xml.dom import Node
 from xml.dom.Text import Text
 from xml.utils import boolean
-from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE
+from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE, FT_OLD_EXT_NAMESPACE
 
 def Version(context):
     from Ft.__init__ import __version__
@@ -27,7 +27,7 @@ def NodeSet(context, rtf):
     """Convert a result-tree fragment to a node-set"""
     if type(rtf) == type([]):
         return rtf
-    if hasattr(rtf,'nodeType') and rtf.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
+    if hasattr(rtf,'nodeType') and rtf.nodeType == Node.DOCUMENT_NODE:
         node_set = list(rtf.childNodes)
     else:
         node_set = [rtf]
@@ -41,6 +41,16 @@ def Match(context, pattern, arg=None):
     arg = Conversions.StringValue(arg)
     bool = re.match(pattern, arg) and boolean.true or boolean.false
     return bool
+
+
+def Replace(context, old, new, arg=None):
+    """Do a global search and replace of the string contents"""
+    if not arg:
+        arg = context.node
+    arg = Conversions.StringValue(arg)
+    old = Conversions.StringValue(old)
+    new = Conversions.StringValue(new)
+    return string.replace(arg, old, new)
 
 
 #FIXME: Really only makes sense for XSLT
@@ -65,6 +75,38 @@ def SearchRe(context, pattern, arg=None):
         frag = proc.popResult()
         context.rtfs.append(frag)
         matches_nodeset.append(frag.childNodes[0])
+    return matches_nodeset
+
+
+#This version incorporates a workaround for a Python 2.0 bug in re.findall
+#Courtesy alexander smishlajev <alex@ank-sia.com>
+#See http://lists.fourthought.com/pipermail/4suite/2001-June/002188.html
+def SearchRePy20(context, pattern, arg=None):
+    """Do a regular expression search against the argument (i.e. get all matches)"""
+    if not arg:
+        arg = context.node
+    arg = Conversions.StringValue(arg)
+    proc = context.processor
+    matches_nodeset = []
+    _re =re.compile(pattern)
+    _match =_re.search(arg)
+    while _match:
+        proc.pushResult()
+        proc.writers[-1].startElement('Match', '')
+        _groups =_match.groups()
+        # .groups() return empty tuple when the pattern did not do grouping
+        if not _groups: _groups =tuple(_match.group())
+        for group in _groups:
+            proc.writers[-1].startElement('Group', '')
+            # MatchObject groups return None if unmatched
+            # unlike .findall() returning empty strings
+            proc.writers[-1].text(group or '')
+            proc.writers[-1].endElement('Group')
+        proc.writers[-1].endElement('Match')
+        frag = proc.popResult()
+        context.rtfs.append(frag)
+        matches_nodeset.append(frag.childNodes[0])
+        _match =_re.search(arg, _match.end())
     return matches_nodeset
 
 
@@ -112,10 +154,14 @@ def EscapeUrl(context, url):
 
 def BaseUri(context, arg=None):
     """Get the base URI of the argument"""
+    #FIXME: Arg must be a node set
     if not arg:
         arg = [context.node]
-    return arg[0].baseUri
-
+    if hasattr(arg[0],'baseUri'):
+        return arg[0].baseUri
+    elif hasattr(arg[0],'refUri'):
+        return arg[0].refUri
+    return ""
 
 def IsoTime(context):
     import DateTime
@@ -126,6 +172,11 @@ def IsoTime(context):
 def Evaluate(context, expr):
     import xml.xpath
     return xml.xpath.Evaluate(Conversions.StringValue(st), context=context)
+
+
+def GenerateUuid(context):
+    from Ft.Lib import Uuid
+    return Uuid.UuidAsString(Uuid.GenerateUuid())
 
 
 ##
@@ -191,7 +242,7 @@ def find(context, outer, inner):
 ExtFunctions = {
     (FT_EXT_NAMESPACE, 'node-set'): NodeSet,
     (FT_EXT_NAMESPACE, 'match'): Match,
-    (FT_EXT_NAMESPACE, 'search-re'): SearchRe,
+    (FT_EXT_NAMESPACE, 'search-re'): sys.hexversion != 0x20000f1 and SearchRe or SearchRePy20,
     (FT_EXT_NAMESPACE, 'base-uri'): BaseUri,
     (FT_EXT_NAMESPACE, 'escape-url'): EscapeUrl,
     (FT_EXT_NAMESPACE, 'iso-time'): IsoTime,
@@ -204,5 +255,23 @@ ExtFunctions = {
     (FT_EXT_NAMESPACE, 'find'): find,
     (FT_EXT_NAMESPACE, 'map'): Map,
     (FT_EXT_NAMESPACE, 'version'): Version,
+    (FT_EXT_NAMESPACE, 'generate-uuid'): GenerateUuid,
+    (FT_EXT_NAMESPACE, 'replace'): Replace,
+
+    (FT_OLD_EXT_NAMESPACE, 'node-set'): NodeSet,
+    (FT_OLD_EXT_NAMESPACE, 'match'): Match,
+    (FT_OLD_EXT_NAMESPACE, 'search-re'): sys.hexversion != 0x20000f1 and SearchRe or SearchRePy20,
+    (FT_OLD_EXT_NAMESPACE, 'base-uri'): BaseUri,
+    (FT_OLD_EXT_NAMESPACE, 'escape-url'): EscapeUrl,
+    (FT_OLD_EXT_NAMESPACE, 'iso-time'): IsoTime,
+    (FT_OLD_EXT_NAMESPACE, 'evaluate'): Evaluate,
+    (FT_OLD_EXT_NAMESPACE, 'distinct'): distinct,
+    (FT_OLD_EXT_NAMESPACE, 'split'): split,
+    (FT_OLD_EXT_NAMESPACE, 'join'): join,
+    (FT_OLD_EXT_NAMESPACE, 'range'): range,
+    (FT_OLD_EXT_NAMESPACE, 'if'): if_function,
+    (FT_OLD_EXT_NAMESPACE, 'find'): find,
+    (FT_OLD_EXT_NAMESPACE, 'map'): Map,
+    (FT_OLD_EXT_NAMESPACE, 'version'): Version,
     }
 

@@ -2,14 +2,14 @@
 #
 # File Name:   CoreFunctions.py
 #
-# Docs:        http://docs.4suite.com/XPATH/CoreFunctions.py.html
+# Docs:        http://docs.4suite.org/XPATH/CoreFunctions.py.html
 #
 """
 The implementation of all of the core functions for the XPath spec.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string, cStringIO
@@ -20,7 +20,19 @@ from xml.xpath import NamespaceNode
 from xml.xpath import NaN, Inf
 from xml.xpath import Util, Conversions
 from xml.xpath import NAMESPACE_NODE
+from xml.xpath import CompiletimeException, RuntimeException
 from xml.utils import boolean
+
+try:
+    import os, gettext
+    locale_dir = os.path.split(__file__)[0]
+    gettext.install('4Suite', locale_dir)
+#except ImportError, IOError:
+#Note, 1.5.2 has gettext, but no install
+except (ImportError, AttributeError, IOError):
+    def _(msg):
+        return msg
+
 
 class Types:
     NumberType = 0
@@ -50,7 +62,7 @@ def Position(context):
 def Count(context, nodeSet):
     """Function: <number> count(<node-set>)"""
     if type(nodeSet) != type([]):
-        raise Exception("Count param must be a node set")
+        raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'count', _("expected node set argument"))
     return len(nodeSet)
 
 
@@ -64,24 +76,15 @@ def Id(context, object):
         for n in object:
             id_list.append(Conversions.StringValue(n))
     rt = []
-    for i in id_list:
-        r = _FindIds(context.node.ownerDocument.documentElement, i, [])
-        if len(r) > 1:
-            raise Exception("ID must be unique")
-        elif len(r) == 1:
-            rt.append(r[0].ownerElement)
+    for id in id_list:
+        doc = context.node.ownerDocument or context.node
+        elements = Util.ElementsById(doc.documentElement, id)
+        if len(elements) > 1:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'id', _("argument not unique"))
+        elif elements:
+            # Must be 1
+            rt.append(elements[0])
     return rt
-
-
-def _FindIds(node, name, result):
-    attrs = node.attributes
-    idattr = attrs.get(('', 'id')) or attrs.get(('', 'ID'))
-    idattr and idattr.value == name and result.append(idattr)
-    elements = filter(lambda node: node.nodeType == Node.ELEMENT_NODE,
-                      node.childNodes)
-    for node in elements:
-        _FindIds(node, name, result)
-    return result
 
 
 def LocalName(context, nodeSet=None):
@@ -90,7 +93,7 @@ def LocalName(context, nodeSet=None):
         node = context.node
     else:
         if type(nodeSet) != type([]):
-            raise Exception("local-name() parameter must be a node set")
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'local-name', _("expected node set"))
         nodeSet = Util.SortDocOrder(nodeSet)
         if type(nodeSet) != type([]) or len(nodeSet) == 0:
             return ''
@@ -107,7 +110,7 @@ def NamespaceUri(context, nodeSet=None):
         node = context.node
     else:
         if type(nodeSet) != type([]):
-            raise Exception("namespace-uri() parameter must be a node set")
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'namespace-uri', _("expected node set"))
         nodeSet = Util.SortDocOrder(nodeSet)
         if type(nodeSet) != type([]) or len(nodeSet) == 0:
             return ''
@@ -124,7 +127,7 @@ def Name(context, nodeSet=None):
         node = context.node
     else:
         if type(nodeSet) != type([]):
-            raise Exception("name() parameter must be a node set")
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'name', _("expected node set"))
         nodeSet = Util.SortDocOrder(nodeSet)
         if type(nodeSet) != type([]) or len(nodeSet) == 0:
             return ''
@@ -148,6 +151,8 @@ def String(context, object=None):
 
 def Concat(context, *args):
     """Function: <string> concat(<string>, <string>, ...)"""
+    if len(args) < 1:
+        raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, 'concat', _("at least 2 arguments expected"))
     return reduce(lambda a,b,c=context: a + Conversions.StringValue(b),
                   args, '')
 
@@ -263,16 +268,15 @@ def False(context):
 def Lang(context, lang):
     """Function: <boolean> lang(<string>)"""
     lang = string.upper(Conversions.StringValue(lang))
-    no_suffix = string.find(lang, '-') == -1
     node = context.node
     while node:
-        value = filter(lambda x:x.name == 'xml:lang' and x.value, node.attributes)
+        lang_attr = filter(lambda x:x.name == 'xml:lang' and x.value, node.attributes.values())
+        value = lang_attr and lang_attr[0].nodeValue or None
         if value:
             # See if there is a suffix
-            if no_suffix:
-                index = string.find(value[0], '-')
-                if index != -1:
-                    value = value[:index]
+            index = string.find(value, '-')
+            if index != -1:
+                value = value[:index]
             value = string.upper(value)
             return value == lang and boolean.true or boolean.false
         node = node.nodeType == Node.ATTRIBUTE_NODE and node.ownerElement or node.parentNode
@@ -295,8 +299,9 @@ def Sum(context, nodeSet):
 
 def Floor(context, number):
     """Function: <number> floor(<number>)"""
-    if type(number) in g_stringTypes:
-        number = string.atof(number)
+    number = Conversions.NumberValue(number)
+    #if type(number) in g_stringTypes:
+    #    number = string.atof(number)        
     if int(number) == number:
         return number
     elif number < 0:
@@ -307,8 +312,9 @@ def Floor(context, number):
 
 def Ceiling(context, number):
     """Function: <number> ceiling(<number>)"""
-    if type(number) in g_stringTypes:
-        number = string.atof(number)
+    number = Conversions.NumberValue(number)
+    #if type(number) in g_stringTypes:
+    #    number = string.atof(number)
     if int(number) == number:
         return number
     elif number > 0:

@@ -2,21 +2,21 @@
 #
 # File Name:   ParsedExpr.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedExpr.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedExpr.py.html
 #
 """
 The implementation of all of the expression pared tokens.
 WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string, UserList, types
 
 from xml.dom.ext import SplitQName
-from xml.xpath import XPath, g_extFunctions
-from xml.xpath import ParsedToken
+from xml.xpath import CompiletimeException, RuntimeException
+from xml.xpath import g_extFunctions
 from xml.xpath import ParsedNodeTest
 from xml.xpath import CoreFunctions, Conversions
 from xml.xpath import Util
@@ -24,12 +24,6 @@ from xml.xpath import ParsedStep
 from xml.xpath import ParsedAxisSpecifier
 from xml.utils import boolean
 import Set
-
-g_printMap = {XPath.GREATER_THAN:'>',
-              XPath.GREATER_THAN_EQUAL:'>=',
-              XPath.LESS_THAN:'<',
-              XPath.LESS_THAN_EQUAL:'<=',
-              }
 
 class NodeSet(UserList.UserList):
     def __init__(self, data=None):
@@ -45,24 +39,8 @@ class NodeSet(UserList.UserList):
         return st
 
 
-class ParsedExpr(ParsedToken.ParsedToken):
-    def __init__(self):
-        ParsedToken.ParsedToken.__init__(self,"EXPRESSION")
-    
-    def evaluate(self, context):
-        """What does this expression evaluate to in the given context
-           Can return:  <boolean>
-                        <number>
-                        <string>
-                        <node-set>
-                       result-tree fragment
-        """
-        pass
-
-
-class ParsedLiteralExpr(ParsedExpr):
+class ParsedLiteralExpr:
     def __init__(self,literal):
-        ParsedExpr.__init__(self)
         if len(literal) >= 2 and (
             literal[0] in ['\'', '"'] and
             literal[0] == literal[-1]):
@@ -71,6 +49,12 @@ class ParsedLiteralExpr(ParsedExpr):
 
     def evaluate(self, context):
         return self._literal
+
+    def pprint(self, indent=''):
+        print indent + str(self)
+
+    def __str__(self):
+        return '<Literal at %x: %s>' % (id(self), repr(self))
 
     def __repr__(self):
         return '"' + self._literal + '"'
@@ -81,14 +65,18 @@ class ParsedNLiteralExpr(ParsedLiteralExpr):
         ParsedLiteralExpr.__init__(self,"")
         self._nliteral = nliteral
         self._literal = float(nliteral)
+
+    def pprint(self, indent=''):
+        print indent + str(self)
+
+    def __str__(self):
+        return '<Number at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         return str(self._nliteral)
 
-from xml.xpath import RuntimeException, Error
-
-class ParsedVariableReferenceExpr(ParsedExpr):
+class ParsedVariableReferenceExpr:
     def __init__(self,name):
-        ParsedExpr.__init__(self)
         self._name = name
         self._key = SplitQName(name[1:])
         return
@@ -96,12 +84,21 @@ class ParsedVariableReferenceExpr(ParsedExpr):
     def evaluate(self, context):
         """Returns a string"""
         (prefix, local) = self._key
-        expanded = (prefix and context.processorNss.get(prefix) or '', local)
+        uri = context.processorNss.get(prefix)
+        if prefix and not uri:
+            raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+        expanded = (prefix and uri or '', local)
         try:
             return context.varBindings[expanded]
         except:
-            raise RuntimeException(Error.UNDEFINED_VARIABLE,
+            raise RuntimeException(RuntimeException.UNDEFINED_VARIABLE,
                                    expanded[0], expanded[1])
+
+    def pprint(self, indent=''):
+        print indent + str(self)
+
+    def __str__(self):
+        return '<Variable at %x: %s>' % (id(self), repr(self))
 
     def __repr__(self):
         return self._name
@@ -122,9 +119,8 @@ def ParsedFunctionCallExpr(name, args):
     return FunctionCallN(name, key, args)
 
 
-class FunctionCall(ParsedExpr):
+class FunctionCall:
     def __init__(self, name, key, args):
-        ParsedExpr.__init__(self)
         self._name = name
         self._key = key
         self._args = args
@@ -142,10 +138,17 @@ class FunctionCall(ParsedExpr):
         """Call the function"""
         if not self._func:
             (prefix, local) = self._key
-            expanded = (prefix and context.processorNss.get(prefix) or '', local)
+            uri = context.processorNss.get(prefix)
+            if prefix and not uri:
+                raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+            expanded = (prefix and uri or '', local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
-        return self._func(context)
+        try:
+            result = self._func(context)
+        except TypeError:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, str(expanded), '')
+        return result
 
     def __getinitargs__(self):
         return (self._name, self._key, self._args)
@@ -155,6 +158,8 @@ class FunctionCall(ParsedExpr):
         del state['_func']
         return state
                     
+    def __str__(self):
+        return '<%s at %x: %s>' % (self.__class__.__name__, id(self), repr(self))
 
     def __repr__(self):
         result = self._name + '('
@@ -174,10 +179,17 @@ class FunctionCall1(FunctionCall):
         arg0 = self._arg0.evaluate(context)
         if not self._func:
             (prefix, local) = self._key
-            expanded = (prefix and context.processorNss.get(prefix) or '', local)
+            uri = context.processorNss.get(prefix)
+            if prefix and not uri:
+                raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+            expanded = (prefix and uri or '', local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
-        return self._func(context, arg0)
+        try:
+            result = self._func(context, arg0)
+        except TypeError:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, str(expanded), '')
+        return result
 
 
 class FunctionCall2(FunctionCall):
@@ -191,10 +203,17 @@ class FunctionCall2(FunctionCall):
         arg1 = self._arg1.evaluate(context)
         if not self._func:
             (prefix, local) = self._key
-            expanded = (prefix and context.processorNss.get(prefix) or '', local)
+            uri = context.processorNss.get(prefix)
+            if prefix and not uri:
+                raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+            expanded = (prefix and uri or '', local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
-        return self._func(context, arg0, arg1)
+        try:
+            result = self._func(context, arg0, arg1)
+        except TypeError:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, str(expanded), '')
+        return result
 
 
 class FunctionCall3(FunctionCall):
@@ -210,10 +229,17 @@ class FunctionCall3(FunctionCall):
         arg2 = self._arg2.evaluate(context)
         if not self._func:
             (prefix, local) = self._key
-            expanded = (prefix and context.processorNss.get(prefix) or '', local)
+            uri = context.processorNss.get(prefix)
+            if prefix and not uri:
+                raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+            expanded = (prefix and uri or '', local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
-        return self._func(context, arg0, arg1, arg2)
+        try:
+            result = self._func(context, arg0, arg1, arg2)
+        except TypeError:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, str(expanded), '')
+        return result
 
 
 class FunctionCallN(FunctionCall):
@@ -226,18 +252,24 @@ class FunctionCallN(FunctionCall):
                                self._args)
         if not self._func:
             (prefix, local) = self._key
-            expanded = (prefix and context.processorNss.get(prefix) or '', local)
+            uri = context.processorNss.get(prefix)
+            if prefix and not uri:
+                raise RuntimeException(RuntimeException.UNDEFINED_PREFIX, prefix)
+            expanded = (prefix and uri or '', local)
             self._func = (g_extFunctions.get(expanded) or
                           CoreFunctions.CoreFunctions.get(expanded, self.error))
-        return apply(self._func, args)
+        try:
+            result = apply(self._func, args)
+        except TypeError:
+            raise RuntimeException(RuntimeException.WRONG_ARGUMENTS, str(expanded), '')
+        return result
 
 
 #Node Set Expressions
 #These must return a node set
 
-class ParsedUnionExpr(ParsedExpr):
+class ParsedUnionExpr:
     def __init__(self,left,right):
-        ParsedExpr.__init__(self)
         self._left = left
         self._right = right
 
@@ -257,18 +289,20 @@ class ParsedUnionExpr(ParsedExpr):
         set = Util.SortDocOrder(set)
         return set
 
+    def __str__(self):
+        return '<UnionExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         return repr(self._left) + ' | ' + repr(self._right)
 
 
-class ParsedPathExpr(ParsedExpr):
-    def __init__(self, op, left, right):
-        ParsedExpr.__init__(self)
+class ParsedPathExpr:
+    def __init__(self, descendant, left, right):
         self._left = left
         self._right = right
-        if op == XPath.DOUBLE_SLASH:
-            nt = ParsedNodeTest.ParsedNodeTest(XPath.NODE, '')
-            axis = ParsedAxisSpecifier.ParsedAxisSpecifier(XPath.DESCENDANT_OR_SELF)
+        if descendant:
+            nt = ParsedNodeTest.ParsedNodeTest('node', '')
+            axis = ParsedAxisSpecifier.ParsedAxisSpecifier('descendant-or-self')
             from xml.xpath import ParsedPredicateList
             pList = ParsedPredicateList.ParsedPredicateList([])
             self._step = ParsedStep.ParsedStep(axis, nt, pList)
@@ -311,50 +345,50 @@ class ParsedPathExpr(ParsedExpr):
         context.setNodePosSize(origState)
         return res
 
+    def __str__(self):
+        return '<PathExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         op = self._step and '//' or '/'
         return repr(self._left) + op + repr(self._right)
 
 
-class ParsedFilterExpr(ParsedExpr):
-    def __init__(self,filter,pred):
-        ParsedExpr.__init__(self)
+class ParsedFilterExpr:
+    def __init__(self, filter, predicates):
         self._filter = filter
-        self._pred = pred
+        self._predicates = predicates
 
     def evaluate(self, context):
-        """Evaluate our filter into a node set, filter that through the predicate"""
-        """Returns a node-set"""
-        rt = self._filter.evaluate(context)
-        if type(rt) != type([]):
+        """
+        evaluate(context) -> node-set
+        Evaluate our filter into a node set, filter that through the predicates.
+        """
+        node_set = self._filter.evaluate(context)
+        if type(node_set) != type([]):
             raise "ParsedFilterExpr: return value must evalute to a node-set"
-
-        length = len(rt)
-        result = []
-        for ctr in range(length):
-            context.setNodePosSize((rt[ctr],ctr+1,length))
-            if Conversions.BooleanEvaluate(self._pred, context):
-                result.append(rt[ctr])
-
-        return result
+        if node_set:
+            node_set = self._predicates.filter(node_set, context, reverse=0)
+        return node_set
 
     def pprint(self, indent=''):
         print indent + str(self)
         self._filter.pprint(indent + '  ')
-        self._pred.pprint(indent + '  ')
+        self._predicates.pprint(indent + '  ')
 
     def shiftContext(self,context,index,set,len,func):
         return func(context)
 
+    def __str__(self):
+        return '<FilterExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
-        return repr(self._filter) + '[' + repr(self._pred) + ']'
+        return repr(self._filter) + repr(self._predicates)
 
 #Boolean Expressions
 #All will return a boolean value
 
-class ParsedOrExpr(ParsedExpr):
+class ParsedOrExpr:
     def __init__(self, left, right):
-        ParsedExpr.__init__(self)
         self._left = left
         self._right = right
 
@@ -369,13 +403,15 @@ class ParsedOrExpr(ParsedExpr):
             rt = Conversions.BooleanEvaluate(self._right, context)
         return rt
 
+    def __str__(self):
+        return '<OrExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         return repr(self._left) +' or ' + repr(self._right)
 
 
-class ParsedAndExpr(ParsedExpr):
+class ParsedAndExpr:
     def __init__(self,left,right):
-        ParsedExpr.__init__(self)
         self._left = left
         self._right = right
 
@@ -385,14 +421,16 @@ class ParsedAndExpr(ParsedExpr):
             rt = Conversions.BooleanEvaluate(self._right, context)
         return rt
 
+    def __str__(self):
+        return '<AndExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         return repr(self._left) + ' and ' + repr(self._right)
 
 NumberTypes = [types.IntType, types.FloatType, types.LongType]
 
-class ParsedEqualityExpr(ParsedExpr):
+class ParsedEqualityExpr:
     def __init__(self, op, left, right):
-        ParsedExpr.__init__(self)
         self._op = op
         self._left = left
         self._right = right
@@ -457,6 +495,9 @@ class ParsedEqualityExpr(ParsedExpr):
         self._left.pprint(indent + '  ')
         self._right.pprint(indent + '  ')
 
+    def __str__(self):
+        return '<EqualityExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
         if self._op == '=':
             op = ' = '
@@ -466,16 +507,9 @@ class ParsedEqualityExpr(ParsedExpr):
 
 
 
-class ParsedRelationalExpr(ParsedExpr):
-    def __init__(self, op, left, right):
-        ParsedExpr.__init__(self)
-        if not op in [XPath.LESS_THAN,
-                      XPath.LESS_THAN_EQUAL,
-                      XPath.GREATER_THAN,
-                      XPath.GREATER_THAN_EQUAL
-                      ]:
-            raise Exception('Invalid operand for RelationalExpr:' + str(op))
-        self._op = op
+class ParsedRelationalExpr:
+    def __init__(self, opcode, left, right):
+        self._op = opcode
 
         if isinstance(left, ParsedLiteralExpr):
             self._left = Conversions.NumberValue(left.evaluate(None))
@@ -501,28 +535,47 @@ class ParsedRelationalExpr(ParsedExpr):
         else:
             rrt = Conversions.NumberValue(self._right.evaluate(context))
 
-        if self._op == XPath.LESS_THAN:
+        if self._op == 0:
             rt = (lrt < rrt)
-        elif self._op == XPath.LESS_THAN_EQUAL:
+        elif self._op == 1:
             rt = (lrt <= rrt)
-        elif self._op == XPath.GREATER_THAN:
+        elif self._op == 2:
             rt = (lrt > rrt)
-        elif self._op == XPath.GREATER_THAN_EQUAL:
+        elif self._op == 3:
             rt = (lrt >= rrt)
         return rt and boolean.true or boolean.false
 
+    def pprint(self, indent=''):
+        print indent + str(self)
+        if type(self._left) == types.InstanceType:
+            self._left.pprint(indent + '  ')
+        else:
+            print indent + '  ' + '<Primitive: %s>' % str(self._left)
+        if type(self._right) == types.InstanceType:
+            self._right.pprint(indent + '  ')
+        else:
+            print indent + '  ' + '<Primitive: %s>' % str(self._right)
+
+    def __str__(self):
+        return '<RelationalExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
-        # Calling __repr__ directly avoids additional quotes on return value
-        op = ' %s ' % g_printMap[self._op]
+        if self._op == 0:
+            op = ' < '
+        elif self._op == 1:
+            op = ' <= '
+        elif self._op == 2:
+            op = ' > '
+        elif self._op == 3:
+            op = ' >= '
         return repr(self._left) + op + repr(self._right)
 
 #Number Expressions
 
 
-class ParsedAdditiveExpr(ParsedExpr):
-    def __init__(self, op, left, right):
-        ParsedExpr.__init__(self)
-        self._op = op
+class ParsedAdditiveExpr:
+    def __init__(self, sign, left, right):
+        self._sign = sign
         self._leftLit = 0
         self._rightLit = 0
         if isinstance(left, ParsedLiteralExpr):
@@ -549,23 +602,24 @@ class ParsedAdditiveExpr(ParsedExpr):
         else:
             rrt = self._right.evaluate(context)
             rrt = Conversions.NumberValue(rrt)
-        if self._op == '+':
-            rt = lrt + rrt
-        elif self._op == '-':
-            rt = lrt - rrt
-        return rt
+        return lrt + (rrt * self._sign)
+
+    def __str__(self):
+        return '<AdditiveExpr at %x: %s>' % (id(self), repr(self))
 
     def __repr__(self):
-        op = ' ' + str(self._op) + ' '
+        if self._sign > 0:
+            op = ' + '
+        else:
+            op = ' - '
         return repr(self._left) + op + repr(self._right)
 
 
 from xml.xpath import Inf, NaN
 
-class ParsedMultiplicativeExpr(ParsedExpr):
-    def __init__(self, operator, left, right):
-        ParsedExpr.__init__(self)
-        self._op = operator
+class ParsedMultiplicativeExpr:
+    def __init__(self, opcode, left, right):
+        self._op = opcode
         self._left = left
         self._right = right
 
@@ -576,32 +630,34 @@ class ParsedMultiplicativeExpr(ParsedExpr):
         rrt = self._right.evaluate(context)
         rrt = Conversions.NumberValue(rrt)
         res = 0
-        if self._op == XPath.MULTIPLY_OPERATOR:
+        if self._op == 0:
             res = lrt * rrt
-        elif self._op == XPath.DIV:
+        elif self._op == 1:
             if rrt == 0:
                 res = NaN
             else:
                 res = lrt / rrt
-        elif self._op == XPath.MOD:
+        elif self._op == 2:
             if rrt == 0:
                 res = NaN
             else:
                 res = lrt % rrt
         return res
 
+    def __str__(self):
+        return '<MultiplicativeExpr at %x: %s>' % (id(self), repr(self))
+
     def __repr__(self):
-        if self._op == XPath.DIV:
-            op = ' div '
-        elif self._op == XPath.MOD:
-            op = ' mod '
-        else:
+        if self._op == 0:
             op = ' * '
+        elif self._op == 1:
+            op = ' div '
+        elif self._op == 2:
+            op = ' mod '
         return repr(self._left) + op + repr(self._right)
 
-class ParsedUnaryExpr(ParsedExpr):
+class ParsedUnaryExpr:
     def __init__(self,exp):
-        ParsedExpr.__init__(self)
         self._exp = exp
 
     def evaluate(self, context):
@@ -610,6 +666,9 @@ class ParsedUnaryExpr(ParsedExpr):
         exp = Conversions.NumberValue(exp)
         rt = exp * -1.0
         return rt
+
+    def __str__(self):
+        return '<UnaryExpr at %x: %s>' % (id(self), repr(self))
 
     def __repr__(self):
         return '-' + repr(self._exp)

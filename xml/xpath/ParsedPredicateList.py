@@ -2,24 +2,23 @@
 #
 # File Name:   ParsedPredicateList.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedPredicateList.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedPredicateList.py.html
 #
 """
 A Parsed Token that represents a predicate list.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-from xml.xpath import Conversions, ParsedToken
+from xml.xpath import Conversions
 import types
 NumberTypes = [types.IntType, types.LongType, types.FloatType]
 
 
-class ParsedPredicateList(ParsedToken.ParsedToken):
+class ParsedPredicateList:
     def __init__(self, preds):
-        ParsedToken.ParsedToken.__init__(self, 'PREDICATE_LIST')
         if type(preds) == type(()):
             preds = list(preds)
         elif not type(preds) == type([]):

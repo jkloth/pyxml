@@ -2,14 +2,14 @@
 #
 # File Name:   ExpandedNameWrapper.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ExpandedNameWrapper.py.html
+# Docs:        http://docs.4suite.org/XPATH/ExpandedNameWrapper.py.html
 #
 """
 A structure to hold a node's expanded name.  Internal use only.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom import Node
@@ -30,4 +30,5 @@ class ExpandedNameWrapper:
                 self.qName = self.localName = node.localName
             elif node.nodeType == Node.PROCESSING_INSTRUCTION_NODE:
                 self.qName = self.localName = node.target
+
 

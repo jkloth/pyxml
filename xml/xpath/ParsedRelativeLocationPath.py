@@ -2,26 +2,23 @@
 #
 # File Name:   ParsedRelativeLocationPath.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedRelativeLocationPath.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedRelativeLocationPath.py.html
 #
 """
 A Parsed Token that represents a relative location path in the parsed result tree.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-from xml.xpath import ParsedToken
-
-class ParsedRelativeLocationPath(ParsedToken.ParsedToken):
+class ParsedRelativeLocationPath:
     def __init__(self, left, right):
-        ParsedToken.ParsedToken.__init__(self, 'RELATIVE_LOCATION_PATH')
         self._left = left
         self._right = right
         return
 
-    def select(self, context):
+    def evaluate(self, context):
         rt = self._left.select(context)
         if type(rt) != type([]):
             raise Exception("Expected node set from relative expression.  Got %s"%str(rt))
@@ -38,6 +35,7 @@ class ParsedRelativeLocationPath(ParsedToken.ParsedToken):
         context.setNodePosSize(origState)
 
         return result
+    select = evaluate
 
     def pprint(self, indent=''):
         print indent + str(self)

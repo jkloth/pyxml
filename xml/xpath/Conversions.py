@@ -2,14 +2,14 @@
 #
 # File Name:   Conversions.py
 #
-# Docs:        http://docs.4suite.com/XPATH/Conversions.py.html
+# Docs:        http://docs.4suite.org/XPATH/Conversions.py.html
 #
 """
 The implementation of all of the core functions for the XPath spec.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string, cStringIO
@@ -52,14 +52,6 @@ def StringValue(object):
 
 
 def BooleanValue(object):
-    if boolean.IsBooleanType(object):
-        return object
-    elif type(object) in [type(1), type(2.3), type(4L)]:
-        if str(object) == 'nan':
-            return boolean.false
-        return boolean.BooleanValue(object)
-    elif type(object) == type(''):
-        return boolean.BooleanValue(object)
     for func in g_booleanConversions:
         handled, result = func(object)
         if handled:
@@ -116,26 +108,23 @@ def CoreNumberValue(object):
     return 1, object
 
 
-g_seqTypes = [type([])] + g_stringTypes
-def CoreBooleanValue(object):
-    """Get the boolean value of any object"""
-    if boolean.IsBooleanType(object):
-        return 1, object
-    elif type(object) in [type(1), type(2.3), type(4L)]:
-        if str(object) == 'nan':
-            return 1, boolean.false
-        return 1, boolean.BooleanValue(object)
-    elif type(object) in g_seqTypes:
-        return 1, (len(object) and boolean.true or boolean.false)
-    object = StringValue(object)
-    return 1, (object and boolean.true or boolean.false)
-
+CoreBooleanValue = lambda obj: (1, boolean.BooleanValue(obj, StringValue))
 
 g_stringConversions = [CoreStringValue]
 g_numberConversions = [CoreNumberValue]
 g_booleanConversions = [CoreBooleanValue]
 #g_nodeSetConversions = [CoreNodeSetValue]
 
+
+# Conversion functions for converting objects to strings
+
+def _strUnknown(object):
+    # Allow for non-instance DOM node objects
+    if hasattr(object, 'nodeType'):
+        # Add this type to the mapping for next time through
+        _strConversions[type(object)] = _strInstance
+        return _strInstance(object)
+    return
 
 def _strInstance(object):
     if hasattr(object, 'stringValue'):
@@ -157,48 +146,46 @@ def _strInstance(object):
             return object.data
         if node_type == Node.DOCUMENT_NODE:
             # Use the String value of the document root
-            return StringValue(object.documentElement)
+            return CoreStringValue(object.documentElement)
     return None
         
-def _strElementInstance(object):
-    if hasattr(object, 'stringValue'):
-        return object.stringValue
-    if object.nodeType == Node.ELEMENT_NODE:
-        # The concatenation of all text descendants
-        text_elem_children = filter(
-            lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE, Node.CDATA_SECTION_NODE],
-            object.childNodes
-            )
-        return reduce(lambda x, y:
-                      CoreStringValue(x)[1] + CoreStringValue(y)[1],
-                      text_elem_children,
-                      '')
-
-_strUnknown = lambda x: None
-
 _strConversions = {
     types.StringType : str,
     types.IntType : str,
-    types.LongType : str,
-    types.FloatType : lambda x: x is NaN and 'NaN' or '%g' % x,
+    types.LongType : lambda l: repr(l)[:-1],
+    types.FloatType : lambda f: f is NaN and 'NaN' or '%g' % f,
     boolean.BooleanType : str,
     types.InstanceType : _strInstance,
-    types.ListType : lambda x: x and _strConversions[type(x[0])](x[0]) or '',
+    types.ListType : lambda x: x and _strConversions.get(type(x[0]), _strUnknown)(x[0]) or '',
 }
+
+if hasattr(types, 'UnicodeType'):
+    _strConversions[types.UnicodeType] = unicode
 
 try:
     from Ft.Lib import cDomlettec
+
+    def _strElementInstance(object):
+        if hasattr(object, 'stringValue'):
+            return object.stringValue
+        if object.nodeType == Node.ELEMENT_NODE:
+            # The concatenation of all text descendants
+            text_elem_children = filter(
+                lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE, Node.CDATA_SECTION_NODE],
+                object.childNodes
+                )
+            return reduce(lambda x, y:
+                          CoreStringValue(x)[1] + CoreStringValue(y)[1],
+                          text_elem_children,
+                          '')
+
     _strConversions.update({
-        cDomlettec.DocumentType : lambda x: _strDocumentInstance(x.documentElement),
+        cDomlettec.DocumentType : lambda x: _strElementInstance(x.documentElement),
         cDomlettec.ElementType : _strElementInstance,
         cDomlettec.TextType : lambda x: x.data,
         cDomlettec.CommentType : lambda x: x.data,
         cDomlettec.ProcessingInstructionType : lambda x: x.data,
         cDomlettec.AttrType : lambda x: x.value,
         })
-except:
+except ImportError:
     pass
-
-if hasattr(types, 'UnicodeType'):
-    _strConversions[types.UnicodeType] = unicode
-

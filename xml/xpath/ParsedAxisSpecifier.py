@@ -2,14 +2,14 @@
 #
 # File Name:   ParsedAxisSpecifier.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedAxisSpecifier.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedAxisSpecifier.py.html
 #
 """
 A Parsed token that represents an acis specifier on the parsed tree.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom import Node
@@ -17,27 +17,23 @@ from xml.xpath import g_xpathRecognizedNodes
 from xml.xpath import NAMESPACE_NODE
 
 from xml.xpath import Util
-from xml.xpath import XPath
-from xml.xpath import ParsedToken
 from xml.xpath import NamespaceNode
 
 from xml.dom.ext import GetAllNs
 
 import string
 
-
 def ParsedAxisSpecifier(axis):
-    return g_classMap[axis](axis)
+    try:
+        return g_classMap[axis](axis)
+    except KeyError:
+        raise SyntaxError("Invalid axis: %s" % axis)
 
-
-class AxisSpecifier(ParsedToken.ParsedToken):
+class AxisSpecifier:
 
     principalType = Node.ELEMENT_NODE
     
     def __init__(self, axis):
-        ParsedToken.ParsedToken.__init__(self, 'AXIS_SPECIFIER')
-        if not axis in ParsedToken.TOKEN_MAP.keys():
-            raise "Invalid axis: ", axis
         self._axis = axis
 
     def select(self, context, nodeTest):
@@ -55,13 +51,15 @@ class AxisSpecifier(ParsedToken.ParsedToken):
                 self.descendants(context, nodeTest, child, nodeSet)
         return (nodeSet, 0)
 
+    def pprint(self, indent=''):
+        print indent + str(self)
+
     def __str__(self):
         return '<AxisSpecifier at %x: %s>' % (id(self), repr(self))
 
     def __repr__(self):
         """Always displays verbose expression"""
-        token = string.lower(ParsedToken.TOKEN_MAP[self._axis])
-        return string.replace(token, '_', '-')
+        return self._axis
 
 
 class ParsedAncestorAxisSpecifier(AxisSpecifier):
@@ -156,7 +154,7 @@ class ParsedFollowingAxisSpecifier(AxisSpecifier):
         """
         result = []
         curr = context.node
-        while curr != context.node.ownerDocument:
+        while curr != (context.node.ownerDocument or context.node):
             sibling = curr.nextSibling
             while sibling:
                 if nodeTest(context, sibling, self.principalType):
@@ -180,7 +178,10 @@ class ParsedNamespaceAxisSpecifier(AxisSpecifier):
         #nss = context.nss()
         nss = GetAllNs(context.node)
         for prefix in nss.keys():
-            nsNode = NamespaceNode.NamespaceNode(prefix, nss[prefix], context.node.ownerDocument)
+            nsNode = NamespaceNode.NamespaceNode(
+                prefix, nss[prefix],
+                (context.node.ownerDocument or context.node)
+                )
             if nodeTest(context, nsNode, self.principalType):
                 result.append(nsNode)
         return (result, 0)
@@ -245,18 +246,18 @@ class ParsedSelfAxisSpecifier(AxisSpecifier):
         return ([], 0)
 
 g_classMap = {
-    XPath.ANCESTOR:ParsedAncestorAxisSpecifier,
-    XPath.ANCESTOR_OR_SELF:ParsedAncestorOrSelfAxisSpecifier,
-    XPath.CHILD:ParsedChildAxisSpecifier,
-    XPath.PARENT:ParsedParentAxisSpecifier,
-    XPath.DESCENDANT:ParsedDescendantAxisSpecifier,
-    XPath.DESCENDANT_OR_SELF:ParsedDescendantOrSelfAxisSpecifier,
-    XPath.ATTRIBUTE:ParsedAttributeAxisSpecifier,
-    XPath.FOLLOWING:ParsedFollowingAxisSpecifier,
-    XPath.FOLLOWING_SIBLING:ParsedFollowingSiblingAxisSpecifier,
-    XPath.PRECEDING:ParsedPrecedingAxisSpecifier,
-    XPath.PRECEDING_SIBLING:ParsedPrecedingSiblingAxisSpecifier,
-    XPath.NAMESPACE:ParsedNamespaceAxisSpecifier,
-    XPath.SELF:ParsedSelfAxisSpecifier,
+    'ancestor' : ParsedAncestorAxisSpecifier,
+    'ancestor-or-self' : ParsedAncestorOrSelfAxisSpecifier,
+    'child' : ParsedChildAxisSpecifier,
+    'parent' : ParsedParentAxisSpecifier,
+    'descendant' : ParsedDescendantAxisSpecifier,
+    'descendant-or-self' : ParsedDescendantOrSelfAxisSpecifier,
+    'attribute' : ParsedAttributeAxisSpecifier,
+    'following' : ParsedFollowingAxisSpecifier,
+    'following-sibling' : ParsedFollowingSiblingAxisSpecifier,
+    'preceding' : ParsedPrecedingAxisSpecifier,
+    'preceding-sibling' : ParsedPrecedingSiblingAxisSpecifier,
+    'namespace' : ParsedNamespaceAxisSpecifier,
+    'self' : ParsedSelfAxisSpecifier,
     }
 

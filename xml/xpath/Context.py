@@ -2,14 +2,14 @@
 #
 # File Name:   Context.py
 #
-# Docs:        http://docs.4suite.com/XPATH/Context.py.html
+# Docs:        http://docs.4suite.org/XPATH/Context.py.html
 #
 """
 The context of an XPath expression.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import xml.dom.ext
@@ -58,8 +58,15 @@ class Context:
     def copyNamespaces(self):
         return self.processorNss.copy()
 
+    def setVarBindings(self, varBindings):
+        self.varBindings = varBindings
+
+    def copyVarBindings(self):
+        #FIXME: should this be deep copy, because of the possible list entries?
+        return self.varBindings.copy()
+
     def copyNodePosSize(self):
-        return (self.node,self.position,self.size)
+        return (self.node, self.position, self.size)
 
     def setNodePosSize(self,(node,pos,size)):
         self.node = node
@@ -67,7 +74,9 @@ class Context:
         self.size = size
 
     def copy(self):
-        return self.__dict__.copy()
+        newdict = self.__dict__.copy()
+        newdict["varBindings"] = self.varBindings.copy()
+        return newdict
 
     def set(self,d):
         self.__dict__ = d

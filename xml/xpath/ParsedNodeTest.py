@@ -2,50 +2,40 @@
 #
 # File Name:   ParsedNodeTest.py
 #
-# Docs:        http://docs.4suite.com/XPATH/ParsedNodeTest.py.html
+# Docs:        http://docs.4suite.org/XPATH/ParsedNodeTest.py.html
 #
 """
 A Parsed Token that represents a node test.
-WWW: http://4suite.com/XPATH        e-mail: support@4suite.com
+WWW: http://4suite.org/XPATH        e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import string
 from xml.dom import Node
-from xml.xpath import ParsedToken
 from xml.xpath import NamespaceNode
-from xml.xpath import XPath
-from xml.xpath import NAMESPACE_NODE
+from xml.xpath import NAMESPACE_NODE, RuntimeException
 from xml.xpath import g_xpathRecognizedNodes 
 
-import types
-try:
-    g_stringTypes= [types.StringType, types.UnicodeType]
-except:
-    g_stringTypes= [types.StringType]
+def ParsedNameTest(name):
+    if name == '*':
+        return PrincipalTypeTest()
+    index = string.find(name, ':')
+    if name[index:] == ':*':
+        return LocalNameTest(name[:index])
+    elif index >= 0:
+        return QualifiedNameTest(name[:index], name[index+1:])
+    return NodeNameTest(name)
 
-def ParsedNodeTest(tok,st):
-    if tok == XPath.WILDCARD_NAME:
-        if st == '*':
-            return PrincipalTypeTest(tok, st)
-        index = string.find(st, ':')
-        if st[index:] == ':*':
-            return LocalNameTest(tok, st, st[:index])
-        elif index >= 0:
-            return QualifiedNameTest(tok, st, st[:index], st[index+1:])
-        return NodeNameTest(tok, st)
-    return g_classMap[tok](tok,st)
+def ParsedNodeTest(test, literal=None):
+    if literal:
+        if test != 'processing-instruction':
+            raise SyntaxError('Literal only allowed in processing-instruction')
+        return ProcessingInstructionNodeTest(literal)
+    return g_classMap[test]()
 
-
-class NodeTestBase(ParsedToken.ParsedToken):
-    def __init__(self, tok, st):
-        ParsedToken.ParsedToken.__init__(self, 'NODE_TEST')
-        self.tok = tok
-        self.st = st
-        self.priority = -0.5
-
+class NodeTestBase:
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         """
         The principalType is discussed in section [2.3 Node Tests]
@@ -54,6 +44,9 @@ class NodeTestBase(ParsedToken.ParsedToken):
         """
         return 0
 
+    def pprint(self, indent):
+        print indent + str(self)
+
     def __str__(self):
         return '<%s at %x: %s>' % (
             self.__class__.__name__,
@@ -61,63 +54,107 @@ class NodeTestBase(ParsedToken.ParsedToken):
             repr(self),
             )
 
-    def __repr__(self):
-        if self.tok == XPath.WILDCARD_NAME or self.tok == 0:
-            result = self.st
-        else:
-            token = string.lower(ParsedToken.TOKEN_MAP[self.tok])
-            result = string.replace(token, '_', '-') + '(' + self.st + ')'
-        return result
-
 
 class NodeTest(NodeTestBase):
+    def __init__(self):
+        self.priority = -0.5
+        
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         return node.nodeType in g_xpathRecognizedNodes or isinstance(node,NamespaceNode.NamespaceNode)
 
+    def __repr__(self):
+        return 'node()'
 
 class CommentNodeTest(NodeTestBase):
+    def __init__(self):
+        self.priority = -0.5
+
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         return node.nodeType == Node.COMMENT_NODE
 
-
+    def __repr__(self):
+        return 'comment()'
+    
 class TextNodeTest(NodeTestBase):
+    def __init__(self):
+        self.priority = -0.5
+
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         return node.nodeType in [Node.TEXT_NODE, Node.CDATA_SECTION_NODE]
 
+    def __repr__(self):
+        return 'text()'
+
 class ProcessingInstructionNodeTest(NodeTestBase):
-    def __init__(self, tok, st):
-        NodeTestBase.__init__(self, tok, st)
-        if st:
+    def __init__(self, target=None):
+        if target:
             self.priority = 0
-            if st[0] == st[-1] and st[0] in ['"', "'"]:
-                self.st = st[1:-1]
+            if target[0] not in ['"', "'"]:
+                raise SyntaxError("Invalid literal: %s" % target)
+            self.target = target[1:-1]
+        else:
+            self.priority = -0.5
+            self.target = ''
 
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         if node.nodeType != Node.PROCESSING_INSTRUCTION_NODE:
             return 0
-        if self.st:
-            return node.target == self.st
+        if self.target:
+            return self.target == node.target
         return 1
 
+    def __repr__(self):
+        if self.target:
+            target = repr(self.target)
+        else:
+            target = ''
+        return 'processing-instruction(%s)' % target
+
+# Name tests
+
 class PrincipalTypeTest(NodeTestBase):
+    def __init__(self):
+        self.priority = -0.5
+
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         return node.nodeType == principalType
 
+    def __repr__(self):
+        return '*'
+
+class NodeNameTest(NodeTestBase):
+    def __init__(self, nodeName):
+        self.priority = 0
+        self._nodeName = nodeName
+
+    def match(self, context, node, principalType=Node.ELEMENT_NODE):
+        if node.nodeType == principalType:
+            return node.nodeName == self._nodeName
+        return 0
+
+    def __repr__(self):
+        return self._nodeName
+
 class LocalNameTest(NodeTestBase):
-    def __init__(self, tok, st, prefix):
-        NodeTestBase.__init__(self, tok, st)
+    def __init__(self, prefix):
         self.priority = -0.25
         self._prefix = prefix
         
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
         if node.nodeType != principalType:
             return 0
-        uri = self._prefix and context.processorNss.get(self._prefix) or ''
+        try:
+            uri = self._prefix and context.processorNss[self._prefix] or ''
+        except KeyError:
+            raise RuntimeException(RuntimeException.UNDEFINED_PREFIX,
+                                   self._prefix)
         return node.namespaceURI == uri
+
+    def __repr__(self):
+        return self._prefix + ':*'
     
 class QualifiedNameTest(NodeTestBase):
-    def __init__(self, tok, st, prefix, localName):
-        NodeTestBase.__init__(self, tok, st)
+    def __init__(self, prefix, localName):
         self.priority = 0
         self._prefix = prefix
         self._localName = localName
@@ -128,25 +165,17 @@ class QualifiedNameTest(NodeTestBase):
                 try:
                     return node.namespaceURI == context.processorNss[self._prefix]
                 except KeyError:
-                    raise Exception("Unknown namespace prefix '%s'" % self._prefix)
+                    raise RuntimeException(RuntimeException.UNDEFINED_PREFIX,
+                                           self._prefix)
         return 0
 
-class NodeNameTest(NodeTestBase):
-    def __init__(self,tok,st):
-        NodeTestBase.__init__(self, tok, st)
-        self.priority = 0
-        self._nodeName = st
+    def __repr__(self):
+        return self._prefix + ':' + self._localName
 
-    def match(self, context, node, principalType=Node.ELEMENT_NODE):
-        if node.nodeType == principalType:
-            return node.nodeName == self._nodeName
-        return 0
-
-
-
-g_classMap = {XPath.NODE:NodeTest,
-              XPath.COMMENT:CommentNodeTest,
-              XPath.TEXT:TextNodeTest,
-              XPath.PROCESSING_INSTRUCTION:ProcessingInstructionNodeTest,
-             }
+g_classMap = {
+    'node' : NodeTest,
+    'comment' : CommentNodeTest,
+    'text' : TextNodeTest,
+    'processing-instruction' : ProcessingInstructionNodeTest,
+    }
              

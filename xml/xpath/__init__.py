@@ -2,26 +2,26 @@
 #
 # File Name:            __init__.py
 #
-# Documentation:        http://docs.4suite.com/4Path/__init__.py.html
+# Documentation:        http://docs.4suite.org/4Path/__init__.py.html
 #
 """
 WWW: http://4suite.org/4XPath         e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-import string
-
-
 NAMESPACE_NODE = 10000
-FT_EXT_NAMESPACE = 'http://namespaces.4suite.org/xpath/extensions'
+FT_OLD_EXT_NAMESPACE = 'http://xmlns.4suite.org/xpath/extensions'
+FT_EXT_NAMESPACE = 'http://xmlns.4suite.org/ext'
 
-#Simple trick (thanks Tim Peters) to enable crippled IEEE 754 support until ANSI C (or Python) sorts it all out...
-Inf = Inf = 1e300**2
+# Simple trick (thanks Tim Peters) to enable crippled IEEE 754 support
+# until ANSI C (or Python) sorts it all out...
+Inf = Inf = 1e300 * 1e300
 NaN = Inf - Inf
 
 from xml.dom import Node
+from xml.FtCore import FtException
 
 g_xpathRecognizedNodes = [
         Node.ELEMENT_NODE,
@@ -35,34 +35,31 @@ g_xpathRecognizedNodes = [
 
 g_extFunctions = {}
 
-import yappsrt
-SyntaxException = yappsrt.SyntaxError
-InternalException = SyntaxError # not used
+class CompiletimeException(FtException):
+    INTERNAL = 1
+    SYNTAX = 2
+    PROCESSING = 3
 
-class RuntimeException(Exception):
     def __init__(self, errorCode, *args):
-        import MessageSource
-        self.args = args
-        self.errorCode = errorCode
-        self._message = MessageSource.g_errorMessages[errorCode]%args
+        FtException.__init__(self, errorCode, MessageSource.COMPILETIME, args)
         return
 
-    def __str__(self):
-        return self._message
+class RuntimeException(FtException):
+    INTERNAL = 1
+    NO_CONTEXT = 10
+    UNDEFINED_VARIABLE = 100
+    UNDEFINED_PREFIX = 101
+    WRONG_ARGUMENTS = 200
 
-class Error:
-    INTERNAL_ERROR = 1
-    PROCESSING = 2
+    def __init__(self, errorCode, *args):
+        FtException.__init__(self, errorCode, MessageSource.RUNTIME, args)
+        return
 
-    LEXICAL = 10
-    SYNTAX = 11
 
-    NO_CONTEXT = 100
-    UNDEFINED_VARIABLE = 110
+import MessageSource
 
 def Evaluate(expr, contextNode=None, context=None):
-    import pyxpath
-    import os
+    import os, string
     if os.environ.has_key('EXTMODULES'):
         RegisterExtensionModules(string.split(os.environ["EXTMODULES"], ':'))
 
@@ -71,14 +68,22 @@ def Evaluate(expr, contextNode=None, context=None):
     elif contextNode:
         con = Context.Context(contextNode, 0, 0)
     else:
-        raise RuntimeException(Error.NO_CONTEXT)
-    retval = pyxpath.Compile(expr).evaluate(con)
+        raise RuntimeException(RuntimeException.NO_CONTEXT_ERROR)
+    retval = parser.new().parse(expr).evaluate(con)
     return retval
 
 
 def Compile(expr):
-    import pyxpath
-    return pyxpath.Compile(expr)
+    try:
+        return parser.new().parse(expr)
+    except SyntaxError, error:
+        raise CompiletimeException(CompiletimeException.SYNTAX, str(error))
+    except:
+        import traceback, cStringIO
+        stream = cStringIO.StringIO()
+        traceback.printexc(None, stream)
+        raise RuntimeException(RuntimeException.INTERNAL, stream.getvalue())
+
 
 def CreateContext(contextNode):
     return Context.Context(contextNode, 0, 0)
@@ -96,11 +101,25 @@ def RegisterExtensionModules(moduleNames):
     return mods
 
 
-import Context, XPathParser
+#Allow access to the NormalizeNode function
+from Util import NormalizeNode
+
+import Context
+
+try:
+    import XPathParserc
+    parser = XPathParserc
+except:
+    #import XPathParser
+    #parser = XPathParser
+    from pyxpath import ExprParserFactory
+    parser = ExprParserFactory
+    
 
 def Init():
     from xml.xpath import BuiltInExtFunctions
     g_extFunctions.update(BuiltInExtFunctions.ExtFunctions)
+
 
 Init()
 

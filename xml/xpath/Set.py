@@ -2,13 +2,13 @@
 #
 # File Name:            Set.py
 #
-# Documentation:        http://docs.4suite.com/Set.py.html
+# Documentation:        http://docs.4suite.org/Set.py.html
 #
 """
-WWW: http://4suite.com/         e-mail: support@4suite.com
+WWW: http://4suite.org/         e-mail: support@4suite.org
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
-See  http://4suite.com/COPYRIGHT  for license and copyright information
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
+See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 
