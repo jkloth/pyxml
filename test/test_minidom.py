@@ -306,10 +306,11 @@ def testRemoveAttributeNode():
     confirm(len(child.attributes) == 1
             and child.hasAttributes())
     node = child.getAttributeNode("spam")
-    child.removeAttributeNode(node)
+    n = child.removeAttributeNode(node)
     confirm(len(child.attributes) == 0
             and child.getAttributeNode("spam") is None
-            and not child.hasAttributes())
+            and not child.hasAttributes()
+            and n.isSameNode(node))
 
     dom.unlink()
 
