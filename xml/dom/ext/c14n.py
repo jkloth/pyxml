@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/11/13 20:06:20 $ by $Author: rsalz $
+$Date: 2001/11/29 19:45:59 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -277,9 +277,16 @@ class _implementation:
             for n,v in ns_local.items():
                 pval = ns_parent.get(n, None)
 
-                # IF default namespace is XMLNS.BASE or empty, skip
+                # If default namespace is XMLNS.BASE or empty, skip
                 if n == "xmlns" \
                 and v in [ XMLNS.BASE, '' ] and pval in [ XMLNS.BASE, '' ]:
+                    continue
+
+                # "omit namespace node with local name xml, which defines
+                # the xml prefix, if its string value is
+                # http://www.w3.org/XML/1998/namespace."
+                if n == "xmlns:xml" \
+		and v in [ 'http://www.w3.org/XML/1998/namespace' ]:
                     continue
 
                 # If different from parent, or parent didn't render
