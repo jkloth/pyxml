@@ -20,7 +20,7 @@ class SaxBuilder(Builder, HandlerBase):
 	
 # Test.
 if __name__ == '__main__':
-    while 1:
+#    while 1:
 	from xml.sax import saxexts
 	import sys, writer
 
