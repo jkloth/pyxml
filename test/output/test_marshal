@@ -2,7 +2,7 @@ test_marshal
 Testing XML marshalling...
 None <?xml version="1.0"?><marshal><none/></marshal>
 1 <?xml version="1.0"?><marshal><int>1</int></marshal>
-10633823966279326983230456482242756608L <?xml version="1.0"?><marshal><long>10633823966279326983230456482242756608</long></marshal>
+10633823966279326983230456482242756608 <?xml version="1.0"?><marshal><long>10633823966279326983230456482242756608</long></marshal>
 19.72 <?xml version="1.0"?><marshal><float>19.72</float></marshal>
 (1+5j) <?xml version="1.0"?><marshal><complex>1.0 5.0</complex></marshal>
 here is a string & a <fake tag> <?xml version="1.0"?><marshal><string>here is a string &amp; a &lt;fake tag&gt;</string></marshal>
@@ -15,7 +15,7 @@ Testing WDDX marshalling...
 <TruthValue instance: True> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><boolean value="true"/></wddxPacket>
 <TruthValue instance: False> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><boolean value="false"/></wddxPacket>
 1 <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>1</number></wddxPacket>
-10633823966279326983230456482242756608L <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>10633823966279326983230456482242756608</number></wddxPacket>
+10633823966279326983230456482242756608 <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>10633823966279326983230456482242756608</number></wddxPacket>
 19.72 <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>19.72</number></wddxPacket>
 here is a string & a <fake tag> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><string>here is a string &amp; a &lt;fake tag&gt;</string></wddxPacket>
 [1, 2, 3, 'foo'] <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><array length="4"><number>1</number><number>2</number><number>3</number><string>foo</string></array></wddxPacket>
@@ -31,5 +31,5 @@ Testing XML-RPC marshalling...
 here is a string & a <fake tag> <?xml version="1.0"?><methodCall><string>here is a string &amp; a &lt;fake tag&gt;</string></methodCall>
 [12, 'Egypt', <TruthValue instance: False>, -31] <?xml version="1.0"?><methodCall><array><data><value><int>12</int></value><value><string>Egypt</string></value><value><boolean>0</boolean></value><value><int>-31</int></value></data></array></methodCall>
 {'lowerBound': 18, 'upperBound': 139, 'eggs': ['rhode island red', 'bantam']} <?xml version="1.0"?><methodCall><struct><member><name>lowerBound</name><value><int>18</int></value></member><member><name>upperBound</name><value><int>139</int></value></member><member><name>eggs</name><value><array><data><value><string>rhode island red</string></value><value><string>bantam</string></value></data></array></value></member></struct></methodCall>
-['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
-['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
+[u'lowerBound', 18, u'upperBound', 139, u'eggs', [u'rhode island red', u'bantam']]
+[u'lowerBound', 18, u'upperBound', 139, u'eggs', [u'rhode island red', u'bantam']]
