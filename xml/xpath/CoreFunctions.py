@@ -20,7 +20,7 @@ from xml.xpath import NamespaceNode
 from xml.xpath import NaN, Inf
 from xml.xpath import Util, Conversions
 from xml.xpath import NAMESPACE_NODE
-from xml.xpath import boolean
+from xml.utils import boolean
 
 class Types:
     NumberType = 0

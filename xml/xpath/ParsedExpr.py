@@ -22,7 +22,7 @@ from xml.xpath import CoreFunctions, Conversions
 from xml.xpath import Util
 from xml.xpath import ParsedStep
 from xml.xpath import ParsedAxisSpecifier
-from xml.xpath import boolean
+from xml.utils import boolean
 import Set
 
 g_printMap = {XPath.GREATER_THAN:'>',
