@@ -20,16 +20,18 @@ class SaxBuilder(Builder, HandlerBase):
 
 # Test.
 if __name__ == '__main__':
-	print 'Testing dom.sax_builder. Usage: python sax_builder <xml_file>.'
-
 	from xml.sax import saxexts
 	import sys, writer
+
+	if len(sys.argv) == 1:
+		print 'sax_builder.py usage: python sax_builder.py <xml_file>.'
 
 	p = saxexts.make_parser()
 	dh = SaxBuilder()
 	p.setDocumentHandler(dh)
 	p.parse(sys.argv[1])
 
+	doc = dh.document
 	w = writer.XmlLineariser()
 	print w.linearise(dh.document)
 	
