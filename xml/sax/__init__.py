@@ -16,6 +16,7 @@ parse, parseString     - parse a document, using a provided handler
 
 """
 
+from xmlreader import InputSource
 from handler import ContentHandler, ErrorHandler
 from _exceptions import SAXException, SAXNotRecognizedException,\
                         SAXParseException, SAXNotSupportedException
@@ -28,17 +29,18 @@ def parse( filename_or_stream, handler, errorHandler=ErrorHandler() ):
     parser.setErrorHandler(errorHandler)
     parser.parse(filename_or_stream)
 
-def parseString( string, handler, errorHandler=ErrorHandler() ):
+def parseString(string, handler, errorHandler=ErrorHandler()):
     try:
-        import cStringIO
-        StringIO=cStringIO
+        from cStringIO import StringIO
     except ImportError:
-        import StringIO
+        from StringIO import StringIO
         
-    bufsize = len(string)
-    buf = StringIO.StringIO(string)
- 
+    if errorHandler is None:
+        errorHandler = ErrorHandler()
     parser = make_parser()
     parser.setContentHandler(handler)
     parser.setErrorHandler(errorHandler)
-    parser.parse(buf)
+
+    inpsrc = InputSource()
+    inpsrc.setByteStream(StringIO(string))
+    parser.parse(inpsrc)

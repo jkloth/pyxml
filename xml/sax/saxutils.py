@@ -2,11 +2,13 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.10 2000/09/26 15:45:13 loewis Exp $
+$Id: saxutils.py,v 1.11 2000/09/26 20:01:02 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!
-import types, handler, _exceptions, string, sys, urllib, codecs
+import types, handler, _exceptions, sys, urllib, codecs, os, xmlreader
+
+_StringTypes = [types.StringType, types.UnicodeType]
 
 # --- DefaultHandler
 
@@ -98,22 +100,26 @@ class ErrorRaiser:
             raise exception
 
 # --- AttributesImpl now lives in xmlreader
-#from xmlreader import AttributesImpl
+from xmlreader import AttributesImpl
 
 # --- ContentGenerator, now called XMLGenerator in Python 2
     
 class XMLGenerator(handler.ContentHandler):
 
-    def __init__(self, out = sys.stdout, encoding = "iso-8859-1"):
+    def __init__(self, out=None, encoding="iso-8859-1"):
+        if out is None:
+            import sys
+            out = sys.stdout
         handler.ContentHandler.__init__(self)
         writerclass = codecs.lookup(encoding)[3]
         self._out = writerclass(out)
         self._ns_contexts = [{}] # contains uri -> prefix dicts
         self._current_context = self._ns_contexts[-1]
+        self._undeclared_ns_maps = []
         self._encoding = encoding
 
     # ContentHandler methods
-        
+
     def startDocument(self):
         self._out.write(u'<?xml version="1.0" encoding="%s"?>\n' %
                         self._encoding)
@@ -121,9 +127,11 @@ class XMLGenerator(handler.ContentHandler):
     def startPrefixMapping(self, prefix, uri):
         self._ns_contexts.append(self._current_context.copy())
         self._current_context[uri] = prefix
+        self._undeclared_ns_maps.append((prefix, uri))
 
     def endPrefixMapping(self, prefix):
-        del self._current_context[-1]
+        self._current_context = self._ns_contexts[-1]
+        del self._ns_contexts[-1]
 
     def startElement(self, name, attrs):
         self._out.write(u'<' + name)
@@ -135,17 +143,23 @@ class XMLGenerator(handler.ContentHandler):
         self._out.write(u'</%s>' % name)
 
     def startElementNS(self, name, qname, attrs):
-        if qname is None:
-            qname = self._current_context[name[0]] + ":" + name[1]
-        self._out.write(u'<' + qname)
+        name = self._current_context[name[0]] + ":" + name[1]
+        self._out.write(u'<' + name)
+
+        for pair in self._undeclared_ns_maps:
+            self._out.write(' xmlns:%s="%s"' % pair)
+        self._undeclared_ns_maps = []
+        
         for (name, value) in attrs.items():
             name = self._current_context[name[0]] + ":" + name[1]
             self._out.write(u' %s="%s"' % (name, escape(value)))
         self._out.write(u'>')
 
     def endElementNS(self, name, qname):
-        if qname is None:
-            qname = self._current_context[name[0]] + ":" + name[1]
+        # XXX: if qname is not None, we better use it.
+        # Python 2.0b2 requires us to use the recorded prefix for
+        # name[0], though
+        qname = self._current_context[name[0]] + ":" + name[1]
         self._out.write(u'</%s>' % qname)
 
     def characters(self, content):
@@ -153,7 +167,7 @@ class XMLGenerator(handler.ContentHandler):
 
     def ignorableWhitespace(self, content):
         self._out.write(content)
-        
+
     def processingInstruction(self, target, data):
         self._out.write(u'<?%s %s?>' % (target, data))
 
@@ -161,8 +175,6 @@ class XMLGenerator(handler.ContentHandler):
 ContentGenerator = XMLGenerator
 
 # --- XMLFilterImpl
-import xmlreader
-
 class XMLFilterBase(xmlreader.XMLReader):
     """This class is designed to sit between an XMLReader and the
     client application's event handlers.  By default, it does nothing
@@ -214,8 +226,8 @@ class XMLFilterBase(xmlreader.XMLReader):
     def characters(self, content):
         self._cont_handler.characters(content)
 
-    def ignorableWhitespace(self, chars, start, end):
-        self._cont_handler.ignorableWhitespace(chars, start, end)
+    def ignorableWhitespace(self, chars):
+        self._cont_handler.ignorableWhitespace(chars)
 
     def processingInstruction(self, target, data):
         self._cont_handler.processingInstruction(target, data)
@@ -296,26 +308,28 @@ class BaseIncrementalParser(xmlreader.IncrementalParser):
         
 # --- Utility functions
 
-def prepare_input_source(source):
-
-    if type(source) == types.StringType:
-        source = saxlib.InputSource(source)
-
-    try:
-        if type(source) == types.UnicodeType:
-            source = saxlib.InputSource(source)
-    except AttributeError:
-        # pre-2.0, no UnicodeType
-        pass
-
-    if hasattr(source,"read"):
-        # It's a file-like object
+def prepare_input_source(source, base = ""):
+    """This function takes an InputSource and an optional base URL and
+    returns a fully resolved InputSource object ready for reading."""
+    
+    if type(source) in _StringTypes:
+        source = xmlreader.InputSource(source)
+    elif hasattr(source, "read"):
         f = source
-        source = saxlib.InputSource()
+        source = xmlreader.InputSource(source)
         source.setByteStream(f)
 
-    if source.getByteStream() == None:
-        source.setByteStream(urllib.urlopen(source.getSystemId()))
+    if source.getByteStream() is None:
+        sysid = source.getSystemId()
+        if os.path.isfile(sysid):
+            basehead = os.path.split(os.path.normpath(base))[0]
+            source.setSystemId(os.path.join(basehead, sysid))
+            f = open(sysid, "rb")
+        else:
+            source.setSystemId(urlparse.urljoin(base, sysid))
+            f = urllib.urlopen(source.getSystemId())
+            
+        source.setByteStream(f)
         
     return source
     

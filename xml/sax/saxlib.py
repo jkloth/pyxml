@@ -6,10 +6,32 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: saxlib.py,v 1.9 2000/09/26 15:45:13 loewis Exp $
+$Id: saxlib.py,v 1.10 2000/09/26 20:01:02 loewis Exp $
 """
 
 version = '2.0beta'
+
+# A number of interfaces used to live in saxlib, but are now in
+# various other modules for Python 2 compatibility. If nobody uses
+# them here any longer, the references can be removed
+
+from handler import ErrorHandler, ContentHandler, DTDHandler, EntityResolver
+from xmlreader import XMLReader, InputSource, Locator, IncrementalParser
+from _exceptions import *
+
+from handler import \
+     feature_namespaces,\
+     feature_namespace_prefixes,\
+     feature_string_interning,\
+     feature_validation,\
+     feature_external_ges,\
+     feature_external_pes,\
+     all_features,\
+     property_lexical_handler,\
+     property_declaration_handler,\
+     property_dom_node,\
+     property_xml_string,\
+     all_properties
 
 #============================================================================
 #
@@ -17,8 +39,31 @@ version = '2.0beta'
 #
 #============================================================================
 
-# ===== ErrorHandler now lives in sax.handler =====
-from handler import ErrorHandler
+# ===== XMLFILTER =====
+
+class XMLFilter(XMLReader):
+    """Interface for a SAX2 parser filter.
+
+    A parser filter is an XMLReader that gets its events from another
+    XMLReader (which may in turn also be a filter) rather than from a
+    primary source like a document or other non-SAX data source.
+    Filters can modify a stream of events before passing it on to its
+    handlers."""
+
+    def __init__(self, parent = None):
+        """Creates a filter instance, allowing applications to set the
+        parent on instantiation."""
+        XMLReader.__init__(self)
+        self._parent = parent
+    
+    def setParent(self, parent):        
+        """Sets the parent XMLReader of this filter. The argument may
+        not be None."""
+        self._parent = parent
+
+    def getParent(self):
+        "Returns the parent of this filter."
+        return self._parent
 
 # ===== ATTRIBUTES =====
 
@@ -95,20 +140,10 @@ class Attributes:
     
 #============================================================================
 #
-# EXCEPTIONS now live in _exceptions
-#
-#============================================================================
-
-from _exceptions import *
-
-#============================================================================
-#
 # HANDLER INTERFACES
 #
 #============================================================================
 
-# ===== CONTENTHANDLER lives in sax.handler now =====
-from handler import ContentHandler
 
 # ===== DECLHANDLER =====
 
@@ -171,11 +206,6 @@ class DeclHandler:
         None if none were declared."""
 
         
-# ===== DTDHandler lives now in sax.handler =====
-from handler import DTDHandler
-        
-# ===== ENTITYRESOLVER lives now in sax.handler =====
-from handler import EntityResolver
 
 # ===== LEXICALHANDLER =====
 
@@ -398,67 +428,3 @@ class Parser:
         however, they must throw a SAX exception. Applications may
         request a locale change in the middle of a parse."""
         raise SAXNotSupportedException("Locale support not implemented")
-
-        
-#============================================================================
-#
-# CORE FEATURES and PROPERTIES are now found in sax.handler
-#
-#============================================================================
-
-from handler import \
-     feature_namespaces,\
-     feature_namespace_prefixes,\
-     feature_string_interning,\
-     feature_validation,\
-     feature_external_ges,\
-     feature_external_pes,\
-     all_features,\
-     property_lexical_handler,\
-     property_declaration_handler,\
-     property_dom_node,\
-     property_xml_string,\
-     all_properties
-
-# ===== XMLREADER now lives in sax.xmlreader =====
-from xmlreader import XMLReader
-
-# ===== INPUTSOURCE now lives in sax.xmlreader =====
-from xmlreader import InputSource
-        
-# ===== LOCATOR now lives in sax.xmlreader =====
-from xmlreader import Locator
-
-# ===== XMLFILTER =====
-
-class XMLFilter(XMLReader):
-    """Interface for a SAX2 parser filter.
-
-    A parser filter is an XMLReader that gets its events from another
-    XMLReader (which may in turn also be a filter) rather than from a
-    primary source like a document or other non-SAX data source.
-    Filters can modify a stream of events before passing it on to its
-    handlers."""
-
-    def __init__(self, parent = None):
-        """Creates a filter instance, allowing applications to set the
-        parent on instantiation."""
-        XMLReader.__init__(self)
-        self._parent = parent
-    
-    def setParent(self, parent):        
-        """Sets the parent XMLReader of this filter. The argument may
-        not be None."""
-        self._parent = parent
-
-    def getParent(self):
-        "Returns the parent of this filter."
-        return self._parent
-
-#============================================================================
-#
-# PYTHON SAX 2.0 EXTENSION INTERFACES
-#
-#============================================================================
-
-from xmlreader import IncrementalParser

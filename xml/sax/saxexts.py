@@ -1,47 +1,10 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.7 2000/09/26 15:45:13 loewis Exp $
+$Id: saxexts.py,v 1.8 2000/09/26 20:01:02 loewis Exp $
 """
 
-import _exceptions,handler,sys,string
-
-try:
-    import imp
-except ImportError:
-    pass  # imp does not exist in JPython, it seems.
-
-# --- Internal utility methods
-
-def rec_load_module(module):
-    """Improvement over imp.find_module which loads submodules.
-     It takes sys.modules into account, so renaming of xml to _xmlplus
-     is honored."""
-    path=""
-    lastmod = None
-    for mod in string.split(module,"."):
-        if not lastmod:
-            if sys.modules.has_key(mod):
-                lastmod = sys.modules[mod]
-                continue
-        else:
-            if hasattr(lastmod,mod):
-                lastmod = getattr(lastmod,mod)
-                continue
-            else:
-                try:
-                    path=lastmod.__path__[0]
-                except AttributeError,e:
-                    pass
-                
-        if path=="":
-            info=(mod,)+imp.find_module(mod)
-        else:
-            info=(mod,)+imp.find_module(mod,[path])
-            
-        lastmod=apply(imp.load_module,info)
-
-    return lastmod
+import _exceptions,handler,sys,string,os
 
 # --- Parser factory
 
@@ -50,6 +13,14 @@ class ParserFactory:
     foreign systems where it is unknown which parsers exist."""
 
     def __init__(self,list=None):
+        # Python 2 compatibility: let consider environment variables
+        # and properties override list argument
+        if os.environ.has_key("PY_SAX_PARSER"):
+            list = string.split(os.environ["PY_SAX_PARSER"], ",")
+        _key = "python.xml.sax.parser"
+        if sys.platform[:4] == "java" \
+           and sys.registry.containsKey(_key):
+            list = string.split(sys.registry.getProperty(_key), ",")
         self.parsers=list
 
     def get_parser_list(self):
@@ -60,7 +31,18 @@ class ParserFactory:
         "Sets the driver list."
         self.parsers=list
 
-    def make_parser(self, drv_name = None):
+    if sys.platform[ : 4] == "java":
+        def _create_parser(self,parser_name):
+            from org.python.core import imp
+            drv_module = imp.importName(parser_name, 0, globals())
+            return drv_module.create_parser()
+
+    else:
+        def _create_parser(self,parser_name):
+            drv_module = __import__(parser_name,{},{},['create_parser'])
+            return drv_module.create_parser()
+
+    def make_parser(self, parser_list):
         """Returns a SAX driver for the first available parser of the parsers
         in the list. Note that the list is one of drivers, so it first tries
         the driver and if that exists imports it to see if the parser also
@@ -68,29 +50,11 @@ class ParserFactory:
 
         Accepts the driver package name as an optional argument."""
 
-        if drv_name==None:
-            list=self.parsers
-        else:
-            list=[drv_name]
-            
-        for parser_name in list:
-	    if sys.platform[:4] == "java": # JPython compatibility patch
-	        try:
-		    from org.python.core import imp
-		    drv_module = imp.importName(parser_name, 0, globals())
-	            return drv_module.create_parser()
-                except ImportError,e:
-                    pass
-                except:
-                    raise _exceptions.SAXException("Problems during import, gave up"
-                                              ,None)
-	    else:
-		import imp
-	        try:
-		    drv_module=rec_load_module(parser_name)
-	            return drv_module.create_parser()
-                except ImportError,e:
-                    pass
+        for parser_name in parser_list+self.parsers:
+            try:
+                return self._create_parser(parser_name)
+            except ImportError,e:
+                pass
 
         raise _exceptions.SAXException("No parsers found",None)  
 
@@ -182,5 +146,5 @@ HTMLParserFactory=ParserFactory(["xml.sax.drivers.drv_htmllib",
 SGMLParserFactory=ParserFactory(["xml.sax.drivers.drv_sgmlop",
                                  "xml.sax.drivers.drv_sgmllib"])
 
-def make_parser(parser = None):
-    return XMLParserFactory.make_parser(parser)
+def make_parser(parser_list = []):
+    return XMLParserFactory.make_parser(parser_list)

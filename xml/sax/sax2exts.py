@@ -1,7 +1,7 @@
 """
 Various extensions to the core SAX 2.0 API.
 
-$Id: sax2exts.py,v 1.2 2000/09/26 14:43:10 loewis Exp $
+$Id: sax2exts.py,v 1.3 2000/09/26 20:01:02 loewis Exp $
 """
 
 import saxexts
@@ -21,5 +21,5 @@ HTMLParserFactory = XMLReaderFactory([])
 
 SGMLParserFactory = XMLReaderFactory([])
 
-def make_parser(parser = None):
-    return XMLParserFactory.make_parser(parser)
+def make_parser(parser_list = []):
+    return XMLParserFactory.make_parser(parser_list)
