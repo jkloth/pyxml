@@ -2,16 +2,19 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.30 2002/05/15 14:20:02 akuchling Exp $
+$Id: saxutils.py,v 1.31 2002/06/30 07:52:50 loewis Exp $
 """
 
-import types, sys, urllib, urlparse, os, string
-import handler, _exceptions, xmlreader, saxlib
+import os, urlparse, urllib, types
+import handler
+import xmlreader
+import sys, _exceptions, saxlib
 
 try:
     _StringTypes = [types.StringType, types.UnicodeType]
 except AttributeError: # 1.5 compatibility:UnicodeType not defined
     _StringTypes = [types.StringType]
+
 
 def escape(data, entities={}):
     """Escape &, <, and > in a string of data.
@@ -20,11 +23,11 @@ def escape(data, entities={}):
     the optional entities parameter.  The keys and values must all be
     strings; each key will be replaced with its corresponding value.
     """
-    data = string.replace(data, "&", "&amp;")
-    data = string.replace(data, "<", "&lt;")
-    data = string.replace(data, ">", "&gt;")
+    data = data.replace("&", "&amp;")
+    data = data.replace("<", "&lt;")
+    data = data.replace(">", "&gt;")
     for chars, entity in entities.items():
-        data = string.replace(data, chars, entity)
+        data = data.replace(chars, entity)
     return data
 
 def quoteattr(data, entities={}):
@@ -41,7 +44,7 @@ def quoteattr(data, entities={}):
     data = escape(data, entities)
     if '"' in data:
         if "'" in data:
-            data = '"%s"' % string.replace(data, '"', "&quot;")
+            data = '"%s"' % data.replace('"', "&quot;")
         else:
             data = "'%s'" % data
     else:
@@ -261,7 +264,7 @@ class LexicalXMLGenerator(XMLGenerator, saxlib.LexicalHandler):
 
     def characters(self, content):
         if self._in_cdata:
-            self._out.write(string.replace(content, ']]>', ']]>]]&gt;<![CDATA['))
+            self._out.write(content.replace(']]>', ']]>]]&gt;<![CDATA['))
         else:
             self._out.write(escape(content))
 
@@ -619,13 +622,13 @@ class Canonizer(saxlib.HandlerBase):
 
     def write_data(self,data):
         "Writes datachars to writer."
-        data=string.replace(data,"&","&amp;")
-        data=string.replace(data,"<","&lt;")
-        data=string.replace(data,"\"","&quot;")
-        data=string.replace(data,">","&gt;")
-        data=string.replace(data,chr(9),"&#9;")
-        data=string.replace(data,chr(10),"&#10;")
-        data=string.replace(data,chr(13),"&#13;")
+        data=data.replace("&","&amp;")
+        data=data.replace("<","&lt;")
+        data=data.replace("\"","&quot;")
+        data=data.replace(">","&gt;")
+        data=data.replace(chr(9),"&#9;")
+        data=data.replace(chr(10),"&#10;")
+        data=data.replace(chr(13),"&#13;")
         self.writer.write(data)
 
 # --- mllib
