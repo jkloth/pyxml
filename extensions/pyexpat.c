@@ -1096,14 +1096,14 @@ XML_Encoding * info)
     int result=0;
     int i;
     
-    _u_string=(PyUnicodeObject *) PyUnicode_Decode(template_buffer, 256, name, "replace"); // Yes, supports only 8bit encodings
+    _u_string=(PyUnicodeObject *) PyUnicode_Decode(template_buffer, 256, name, "replace"); /* Yes, supports only 8bit encodings */
     
     if (_u_string==NULL) {
 	return result;
     };
     
     for (i=0; i<256; i++) {
-	Py_UNICODE c = _u_string->str[i] ; // Stupid to access directly, but fast
+	    Py_UNICODE c = _u_string->str[i] ; /* Stupid to access directly, but fast */
 	if (c==Py_UNICODE_REPLACEMENT_CHARACTER) {
 	    info->map[i] = -1;
 	} else {
