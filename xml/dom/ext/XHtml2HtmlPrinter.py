@@ -1,8 +1,6 @@
 import string
 import Printer
-from xml.dom.html import HTML_FORBIDDEN_END
-
-XHTML_NAMESPACE = "http://www.w3.org/1999/xhtml"
+from xml.dom.html import HTML_FORBIDDEN_END, XHTML_NAMESPACE
 
 class HtmlDocType:
     name = 'HTML'
@@ -12,6 +10,7 @@ class HtmlDocType:
 
 class HtmlAttr:
     def __init__(self, node):
+        self.namespaceURI = None
         self.name = string.upper(node.localName or node.nodeName)
         self.value = node.value
         return
@@ -37,7 +36,7 @@ class XHtml2HtmlPrintVisitor(Printer.PrintVisitor):
     def visitAttr(self, node):
         if node.namespaceURI and node.namespaceURI != XHTML_NAMESPACE:
             return
-        Printer.PrintVisitor(HtmlAttr(node))
+        Printer.PrintVisitor.visitAttr(self,HtmlAttr(node))
 
     def visitElement(self, node):
         if node.namespaceURI and node.namespaceURI != XHTML_NAMESPACE:
@@ -45,4 +44,4 @@ class XHtml2HtmlPrintVisitor(Printer.PrintVisitor):
         htmlElement = HtmlElement(node)
         if htmlElement.tagName == 'XHTML':
             htmlElement.tagName = 'HTML'
-        Printer.PrintVisitor.visitElement(htmlElement)
+        Printer.PrintVisitor.visitElement(self,htmlElement)

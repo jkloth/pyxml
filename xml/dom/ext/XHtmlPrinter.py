@@ -1,5 +1,6 @@
 import string
 import Printer
+from xml.dom import XHTML_NAMESPACE
 
 # Wrapper classes to convert nodes from HTML to XHTML
 
@@ -14,6 +15,7 @@ class XHtmlDocType:
 
 class XHtmlAttr:
     def __init__(self, node):
+        self.namespaceURI = XHTML_NAMESPACE
         self.name = string.lower(node.name)
         self.node = node
         return
