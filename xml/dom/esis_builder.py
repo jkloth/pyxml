@@ -30,6 +30,7 @@ class EsisBuilder(Builder):
 	def __init__(self):
 		Builder.__init__(self)
 		self.attr_store = {}
+		self.id_store = {}
 		#self.sdata_handler = handle_sdata
 
 	def feed(self, data):
@@ -56,7 +57,12 @@ class EsisBuilder(Builder):
 			elif event == '-':
 				text = self.document.createText(ESISDecode(text))
 				self.push(text)
-
+			elif event == '?':
+				text = string.split( text[:-1] )
+				pi = self.document.createProcessingInstruction(text[0],
+									       string.join(text[1:]) )
+				self.push( pi )
+				
 			elif event == 'C':
 				return
 
@@ -66,6 +72,22 @@ class EsisBuilder(Builder):
 				# can safely ignore it.
 				pass
 
+			elif event in 'spf':
+				# Some sort of command that applies to a
+				# following command; save it 
+				self.id_store[ event ] = text
+
+			elif event == 'N':
+				pubId = sysId = ""
+				if self.id_store.has_key('p'): 
+					pubId = self.id_store['p']
+				if self.id_store.has_key('s'): 
+					sysId = self.id_store['s']
+				notation = self.document.createNotation(text,
+									pubId,
+									sysId)
+				self.id_store = {}
+			
 			else:
 				sys.stderr.write('Unknown event: ' + `line` + '\n')
 
@@ -121,7 +143,6 @@ if __name__ == '__main__':
 
 	p = EsisBuilder()
 	p.feed(open(sys.argv[1]).read())
-
 	w = XmlLineariser()
 	w.add_newline_after = [ 'p', 'title', 'abstract' ]
 	print w.linearise(p.document.documentElement)
