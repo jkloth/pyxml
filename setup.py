@@ -53,6 +53,9 @@ for arg in args:
         with_xslt = 0
 	sys.argv.remove(arg)
 
+if sys.platform[:6] == "darwin": # Mac OS X
+    LDFLAGS.append('-flat_namespace')
+
 if with_xpath:
     extra_packages.append(xml('.xpath'))
 
@@ -165,11 +168,17 @@ if build_pyexpat:
 
 # Build sgmlop
 ext_modules.append(
-    Extension(xml('.parsers.sgmlop'), sources=['extensions/sgmlop.c']))
+    Extension(xml('.parsers.sgmlop'),
+              extra_link_args=LDFLAGS,
+              sources=['extensions/sgmlop.c'],
+              ))
 
 # Build boolean
 ext_modules.append(
-    Extension(xml('.utils.boolean'), sources=['extensions/boolean.c']))
+    Extension(xml('.utils.boolean'),
+              extra_link_args=LDFLAGS,
+              sources=['extensions/boolean.c'],
+              ))
 
 
 # On Windows, install the documentation into a directory xmldoc, along
