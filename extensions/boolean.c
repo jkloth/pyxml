@@ -21,19 +21,16 @@ static PyMethodDef booleanMethods[] = {
 
 
 static PyObject *BooleanValue(PyObject *self, PyObject *args) {
-  PyObject *obj, *tmp;
+  PyObject *obj;
   PyBooleanObject *result = NULL;
 
-  if (!PyArg_ParseTuple(args, "O", &obj)) 
+  if (!PyArg_ParseTuple(args, "O", &obj))
     return NULL;
 
   if (Boolean_Check(obj)){
     result = (PyBooleanObject *)obj;
-  } else if (PyNumber_Check(obj)){
-    tmp = PyNumber_Int(obj);
-    result = PyInt_AS_LONG(tmp) ? g_true : g_false;
-  } else if (PyString_Check(obj)){
-    result = (strlen(PyString_AS_STRING(obj))) ? g_true : g_false;
+  } else if (PyNumber_Check(obj) || PyString_Check(obj)){
+    result = PyObject_IsTrue(obj) ? g_true : g_false;
   } else {
     result = g_false;
   }
@@ -44,10 +41,8 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
 static int pyobj_as_boolean_int(PyObject *obj) {
   if (Boolean_Check(obj)){
     return Boolean_Value((PyBooleanObject *)obj);
-  } else if (PyNumber_Check(obj)){
-    return PyInt_AS_LONG(PyNumber_Int(obj)) ? 1 : 0;
-  } else if (PyString_Check(obj)){
-    return (strlen(PyString_AS_STRING(obj))) ? 1 : 0;
+  } else if (PyNumber_Check(obj) || PyString_Check(obj)){
+    return PyObject_IsTrue(obj) ? 1 : 0;
   } else {
     return 0;
   }
@@ -222,6 +217,7 @@ void initboolean(void) {
 
   PyBoolean_Type.ob_type = &PyType_Type;
   PyDict_SetItemString(d, "BooleanType", (PyObject *)&PyBoolean_Type);
+  Py_INCREF(&PyBoolean_Type);
 
   ErrorObject = PyString_FromString("boolean.error");
   PyDict_SetItemString(d, "error", ErrorObject);
