@@ -6,8 +6,8 @@ import xml.dom.minidom
 from domapi import DOMImplementationTestSuite
 
 
-def DOMParseString(self, xml):
-    return xml.dom.expatbuilder.parseString(xml)
+def DOMParseString(self, text):
+    return xml.dom.expatbuilder.parseString(text)
 
 def test_suite():
     """Return a test suite for the Zope testing framework."""
