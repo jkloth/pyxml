@@ -5,7 +5,7 @@ Small utility to parse Opera bookmark files.
 Written by Lars Marius Garshol
 """
 
-import string,bookmark
+import string,bookmark,time
 
 # --- Constants
 
@@ -21,26 +21,34 @@ class OperaParseException(Exception):
 # --- Methods
         
 def readfield(infile,fieldname):
-    line=infile.readline()
+    line=string.rstrip(infile.readline())
     pos=string.find(line,fieldname+"=")
     if pos==-1:
         raise OperaParseException("Field '%s' missing" % fieldname)
 
-    return line[pos+len(fieldname)+1:-1]
+    return line[pos+len(fieldname)+1:]
 
 def swallow_rest(infile):
     "Reads input until first blank line."
     while 1:
         line=infile.readline()
-        if line=="" or line=="\n": break
+        if line=="" or line=="\n" or line=="\015\012": break
 
 def parse_date(date):
     # CREATED=904923783 (Fri Sep 04 17:43:03 1998)
     # VISITED=0 (?)
+
+    if date=="":
+        return None
+    
     lp=string.find(date,"(")
     rp=string.find(date,")")
-    if lp==-1 or rp==-1:
-        raise OperaParseException("Date without parentheses")
+    if lp==-1 or rp==-1:        
+        if string.find(date," ")!=-1:
+            raise OperaParseException("Can't handle this date: %s" % `date`)
+
+        t=time.localtime(string.atoi(date))
+        return "%s%s%s" % (t[0],string.zfill(t[1],2),string.zfill(t[2],2))
 
     if date[lp:rp+1]=="(?)":
         return None
@@ -60,8 +68,10 @@ def parse_adr(filename):
     while 1:
         line=infile.readline()
         if line=="": break
+        line=string.rstrip(line)
         
-        if line[:-1]=="#FOLDER":
+        if line=="#FOLDER":
+            print "FOLDER"
             name=readfield(infile,"NAME")
             created=parse_date(readfield(infile,"CREATED"))
             parse_date(readfield(infile,"VISITED")) # Just throw this away
@@ -69,7 +79,7 @@ def parse_adr(filename):
             swallow_rest(infile)
 
             bms.add_folder(name,created)
-        elif line[:-1]=="#URL":
+        elif line=="#URL":
             name=readfield(infile,"NAME")
             url=readfield(infile,"URL")
             created=parse_date(readfield(infile,"CREATED"))
@@ -78,8 +88,10 @@ def parse_adr(filename):
             swallow_rest(infile)
 
             bms.add_bookmark(name,created,visited,None,url)
-        elif line[:-1]=="-":
+        elif line=="-":
             bms.leave_folder()
+        else:
+            print `line`
 
     return bms
 
