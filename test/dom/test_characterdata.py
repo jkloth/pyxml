@@ -130,7 +130,7 @@ def test(tester):
 
 if __name__ == '__main__':
     import sys
-    from Ft.Lib import TestSuite
+    import TestSuite
 
     tester = TestSuite.TestSuite()
     retVal = test(tester)

@@ -4,15 +4,20 @@ import TestSuite
 
 ### Methods ###
 
-def runTests(list, testSuite):
-    print '#'*19, "Performing a test of DOM Core/Traversal", '#'*19
+def runTests(tests, testSuite):
+    banner = 'Performing a test of DOM Core/Traversal/HTML'
+    markers = '#'*((testSuite.columns - len(banner)) / 2 - 1)
+    print markers, banner, markers
 
-    start = time.time()
-    for module in list:
-        mod = __import__('test_' + string.lower(module))
-        rt = mod.test(testSuite)
+    total = 0.0
+    for test in tests:
+        module = __import__('test_' + string.lower(test))
+        start = time.time()
+        module.test(testSuite)
+        total = total + time.time() - start
+    return total
 
-    print "Test Time - %f secs" %(time.time() - start)
+    
 
 ### Application ###
 
@@ -21,30 +26,30 @@ if __name__ == '__main__':
     logFile = None
     haltOnError = 1
 
-    test_list = [
-        'Node',
-        'NodeList',
-        'NamedNodeMap',
-        'NodeIterator',
-        'TreeWalker',
-        'Attr',
-        'Element',
-        'DocumentFragment',
-        'Document',
-        'DOMImplementation',
-        'CharacterData',
-        'Comment',
-        'Text',
-        'CDATASection',
-        'DocumentType',
-        'Entity',
-        'EntityReference',
-        'Notation',
-        'ProcessingInstruction',
-        'Struct',
-#        'Demo',
-#        'Pythonic'
-         ]
+    test_list = ['Node',
+                 'NodeList',
+                 'NamedNodeMap',
+                 'NodeIterator',
+                 'TreeWalker',
+                 'Attr',
+                 'Element',
+                 'DocumentFragment',
+                 'Document',
+                 'DOMImplementation',
+                 'CharacterData',
+                 'Comment',
+                 'Text',
+                 'CDATASection',
+                 'DocumentType',
+                 'Entity',
+                 'EntityReference',
+                 'Notation',
+                 'ProcessingInstruction',
+                 'Struct',
+                 'HTML',
+                 #'Demo',
+                 #'Pythonic'
+                 ]
 
     import sys, os, getopt
 
@@ -135,5 +140,9 @@ Options:
         sys.exit(command_line_error)
 
     testSuite = TestSuite.TestSuite(haltOnError)
-    runTests(tests, testSuite)
+
+    total = runTests(tests, testSuite)
+
+    print "Test Time - %.3f secs" % total
+    
 

@@ -37,7 +37,7 @@ def test(tester):
 
     tester.startTest('Testing createDocument()')
     doc = di.createDocument('','NAME',dt)
-    if doc.namespaceURI != '':
+    if doc.namespaceURI != None:
         tester.error('createDocumnent does not set namespaceURI properly')
     if doc.documentElement.nodeName != 'NAME':
         tester.error('createDocumnent does not set qualifiedName properly')

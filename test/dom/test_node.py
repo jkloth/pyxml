@@ -18,6 +18,7 @@ def test(tester):
     tester.startTest('Testing syntax')
     try:
         from xml.dom import Node
+        from xml.dom.FtNode import FtNode
     except:
         tester.error('Error in syntax', 1)
     tester.testDone()
@@ -61,12 +62,11 @@ def test(tester):
         tester.error('Error getting attributes');
     if p.ownerDocument.nodeName != doc.nodeName:
         tester.error('Error getting ownerDocument');
-    if p.namespaceURI != '':
+    if p.namespaceURI != None:
         tester.error('Error getting namespaceURI')
-    p.prefix = 'ft'
-    if p.prefix != 'ft':
-        tester.error('Error getting/setting prefix')
-    if p.localName != p.nodeName:
+    if p.prefix != None:
+        tester.error('Error getting')
+    if p.localName != None:
         tester.error('Error getting localName')
     tester.testDone()
 

@@ -26,7 +26,6 @@ def test(tester):
     doc = implementation.createDocument('','ROOT',dt)
 
     try:
-        from xml.dom.Node import Node
         for ctr in range(3):
             n = doc.createElement('Node%d'%(ctr+1))
             nodes.append(n)

@@ -6,7 +6,7 @@ def test():
 	from xml.dom.html import HTMLModElement
 	from xml.dom import implementation
 	doc = implementation.createHTMLDocument('Title')
-	m = doc.createElement('MOD')
+	m = doc.createElement('ins')
 
 	print 'testing get/set'
 	testAttribute(m,'cite')

@@ -32,7 +32,6 @@ def test(tester):
     doc = implementation.createDocument('','ROOT',dt)
 
     doc_nons = implementation.createDocument('','ROOT',dt)
-    doc_nons.__dict__['_4dom_isNsAware'] = 0
 
     ns = 'www.fourthought.com'
     e_ns = doc.createElementNS(ns, 'TEST')
@@ -229,16 +228,18 @@ def test(tester):
 
     rt = e.getElementsByTagNameNS('www.fourthought.com','ns')
     if len(rt) != 1:
-        tester.error('GetElementsByTagNameNS failed')
+        tester.error('failed with specified namespace and localName')
     rt = e.getElementsByTagNameNS('www.fourthought.com','*')
     if len(rt) != 1:
-        tester.error('GetElementsByTagNameNS failed')
+        tester.error('failed with specified namespace and * localName')
     rt = e.getElementsByTagNameNS('*','ns')
     if len(rt) != 1:
-        tester.error('GetElementsByTagNameNS failed')
+        print rt
+        tester.error('failed with * namespace and specified localName')
     rt = e.getElementsByTagNameNS('*','*')
     if len(rt) != 5:
-        tester.error('GetElementsByTagNameNS failed')
+        print rt
+        tester.error('failed with * namespace and localName')
     tester.testDone()
 
 

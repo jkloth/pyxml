@@ -112,11 +112,11 @@ def test(tester):
         tester.error('createAttribute does not set the owner document')
     if a.name != 'ATTRIBUTE':
         tester.error('createAttribute does not set the name')
-    if a.localName != '':
+    if a.localName != None:
         tester.error('createAttribute sets the localName; should be (null)')
-    if a.prefix != '':
+    if a.prefix != None:
         tester.error('createAttribute sets the prefix; should be (null)')
-    if a.namespaceURI != '':
+    if a.namespaceURI != None:
         tester.error('createAttribute sets the namespaceURI; should be (null)')
     try:
         a2 = doc.createAttribute('BAD<NAME');
@@ -252,14 +252,14 @@ def test(tester):
 
 
     tester.startTest('Testing overridden insertBefore()')
-    tester.warning('Need to re-implement this after fixing another bug')
-#    try:
-#        doc.insertBefore(e,e1)
-#    except DOMException, data:
-#        if data.code != HIERARCHY_REQUEST_ERR:
-#            tester.error('insertBefore throws wrong exception')
-#    else:
-#        tester.error('insertBefore allows two elements')
+    try:
+        doc.insertBefore(e1,e)
+    except DOMException, data:
+        if data.code != HIERARCHY_REQUEST_ERR:
+            print data
+            tester.error('insertBefore throws wrong exception')
+    else:
+        tester.error('insertBefore allows two elements')
     tester.testDone()
 
 
