@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 
 # Setup script for the XML tools
 #
@@ -34,46 +35,72 @@ else:
   def xml(s):
     return "_xmlplus"+s
 
+def should_build_pyexpat():
+    try:
+        import pyexpat
+        # The following features of are required by PyXML from pyexpat,
+        # which are not available in older versions:
+        # ExternalEntityParserCreate, available only from 2.25 on.
+        # ParseFile throws exception, not available up to 2.28.
+        # Memory leak fixes, merged into 2.33
+        # Wrong array boundaries fixed in 2.35
+        if pyexpat.__version__ <= '2.39':
+            return 1
+        if 'pyexpat' in sys.builtin_module_names:
+            print "Error: builtin expat library will conflict with ours"
+            print "Re-build python without builtin expat module"
+            raise SystemExit
+    except ImportError:
+        return 1
+    else:
+        return 0
+
+def get_expat_prefix():
+    for p in ("/usr", "/usr/local"):
+        incs = os.path.join(p, "include")
+        libs = os.path.join(p, "lib")
+        if os.path.isfile(os.path.join(incs, "expat.h")) \
+           and (os.path.isfile(os.path.join(libs, "libexpat.so"))
+                or os.path.isfile(os.path.join(libs, "libexpat.a"))):
+            return p
+
+
 # Don't build pyexpat if the Python installation provides one.
 # FIXME: It should be build for binary distributions even if the core has it.
-build_pyexpat = 0
-try:
-    import pyexpat
-    # The following features of are required by PyXML from pyexpat,
-    # which are not available in older versions:
-    # ExternalEntityParserCreate, available only from 2.25 on.
-    # ParseFile throws exception, not available up to 2.28.
-    # Memory leak fixes, merged into 2.33
-    # Wrong array boundaries fixed in 2.35
-    if pyexpat.__version__ <= '2.35':
-        build_pyexpat = 1
-    if 'pyexpat' in sys.builtin_module_names:
-        print "Error: builtin expat library will conflict with ours"
-        print "Re-build python without builtin expat module"
-        raise SystemExit
-except ImportError:
-    build_pyexpat = 1
-
+build_pyexpat = should_build_pyexpat()
 if build_pyexpat:
-    ext_modules.append(
-        Extension(xml('.parsers.pyexpat'),
-                  define_macros = [('XML_NS', None),
-                                   ('XML_DTD',None),
-                                   ('EXPAT_VERSION','0x010200')],
-                  include_dirs = [ 'extensions/expat/xmltok',
-                                   'extensions/expat/xmlparse' ], 
-                  sources = [ 'extensions/pyexpat.c',
-                              'extensions/expat/xmltok/xmltok.c',
-                              'extensions/expat/xmltok/xmlrole.c',
-                              'extensions/expat/xmlwf/xmlfile.c',
-                              'extensions/expat/xmlwf/xmlwf.c',
-                              'extensions/expat/xmlwf/codepage.c',
-                              'extensions/expat/xmlparse/xmlparse.c',
-                              # Gone in 1.2
-                              #'extensions/expat/xmlparse/hashtable.c',
-                              FILEMAP_SRC,
-                              ]
-                  ))
+    expat_prefix = get_expat_prefix()
+
+    if build_pyexpat:
+        sources = ['extensions/pyexpat.c']
+        if expat_prefix:
+            define_macros = [('HAVE_EXPAT_H', None)]
+            include_dirs = [os.path.join(expat_prefix, "include")]
+            libraries = ['expat']
+            library_dirs = [os.path.join(expat_prefix, "lib")]
+        else:
+            define_macros = [('XML_NS', None),
+                             ('XML_DTD', None)]
+            include_dirs = ['extensions/expat/xmltok',
+                            'extensions/expat/xmlparse']
+            sources.extend(['extensions/expat/xmltok/xmltok.c',
+                            'extensions/expat/xmltok/xmlrole.c',
+                            'extensions/expat/xmlwf/xmlfile.c',
+                            'extensions/expat/xmlwf/xmlwf.c',
+                            'extensions/expat/xmlwf/codepage.c',
+                            'extensions/expat/xmlparse/xmlparse.c',
+                            FILEMAP_SRC])
+            libraries = []
+            library_dirs = []
+
+        ext_modules.append(
+            Extension(xml('.parsers.pyexpat'),
+                      define_macros=define_macros,
+                      include_dirs=include_dirs,
+                      library_dirs=library_dirs,
+                      libraries=libraries,
+                      sources=sources
+                      ))
 
 # Build sgmlop
 ext_modules.append(
@@ -163,4 +190,3 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
 
        ext_modules = ext_modules
        )
-
