@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.15 2001/12/30 12:13:45 loewis Exp $
+$Id: drv_xmlproc.py,v 1.16 2003/07/27 17:58:20 loewis Exp $
 """
 
 import types, string
@@ -13,7 +13,7 @@ from xml.sax.xmlreader import IncrementalParser
 from xml.sax.saxutils import ContentGenerator, prepare_input_source
 
 # Todo
-# - EntityResolver
+# - EntityResolver InputSource handling
 # - as much as possible of LexicalHandler
 # - entity expansion features
 # - core properties
@@ -78,6 +78,9 @@ class XmlprocDriver(IncrementalParser):
 
         if self._decl_handler != None or self._dtd_handler != None:
             parser.set_dtd_listener(self)
+
+        parser.set_pubid_resolver(self)
+        
         # FIXME: set other handlers
 
         if self.__ext_pes:
@@ -268,6 +271,23 @@ class XmlprocDriver(IncrementalParser):
 
     def new_attribute(self, elem, attr, type, a_decl, a_def):
         self._decl_handler.attributeDecl(elem, attr, type, a_decl, a_def)
+
+    # --- PubIdResolver methods
+
+    def resolve_pe_pubid(self, pubid, sysid):
+        # Delegate out to the instance's EntityResolver.
+        # TODO: does not support returning an InputSource from resolveEntity.
+        return self._ent_handler.resolveEntity(pubid, sysid)
+    
+    def resolve_doctype_pubid(self, pubid, sysid):
+        # Delegate out to the instance's EntityResolver.
+        # TODO: does not support returning an InputSource from resolveEntity.
+        return self._ent_handler.resolveEntity(pubid, sysid)
+    
+    def resolve_entity_pubid(self, pubid, sysid):
+        # Delegate out to the instance's EntityResolver.
+        # TODO: does not support returning an InputSource from resolveEntity.
+        return self._ent_handler.resolveEntity(pubid, sysid)
 
 # --- NamespaceFilter
 

@@ -22,6 +22,8 @@ Changes in this version, compared to 0.8.2:
         * The symbol "_" is no longer inserted into the built-in
           namespace via the gettext module; I18N support is no longer
           invasive.
+        * expatreader now implements feature_namespace_prefixes.
+	* drv_xmlproc now supports EntityResolvers that return system IDs.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled

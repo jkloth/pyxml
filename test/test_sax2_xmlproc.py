@@ -37,5 +37,44 @@ class MyTest(unittest.TestCase):
     def test_sax_xmlproc_nson__blankns(self):
         _saxParse(self,_drv_xmlproc,1,_MyHandler(self),_xmls_blankns)
 
+class TestResolver(unittest.TestCase):
+    document="""<!DOCTYPE foo [
+    <!ELEMENT foo (#PCDATA)>
+    <!ENTITY bar SYSTEM "tmp.xml">
+    ]>
+    <foo>
+    &bar;
+    </foo>"""
+
+    def setUp(self):
+        f = open("tmp.xml","w")
+        f.write("Content")
+        f.close()
+
+    def tearDown(self):
+        import os
+        os.remove("tmp.xml")
+
+    def test_simple(self):
+        class MyResolver(xml.sax.handler.EntityResolver):
+            def __init__(self):
+                self.invoked = 0
+            def resolveEntity(self, publicId, systemId):
+                self.invoked = 1
+                return systemId
+        
+        reader = _makeParser(_drv_xmlproc,0)
+        resolver = MyResolver()
+        reader.setEntityResolver(resolver)
+        inps = xmlreader.InputSource()
+        inps.setByteStream(StringIO(self.document))
+        inps.setSystemId("tmp1.xml")
+        reader.parse(inps)
+        self.failUnless(resolver.invoked)
+
+    def test_complex(self):
+        # TODO: return an input source from the resolver
+        pass
+
 if __name__ == "__main__":
     unittest.main()
