@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.31 2002/01/13 20:55:03 loewis Exp $
+# $Id: xmlutils.py,v 1.32 2002/05/15 14:49:25 akuchling Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -678,7 +678,7 @@ class XMLCommonParser(EntityParser):
                 self.report_error(3902)
             enc = string.lower(enc)
             if self.input_encoding and self.input_encoding!=enc:
-                self.report_error(3047)
+                self.report_error(3047, enc)
 
             self.skip_ws()
 
