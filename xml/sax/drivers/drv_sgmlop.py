@@ -1,14 +1,15 @@
 """
 SAX driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.7 2000/09/29 20:57:48 loewis Exp $
+$Id: drv_sgmlop.py,v 1.8 2000/10/03 10:18:38 loewis Exp $
 """
 
-version="0.11"
+version="0.12"
 
 from xml.parsers import sgmlop
 from xml.sax import saxlib,saxutils
-import urllib
+from xml.sax import SAXException
+import urllib,string
 
 # --- Driver
 
@@ -16,7 +17,7 @@ class Parser(saxlib.Parser):
 
     def __init__(self):
         saxlib.Parser.__init__(self)
-        self.parser = sgmlop.XMLParser()
+        self.reset()
     
     def setDocumentHandler(self, dh):
 	self.parser.register(self) # older version wanted ,1 arg
@@ -26,6 +27,8 @@ class Parser(saxlib.Parser):
         self.parseFile(urllib.urlopen(url))
         
     def parseFile(self, file):
+        self._parsing = 1
+        self.doc_handler.startDocument()
 	parser = self.parser
 
 	while 1:
@@ -42,9 +45,19 @@ class Parser(saxlib.Parser):
         self.doc_handler.characters(data,0,len(data))
 
     def handle_data(self, data):
+        #ignore white space outside the toplevel element
+        if self._nesting == 0:
+            if string.strip(data)!="":
+                # It's not whitespace?
+                self.err_handler.error(SAXException(
+                    "characters '%s' outside root element" % data))
+            return
         self.doc_handler.characters(data,0,len(data))
         
     def handle_proc(self, target, data):
+        if target=='xml':
+            # Don't report <?xml?> as a processing instruction
+            return
         self.doc_handler.processingInstruction(target,data)
 
     def handle_charref(self, charno):
@@ -52,9 +65,11 @@ class Parser(saxlib.Parser):
             self.doc_handler.characters(chr(charno),0,1)
 
     def finish_starttag(self, name, attrs):
+        self._nesting = self._nesting + 1
         self.doc_handler.startElement(name,saxutils.AttributeMap(attrs))
 
     def finish_endtag(self,name):
+        self._nesting = self._nesting - 1
         self.doc_handler.endElement(name)
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
@@ -76,8 +91,13 @@ class Parser(saxlib.Parser):
 
     def reset(self):
         self.parser=sgmlop.XMLParser()
+        self._parsing=0
+        self._nesting=0
     
     def feed(self,data):
+        if not self._parsing:
+            self.doc_handler.startDocument()
+            self._parsing=1
         self.parser.feed(data)
 
     def close(self):
