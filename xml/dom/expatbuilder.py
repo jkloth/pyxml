@@ -81,8 +81,8 @@ def _parse_ns_name(builder, name):
     if len(parts) == 3:
         uri, localname, prefix = parts
         prefix = intern(prefix, prefix)
-        s = "%s:%s" % (prefix, localname)
-        qname = intern(s, s)
+        qname = "%s:%s" % (prefix, localname)
+        qname = intern(qname, qname)
         localname = intern(localname, localname)
     else:
         uri, localname = parts
@@ -328,7 +328,7 @@ class ExpatBuilder:
         self._finish_start_element(node)
 
     def _create_document(self, namespace, name, doctype):
-        doc = theDOMImplementation.createDocument(None, name, doctype)
+        doc = theDOMImplementation.createDocument(namespace, name, doctype)
         doc._elem_info.update(self._elem_info)
         self._elem_info = doc._elem_info
         if self._standalone >= 0:
