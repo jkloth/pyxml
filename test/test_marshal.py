@@ -5,7 +5,13 @@ generic.runtests()
 wddx.runtests()
 
 # additional tests
-from test.test_support import verify
+try:
+    from test.test_support import verify
+except ImportError:
+    from test.test_support import TestFailed
+    def verify(condition, reason="test failed"):
+        if not condition:
+            raise TestFailed(reason)
 
 # test for correct processing of ignorable whitespace
 data = """<?xml version="1.0"?>
