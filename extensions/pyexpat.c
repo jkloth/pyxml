@@ -880,7 +880,7 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
         return 0;
 }
 
-int 
+static int
 PyModule_AddStringConstant(PyObject *m, char *name, char *value)
 {
 	return PyModule_AddObject(m, name, PyString_FromString(value));
