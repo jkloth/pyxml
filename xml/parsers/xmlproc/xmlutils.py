@@ -3,7 +3,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.33 2002/08/22 17:03:14 fdrake Exp $
+# $Id: xmlutils.py,v 1.34 2002/09/13 15:37:17 fdrake Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -162,7 +162,9 @@ class EntityParser:
         tmp = self.seen_xmldecl
         self.seen_xmldecl = 0 # Avoid complaints
 
-        self.read_from(inf)
+        # XXX Should not need to read the whole thing in, but doing so
+        # fixes PyXML SF bug #608453.  There should be a better fix.
+        self.read_from(inf, -1)
 
         self.seen_xmldecl = tmp
         self.flush()
