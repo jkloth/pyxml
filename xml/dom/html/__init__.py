@@ -14,7 +14,7 @@ HTML_CHARACTER_ENTITIES = {
     160: 'nbsp',
     161: 'iexcl',
     162: 'cent',
-    163: 'pount',
+    163: 'pound',
     164: 'curren',
     165: 'yen',
     166: 'brvbar',
