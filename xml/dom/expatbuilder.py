@@ -440,7 +440,7 @@ class FilterVisibilityController:
                 raise ParseEscape
             if val not in _ALLOWED_FILTER_RETURNS:
                 raise ValueError, \
-                      "startContainer() return illegal value: " + repr(val)
+                      "startContainer() returned illegal value: " + repr(val)
             return val
         else:
             return FILTER_ACCEPT
@@ -448,11 +448,12 @@ class FilterVisibilityController:
     def acceptNode(self, node):
         mask = self._nodetype_mask[node.nodeType]
         if self.filter.whatToShow & mask:
-            # Why does the spec not support FILTER_INTERRUPT here?
             val = self.filter.acceptNode(node)
+            if val == FILTER_INTERRUPT:
+                raise ParseEscape
             if val not in _ALLOWED_FILTER_RETURNS:
                 raise ValueError, \
-                      "startContainer() return illegal value: " + repr(val)
+                      "startContainer() returned illegal value: " + repr(val)
             return val
         else:
             return FILTER_ACCEPT
