@@ -19,4 +19,4 @@ class Comment(CharacterData):
 
     def __init__(self,ownerDocument,data):
         CharacterData.__init__(self, ownerDocument, data)
-        self.__dict__['__nodename'] = '#comment'
+        self.__dict__['__nodeName'] = '#comment'
