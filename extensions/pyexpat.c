@@ -447,10 +447,10 @@ VOID_HANDLER(UnparsedEntityDecl,
               const XML_Char *systemId,
               const XML_Char *publicId,
               const XML_Char *notationName),
-             ("(O&O&O&O&O&)", 
-              STRING_CONV_FUNC,entityName, STRING_CONV_FUNC,base, 
-              STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId, 
-              STRING_CONV_FUNC,notationName))
+             ("(NNNNN)",
+              string_intern(self, entityName), string_intern(self, base), 
+              string_intern(self, systemId), string_intern(self, publicId), 
+              string_intern(self, notationName)))
 
 #ifndef Py_USING_UNICODE
 VOID_HANDLER(EntityDecl,
@@ -463,11 +463,12 @@ VOID_HANDLER(EntityDecl,
               const XML_Char *systemId,
               const XML_Char *publicId,
               const XML_Char *notationName),
-             ("O&iNO&O&O&O&",
-              STRING_CONV_FUNC,entityName, is_parameter_entity,
+             ("NiNNNNN",
+              string_intern(self, entityName), is_parameter_entity,
               conv_string_len_to_utf8(value, value_length),
-              STRING_CONV_FUNC,base, STRING_CONV_FUNC,systemId,
-              STRING_CONV_FUNC,publicId, STRING_CONV_FUNC,notationName))
+              string_intern(self, base), string_intern(self, systemId),
+              string_intern(self, publicId),
+              string_intern(self, notationName)))
 #else
 VOID_HANDLER(EntityDecl,
              (void *userData,
@@ -479,13 +480,14 @@ VOID_HANDLER(EntityDecl,
               const XML_Char *systemId,
               const XML_Char *publicId,
               const XML_Char *notationName),
-             ("O&iNO&O&O&O&",
-              STRING_CONV_FUNC,entityName, is_parameter_entity,
+             ("NiNNNNN",
+              string_intern(self, entityName), is_parameter_entity,
               (self->returns_unicode 
                ? conv_string_len_to_unicode(value, value_length) 
                : conv_string_len_to_utf8(value, value_length)),
-              STRING_CONV_FUNC,base, STRING_CONV_FUNC,systemId,
-              STRING_CONV_FUNC,publicId, STRING_CONV_FUNC,notationName))
+              string_intern(self, base), string_intern(self, systemId),
+              string_intern(self, publicId),
+              string_intern(self, notationName)))
 #endif
 
 VOID_HANDLER(XmlDecl,
@@ -540,8 +542,8 @@ VOID_HANDLER(ElementDecl,
              (void *userData,
               const XML_Char *name,
               XML_Content *model),
-             ("O&O&",
-              STRING_CONV_FUNC,name,
+             ("NO&",
+              string_intern(self, name),
               (self->returns_unicode ? conv_content_model_unicode
                                      : conv_content_model_utf8),model))
 #else
@@ -549,8 +551,8 @@ VOID_HANDLER(ElementDecl,
              (void *userData,
               const XML_Char *name,
               XML_Content *model),
-             ("O&O&",
-              STRING_CONV_FUNC,name, conv_content_model_utf8,model))
+             ("NO&",
+              string_intern(self, name), conv_content_model_utf8,model))
 #endif
 
 VOID_HANDLER(AttlistDecl,
@@ -560,8 +562,8 @@ VOID_HANDLER(AttlistDecl,
               const XML_Char *att_type,
               const XML_Char *dflt,
               int isrequired),
-             ("(O&O&O&O&i)",
-              STRING_CONV_FUNC,elname, STRING_CONV_FUNC,attname,
+             ("(NNO&O&i)",
+              string_intern(self, elname), string_intern(self, attname),
               STRING_CONV_FUNC,att_type, STRING_CONV_FUNC,dflt,
               isrequired))
 
@@ -571,15 +573,16 @@ VOID_HANDLER(NotationDecl,
 			const XML_Char *base,
 			const XML_Char *systemId,
 			const XML_Char *publicId),
-                ("(O&O&O&O&)", 
-		 STRING_CONV_FUNC,notationName, STRING_CONV_FUNC,base, 
-		 STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId))
+                ("(NNNN)",
+		 string_intern(self, notationName), string_intern(self, base), 
+		 string_intern(self, systemId), string_intern(self, publicId)))
 
 VOID_HANDLER(StartNamespaceDecl,
 		(void *userData,
 		      const XML_Char *prefix,
 		      const XML_Char *uri),
-                ("(NN)", string_intern(self, prefix), string_intern(self, uri)))
+                ("(NN)",
+                 string_intern(self, prefix), string_intern(self, uri)))
 
 VOID_HANDLER(EndNamespaceDecl,
 		(void *userData,
@@ -587,8 +590,8 @@ VOID_HANDLER(EndNamespaceDecl,
                 ("(N)", string_intern(self, prefix)))
 
 VOID_HANDLER(Comment,
-               (void *userData, const XML_Char *prefix),
-                ("(O&)", STRING_CONV_FUNC,prefix))
+               (void *userData, const XML_Char *data),
+                ("(O&)", STRING_CONV_FUNC,data))
 
 VOID_HANDLER(StartCdataSection,
                (void *userData),
@@ -631,9 +634,9 @@ RC_HANDLER(int, ExternalEntityRef,
 		    const XML_Char *systemId,
 		    const XML_Char *publicId),
 		int rc=0;,
-                ("(O&O&O&O&)", 
-		 STRING_CONV_FUNC,context, STRING_CONV_FUNC,base, 
-		 STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId),
+                ("(O&NNN)",
+		 STRING_CONV_FUNC,context, string_intern(self, base), 
+		 string_intern(self, systemId), string_intern(self, publicId)),
 		rc = PyInt_AsLong(rv);, rc,
 		XML_GetUserData(parser))
 
@@ -643,8 +646,8 @@ VOID_HANDLER(StartDoctypeDecl,
              (void *userData, const XML_Char *doctypeName,
               const XML_Char *sysid, const XML_Char *pubid,
               int has_internal_subset),
-             ("(O&O&O&i)", STRING_CONV_FUNC,doctypeName,
-              STRING_CONV_FUNC,sysid, STRING_CONV_FUNC,pubid,
+             ("(NNNi)", string_intern(self, doctypeName),
+              string_intern(self, sysid), string_intern(self, pubid),
               has_internal_subset))
 
 VOID_HANDLER(EndDoctypeDecl, (void *userData), ("()"))
