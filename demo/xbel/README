@@ -1,0 +1,8 @@
+This directory contains various scripts for processing XBEL, the XML
+Bookmark Exchange Language proposed by Mark Hammond on the XML-SIG.
+Scripts are provided to convert the bookmark files for various Web
+browsers to XBEL, and to render an XBEL document as HTML.
+
+xbel.dtd	The Document Type Definition for XBEL
+
+
