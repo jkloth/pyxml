@@ -56,6 +56,14 @@ INUSE_ATTRIBUTE_ERR         = 10
 # Exceptions (now changed to class-based. --amk)
 
 class DOMException:
+    """DOM operations only raise exceptions in "exceptional" circumstances,
+     i.e., when an operation is impossible to perform (either for logical
+     reasons, because data is lost, or because the implementation has become
+     unstable). In general, DOM methods return specific error values in
+     ordinary processing situations, such as out-of-bound errors when using
+     NodeList.
+     """
+    
     def __init__(self, msg):
         self.msg = msg
     def __repr__(self):
@@ -116,6 +124,7 @@ def hasFeature(feature, version = None):
         return 0
 
 def createDocument():
+    "Create a fresh Document object and return it"
     d = _nodeData(DOCUMENT_NODE)
     d.name = '#document'
     d.value = d.attributes = None
@@ -164,8 +173,8 @@ class _nodeData:
 
 
 class Node:
-    '''Base class for grove nodes in DOM model.  Proxies an instance
-    of the _nodeData class.'''
+    """Base class for grove nodes in DOM model.  Proxies an instance
+    of the _nodeData class."""
 
     readonly = 0
     Node_counter = 0
@@ -212,24 +221,34 @@ class Node:
     # get/set attributes
 
     def get_nodeName(self):
+        "Returns the name of this node."
         return self._node.name
+    
     get_name = get_nodeName
 
     def get_nodeValue(self):
+        "Returns the value of this node."
         return self._node.value
     get_value = get_nodeValue
 
     def get_nodeType(self):
+        "Returns the type of this node."
         return self._node.type
 
-    def get_document(self):
-        return self._document
-    
     def get_parentNode(self):
+        """Return the parent of this node. All nodes, except Document,
+        DocumentFragment, and Attr may have a parent. However, if a
+        node has just been created and not yet added to the tree, or
+        if it has been removed from the tree, this is null."""
         return self.parentNode
 
     def get_childNodes(self):
+        """Return a NodeList containing all children of this node. If there
+        are no children, this is a NodeList containing no nodes."""
+
+        # Copy the list, because we're going to modify it
         L = self._node.children[:]
+
         # Convert the list of _nodeData instances into a list of
         # the appropriate Node subclasses
         for i in range(len(L)):
@@ -237,6 +256,9 @@ class Node:
         return NodeList(L)
 
     def get_firstChild(self):
+        """Return the first child of this node. If there is no such node, this
+        returns null."""
+
         if self._node.children:
             n = self._node.children[0]
             return NODE_CLASS[ n.type ] (n, self, self._document)
@@ -244,6 +266,8 @@ class Node:
             return None
 
     def get_lastChild(self):
+        """Return the last child of this node. If there is no such node, this
+        returns null."""
         if self._node.children:
             n = self._node.children[-1]
             return NODE_CLASS[ n.type ] (n, self, self._document)
@@ -251,6 +275,9 @@ class Node:
             return None
 
     def get_previousSibling(self):
+        """Return the node immediately preceding this node. If there is no such
+        node, this returns null."""
+
         if self.parentNode is None: return None
         i = self._index()
         if i <= 0:
@@ -260,6 +287,8 @@ class Node:
             return NODE_CLASS[ n.type ] (n, self, self._document)
 
     def get_nextSibling(self):
+        """Return the node immediately following this node. If there is no such
+        node, this returns null."""
         if self.parentNode is None: return None
         L = self.parentNode._node.children
         i = self._index()
@@ -272,11 +301,22 @@ class Node:
         return self._node.attributes
 
     def get_ownerDocument(self):
+        """The Document object associated with this node. This is also
+        the Document object used to create new nodes. When this node
+        is a Document this is null."""
         return self._document
 
     # Methods
 
     def insertBefore(self, newChild, refChild):
+        """Inserts the node newChild before the existing child node
+        refChild. If refChild is null, insert newChild at the end of
+        the list of children.
+        
+        If newChild is a DocumentFragment object, all of its children
+        are inserted, in the same order, before refChild. If the
+        newChild is already in the tree, it is first removed."""
+
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
@@ -378,7 +418,7 @@ class Node:
             else:
                 setattr(d, key, copy.deepcopy(value) )
 
-        node = NODE_CLASS[ d.type ] (d, None, self.get_document())
+        node = NODE_CLASS[ d.type ] (d, None, self.get_ownerDocument())
         if deep:
             d.children = copy.deepcopy(self._node.children)
         return node
@@ -487,7 +527,17 @@ class Attr(Node):
         return self._node.name
 
     def get_value(self):
-        return self._node.value
+        # This must traverse all of the node's children, and return a
+        # string containing their values
+        s = ""
+        for child in self._node.children:
+            if n.type == TEXT_NODE:
+                s = s + n.value
+            else:
+                # It must be an EntityReference node
+                n = NODE_CLASS[ child.type ] (child, self, self._document)
+                s = s + n.toxml()
+        return s
 
     def set_value(self, value):
         if self.readonly:
@@ -498,6 +548,10 @@ class Attr(Node):
     def get_specified(self):
         return self._node.specified
 
+    def get_parentNode(self): return None
+    def get_previousSibling(self): return None
+    def get_nextSibling(self): return None
+    
 class Element(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
                       TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
@@ -530,12 +584,19 @@ class Element(Node):
     
     def getAttribute(self, name):
         if self._node.attributes.has_key(name):
-            return self._node.attributes[name]
+            n = self._node.attributes[name]
+            if n.type == TEXT_NODE: return n.value
+            else:
+                n = NODE_CLASS[ n.type ] (n, self, self._document)
+                return n.toxml()
         else:
             return ""
     
     def setAttribute(self, name, value):
-        self._node.attributes[name] = value
+        d = _nodeData(TEXT_NODE)
+        d.name = "#text"
+        d.value = value
+        self._node.attributes[name] = d
 
     def removeAttribute(self, name):
         if self._node.attributes.has_key(name):
@@ -544,33 +605,24 @@ class Element(Node):
     def getAttributeNode(self, name):
         if not self._node.attributes.has_key[ name ]:
             return None
-        d = _nodeData(ATTRIBUTE_NODE)
-        d.name = name
-        d.value = self._node.attributes[name]
-        d.attributes = None
+        d = self._node.attributes[name]
         return Attr(d, None)
 
     def setAttributeNode(self, newAttr):
-        if self._node.attributes.has_key[ newAttr._node.name ]:
-            d = _nodeData(ATTRIBUTE_NODE)
-            d.name = newAttr._node.name
-            d.value = self._node.attributes[ newAttr._node.name]
-            d.attributes = None
-            retval = Attr(d, None)
+        name = newAttr._node.name
+        if self._node.attributes.has_key[ name ]:
+            retval = Attr(self._node.attributes[ name ], None)
         else: retval = None
 
-        self._node.attributes[ newAttr._node.name ] = newAttr._node.value
+        self._node.attributes[ name ] = newAttr._node
         return retval
 
     def removeAttributeNode(self, oldAttr):
         # XXX this needs to know about DTDs to restore a default value
-        if self._node.attributes.has_key[ oldAttr._node.name ]:
-            d = _nodeData(ATTRIBUTE_NODE)
-            d.name = newAttr._node.name
-            d.value = self._node.attributes[ oldAttr._node.name ]
-            d.attributes = None
-            retval = Attr(d, None)
-            del self._node.attributes[ d.name ]
+        name = oldAttr._node.name
+        if self._node.attributes.has_key[ name ]:
+            retval = Attr(self._node.attributes[name], None)
+            del self._node.attributes[ name ]
             return retval
         else: return None
 
@@ -694,7 +746,7 @@ class EntityReference(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
                       ENTITY_REFERENCE_NODE]
-
+        
 class ProcessingInstruction(Node):
     childNodeTypes = []
     
@@ -823,16 +875,25 @@ class Document(Node):
                     raise HierarchyRequestException, \
                           "Too many Element children of Document" 
         return doc
-    def get_document(self):
-        return self
     def get_ownerDocument(self):
-        return self
+        """Return the Document object associated with this node. This is also
+        the Document object used to create new nodes. When this node
+        is a Document this is null."""
+        return None
     
     # Override the Node mutation methods in order to check that
     # there's at most a single Element child, and to update
     # self.documentElement.
 
     def insertBefore(self, newChild, refChild):
+        """Inserts the node newChild before the existing child node
+        refChild. If refChild is null, insert newChild at the end of
+        the list of children.
+        
+        If newChild is a DocumentFragment object, all of its children
+        are inserted, in the same order, before refChild. If the
+        newChild is already in the tree, it is first removed."""
+        
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
