@@ -3,31 +3,18 @@
  * the version string in get_version_string() must be corrected.
  */
 #include "Python.h"
-#if PY_VERSION_HEX < 0x020000B1
-#include <assert.h>
-#endif
 #include <ctype.h>
-
-/* limits.h is included through Python.h in 2.x, but not in 1.5.2 */
-#include <limits.h>
 
 #include "compile.h"
 #include "frameobject.h"
 #include "expat.h"
 
-#ifndef PyGC_HEAD_SIZE
-#define PyGC_HEAD_SIZE 0
-#define PyObject_GC_Init(x)
-#define PyObject_GC_Fini(m)
-#define Py_TPFLAGS_GC 0
-#endif
-
 #ifndef PyDoc_STRVAR
 #define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
 #endif
 
-#if (PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION > 5) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
-/* In Python 1.6, 2.0 and  2.1, disabling Unicode was not possible. */
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
+/* In Python 2.0 and  2.1, disabling Unicode was not possible. */
 #define Py_USING_UNICODE
 #endif
 
@@ -308,7 +295,7 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 #ifndef Py_USING_UNICODE
 #define STRING_CONV_FUNC conv_string_to_utf8
 #else
-/* Python 1.6 and later versions */
+/* Python 2.0 and later versions */
 #define STRING_CONV_FUNC (self->returns_unicode \
                           ? conv_string_to_unicode : conv_string_to_utf8)
 #endif
@@ -969,16 +956,12 @@ xmlparse_ExternalEntityParserCreate(xmlparseobject *self, PyObject *args)
         return NULL;
     }
 
-#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
-    new_parser = PyObject_NEW(xmlparseobject, &Xmlparsetype);
-#else
 #ifndef Py_TPFLAGS_HAVE_GC
-    /* Python versions 1.6 to 2.1 */
+    /* Python versions 2.0 and 2.1 */
     new_parser = PyObject_New(xmlparseobject, &Xmlparsetype);
 #else
     /* Python versions 2.2 and later */
     new_parser = PyObject_GC_New(xmlparseobject, &Xmlparsetype);
-#endif
 #endif
 
     if (new_parser == NULL)
@@ -1138,14 +1121,6 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     int i;
     xmlparseobject *self;
 
-#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
-    self = PyObject_NEW(xmlparseobject, &Xmlparsetype);
-    if (self == NULL)
-        return NULL;
-
-    self->returns_unicode = 0;
-#else
-    /* Code for versions 1.6 and later */
 #ifdef Py_TPFLAGS_HAVE_GC
     /* Code for versions 2.2 and later */
     self = PyObject_GC_New(xmlparseobject, &Xmlparsetype);
@@ -1155,8 +1130,12 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     if (self == NULL)
         return NULL;
 
+#ifdef Py_USING_UNICODE
     self->returns_unicode = 1;
+#else
+    self->returns_unicode = 0;
 #endif
+
     self->buffer = NULL;
     self->buffer_size = CHARACTER_DATA_BUFFER_SIZE;
     self->buffer_used = 0;
@@ -1230,17 +1209,12 @@ xmlparse_dealloc(xmlparseobject *self)
         self->buffer = NULL;
     }
     Py_XDECREF(self->intern);
-#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
-    /* Code for versions before 1.6 */
-    free(self);
-#else
 #ifndef Py_TPFLAGS_HAVE_GC
-    /* Code for versions 1.6 to 2.1 */
+    /* Code for versions 2.0 and 2.1 */
     PyObject_Del(self);
 #else
     /* Code for versions 2.2 and later. */
     PyObject_GC_Del(self);
-#endif
 #endif
 }
 
@@ -1573,39 +1547,6 @@ static struct PyMethodDef pyexpat_methods[] = {
 
 PyDoc_STRVAR(pyexpat_module_documentation,
 "Python wrapper for Expat parser.");
-
-#if PY_VERSION_HEX < 0x20000F0
-
-/* 1.5 compatibility: PyModule_AddObject */
-static int
-PyModule_AddObject(PyObject *m, char *name, PyObject *o)
-{
-    PyObject *dict;
-    if (!PyModule_Check(m) || o == NULL)
-        return -1;
-    dict = PyModule_GetDict(m);
-    if (dict == NULL)
-        return -1;
-    if (PyDict_SetItemString(dict, name, o))
-        return -1;
-    Py_DECREF(o);
-    return 0;
-}
-
-static int
-PyModule_AddIntConstant(PyObject *m, char *name, long value)
-{
-    return PyModule_AddObject(m, name, PyInt_FromLong(value));
-}
-
-static int
-PyModule_AddStringConstant(PyObject *m, char *name, char *value)
-{
-    return PyModule_AddObject(m, name, PyString_FromString(value));
-}
-
-#endif
-
 
 /* Return a Python string that represents the version number without the
  * extra cruft added by revision control, even if the right options were
