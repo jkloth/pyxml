@@ -1105,6 +1105,215 @@ def testRenameOther():
         print "expected NotSupportedErr when renaming comment node"
     doc.unlink()
 
+def checkCharacterDataBasics(doc, constructor, nodeName, nodeType):
+    text = constructor("foo")
+    confirm(text.ownerDocument.isSameNode(doc)
+            and text.attributes is None
+            and not text.hasAttributes()
+            and text.firstChild is None
+            and text.lastChild is None
+            and text.previousSibling is None
+            and text.nextSibling is None
+            and text.parentNode is None
+            and text.nodeName == nodeName
+            and text.nodeType == nodeType
+            and text.length == 3
+            and text.data == "foo"
+            and text.nodeValue == "foo")
+
+def testTextNodeBasics():
+    doc = Document()
+    checkCharacterDataBasics(doc, doc.createTextNode,
+                             "#text", Node.TEXT_NODE)
+
+def testCDATASectionBasics():
+    doc = Document()
+    checkCharacterDataBasics(doc, doc.createCDATASection,
+                             "#cdata-section", Node.CDATA_SECTION_NODE)
+
+def checkAppendData(constructor):
+    text = constructor("")
+    text.appendData("a")
+    confirm(text.data == text.nodeValue == text.wholeText == "a"
+            and text.length == 1)
+    text.appendData("b")
+    confirm(text.data == text.nodeValue == text.wholeText == "ab"
+            and text.length == 2)
+
+def testTextNodeAppendData():
+    checkAppendData(Document().createTextNode)
+
+def testCDATASectionAppendData():
+    checkAppendData(Document().createCDATASection)
+
+def checkDeleteData(constructor):
+    text = constructor("abc def ghi")
+    try:
+        text.deleteData(-1, 1)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from deleteData()"
+
+    try:
+        text.deleteData(12, 2)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from deleteData()"
+
+    try:
+        text.deleteData(0, -1)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from deleteData()"
+
+    confirm(text.data == text.nodeValue == text.wholeText)
+    # delete at beginning:
+    text.deleteData(0, 1)
+    confirm(text.data == text.nodeValue == text.wholeText == "bc def ghi"
+            and text.length == 10)
+    # delete at the end:
+    text.deleteData(8, 100)
+    confirm(text.data == text.nodeValue == text.wholeText == "bc def g"
+            and text.length == 8)
+    # delete in the middle:
+    text.deleteData(3, 3)
+    confirm(text.data == text.nodeValue == text.wholeText == "bc  g"
+            and text.length == 5)
+    # delete the whole thing:
+    text.deleteData(0, 5)
+    confirm(text.data == text.nodeValue == text.wholeText == ""
+            and text.length == 0)
+
+def testTextNodeDeleteData():
+    checkDeleteData(Document().createTextNode)
+
+def testCDATASectionDeleteData():
+    checkDeleteData(Document().createCDATASection)
+
+def checkInsertData(constructor):
+    text = constructor("abc")
+    try:
+        text.insertData(-1, "foo")
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from insertData()"
+
+    try:
+        text.insertData(12, "foo")
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from insertData()"
+
+    confirm(text.data == text.nodeValue == text.wholeText)
+    # insert at beginning:
+    text.insertData(0, "ABC")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABCabc"
+            and text.length == 6)
+    # insert at the end:
+    text.insertData(6, "DEF")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABCabcDEF"
+            and text.length == 9)
+    # insert in the middle:
+    text.insertData(3, "splat!")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABCsplat!abcDEF"
+            and text.length == 15)
+
+def testTextNodeInsertData():
+    checkInsertData(Document().createTextNode)
+
+def testCDATASectionInsertData():
+    checkInsertData(Document().createCDATASection)
+
+def checkReplaceData(constructor):
+    text = constructor("abc def ghi")
+    try:
+        text.replaceData(-1, 1, "foo")
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from replaceData()"
+
+    try:
+        text.replaceData(12, 2, "foo")
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from replaceData()"
+
+    try:
+        text.replaceData(0, -1, "foo")
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from replaceData()"
+
+    confirm(text.data == text.nodeValue == text.wholeText)
+    # replace at beginning:
+    text.replaceData(0, 3, "ABC")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABC def ghi"
+            and text.length == 11)
+    # replace at the end:
+    text.replaceData(9, 100, "HI")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABC def gHI"
+            and text.length == 11)
+    # replace in the middle:
+    text.replaceData(4, 3, "splat!")
+    confirm(text.data == text.nodeValue == text.wholeText == "ABC splat! gHI"
+            and text.length == 14)
+    # replace the whole thing:
+    text.replaceData(0, 20, "foobar")
+    confirm(text.data == text.nodeValue == text.wholeText == "foobar"
+            and text.length == 6)
+
+def testTextNodeReplaceData():
+    checkReplaceData(Document().createTextNode)
+
+def testCDATASectionReplaceData():
+    checkReplaceData(Document().createCDATASection)
+
+def checkSubstringData(constructor):
+    text = constructor("abcdefg")
+    try:
+        text.substringData(-1, 2)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from substringData()"
+
+    try:
+        text.substringData(20, 2)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from substringData()"
+
+    try:
+        text.substringData(0, -1)
+    except xml.dom.IndexSizeErr:
+        pass
+    else:
+        print "expected IndexSizeErr from substringData()"
+
+    confirm(text.substringData(0, 0) == ""
+            and text.substringData(0, 2) == "ab"
+            and text.substringData(2, 3) == "cde"
+            and text.substringData(6, 0) == ""
+            and text.substringData(6, 1) == "g"
+            and text.substringData(6, 20) == "g"
+            and text.substringData(7, 2) == ""
+            and text.substringData(7, 0) == "")
+
+def testTextNodeSubstringData():
+    checkSubstringData(Document().createTextNode)
+
+def testCDATASectionSubstringData():
+    checkSubstringData(Document().createCDATASection)
+
 def checkWholeText(node, s):
     t = node.wholeText
     confirm(t == s, "looking for %s, found %s" % (repr(s), repr(t)))
@@ -1116,34 +1325,44 @@ def testWholeText():
     assert text.nodeType == Node.TEXT_NODE
 
     checkWholeText(text, "a")
-    elem.appendChild(doc.createTextNode("b"))
+    t = elem.appendChild(doc.createTextNode("b"))
     checkWholeText(text, "ab")
+    t.appendData("e")
+    checkWholeText(text, "abe")
     elem.insertBefore(doc.createCDATASection("c"), text)
-    checkWholeText(text, "cab")
+    checkWholeText(text, "cabe")
 
     # make sure we don't cross other nodes
     splitter = doc.createComment("comment")
     elem.appendChild(splitter)
     text2 = doc.createTextNode("d")
     elem.appendChild(text2)
-    checkWholeText(text, "cab")
+    checkWholeText(text, "cabe")
     checkWholeText(text2, "d")
 
     x = doc.createElement("x")
     elem.replaceChild(x, splitter)
     splitter = x
-    checkWholeText(text, "cab")
+    checkWholeText(text, "cabe")
     checkWholeText(text2, "d")
 
     x = doc.createProcessingInstruction("y", "z")
     elem.replaceChild(x, splitter)
     splitter = x
-    checkWholeText(text, "cab")
+    checkWholeText(text, "cabe")
     checkWholeText(text2, "d")
 
     elem.removeChild(splitter)
+    checkWholeText(text, "cabed")
+    checkWholeText(text2, "cabed")
+
+    t.deleteData(1, 1)
     checkWholeText(text, "cabd")
     checkWholeText(text2, "cabd")
+
+    t.replaceData(0, 1, "ghi")
+    checkWholeText(text, "caghid")
+    checkWholeText(text2, "caghid")
 
 def testReplaceWholeText():
     def setup():
