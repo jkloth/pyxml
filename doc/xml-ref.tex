@@ -227,7 +227,8 @@ for this module in the \citetitle
 [http://www.python.org/doc/2.2.1/lib/module-xml.dom.minidom.html]
 {Python Library Reference} for Python 2.2.1.
 
-The \class{Entity} and \class{Notation} node types are now supported.
+The \class{Entity} and \class{Notation} node types are now supported,
+and the \class{TypeInfo} interface is also supported.
 
 These additional \class{Node} attributes have been implemented or
 changed:
@@ -338,6 +339,41 @@ interface:
   Added in DOM Level~3.
 \end{methoddesc}
 
+
+The following have been added to the \class{Attr} class:
+
+\begin{memberdesc}[Attr]{isId}
+  \code{True} if the attribute represents an ID while attached to it's
+  current \member{ownerElement}, otherwise \code{False}.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\begin{memberdesc}[Attr]{schemaType}
+  The \class{TypeInfo} object representing the type of this attribute,
+  taking into account the type of the element to which is it attached.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+The following attribute has been added to the \class{Element} class:
+
+\begin{memberdesc}[Element]{schemaType}
+  The \class{TypeInfo} object representing the type of this element,
+  taking into account the type of the element to which is it attached.
+  Added in DOM Level~3.
+\end{memberdesc}
+
+\class{TypeInfo} objects have the following attributes:
+
+\begin{memberdesc}[TypeInfo]{name}
+  Name of the type.  Type names are only meaningful within the context
+  of a namespace defining type names.  DTD-based types have no name,
+  so this will be \code{None} for types from DTDs.
+\end{memberdesc}
+
+\begin{memberdesc}[TypeInfo]{namespace}
+  Namespace URI for a type system.  This will be \code{None} for
+  DTD-based types.
+\end{memberdesc}
 
 
 \strong{Implementation specific behavior:} The DOM Level~2 Core
