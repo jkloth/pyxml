@@ -73,7 +73,7 @@ staticforward PyTypeObject Xmlparsetype;
 typedef void (*xmlhandlersetter)( XML_Parser *self, void *meth );
 typedef void* xmlhandler;
 
-struct HandlerInfo{
+struct HandlerInfo {
 	const char *name;
 	xmlhandlersetter setter;
 	xmlhandler handler;
@@ -681,7 +681,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.5 $";
+	char *rev="$Revision: 1.6 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
