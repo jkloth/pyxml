@@ -5,6 +5,8 @@ import string
 
 # The interface to the outside world
 
+# Todo: 3047 needed in Swedish, Norwegian and French
+
 error_lists={}  # The hash of errors
 
 def add_error_list(language,list):

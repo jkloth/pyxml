@@ -3,7 +3,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.11 2001/03/03 07:32:35 loewis Exp $
+$Id: xmlval.py,v 1.12 2001/03/27 19:41:32 larsga Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time
@@ -159,6 +159,7 @@ class ValidatingApp(Application):
 	self.stack=[]
 	self.ids={}
 	self.idrefs=[]        
+        self._seen_root = 0
         
     def set_real_app(self,app):
 	self.realapp=app
@@ -182,9 +183,10 @@ class ValidatingApp(Application):
                     self.cur_state=next
 
 	    self.stack.append((self.cur_elem,self.cur_state))
-	elif decl_root!=None and name!=decl_root:
+	elif (not self._seen_root) and decl_root!=None and name!=decl_root:
 	    self.parser.report_error(2002,name)
 
+        self._seen_root = 1
 	try:
 	    self.cur_elem=self.dtd.get_elem(name)
             self.cur_state=self.cur_elem.get_start_state()
