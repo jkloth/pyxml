@@ -257,13 +257,13 @@ class XmlParser(SgmlopParser):
         self._namespaceStack.append((old_nss, del_nss))
 
         (prefix, local) = SplitQName(tagname)
-        namespace = self._namespaces.get(prefix, '')
+        namespace = self._namespaces.get(prefix, None)
         element = self._ownerDoc.createElementNS(namespace, tagname)
         for ((prefix, local, name), value) in split_attrs.items():
             if local == 'xmlns':
                 namespace = XMLNS_NAMESPACE
             else:
-                namespace = self._namespaces.get(prefix, '')
+                namespace = self._namespaces.get(prefix, None)
             attr = self._ownerDoc.createAttributeNS(namespace, name)
             attr.value = value
             element.setAttributeNodeNS(attr)

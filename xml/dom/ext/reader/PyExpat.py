@@ -134,7 +134,7 @@ class Reader(reader.Reader):
 
         self._namespaceStack.append((old_nss, del_nss))
         (prefix, local) = SplitQName(name)
-        nameSpace = self._namespaces.get(prefix, '')
+        nameSpace = self._namespaces.get(prefix, None)
 
         if self._ownerDoc:
             new_element = self._ownerDoc.createElementNS(
@@ -152,7 +152,7 @@ class Reader(reader.Reader):
                 attr = self._ownerDoc.createAttributeNS(namespace,
                                                          local + ':' + prefix)
             else:
-                namespace = prefix and self._namespaces.get(prefix, '') or ''
+                namespace = prefix and self._namespaces.get(prefix, None) or None
                 attr = self._ownerDoc.createAttributeNS(namespace,
                                                          (prefix and prefix + ':' + local) or local)
             attr.value = curr_attrib_value
