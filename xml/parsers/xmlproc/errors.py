@@ -148,7 +148,7 @@ english={
     }
 
 # Errors in Norwegian
-norsk=english.copy()
+norsk = english.copy()
 norsk.update({
 
     # --- Warnings: 1000-1999
@@ -271,12 +271,13 @@ norsk.update({
      
     # --- SOCatalog errors: 5100-5199
     5100: "Ugyldig eller ikke støttet konstruksjon: %s.",
-    }
+    })
 
 # Errors in Swedish
 # Contributed by Marus Brisenfeldt, <marcusb@infotek.no>
 
-svenska = {
+svenska = english.copy()
+svenska.update({
 
     # --- Warnings: 1000-1999
     1000: "Namnrymds-prefixet '%s' är inte deklarerat",
@@ -398,12 +399,13 @@ svenska = {
      
     # --- SOCatalog errors: 5100-5199
     5100: "Konstruktionen: %s är ogiltig eller saknar stöd.",
-    }
+    })
 
 # Errors in French
 # Contributed by Alexandre Fayolle, Logilab. Alexandre.Fayolle@logilab.fr
 
-french={ 
+french = english.copy()
+french.update({
     # Les termes français utilisés sont tirés de l'ouvrage
     # XML, Langage et applications, Alain Michard, Eyrolles
     # ISBN 2-212-09052-8
@@ -530,7 +532,7 @@ french={
      
     # --- SOCatalog errors: 5100-5199
     5100: "Construction invalide ou non supportée : %s.",
-    }
+    })
 
 # Updating the error hash
 

@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.12 2001/03/27 19:33:48 larsga Exp $
+$Id: xmldtd.py,v 1.13 2001/03/27 20:21:02 larsga Exp $
 """
 
 import types
@@ -142,7 +142,7 @@ class WFCDTD(DTDConsumer):
             ## FIXME: May warn
             return # Keep first decl
         
-        if ndata!="" and hasattr(self,"notations"):
+        if ndata != None and hasattr(self, "notations"):
             if not self.notations.has_key(ndata):
                 self.used_notations[ndata]= ent_name
                 
