@@ -495,7 +495,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
     def values(self):
         return self._attrs.values()
 
-    def get(self, name, value = None):
+    def get(self, name, value=None):
         return self._attrs.get(name, value)
 
     __len__ = _get_length
@@ -538,17 +538,27 @@ class NamedNodeMap(NewStyle, GetattrMagic):
 
     def removeNamedItem(self, name):
         n = self.getNamedItem(name)
-        del self._attrs[n.nodeName]
-        del self._attrsNS[(n.namespaceURI, n.localName)]
-        if n.__dict__.has_key('ownerElement'):
-            n.__dict__['ownerElement'] = None
+        if n is not None:
+            _clear_id_cache(self._ownerElement)
+            del self._attrs[n.nodeName]
+            del self._attrsNS[(n.namespaceURI, n.localName)]
+            if n.__dict__.has_key('ownerElement'):
+                n.__dict__['ownerElement'] = None
+            return n
+        else:
+            raise xml.dom.NotFoundErr()
 
     def removeNamedItemNS(self, namespaceURI, localName):
         n = self.getNamedItemNS(namespaceURI, localName)
-        del self._attrs[n.nodeName]
-        del self._attrsNS[(n.namespaceURI, n.localName)]
-        if n.__dict__.has_key('ownerElement'):
-            n.__dict__['ownerElement'] = None
+        if n is not None:
+            _clear_id_cache(self._ownerElement)
+            del self._attrsNS[(n.namespaceURI, n.localName)]
+            del self._attrs[n.nodeName]
+            if n.__dict__.has_key('ownerElement'):
+                n.__dict__['ownerElement'] = None
+            return n
+        else:
+            raise xml.dom.NotFoundErr()
 
     def setNamedItem(self, node):
         if not isinstance(node, Attr):
@@ -560,6 +570,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
         self._attrs[node.name] = node
         self._attrsNS[(node.namespaceURI, node.localName)] = node
         node.ownerElement = self._ownerElement
+        _clear_id_cache(node.ownerElement)
         return old
 
     def setNamedItemNS(self, node):
@@ -567,6 +578,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
 
     def __delitem__(self, attname_or_tuple):
         node = self[attname_or_tuple]
+        _clear_id_cache(node.ownerElement)
         node.unlink()
         del self._attrs[node.name]
         del self._attrsNS[(node.namespaceURI, node.localName)]
