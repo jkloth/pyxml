@@ -52,8 +52,13 @@ NO_MODIFICATION_ALLOWED_ERR = 7
 NOT_FOUND_ERR               = 8
 NOT_SUPPORTED_ERR           = 9
 INUSE_ATTRIBUTE_ERR         = 10
+INVALID_STATE_ERR           = 11
+SYNTAX_ERR                  = 12
+INVALID_MODIFICATION_ERR    = 13
+NAMESPACE_ERR               = 14
+INVALID_ACCESS_ERR          = 15
 
-# Exceptions (now changed to class-based. --amk)
+# Exception classes
 
 class DOMException:
     """DOM operations only raise exceptions in "exceptional" circumstances,
@@ -85,14 +90,19 @@ class NotFoundException(DOMException):
     code = NOT_FOUND_ERR
 class NotSupportedException(DOMException):
     code = NOT_SUPPORTED_ERR
-class InUseAttributeException:
+class InUseAttributeException(DOMException):
     code = INUSE_ATTRIBUTE_ERR
-
-# Old exceptions (deprecated)
-class NoSuchNodeException(DOMException): pass
-class NotMyChildException(DOMException): pass
-class NotImplementedException(DOMException): pass
-
+class InvalidStateException(DOMException):
+    code = INVALID_STATE_ERR
+class SyntaxException(DOMException):
+    code = SYNTAX_ERR
+class InvalidModificationException(DOMException):
+    code = INVALID_MODIFICATION_ERR 
+class NamespaceException(DOMException):
+    code = NAMESPACE_ERR
+class InvalidAccessException(DOMException):
+    code = INVALID_ACCESS_ERR
+    
 # Node types. 
 
 ELEMENT                = ELEMENT_NODE                = 1
@@ -120,16 +130,44 @@ def hasFeature(feature, version = None):
     if feature == 'html': return 0
     if feature == 'xml':
         if version is None: return 1
-        if version == '1.0': return 1
+        if version in ['1.0', '2.0']: return 1
         return 0
 
-def createDocument():
+def createDocumentType(qualifiedName, publicId, systemId, internalSubset):
+    d = _nodeData(DOCUMENT_TYPE_NODE)
+    d.name = qualifiedName
+    d.value = d.attributes = None
+    d.publicId = publicId
+    d.systemId = systemId
+    d.internalSubset = internalSubset
+    d = DocumentType(d, None)
+    return d
+    
+def createDocument(namespaceURI = None,
+                   qualifiedName = "",
+                   doctype = None
+                   ):
     "Create a fresh Document object and return it"
     d = _nodeData(DOCUMENT_NODE)
     d.name = '#document'
     d.value = d.attributes = None
+
+    # Check doctype value, if provided.
+    if doctype is not None:
+        if not isinstance( DocumentType, doctype ):
+            raise ValueError, ('doctype argument must be a DocumentType node: '
+                               + repr(doctype) )
+
+        if doctype.get_ownerDocument() is not None:
+            raise ValueError, ('doctype argument already owned by Document '
+                               + repr(doctype.get_ownerDocument() ) )
+            
+        # Change ownerDocument of doctype
+        doctype._document = d
+        
     d = Document(d, None)
     return d
+
 
 import UserList, UserDict
 
@@ -434,7 +472,9 @@ class Node:
     def get_ownerDocument(self):
         """The Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
-        is a Document this is None."""
+        is a Document or a DocumentType unattached to a document,
+        this is None."""
+        if self._document is None: return None
         return Document(self._document, None)
 
     # Methods
@@ -1069,11 +1109,25 @@ class DocumentType(Node):
 
     def get_entities(self):
         d = NamedNodeMap(self._node.entities, self._document)
-        for entity, value in self._node.entities:
-            pass # XXX
-
+        # XXX untested
+        #for entity_name, value in self._node.entities:
+            #d[entitity_name] = value
+        return d
+    
     def get_notations(self):
+        # XXX untested
+        d = NamedNodeMap(self._node.notations, self._document)
         pass # XXX
+        return d
+
+    def get_publicId(self):
+        return self._node.publicId
+        
+    def get_systemId(self):
+        return self._node.systemId
+
+    def get_internalSubset(self):
+        return self._node.internalSubset
 
     def toxml(self):
         return '<!DOCTYPE %s>\n' % (self._node.name,)
