@@ -1,4 +1,4 @@
-/* Based on Python's pyexpat.c, version 2.25.
+/* Based on Python's pyexpat.c, version 2.26.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
@@ -862,7 +862,7 @@ static char pyexpat_module_documentation[] =
 
 void initpyexpat(void);  /* avoid compiler warnings */
 
-#if PY_HEX_VERSION < 0x2000000
+#if PY_VERSION_HEX < 0x2000000
 
 /* 1.5 compatibility: PyModule_AddObject */
 static int
@@ -892,7 +892,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.25 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.26 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
