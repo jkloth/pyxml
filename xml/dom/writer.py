@@ -118,7 +118,9 @@ class XmlWriter(Walker):
     def doComment(self, node):
         self.stream.write(node.toxml())
 
-
+    def doOtherNode(self, node):
+        self.stream.write( node.toxml() )
+        
 class XmlLineariser(XmlWriter):
 
     def __init__(self):
