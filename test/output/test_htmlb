@@ -1,6 +1,7 @@
 test_htmlb
 Good document (no ignore)
 <?xml version="1.0"?>
+<HTML>
 <P>I prefer (all things being equal) regularity/orthogonality and logical
 syntax/semantics in a language because there is less to have to remember.
 (Of course I <EM>know</EM> all things are NEVER really equal!)
@@ -8,9 +9,10 @@ syntax/semantics in a language because there is less to have to remember.
 </P><P>The details of that silly code are irrelevant.
 </P><P CLASS='source'>Tim Peters, 4 Mar 92
 &amp; &lt; &gt; é &ouml; &nbsp;
-</P>
+</P></HTML>
 Good document (ignoring mismatched end tags)
 <?xml version="1.0"?>
+<HTML>
 <P>I prefer (all things being equal) regularity/orthogonality and logical
 syntax/semantics in a language because there is less to have to remember.
 (Of course I <EM>know</EM> all things are NEVER really equal!)
@@ -18,10 +20,11 @@ syntax/semantics in a language because there is less to have to remember.
 </P><P>The details of that silly code are irrelevant.
 </P><P CLASS='source'>Tim Peters, 4 Mar 92
 &amp; &lt; &gt; é &ouml; &nbsp;
-</P>
+</P></HTML>
 Bad document (no ignore)
 Exception raised for bad HTML
 Bad document (ignoring mismatched end tags)
 <?xml version="1.0"?>
-<B>bold and <I>italic</I></B> tags.&amp; &lt; &gt; &eacute; &ouml; &nbsp;
-
+<HTML>
+Interdigitated <B>bold and <I>italic</I></B> tags.&amp; &lt; &gt; &eacute; &ouml; &nbsp;
+</HTML>
