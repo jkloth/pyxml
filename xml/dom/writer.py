@@ -6,11 +6,7 @@ from xml.dom.core import *
 from xml.dom.walker import Walker
 import string, re, sys
 
-def quote(s):
-	s = re.sub('&', '&amp;', s)
-	s = re.sub('<', '&lt;', s)
-	s = re.sub('>', '&gt;', s)
-	return s
+from xml.utils import escape
 	
 
 class OutputStream:
@@ -58,41 +54,41 @@ class XmlWriter(Walker):
 
 
 	def startElement(self, element) :
-		assert element.NodeType == ELEMENT
+		assert element.get_nodeType() == ELEMENT
 
-		s = '<%s' % self.map_tag(element.tagName)
+		s = '<%s' % self.map_tag(element.get_nodeName() )
 		
 		# XXX use DOM interface here.
-		for name, value in element.attributes.items() :
-			s = s + ' %s="%s"' % (self.map_attr(name), quote(value))
+		for name, value in element.get_attributes().items() :
+			s = s + ' %s="%s"' % (self.map_attr(name), escape(value))
 
-		if self.xml_style_endtags and not element.getChildren():
+		if self.xml_style_endtags and not element.get_childNodes():
 			s = s + '/>'
 		else:
 			s = s + '>'
 
-		if element.tagName in self.newline_before_start:
+		if element.get_nodeName() in self.newline_before_start:
 			self.stream.newLine()
 		self.stream.write(s)
-		if element.tagName in self.newline_after_start:
+		if element.get_nodeName() in self.newline_after_start:
 			self.stream.newLine()
 
 
 	def endElement(self, element):
-		assert element.NodeType == ELEMENT
+		assert element.get_nodeType() == ELEMENT
 
 		s = ''
-		if element.tagName in self.empties :
+		if element.get_nodeName() in self.empties :
 			pass
-		elif len(element.getChildren()) == 0 and self.xml_style_endtags:
+		elif len(element.get_childNodes() ) == 0 and self.xml_style_endtags:
 			pass
 		else:
-			s = s + '</%s>' % self.map_tag(element.tagName)
+			s = s + '</%s>' % self.map_tag(element.get_nodeName() )
 
-		if element.tagName in self.newline_before_end:
+		if element.get_nodeName() in self.newline_before_end:
 			self.stream.newLine()
 		self.stream.write(s)
-		if element.tagName in self.newline_after_end:
+		if element.get_nodeName() in self.newline_after_end:
 			self.stream.newLine()
 
 
@@ -100,8 +96,8 @@ class XmlWriter(Walker):
 		#if text_node.getParentNode().tagName in self.strip:
 		#	data = string.strip(text_node.data)
 		#else:
-		data = text_node.data
-		self.stream.write(quote(data))
+		data = text_node.get_nodeValue()
+		self.stream.write(escape(data))
 
 
 class XmlLineariser(XmlWriter):
@@ -221,7 +217,7 @@ class ASPWriter(XmlWriter):
 			if child.NodeType is ELEMENT:
 				s1 = s1 + self.linearise_element(child)
 			elif child.NodeType is TEXT:
-				#s1 = s1 + quote(child.data)
+				#s1 = s1 + escape(child.data)
 				s1 = s1 + child.data
 			else :
 				s1 = s1 + str(child)
