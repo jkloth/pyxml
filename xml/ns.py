@@ -183,3 +183,14 @@ class WSDL:
     BIND_SOAP   = BASE + "soap/"
     BIND_HTTP   = BASE + "http/"
     BIND_MIME   = BASE + "mime/"
+
+
+class RNG:
+    """RELAX NG, schema language for XML
+
+    RELAX NG (03-Dec-2001) is a simple schema languge for XML,
+    published under the auspices of OASIS.  The specification, tutorial,
+    and other information are available from http://www.relaxng.org.
+    """
+    BASE = "http://relaxng.org/ns/structure/1.0"
+    
