@@ -20,6 +20,8 @@ from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import *
 from xml.dom.xmlbuilder import DOMImplementationLS, DocumentLS
 
+_TupleType = type(())
+
 
 class Node(xml.dom.Node, GetattrMagic):
     _makeParentNodes = 1
@@ -410,7 +412,7 @@ class NamedNodeMap(GetattrMagic):
 
     #FIXME: is it appropriate to return .value?
     def __getitem__(self, attname_or_tuple):
-        if isinstance(attname_or_tuple, TupleType):
+        if isinstance(attname_or_tuple, _TupleType):
             return self._attrsNS[attname_or_tuple]
         else:
             return self._attrs[attname_or_tuple]
@@ -823,6 +825,12 @@ class ReadOnlySequentialNamedNodeMap(GetattrMagic):
             if n.namespaceURI == namespaceURI and n.localName == localName:
                 return n
 
+    def __getitem__(self, name_or_tuple):
+        if isinstance(name_or_tuple, _TupleType):
+            return self.getNamedItemNS(*name_or_tuple)
+        else:
+            return self.getNamedItem(name_or_tuple)
+
     def item(self, index):
         if index < 0:
             return None
@@ -865,6 +873,41 @@ class DocumentType(Childless, Node):
         if qualifiedName:
             prefix, localname = _nssplit(qualifiedName)
             self.name = localname
+        self.nodeName = self.name
+
+class Identified:
+    """Mix-in class that supports the publicId and systemId attributes."""
+
+    def _identified_mixin_init(self, publicId, systemId):
+        self.publicId = publicId
+        self.systemId = systemId
+
+    def _get_publicId(self):
+        return self.publicId
+
+    def _get_systemId(self):
+        return self.systemId
+
+class Entity(Identified, Node):
+    nodeType = Node.ENTITY_NODE
+    nodeValue = None
+
+    actualEncoding = None
+    encoding = None
+    version = None
+
+    def __init__(self, name, publicId, systemId, notation):
+        self.nodeName = name
+        self.notationName = notation
+        self._identified_mixin_init(publicId, systemId)
+
+class Notation(Identified, Childless, Node):
+    nodeType = Node.NOTATION_NODE
+    nodeValue = None
+
+    def __init__(self, name, publicId, systemId):
+        self.nodeName = name
+        self._identified_mixin_init(publicId, systemId)
 
 
 class DOMImplementation(DOMImplementationLS):
