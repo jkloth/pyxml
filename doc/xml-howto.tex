@@ -5,7 +5,7 @@
 
 \title{Python/XML HOWTO}
 
-\release{0.05}
+\release{0.06}
 
 \author{The Python/XML Special Interest Group}
 \authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
@@ -34,8 +34,9 @@ XML, the eXtensible Markup Language, is a simplified dialect of SGML,
 the Standardized General Markup Language.  XML is intended to be
 reasonably simple to implement and use, and is already being used for
 specifying markup languages for various new standards: MathML for
-expressing mathematical equations, XXX SMIL (Expand acronym) for
-synchronizing multimedia objects, and so forth.
+expressing mathematical equations, Synchronized Multimedia
+   Integration Language for
+multimedia presentations, and so forth.
 
 SGML and XML represent a document by tagging the document's various
 components with their function, or meaning.  For example, an academic
@@ -110,9 +111,9 @@ XML 1.0 specification, available on the Web at
 \url{http://www.w3.org/TR/xml-spec.html}.  However, like all
 specifications, it's quite formal and isn't intended to be a friendly
 introduction or a tutorial.  The annotated version of the standard, at
-\url{http://www.xml.com/XXX}, is quite helpful in clarifying the
-specification's intent.  There are also various informal tutorials and
-books available to introduce you to XML.
+\url{http://www.xml.com/xml/pub/axml/axmlintro.html}, is quite helpful
+in clarifying the specification's intent.  There are also various
+informal tutorials and books available to introduce you to XML.
 
 The rest of this HOWTO will assume that you're familiar with the
 relevant terminology.  Most section will use XML terms such as
@@ -152,7 +153,7 @@ and \code{sys.version} from the installed Python binary.  For this to work,
 the Python interpreter must be on your path.  If this fails, try
 
 \begin{verbatim}
-   make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
+make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
 \end{verbatim}
 
 where \samp{<prefix>} is the value of \samp{installdir} used when
@@ -242,8 +243,8 @@ data contained inside elements.
 }
 
 \lineii{DTDHandler}{Called to handle DTD events required for basic
-parsing.  This means notation declarations (XML spec section XXX) and
-unparsed entity declarations (XML spec section XXX).
+parsing.  This means notation declarations (XML spec section 4.7) and
+unparsed entity declarations (XML spec section 4).
 }
 
 \lineii{EntityResolver}{Called to resolve references to external
@@ -287,6 +288,9 @@ parser.setDocumentHandler(dh)
 
 # Parse the file; your handler's method will get called
 parser.parseFile(sys.stdin)
+
+# Close the parser
+parser.close()
 \end{verbatim}
 
 \subsection{Starting Out}
@@ -392,6 +396,9 @@ if __name__ == '__main__':
 
     # Parse the input
     parser.parseFile(file)
+
+    # Close the parser
+    parser.close()
 \end{verbatim}
 
 The \class{ParserFactory} class can automate the job of creating
@@ -408,7 +415,11 @@ can also tell \method{make_parser} to use a given parser, if you want
 to use a specific one.)
 
 Once you've created a parser instance, calling
-\method{setDocumentHandler} tells the parser what to use as the handler.
+\method{setDocumentHandler} tells the parser what to use as the
+handler.  The final statement, \code{parser.close()}, is very
+important, forcing the parser to flush its internal buffers and free
+any internal objects and memory allocations.  Memory leaks can result
+if you don't call the \method{close()} method.
 
 If you run the above code with the sample XML document, it'll output
 \code{Sandman \#62 found.}  
@@ -572,8 +583,10 @@ been collected, so we can compare it to the name we're searching for.
                 print 'Found:', self.this_title, self.this_number
 \end{verbatim}
 
-This is an unrealistically stupid comparison function that will be
-fooled by differing whitespace, but it's good enough for an example.
+To avoid being confused by differing whitespace, the
+\function{normalize_whitespace()} function is called.  This can be
+done because we know that leading and trailing whitespace are
+insignificant for this element, in this DTD.  
 
 End tags can't have attributes on them, so there's no \var{attrs}
 parameter.  Empty elements with attributes, such as \samp{<arc
@@ -597,35 +610,180 @@ platforms.  At the moment it's somewhat Java-centric.
 \section{DOM: The Document Object Model}
 \label{DOM}
 
-\emph{The Document Object Model is currently at first draft stage, and 
-isn't even close to being a standard.  The Python DOM is therefore not 
-yet documented.  If you want to look at the code and use it anyway,
-feel free (report any bugs you find), but be aware that your code may
-need to be changed for future DOM drafts.}
-
 The Document Object Model specifies a tree-based representation for an
-XML document.  A top-level Document instance is the root of the tree,
-and has a single child which is the top-level Element instance; this
-instance has children nodes representing the content and any
-sub-elements.  These sub-element nodes can have further children, and
-so forth.  Functions are defined which let you traverse the resulting
-tree any way you like, access element and attribute values, insert and
-delete nodes, and convert the tree back into XML.
+XML document.  A top-level \class{Document} instance is the root of
+the tree, and has a single child which is the top-level
+\class{Element} instance; this \class{Element} has children nodes
+representing the content and any sub-elements, which may have further
+children, and so forth.  Functions are defined which let you traverse
+the resulting tree any way you like, access element and attribute
+values, insert and delete nodes, and convert the tree back into XML.
 
-The DOM is useful for modifying the tree; you can remove a node from
-one place in the tree, and insert it somewhere else.  You can also
-construct a DOM tree yourself, and convert it to XML; this is often a
-more flexible way of producing XML output than simply writing
+The DOM is useful for modifying XML documents, because you can create
+a DOM tree, modify it by adding new nodes and moving subtrees around,
+and then produce a new XML document as output.  You can also construct
+a DOM tree yourself, and convert it to XML; this is often a more
+flexible way of producing XML output than simply writing
 \code{<tag1>}...\code{</tag1>} to a file.
 
 While the DOM doesn't require that the entire tree be resident in
-memory at one time, the Python implementation currently keeps the
-whole tree in RAM.  This means you may not have enough memory to
-process very large documents, measuring tens or hundreds of megabytes.
-It's possible to write a DOM implementation that stores most of the
-tree on disk or in a database, and reads in new sections as they're
-accessed, but this hasn't been done yet, and such implementations
-often impose limitations on how the tree can be accessed.
+memory at one time, the Python DOM implementation currently does keep
+the whole tree in RAM.  It's possible to write an implementation that
+stores most of the tree on disk or in a database, and reads in new
+sections as they're accessed, but this hasn't been done yet.
+This means you may not have enough memory to process very large
+documents as a DOM tree.  A SAX handler, on the other hand, can
+potentially churn through amounts of data far larger than the
+available RAM.
+
+\subsection{Getting A DOM Tree}
+
+The easiest way to get a DOM tree is to have it built for you.  One of
+the modules in the \module{xml.dom} package is
+\module{sax_builder.py}, which provides a \class{SaxBuilder} class
+that will construct a DOM tree from its input.  You must create a
+\class{SaxBuilder} instance and a SAX parser, associate the instance
+as the parser's document handler, and then retrieve the resulting
+tree.
+
+\begin{verbatim}
+import sys
+from xml.sax import saxexts
+from xml.dom.sax_builder import SaxBuilder
+
+# Create a SAX parser and a SaxBuilder instance
+p = saxexts.make_parser()
+dh = SaxBuilder()
+p.setDocumentHandler(dh)
+
+# Parse the input, and close the parser
+p.parseFile(sys.stdin)
+p.close()
+
+# Retrieve the DOM tree
+doc = dh.document
+\end{verbatim}
+
+The \class{SaxBuilder} document handler makes the resulting DOM tree
+available as its \member{document} attribute.  
+
+\subsection{Manipulating The Tree}
+
+This HOWTO can't be a complete introduction to the Document Object
+Model, because there are lots of interfaces and lots of
+methods. Luckily, the DOM Recommendation is quite a readable document,
+so I'd recommend that you read it to get a complete picture of the
+available interfaces; this will only be a partial overview.
+
+The Document Object Model represents a XML document as a tree of
+nodes, represented by an instance of some subclass of the \class{Node}
+class.  Some subclasses of \class{Node} are \class{Element},
+\class{Text}, and \class{Comment}.  
+
+We'll use a single example document throughout this section.  Here's the sample:
+
+\begin{verbatim}
+<?xml version="1.0" encoding="iso-8859-1"?>
+<xbel>  
+  <?processing instruction?>
+  <desc>No description</desc>
+  <folder>
+    <title>XML bookmarks</title>
+    <bookmark href="http://www.python.org/sigs/xml-sig/" >
+      <title>SIG for XML Processing in Python</title>
+    </bookmark>
+  </folder>
+</xbel>
+\end{verbatim}
+
+Converted to a DOM tree, this document could produce the following tree:
+
+\begin{verbatim}
+Element xbel None
+   Text #text '  \012  '
+   ProcessingInstruction processing 'instruction'
+   Text #text '\012  '
+   Element desc None
+      Text #text 'No description'
+   Text #text '\012  '
+   Element folder None
+      Text #text '\012    '
+      Element title None
+         Text #text 'XML bookmarks'
+      Text #text '\012    '
+      Element bookmark None
+         Text #text '\012      '
+         Element title None
+            Text #text 'SIG for XML Processing in Python'
+         Text #text '\012    '
+      Text #text '\012  '
+   Text #text '\012'
+\end{verbatim}
+
+This isn't the only possible tree, because different parsers may
+differ in how they generate \class{Text} nodes; any of the
+\class{Text} nodes in the above tree might be split into multiple nodes.)
+
+\subsubsection{The \class{Node} class}
+
+We'll start by considering the basic \class{Node} class.  All the
+other DOM nodes --- \class{Document}, \class{Element}, \class{Text},
+and so forth --- are subclasses of \class{Node}.  It's possible to
+perform many tasks using just the interface provided by \class{Node}.
+
+XXX table of attributes and methods
+            readonly attribute  DOMString            nodeName;
+                     attribute  DOMString            nodeValue;
+                                                           // raises(DOMException) on setting
+                                                           // raises(DOMException) on retrieval
+            readonly attribute  unsigned short       nodeType;
+            readonly attribute  Node                 parentNode;
+            readonly attribute  NodeList             childNodes;
+            readonly attribute  Node                 firstChild;
+            readonly attribute  Node                 lastChild;
+            readonly attribute  Node                 previousSibling;
+            readonly attribute  Node                 nextSibling;
+            readonly attribute  NamedNodeMap         attributes;
+            readonly attribute  Document             ownerDocument;
+
+            Node                      insertBefore(in Node newChild,
+                                                   in Node refChild)
+                                                   raises(DOMException);
+            Node                      replaceChild(in Node newChild,
+                                                   in Node oldChild)
+                                                   raises(DOMException);
+            Node                      removeChild(in Node oldChild)
+                                                  raises(DOMException);
+            Node                      appendChild(in Node newChild)
+                                                  raises(DOMException);
+            boolean                   hasChildNodes();
+            Node                      cloneNode(in boolean deep);
+
+
+\subsubsection{\class{Document}, \class{Element}, and \class{Text} nodes}
+
+The base of the entire tree is the \class{Document} node.  Its
+\member{documentElement} attribute contains the \class{Element} node
+for the root element.  The \class{Document} node may have additional
+children, such as \class{ProcessingInstruction} nodes; the complete list of children XXX.
+
+
+\subsection{Walking Over The Entire Tree}
+
+The \module{xml.dom} package also includes various helper classes for
+common tasks such as walking over trees.
+
+The \class{Walker} class
+
+Introduction to the walker class
+
+\subsection{Building A Document}
+
+Intro to builder
+
+\subsection{Processing HTML}
+
+Intro to HTML builder
 
 %Explanations, sample code, ...
 
@@ -636,7 +794,15 @@ often impose limitations on how the tree can be accessed.
 %
 The World Wide Web Consortium's DOM page.
 
+\term{\url{http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/}}
+%
+The DOM Level 1 Recommendation.  Unlike most standards, this one is
+actually pretty readable, particularly if you're only interested in
+the Core XML interfaces, which are the only ones implemented in
+Python.  
+
 \end{definitions}
+
 
 \section{xmlarch: Architectural Forms}
 
@@ -806,7 +972,7 @@ SGML glossary, at \url{http://www.stud.ifi.uio.no/\~larsga/download/diverse/sgml
 \begin{definitions}
 \term{DOM (Document Object Model)}
 %
-The Document Object Model is intended to a platform- and
+The Document Object Model is intended to be a platform- and
 language-neutral interface that will allow programs and scripts to
 dynamically access and update the content, structure and style of
 documents. Documents will be represented as tree structures which can

@@ -9,7 +9,7 @@
 
 \title{Python/XML Reference Guide}
 
-\release{0.04}
+\release{0.06}
 
 \author{The Python/XML Special Interest Group}
 \authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
@@ -92,7 +92,7 @@ Still undocumented.
 \section{xml.parsers.xmllib}
 
 This is a version of the \module{xmllib} module from Python 1.5,
-modified to use the \module{sgmlop} C extension when it's available.
+modified to use the \module{_sgmlop} C extension when it's available.
 This produces a significant speedup, amounting to about a factor of 5.
 The interface is unchanged from the original \module{xmllib} module;
 consult the Python Library Reference documentation for that module.
@@ -556,5 +556,77 @@ Return the public identifier for the location.
 \begin{methoddesc}{getSystemId}{}
 Return the system identifier for the location.
 \end{methoddesc}
+
+\section{\module{xml.utils.iso8601}
+         %--- Utilities for handling ISO~8601 dates
+         }
+
+\declaremodule{}{xml.utils.iso8601}
+\moduleauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
+\sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
+
+
+The \module{xml.utils.iso8601} module provides conversion routines
+between the ISO~8601 representations of date/time values and the
+floating point values used elsewhere in Python.  The floating point
+represtentation is particularly useful in conjunction with the
+standard \module{time} module.
+
+Currently, this module supports a small superset of the ISO~8601
+profile described by the World Wide Web Consortium (W3C).  This is a
+subset of ISO~8601, but covers the cases expected to be used most
+often in the context of XML processing and Web applications.  Future
+versions of this module may support a larger subset of
+ISO~8601-defined formats.
+
+
+\begin{funcdesc}{parse}{s}
+Parse an ISO~8601 date representation (with an optional time-of-day
+component) and return the date in seconds since the epoch.
+\end{funcdesc}
+
+
+\begin{funcdesc}{parse_timezone}{timezone}
+Parse an ISO~8601 time zone designator and return the offset relative
+to Universal Coordinated Time (UTC) in seconds.  If \var{timezone} is
+not valid, \exception{ValueError} is raised.
+\end{funcdesc}
+
+
+\begin{funcdesc}{tostring}{t\optional{, timezone}}
+Return formatted date/time value according to the profile described by 
+the W3C.  If \var{timezone} is provided, it must be the offset from
+UTC in seconds specified as a number, or time zone designator which
+can be parsed by \function{parse_timezone()}.  If \var{timezone} is
+specified as a string and cannot be parsed by
+\function{parse_timezone()}, \exception{ValueError} will be raised.
+\end{funcdesc}
+
+
+\begin{funcdesc}{ctime}{t}
+Return formatter date/time value using the local timezone.  This is
+equivalent to \samp{tostring(\var{t}, time.timezone)}.
+\end{funcdesc}
+
+
+\begin{seealso}
+\seetext{International Organization for Standardization.  \emph{Data
+elements and interchange formats --- Information interchange ---
+Representation of dates and times.}  International Organization for
+Standardization, 1988.}
+
+\seetext{Gary Houston.  \emph{ISO~8601 date/time representations}.
+January 1993.  Available online as compressed PostScript:
+\url{ftp://ftp.informatik.uni-erlangen.de/pub/doc/ISO/ISO8601.ps.Z}.}
+
+\seetext{Markus Kuhn.  \emph{A Summary of the International Standard
+Dateand Time Notation}.  Available online at
+\url{http://www.cl.cam.ac.uk/~mgk25/iso-time.html}.}
+
+\seetext{Misha Wolf and Charles Wicksteed.  \emph{Date and Time
+Formats}.  World Wide Web Consortium Technical Note, September 1998.
+Available online at \url{http://www.w3.org/TR/NOTE-datetime}.}
+\end{seealso}
+
 
 \end{document}
