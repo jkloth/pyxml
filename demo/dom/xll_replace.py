@@ -25,12 +25,12 @@ def xll_replace(start_node):
                 elif (curr_node.attributes[k].localName, curr_node.attributes[k].namespaceURI) == ("href", "http://www.w3.org/XML/XLink/0.9"):
                     href = curr_node.attributes[k].value
             if is_link and href:
-	        #Then make a tree of the new file and insert it
+               #Then make a tree of the new file and insert it
                 f = open(href, "r")
                 str = f.read()
                 new_df = Sax2.FromXml(str, ownerDocument=start_node.ownerDocument, validate=0)
 
-	        #Get the first element node and assume it's the document node
+                #Get the first element node and assume it's the document node
                 for a_node in new_df.childNodes:
                     if a_node.nodeType == Node.ELEMENT_NODE:
                         doc_root = a_node

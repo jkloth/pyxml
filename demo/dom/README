@@ -63,7 +63,7 @@ For the Namespace spec, see
 
 http://www.w3.org/TR/REC-xml-names/
 
-For James Tauber's excellent introduction to and clarification of namespaces, see
+For James Clark's excellent introduction to and clarification of namespaces, see
 
 http://www.jclark.com/xml/xmlns.htm
 
@@ -99,7 +99,7 @@ Warning: This script uses a very obsolete version of XPointer
 
 xpointer_query.py demonstrates this.  It accepts two command line arguments: an XPointer expression, and a target file.
 
-Example: "python xpointer_query.py root().child(1) addr_book1.xml"
+Example: "python xpointer_query.py 'root().child(1)' addr_book1.xml"
 
 	Note: for many Unix shells, you'll have to escape the parentheses
 	in the XPointer argument:

@@ -5,9 +5,9 @@ def read_xml_from_file(fileName):
     #build a DOM tree from the file
     try:
         xml_dom_object = Sax2.FromXmlFile(fileName, validate=0)
-    except Sax.saxlib.SAXException, msg:
+    except Sax2.saxlib.SAXException, msg:
         print "SAXException caught:", msg
-    except Sax.saxlib.SAXParseException, msg:
+    except Sax2.saxlib.SAXParseException, msg:
         print "SAXParseException caught:", msg
 
     ext.Print(xml_dom_object)
