@@ -25,6 +25,16 @@ class XMLNS:
     HTML        = "http://www.w3.org/TR/REC-html40"
 
 
+class XLINK:
+    """XLINK, XML Linking Language
+
+    XLink (v1.0, 27-Jun-2001) is a W3C Recommendation.  It is
+    specified in http://www.w3.org/TR/xlink/
+    """
+
+    BASE        = "http://www.w3.org/1999/xlink"
+
+
 class SOAP:
     """SOAP, the Simple Object Access Protocol
 
