@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
+$Id: catalog.py,v 1.10 2001/03/27 19:20:46 larsga Exp $
 """
 
 import string,sys
@@ -43,6 +43,9 @@ class CatalogApp:
 
     def handle_override(self,yesno):
         pass
+
+    def handle_doctype(self, docelem, sysid):
+        pass
     
 # --- Abstract catalog parser with common functionality 
 
@@ -75,7 +78,7 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
         self.entry_hash={ "PUBLIC": ("p","s"), "DELEGATE": ("p","s"),
                           "CATALOG": ("s"), "DOCUMENT": ("s"),
                           "BASE": ("o"), "SYSTEM": ("o","s"), 
-                          "OVERRIDE": ("o") }
+                          "OVERRIDE": ("o"), "DOCTYPE" : ("o", "s") }
 
     def parseStart(self):
         if self.error_lang:
@@ -142,6 +145,8 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
             self.app.handle_system(arglist[0],arglist[1])
         elif name=="OVERRIDE":
             self.app.handle_override(arglist[0])
+        elif name == "DOCTYPE":
+            self.app.handle_doctype(arglist[0], arglist[1])
                     
 # --- A catalog file manager
 
@@ -152,15 +157,13 @@ class CatalogManager(CatalogApp):
         self.__system={}
         self.__delegations=[]
         self.__document=None
+        self.__doctypes = {} # docelem -> sysid
         self.__base=None
 
         # Keeps track of sysid base even if we recurse into other catalogs
         self.__catalog_stack=[] 
 
-        if error_handler==None:
-            self.err=xmlapp.ErrorHandler(None)
-        else:
-            self.err=error_handler
+        self.err = error_handler or xmlapp.ErrorHandler(None)
         self.parser_fact=CatParserFactory()
         self.parser=None
 
@@ -177,10 +180,13 @@ class CatalogManager(CatalogApp):
         self.__base=sysid
         
         self.parser=self.parser_fact.make_parser(sysid)
+        old_locator = self.err.get_locator()
+        self.err.set_locator(self.parser)
         self.parser.set_error_handler(self.err)
         self.parser.set_application(self)
         self.parser.parse_resource(sysid)
 
+        self.err.set_locator(old_locator)
         self.__base=self.__catalog_stack[-1][0]
         del self.__catalog_stack[-1]
 
@@ -225,6 +231,9 @@ class CatalogManager(CatalogApp):
     def handle_document(self,sysid):
         self.__document=self.__resolve_sysid(sysid)
 
+    def handle_doctype(self, docelem, sysid):
+        self.__doctypes[docelem] = sysid
+
     # --- client services
 
     def get_public_ids(self):
@@ -237,7 +246,7 @@ class CatalogManager(CatalogApp):
         return list
         
     def get_document_sysid(self):
-        return self.__document
+        return self.remap_sysid(self.__document)
 
     def remap_sysid(self,sysid):
         try:
@@ -260,10 +269,15 @@ class CatalogManager(CatalogApp):
                 except KeyError,e:
                     self.err.error("Unknown public identifier '%s'" % pubid)
 
-            return sysid
+            return self.remap_sysid(sysid)
         else:
             self.remap_sysid(sysid)
 
+    def get_doctype_sysid(self, docelem):
+        """Returns the system identifier of the DTD with the given document
+        element. Raises KeyError if no such document element is known."""
+        return self.remap_sysid(self.__doctypes[docelem])
+            
     # --- internal methods
 
     def __resolve_sysid(self,sysid):
