@@ -140,7 +140,7 @@ class HtmlParser(SgmlopParser):
             # Skip any tags not defined in HTML 4.01
             return
 
-        element = self._ownerDoc.createElement(unicodeTagName)
+        element = self._ownerDoc.createElementNS(EMPTY_NAMESPACE, unicodeTagName)
 
         # Allows for multiple META tags in a document
         if lowerTagName == 'meta':
