@@ -115,7 +115,13 @@
 
   <xml-hacker>
     <name> Stephan Tolksdorf </name>
-    <task> Add normalize() to minidom </task>
+    <task> Add various minidom features </task>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Evgeny Cherkashin </name>
+    <email> eugeneai@icc.ru </email>
+    <task> Expose Python codecs to pyexpat </task>
   </xml-hacker>
 
 </xml-hackers>
