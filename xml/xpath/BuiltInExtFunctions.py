@@ -14,7 +14,8 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import re, string, urllib
 from xml.dom import Node
-from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE, boolean
+from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE
+from xml.utils import boolean
 from xml.dom.Text import Text
 
 
