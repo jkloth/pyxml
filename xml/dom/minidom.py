@@ -31,7 +31,7 @@ class Node(xml.dom.Node, GetattrMagic):
     nextSibling = None
     previousSibling = None
 
-    prefix = EMPTY_PREFIX # this is non-null only for NS elements and attributes
+    prefix = EMPTY_PREFIX # non-null only for NS elements and attributes
 
     def __nonzero__(self):
         return True
@@ -251,7 +251,6 @@ class Node(xml.dom.Node, GetattrMagic):
 
 defproperty(Node, "firstChild", doc="First child node, or None.")
 defproperty(Node, "lastChild",  doc="Last child node, or None.")
-
 defproperty(Node, "localName", doc="Namespace-local name of this attribute.")
 
 
@@ -951,10 +950,22 @@ class Notation(Identified, Childless, Node):
 
 
 class DOMImplementation(DOMImplementationLS):
+    _features = [("core", "1.0"),
+                 ("core", "2.0"),
+                 ("core", "3.0"),
+                 ("core", None),
+                 ("xml", "1.0"),
+                 ("xml", "2.0"),
+                 ("xml", "3.0"),
+                 ("xml", None),
+                 ("ls-load", "3.0"),
+                 ("ls-load", None),
+                 ]
+
     def hasFeature(self, feature, version):
-        if version not in ("1.0", "2.0", None, ""):
-            return False
-        return feature.lower() == "core"
+        if version == "":
+            version = None
+        return (feature.lower(), version) in self._features
 
     def createDocument(self, namespaceURI, qualifiedName, doctype):
         if doctype and doctype.parentNode is not None:
@@ -962,7 +973,9 @@ class DOMImplementation(DOMImplementationLS):
                 "doctype object owned by another DOM tree")
         doc = self._createDocument()
 
-        add_root_element = not (namespaceURI is None and qualifiedName is None and doctype is None)
+        add_root_element = not (namespaceURI is None
+                                and qualifiedName is None
+                                and doctype is None)
 
         #if doctype is None:
         #    doctype = self.createDocumentType(qualifiedName, None, None)
@@ -1233,7 +1246,8 @@ def CloneNode(node,deep,newOwnerDocument):
     elif node.nodeType == Node.CDATA_SECTION_NODE:
         clone = newOwnerDocument.createCDATASection(node.data)
     elif node.nodeType == PROCESSING_INSTRUCTION_NODE:
-        clone = newOwnerDocument.createProcessingInstruction(node.target,node.data)
+        clone = newOwnerDocument.createProcessingInstruction(node.target,
+                                                             node.data)
     elif node.nodeType == COMMENT_NODE:
         clone = newOwnerDocument.createComment(node.data)
     else:
