@@ -12,11 +12,7 @@
                may improve performance on some platforms.
 */
 
-#if defined(__GNUC__)
-#define FASTCALL __attribute__((stdcall, regparm(3)))
-#elif defined(WIN32)
-#define FASTCALL __fastcall
-#else
+#ifndef FASTCALL
 #define FASTCALL
 #endif
 
