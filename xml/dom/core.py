@@ -1,5 +1,5 @@
 """
-core.py: `light' implementation of the Document Object Model (core) level 1.
+core.py: 'light' implementation of the Document Object Model (core) level 1.
 
 Reference: http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/
 
@@ -144,9 +144,9 @@ class NodeList(UserList.UserList):
         # to it, so that the NodeList is always up-to-date.
         self.data = list
         self._document = document
-        if type(parent) != type( [] ):
-            parent = [parent] * len(list)
         self._parent = parent
+        if type(parent) != type( [] ):
+            self.__class__ = SingleParentNodeList
 
     def __getslice__(self, i, j):
         userlist = NodeList([], self._document, self._parent)
@@ -165,8 +165,35 @@ class NodeList(UserList.UserList):
         n = self.data[i]
         return NODE_CLASS[ n.type ](n, self._parent[i], self._document)
     
-    item = UserList.UserList.__getitem__
+    item = __getitem__
     get_length = UserList.UserList.__len__
+
+
+class SingleParentNodeList(NodeList):
+    """A NodeList for which all nodes share the same parent.  This allows
+    a node to be changed using multiple proxies.
+    """
+    # Using only the basic NodeList, changing the length of one proxy would
+    # cause another to have a _parent member with the incorrect number of
+    # parents.  This solves the problem for the common case, where the node
+    # list is simply the list of children for a single node.  It does not
+    # solve the general case, including node lists returned by
+    # getElementsByTagName().
+
+    def __repr__(self):
+        s = '<NodeList ['
+        parent = self._parent
+        for i in range(len(self.data)):
+            n = self.data[i]
+            n = NODE_CLASS[ n.type ](n, parent, self._document)
+            s = s + repr(n) + ','
+        return s[:-2] + ']>'
+    
+    def __getitem__(self, i):
+        n = self.data[i]
+        return NODE_CLASS[ n.type ](n, self._parent, self._document)
+
+    item = __getitem__
 
 
 class NamedNodeMap:
@@ -190,6 +217,12 @@ class NamedNodeMap:
     def setNamedItem(self, arg):
         key = arg.nodeName
         self[key] = arg
+
+    def get(self, key, default=None):
+        if self.data.has_key(key):
+            return self[key]
+        else:
+            return default
 
     def item(self, index):
         return self.data.values[ index ]
