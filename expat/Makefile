@@ -23,6 +23,9 @@ xmlwf/xmlwf$(EXE): $(OBJS)
 clean:
 	rm -f $(OBJS) xmlwf/xmlwf$(EXE)
 
+clobber:
+	rm -f libexpat.a
+
 xmltok/nametab.h: gennmtab/gennmtab$(EXE)
 	rm -f $@
 	gennmtab/gennmtab$(EXE) >$@
@@ -34,3 +37,7 @@ xmltok/xmltok.o: xmltok/nametab.h
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+libexpat.a: $(OBJS)
+	ar cr libexpat.a $(OBJS)
+
