@@ -4,6 +4,7 @@
 from xml.dom import html_builder
 
 good_html = """
+<html>
 <P>I prefer (all things being equal) regularity/orthogonality and logical
 syntax/semantics in a language because there is less to have to remember.
 (Of course I <em>know</em> all things are NEVER really equal!)
@@ -11,10 +12,13 @@ syntax/semantics in a language because there is less to have to remember.
 <P>The details of that silly code are irrelevant.
 <P CLASS=source>Tim Peters, 4 Mar 92
 &amp; &lt; &gt; &eacute; &ouml; &nbsp;
+</html>
 """
 
 bad_html = """
+<html>
 Interdigitated <b>bold and <i>italic</B> tags.</i>&amp; &lt; &gt; &eacute; &ouml; &nbsp;
+</html>
 """
 
 # Try the good output with both settings of ignore_mismatched_end_tags
