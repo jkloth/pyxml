@@ -279,6 +279,14 @@ These additional \class{Text} attributes have been added based on the
 Level~3 drafts.  These are also available on \class{CDATASection}
 nodes.
 
+\begin{memberdesc}[Text]{isWhitespaceInElementContent}
+  \code{True} if the text node represents only whitespace and the
+  immediately containing element has a content model that permits only
+  elements as child nodes.  If the content model for the containing
+  element is not known, or if there is no containing element, this
+  attribute will be \code{False}.
+\end{memberdesc}
+
 \begin{memberdesc}[Text]{wholeText}
   Returns the textual content for a contiguous range of nodes of type
   \constant{TEXT_NODE} and \constant{CDATA_SECTION_NODE} nodes
