@@ -724,6 +724,9 @@ Return the system identifier of the entity where the exception occurred.
 >>> print "<element attr=%s>" % quoteattr("ab ' cd \" ef")
 <element attr="ab ' cd &quot; ef">
 \end{verbatim}
+
+  This function is useful when generating attribute values for HTML or
+  any SGML using the reference concrete syntax.
 \end{funcdesc}
 
 \begin{classdesc}{Canonizer}{writer}
