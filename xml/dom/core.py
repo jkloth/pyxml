@@ -296,8 +296,7 @@ class _nodeData:
 	        (self.type, self.name, self.value, self.attributes) )
 
 class Node:
-    """Base class for grove nodes in DOM model.  Proxies an instance
-    of the _nodeData class."""
+    """Base class for tree nodes in DOM model."""
 
     readonly = 0
     ##Node_counter = 0
@@ -333,7 +332,16 @@ class Node:
             func = getattr(self, 'set_'+key)
             func( value )
         self.__dict__[key] = value
-        
+
+    def __cmp__(self, other):
+	if isinstance(other, Node):
+            # Compare the underlying _nodeData instances.
+	    return cmp(self._node, other._node)
+	else:
+            # If the other object isn't a Node, then we'll do an
+	    # arbitrary comparison that will at least be consistent.
+	    return cmp(self._node, other)        
+
     # Methods to get/set the DOM-specified attributes of a node: name, value,
     # attributes.
 
