@@ -119,7 +119,7 @@ if sys.argv[1:] == ["-p"]:
         profiler.close()
         stats = hotshot.stats.load(LOGFILE)
         stats.strip_dirs()
-        stats.sort_stats('calls')
+        stats.sort_stats('calls', 'time')
         stats.print_stats(20)
 
     profile()
