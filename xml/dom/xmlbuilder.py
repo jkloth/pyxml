@@ -208,6 +208,10 @@ class DOMBuilder:
         raise NotImplementedError("Haven't written this yet...")
 
 
+def _name_xform(name):
+    return name.lower().replace('-', '_')
+
+
 class DOMEntityResolver:
     def resolveEntity(self, publicId, systemId):
         source = DOMInputSource()
@@ -294,10 +298,6 @@ class DOMBuilderFilter:
         return self.FILTER_ACCEPT
 
 del NodeFilter
-
-
-def _name_xform(name):
-    return name.lower().replace('-', '_')
 
 
 class DocumentLS:
