@@ -47,6 +47,10 @@ class _implementation:
 	( re.compile(r'[\r\n]+'), '\n' ),
     )
 
+    # We need to know if we've seen an element or not, so that we
+    # can properly output newlines before/after PI and comment nodes.
+    ELTnone, ELTdoing, ELTseen = 0, 1, 2
+
     def __init__(self, node, write, nsdict={}, stripspace=0, nocomments=1):
 	'''Create and run the implementation.'''
 	if node.nodeType != Node.ELEMENT_NODE:
@@ -204,6 +208,12 @@ def Canonicalize(node, output=None, **kw):
 	comments -- keep comments if non-zero (default is zero)
     '''
 
+    # If we got a DOM root, go to the first element.
+    if node.nodeType == Node.DOCUMENT_NODE:
+	for n in node.childNodes:
+	    if n.nodeType == Node.ELEMENT_NODE:
+		node = n
+		break
     if not output: s = StringIO.StringIO()
     _implementation(node,
 	(output and output.write) or s.write,
