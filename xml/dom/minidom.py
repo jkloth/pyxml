@@ -746,7 +746,7 @@ class CDATASection(Text):
     nodeName = "#cdata-section"
 
     def writexml(self, writer, indent="", addindent="", newl=""):
-	writer.write("<![CDATA[%s]]>" % self.data)
+        writer.write("<![CDATA[%s]]>" % self.data)
 
 
 def _nssplit(qualifiedName):
