@@ -187,7 +187,7 @@ class Folder(Node):
         else:
             icon = ""
         if self.toolbar is not None:
-            toolbar = ' toolbar="%s"' % toolbar
+            toolbar = ' toolbar="%s"' % self.toolbar
         else:
             toolbar = ""
         
