@@ -5,8 +5,9 @@ PLAT=$(shell python -c 'from distutils import util; print util.get_platform()')
 DEFVERSION=$(shell python -c 'import sys; print sys.version[:3]')
 LIBPREFIX=../build/lib.$(PLAT)
 
-# For now, always build pyexpat, since PyXML contains a more advanced
-# version of the extension.
+# Always build pyexpat, since PyXML contains a more advanced version
+# of the extension, and binary distributions cannnot determine whether
+# a version is included with the Python available on the target.
 #
 BUILDARGS=
 
