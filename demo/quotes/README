@@ -10,3 +10,6 @@ sample.xml              A sample quotation file.
 qtfmt.py		Program to read a file marked up using the language
 			specified in quotations.dtd, and output the 
 			list in HTML, text, or fortune format.
+
+Contact akuchling@acm.org if you have questions or comments about the
+contents of this directory.
