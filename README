@@ -1,17 +1,17 @@
 
-XXX what's the license for everything?  Python-style?
+XML package v0.5.1
 
-This is the second test release of the Python XML package.  The
-distribution contains a validating XML parser, an implementation
-of the SAX programming interface, along with a Python interface to the
-Expat parser, and a C helper module that can speed up xmllib.py by a
-factor of 5.  There's even documentation!
+This is the third test release of the Python XML package.  The
+distribution contains a validating XML parser, an implementation of
+the SAX and DOM programming interfaces, an interface to the Expat
+parser (and the Expat parser itself), and a C helper module that can
+speed up xmllib.py by a factor of 5.  There's even documentation!
 
-	There's also a very new DOM implementation included here, that
-tries to comply with the DOM Recommendation, and almost manages it;
-there are still some deviations from the specification that need to be
-fixed.  The DOM is relatively new, and will benefit from being tested
-in this release.
+For information on the licensing conditions for each component,
+consult the LICENCE file.
+
+The only requirements for installing the package is Python 1.5 or
+later, and a C compiler.
 
 To compile everything, simply perform the following steps.
 
@@ -35,16 +35,13 @@ To compile everything, simply perform the following steps.
  To install everything in the site-packages directory as an xml/ package, 
  run "make install".
 
-
 If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
-
 Software versions and credits:
-	DOM v0.2 		Stefane Fermigier, hacked by A.M. Kuchling
+	DOM 	 		Stefane Fermigier, hacked by A.M. Kuchling
 	PyExpat 		Jack Jansen
 	saxlib-1.0		Lars Marius Garshol
-	sgmlop-980523		Fredrik Lundh
-	xmlarch 0.20		Geir Ove Gronmo
-	xmlproc 0.52		Lars Marius Garshol
-
+	sgmlop-981008		Fredrik Lundh
+	xmlarch 0.25		Geir Ove Gronmo
+	xmlproc 0.60		Lars Marius Garshol
