@@ -100,12 +100,14 @@ def CoreStringValue(object):
         node_type = object.nodeType
         if node_type == Node.ELEMENT_NODE:
             #The concatenation of all text descendants
-            text_elem_children = filter(lambda x: x.nodeType in [Node.TEXT_NODE, Node.ELEMENT_NODE], object.childNodes)
+            text_elem_children = filter(lambda x: x.nodeType in [Node.TEXT_NODE,Node.CDATA_SECTION_NODE, Node.ELEMENT_NODE], object.childNodes)
             return 1, reduce(lambda x, y: CoreStringValue(x)[1] + CoreStringValue(y)[1], text_elem_children, '')
         elif node_type == Node.ATTRIBUTE_NODE:
             return 1, object.value
-        elif node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE]:
+        elif node_type in [Node.PROCESSING_INSTRUCTION_NODE, Node.COMMENT_NODE, Node.TEXT_NODE,Node.CDATA_SECTION_NODE]:
             return 1, object.data
+##	elif node_type == Node.CDATA_SECTION_NODE:
+##	    return 1, object.data.replace('&', '&amp;').replace('<', '&lt;')
         elif node_type == Node.DOCUMENT_NODE:
             #Use the String value of the document root
             return 1, StringValue(object.documentElement)

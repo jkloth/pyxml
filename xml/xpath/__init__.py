@@ -27,6 +27,7 @@ g_xpathRecognizedNodes = [
         Node.ELEMENT_NODE,
         Node.ATTRIBUTE_NODE,
         Node.TEXT_NODE,
+        Node.CDATA_SECTION_NODE,
         Node.DOCUMENT_NODE,
         Node.PROCESSING_INSTRUCTION_NODE,
         Node.COMMENT_NODE

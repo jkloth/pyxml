@@ -82,7 +82,7 @@ class CommentNodeTest(NodeTestBase):
 
 class TextNodeTest(NodeTestBase):
     def match(self, context, node, principalType=Node.ELEMENT_NODE):
-        return node.nodeType == Node.TEXT_NODE
+        return node.nodeType in [Node.TEXT_NODE, Node.CDATA_SECTION_NODE]
 
 class ProcessingInstructionNodeTest(NodeTestBase):
     def __init__(self, tok, st):
