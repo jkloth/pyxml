@@ -5,9 +5,9 @@ Reference: http://www.w3.org/TR/WD-DOM/level-one-core
 
 Deviations from the specs:
 
--- there is currently no DocumentFragment.
+ XXX not documented yet -- one hopes there are none :)
 
-So, useful classes in this module are Node (abstract) and its
+Useful classes in this module are Node (abstract) and its
 (concrete) subclasses -- Document, Element, Text, Comment,
 ProcessingInstruction -- all of which should be instantiated though
 the relevant create{Element,TextNode,Comment,...}() methods on a
@@ -461,6 +461,8 @@ class CharacterData(Node):
 
     
 class Attr(Node):
+    childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
+    
     def __init__(self, node, parent = None):
         Node.__init__(self, node, parent, None)
 
@@ -484,6 +486,9 @@ class Attr(Node):
         return self._node.specified
 
 class Element(Node):
+    childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
+                      TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
+    
     def __init__(self, node, parent = None, document = None):
         Node.__init__(self, node, parent, document)
         
@@ -586,6 +591,7 @@ class Element(Node):
                 n.normalize()
     
 class Text(CharacterData):
+    childNodeTypes = []
     # Methods
 
     def __repr__(self):
@@ -607,6 +613,7 @@ class Text(CharacterData):
         parent.replaceChild(n2, self)
     
 class Comment(CharacterData):
+    childNodeTypes = []
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
@@ -618,6 +625,8 @@ class Comment(CharacterData):
 class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would
     otherwise be regarded as markup."""
+    childNodeTypes = []
+    
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
@@ -628,7 +637,8 @@ class CDATASection(Text):
 
 class DocumentType(Node):
     readonly = 1    # This is a read-only class
-
+    childNodeTypes = []
+    
     # Attributes
     def get_name(self):
         return self._node.name
@@ -646,6 +656,8 @@ class DocumentType(Node):
         
 class Notation(Node):
     readonly = 1    # This is a read-only class
+    childNodeTypes = []
+    
     # Attributes
     def get_publicId(self):
         return self._node.publicId
@@ -655,6 +667,9 @@ class Notation(Node):
         
 class Entity(Node):
     readonly = 1    # This is a read-only class
+    childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
+                      TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
+    
     def get_publicId(self):
         return self._node.publicId
 
@@ -665,9 +680,13 @@ class Entity(Node):
         return self._node.notationName
 
 class EntityReference(Node):
-    pass 
+    childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                      COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
+                      ENTITY_REFERENCE_NODE]
 
 class ProcessingInstruction(Node):
+    childNodeTypes = []
+    
     def toxml(self):
         return "<? " + self._node.name + ' ' +self._node.target + "?>"
 
@@ -684,6 +703,9 @@ class ProcessingInstruction(Node):
 
 
 class Document(Node):
+    childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                      COMMENT_NODE, DOCUMENT_TYPE_NODE]
+    
     def __init__(self, node, parent = None, document = None):
         Node.__init__(self, node, parent = None, document = None)
         self.documentType = None
@@ -843,6 +865,10 @@ class Document(Node):
         raise NotFoundException("oldChild not a child of this node")
     
 class DocumentFragment(Node):
+    childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                      COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
+                      ENTITY_REFERENCE_NODE]
+    
     def toxml(self):
         s = ""
         for child in self._node.children:
@@ -866,29 +892,5 @@ DOCUMENT_TYPE_NODE          : DocumentType,
 DOCUMENT_FRAGMENT_NODE      : DocumentFragment,
 NOTATION_NODE               : Notation
 }
-
-# Set the childNodeTypes attributes; we need to do this at the end once
-# all the classes have been defined.
-# XXX move these into class definitions
-
-Document.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
-                         COMMENT_NODE, DOCUMENT_TYPE_NODE]
-DocumentFragment.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
-                                 COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
-                                 ENTITY_REFERENCE_NODE]
-DocumentType.childNodeTypes = []
-EntityReference.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
-                                COMMENT_NODE,
-                                TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
-Element.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
-                        TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
-Attr.childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
-ProcessingInstruction.childNodeTypes = []
-Comment.childNodeTypes = []
-Text.childNodeTypes = []
-CDATASection.childNodeTypes = []
-Entity.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
-                       TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
-Notation.childNodeTypes = []
 
 # vim:ts=2:ai
