@@ -9,7 +9,7 @@ children; general document subsets are not supported.
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
-Distributed under the terms of the Python 2.0 Copyright.'''
+Distributed under the terms of the Python 2.0 Copyright or later.'''
 
 from xml.dom import Node
 from xml.ns import XMLNS
