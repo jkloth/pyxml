@@ -78,6 +78,6 @@ class UTF8String:
                 char, input = utf8_iso.utf8_to_code(codeset, input)
                 output.append(char)
             else:
-                output.extend(input[:i])
+                output.extend(list(input[:i]))
                 input = input[i:]
         return string.join(output, '')
