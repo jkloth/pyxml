@@ -32,5 +32,5 @@ __all__ = ['dom', 'marshal', 'parsers', 'sax', 'schema', 'utils', 'xpath', 'xslt
 
 # Needs to synchronize with setup.py
 # Never drop digits from the end.
-version_info = (0,8,0)
-__version__ = "0.8"
+version_info = (0,8,1)
+__version__ = "0.8.1"
