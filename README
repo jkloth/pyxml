@@ -1,5 +1,5 @@
 
-XML package v0.6.2
+XML package v0.6.4
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -23,6 +23,9 @@ To compile everything, simply perform the following steps.
 2)
  To install everything in the site-packages directory as an xml/ package, 
  run "python setup.py install".
+
+If you use a binary distribution package, no compiler is needed, and
+setup.py does not need to be run.
 
 If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
