@@ -4,7 +4,7 @@ SAX driver for the sgmlop parser.
 
 version="0.10"
 
-from xml.parsers import _sgmlop
+from xml.parsers import sgmlop
 from xml.sax import saxlib,saxutils
 import urllib
 
@@ -23,7 +23,7 @@ class Parser(saxlib.Parser):
 
     def __init__(self):
         saxlib.Parser.__init__(self)
-        self.parser = _sgmlop.XMLParser()
+        self.parser = sgmlop.XMLParser()
     
     def setDocumentHandler(self, dh):
 	self.parser.register(DHWrapper(dh), 1)
@@ -61,7 +61,7 @@ class Parser(saxlib.Parser):
         return 0
 
     def reset(self):
-        self.parser=_sgmlop.XMLParser()
+        self.parser=sgmlop.XMLParser()
     
     def feed(self,data):
         self.parser.feed(data)

@@ -211,8 +211,8 @@ $(TARGET):	$(ADDOBJS) lib.a $(PYTHONLIBS) Makefile $(BASELIB)
 		 -o $(TARGET) $(LDLAST)
 
 install:	sharedmods libinstall
-		$(INSTALL_SHARED) _sgmlop$(SO) $(LIBXML)/parsers/_sgmlop$(SO)
-		$(INSTALL_SHARED) _wstrop$(SO) $(LIBXML)/unicode/_wstrop$(SO)
+		$(INSTALL_SHARED) sgmlop$(SO) $(LIBXML)/parsers/sgmlop$(SO)
+		$(INSTALL_SHARED) wstrop$(SO) $(LIBXML)/unicode/wstrop$(SO)
 		$(INSTALL_SHARED) intl$(SO) $(LIBXML)/unicode/intl$(SO)
 		$(INSTALL_SHARED) pyexpat$(SO) $(LIBXML)/parsers/pyexpat$(SO); 
 

@@ -1,6 +1,6 @@
 # dry runs
 
-from xml.parsers import xmllib, _sgmlop
+from xml.parsers import xmllib, sgmlop
 import sys
 import time, string
 
@@ -19,7 +19,7 @@ t = time.clock()
 b = 0
 for i in range(1):
     fp = open(FILE)
-    parser = _sgmlop.XMLParser()
+    parser = sgmlop.XMLParser()
     while 1:
 	data = fp.read(BLOCK)
 	if not data:

@@ -1,6 +1,6 @@
 #
 # 
-# $Id: saxhack.py,v 1.2 1998/12/03 00:32:36 amk Exp $
+# $Id: saxhack.py,v 1.3 1998/12/03 00:42:35 amk Exp $
 #
 # illustrate how a saxlib parser can interface directly to sgmlop
 #
@@ -29,13 +29,13 @@ class DocumentHandler:
 # --------------------------------------------------------------------
 # sgmlop-based parser
 
-from xml.parsers import _sgmlop
+from xml.parsers import sgmlop
 
 class Parser:
 
     def setDocumentHandler(self, dh):
 
-	self.parser = _sgmlop.XMLParser()
+	self.parser = sgmlop.XMLParser()
 	self.parser.register(dh, 1)
 
     def parseFile(self, file):
