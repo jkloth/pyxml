@@ -315,7 +315,7 @@ class NamedNodeMap:
     def items(self):
         L = []
         for node in self._attrs.values():
-            L.append((node.tagName, node.value))
+            L.append((node.nodeName, node.value))
         return L
 
     def itemsNS(self):
@@ -332,6 +332,9 @@ class NamedNodeMap:
 
     def values(self):
         return self._attrs.values()
+
+    def get(self, name, value = None):
+        return self._attrs.get(name, value)
 
     def __len__(self):
         return self.length
