@@ -37,3 +37,10 @@ test_filter
 
 <?xml version="1.0" ?>
 <rejectafter/>
+
+<?xml version="1.0" ?>
+<stopbefore/>
+
+<?xml version="1.0" ?>
+<doc>text<stopbefore/></doc>
+

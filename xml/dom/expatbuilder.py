@@ -39,6 +39,11 @@ TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
 DOCUMENT_NODE = Node.DOCUMENT_NODE
 
+FILTER_ACCEPT = xmlbuilder.DOMBuilderFilter.FILTER_ACCEPT
+FILTER_REJECT = xmlbuilder.DOMBuilderFilter.FILTER_REJECT
+FILTER_SKIP = xmlbuilder.DOMBuilderFilter.FILTER_SKIP
+FILTER_INTERRUPT = xmlbuilder.DOMBuilderFilter.FILTER_INTERRUPT
+
 theDOMImplementation = minidom.getDOMImplementation()
 
 
@@ -138,23 +143,26 @@ class ExpatBuilder:
         parser = self.getParser()
         first_buffer = 1
         strip_newline = 0
-        while 1:
-            buffer = file.read(16*1024)
-            if not buffer:
-                break
-            if strip_newline:
-                if buffer[0] == "\n":
-                    buffer = buffer[1:]
-                strip_newline = 0
-            if buffer and buffer[-1] == "\r":
-                strip_newline = 1
-            buffer = _normalize_lines(buffer)
-            parser.Parse(buffer, 0)
-            if first_buffer and self.document:
-                if self.document.doctype:
-                    self._setup_subset(buffer)
-                first_buffer = 0
-        parser.Parse("", 1)
+        try:
+            while 1:
+                buffer = file.read(16*1024)
+                if not buffer:
+                    break
+                if strip_newline:
+                    if buffer[0] == "\n":
+                        buffer = buffer[1:]
+                    strip_newline = 0
+                if buffer and buffer[-1] == "\r":
+                    strip_newline = 1
+                buffer = _normalize_lines(buffer)
+                parser.Parse(buffer, 0)
+                if first_buffer and self.document:
+                    if self.document.doctype:
+                        self._setup_subset(buffer)
+                    first_buffer = 0
+            parser.Parse("", 1)
+        except ParseEscape:
+            pass
         doc = self.document
         self.reset()
         self._parser = None
@@ -164,8 +172,11 @@ class ExpatBuilder:
         """Parse a document from a string, returning the document node."""
         string = _normalize_lines(string)
         parser = self.getParser()
-        parser.Parse(string, 1)
-        self._setup_subset(string)
+        try:
+            parser.Parse(string, 1)
+            self._setup_subset(string)
+        except ParseEscape:
+            pass
         doc = self.document
         self.reset()
         self._parser = None
@@ -193,7 +204,7 @@ class ExpatBuilder:
             node = self.document.createProcessingInstruction(target, data)
             _appendChild(self.curNode, node)
             if (  self._filter and
-                  self._filter.doNode(node) == xmlbuilder.REJECT):
+                  self._filter.acceptNode(node) == FILTER_REJECT):
                 curNode.removeChild(node)
 
     def character_data_handler_cdata(self, data):
@@ -241,11 +252,15 @@ class ExpatBuilder:
             child.ownerDocument = self.document
             node.__dict__['childNodes'] = minidom.NodeList()
             node.childNodes.append(child)
-        self._entities.append(node)
+        if (  self._filter and
+              self._filter.acceptNode(node) != FILTER_REJECT):
+            self._entities.append(node)
 
     def notation_decl_handler(self, notationName, base, systemId, publicId):
         node = minidom.Notation(notationName, publicId, systemId)
-        self._notations.append(node)
+        if (  self._filter and
+              self._filter.acceptNode(node) != FILTER_REJECT):
+            self._notations.append(node)
 
     def comment_handler(self, data):
         if self.document is None:
@@ -254,7 +269,7 @@ class ExpatBuilder:
             node = self.document.createComment(data)
             _appendChild(self.curNode, node)
             if (  self._filter and
-                  self._filter.doNode(node) == xmlbuilder.REJECT):
+                  self._filter.acceptNode(node) == FILTER_REJECT):
                 curNode.removeChild(node)
 
     def start_cdata_section_handler(self):
@@ -301,11 +316,11 @@ class ExpatBuilder:
             # is sufficient for minidom:
             if node is self.document.documentElement:
                 return
-            filt = self._filter.startNode(node)
-            if filt == xmlbuilder.REJECT:
+            filt = self._filter.startContainer(node)
+            if filt == FILTER_REJECT:
                 # ignore this node & all descendents
                 Rejecter(self)
-            elif filt == xmlbuilder.SKIP:
+            elif filt == FILTER_SKIP:
                 # ignore this node, but make it's children become
                 # children of the parent node
                 Skipper(self)
@@ -330,7 +345,7 @@ class ExpatBuilder:
         if self._filter:
             if curNode is self.document.documentElement:
                 return
-            if self._filter.endNode(curNode) == xmlbuilder.REJECT:
+            if self._filter.acceptNode(curNode) == FILTER_REJECT:
                 self.curNode.removeChild(curNode)
                 curNode.unlink()
 
@@ -405,7 +420,7 @@ class ExpatBuilder:
                 raise RuntimeError, "unexpected early event type: " + `t`
             doc.insertBefore(node, refnode)
             if (  self._filter and
-                  self._filter.doNode(node) == xmlbuilder.REJECT):
+                  self._filter.acceptNode(node) == FILTER_REJECT):
                 doc.removeChild(node)
 
 def _normalize_lines(s):
@@ -414,6 +429,10 @@ def _normalize_lines(s):
     return s.replace("\r\n", "\n").replace("\r", "\n")
 
 
+# Don't include FILTER_INTERRUPT, since that's checked separately
+# where allowed.
+_ALLOWED_FILTER_RETURNS = (FILTER_ACCEPT, FILTER_REJECT, FILTER_SKIP)
+
 class FilterVisibilityController:
     """Wrapper around a DOMBuilderFilter which implements the checks
     to make the whatToShow filter attribute work."""
@@ -421,36 +440,30 @@ class FilterVisibilityController:
     def __init__(self, filter):
         self.filter = filter
 
-    def startNode(self, node):
+    def startContainer(self, node):
         mask = self._nodetype_mask[node.nodeType]
         if self.filter.whatToShow & mask:
-            return self.filter.startNode(node)
+            val = self.filter.startContainer(node)
+            if val == FILTER_INTERRUPT:
+                raise ParseEscape
+            if val not in _ALLOWED_FILTER_RETURNS:
+                raise ValueError, \
+                      "startContainer() return illegal value: " + repr(val)
+            return val
         else:
-            return xmlbuilder.ACCEPT
+            return FILTER_ACCEPT
 
-    def endNode(self, node):
+    def acceptNode(self, node):
         mask = self._nodetype_mask[node.nodeType]
         if self.filter.whatToShow & mask:
-            return self.filter.endNode(node)
+            # Why does the spec not support FILTER_INTERRUPT here?
+            val = self.filter.acceptNode(node)
+            if val not in _ALLOWED_FILTER_RETURNS:
+                raise ValueError, \
+                      "startContainer() return illegal value: " + repr(val)
+            return val
         else:
-            return xmlbuilder.ACCEPT
-
-    def doNode(self, node):
-        """Combined startNode()/endNode() for everything but elements.
-
-        Using this allows the mask lookup to be done only once,
-        and only calls endNode() if startNode() returned ACCEPT.  It
-        also makes the logic easier to reader in the main builder.
-        """
-        mask = self._nodetype_mask[node.nodeType]
-        if self.filter.whatToShow & mask:
-            filt = self.filter.startNode(node)
-            if (  filt == xmlbuilder.ACCEPT
-                  and self.filter.whatToShow & mask):
-                filt = self.filter.endNode(node)
-            return filt
-        else:
-            return xmlbuilder.ACCEPT
+            return FILTER_ACCEPT
 
     _nodetype_mask = {
         Node.ELEMENT_NODE:                NodeFilter.SHOW_ELEMENT,

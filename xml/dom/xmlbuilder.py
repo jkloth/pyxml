@@ -8,12 +8,7 @@ from xml.dom.minicompat import *
 from xml.dom.NodeFilter import NodeFilter
 
 
-__all__ = ["DOMBuilder", "DOMEntityResolver", "DOMInputSource",
-           "ACCEPT", "REJECT", "SKIP"]
-
-ACCEPT = NodeFilter.FILTER_ACCEPT
-REJECT = NodeFilter.FILTER_REJECT
-SKIP = NodeFilter.FILTER_SKIP
+__all__ = ["DOMBuilder", "DOMEntityResolver", "DOMInputSource"]
 
 
 class Options:
@@ -282,16 +277,21 @@ class DOMBuilderFilter:
     # methods as appropriate.  Using this makes it easy to only
     # implement one of them.
 
+    FILTER_ACCEPT = 1
+    FILTER_REJECT = 2
+    FILTER_SKIP = 3
+    FILTER_INTERRUPT = 4
+
     whatToShow = NodeFilter.SHOW_ALL
 
     def _get_whatToShow(self):
         return self.whatToShow
 
-    def endNode(self, element):
-        return ACCEPT
+    def acceptNode(self, element):
+        return self.FILTER_ACCEPT
 
-    def startNode(self, element):
-        return ACCEPT
+    def startContainer(self, element):
+        return self.FILTER_ACCEPT
 
 del NodeFilter
 

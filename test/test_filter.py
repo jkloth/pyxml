@@ -7,36 +7,45 @@ from xml.dom.NodeFilter import NodeFilter
 class Filter(xmlbuilder.DOMBuilderFilter):
     whatToShow = NodeFilter.SHOW_ELEMENT
 
-    def startNode(self, node):
+    def startContainer(self, node):
         assert node.nodeType == Node.ELEMENT_NODE
         if node.tagName == "skipthis":
-            return xmlbuilder.SKIP
+            return self.FILTER_SKIP
         elif node.tagName == "rejectbefore":
-            return xmlbuilder.REJECT
+            return self.FILTER_REJECT
+        elif node.tagName == "stopbefore":
+            return self.FILTER_INTERRUPT
         else:
-            return xmlbuilder.ACCEPT
+            return self.FILTER_ACCEPT
 
-    def endNode(self, node):
+    def acceptNode(self, node):
         assert node.nodeType == Node.ELEMENT_NODE
         if node.tagName == "rejectafter":
-            return xmlbuilder.REJECT
+            return self.FILTER_REJECT
+        elif node.tagName == "stopafter":
+            return self.FILTER_INTERRUPT
         else:
-            return xmlbuilder.ACCEPT
+            return self.FILTER_ACCEPT
 
 
 class RecordingFilter:
+    # Inheriting from xml.dom.xmlbuilder.DOMBuilderFilter is not
+    # required, so we won't inherit from it this time to make sure it
+    # isn't a problem.  We have to implement the entire interface
+    # directly.
+
     whatToShow = NodeFilter.SHOW_ALL
 
     def __init__(self):
         self.events = []
 
-    def startNode(self, node):
+    def startContainer(self, node):
         self.events.append(("start", node.nodeType, str(node.nodeName)))
-        return xmlbuilder.ACCEPT
+        return xmlbuilder.DOMBuilderFilter.FILTER_ACCEPT
 
-    def endNode(self, node):
-        self.events.append(("end", node.nodeType, str(node.nodeName)))
-        return xmlbuilder.ACCEPT
+    def acceptNode(self, node):
+        self.events.append(("accept", node.nodeType, str(node.nodeName)))
+        return xmlbuilder.DOMBuilderFilter.FILTER_ACCEPT
 
 
 simple_options = xmlbuilder.Options()
@@ -115,23 +124,32 @@ checkResult('''\
 # Make sure the document element is not passed to the filter:
 checkResult("<rejectbefore/>")
 checkResult("<rejectafter/>")
+checkResult("<stopbefore/>")
+
+checkResult("<doc>text<stopbefore> and </stopbefore>more</doc>")
+# Note that this doesn't do what we (intuitively) expect; the current
+# WD does not support FILTER_INTERRUPT as a return value for
+# acceptNode().
+try:
+    checkResult("<doc>text<stopafter> and </stopafter>more</doc>")
+except ValueError:
+    pass
+
 
 checkFilterEvents("<doc/>", [])
 checkFilterEvents("<doc attr='value'/>", [])
 checkFilterEvents("<doc><e/></doc>", [
     ("start", Node.ELEMENT_NODE, "e"),
-    ("end", Node.ELEMENT_NODE, "e"),
+    ("accept", Node.ELEMENT_NODE, "e"),
     ])
 
 src = "<doc><e><?pi data?><!--comment--></e></doc>"
 
 checkFilterEvents(src, [
     ("start", Node.ELEMENT_NODE, "e"),
-    ("start", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
-    ("end", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
-    ("start", Node.COMMENT_NODE, "#comment"),
-    ("end", Node.COMMENT_NODE, "#comment"),
-    ("end", Node.ELEMENT_NODE, "e"),
+    ("accept", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
+    ("accept", Node.COMMENT_NODE, "#comment"),
+    ("accept", Node.ELEMENT_NODE, "e"),
     ])
 
 # Show everything except a couple of things to the filter, to check
@@ -140,14 +158,12 @@ checkFilterEvents(src, [
 
 checkFilterEvents(src, [
     ("start", Node.ELEMENT_NODE, "e"),
-    ("start", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
-    ("end", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
-    ("end", Node.ELEMENT_NODE, "e"),
+    ("accept", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
+    ("accept", Node.ELEMENT_NODE, "e"),
     ], what=NodeFilter.SHOW_ALL & ~NodeFilter.SHOW_COMMENT)
 
 checkFilterEvents(src, [
     ("start", Node.ELEMENT_NODE, "e"),
-    ("start", Node.COMMENT_NODE, "#comment"),
-    ("end", Node.COMMENT_NODE, "#comment"),
-    ("end", Node.ELEMENT_NODE, "e"),
+    ("accept", Node.COMMENT_NODE, "#comment"),
+    ("accept", Node.ELEMENT_NODE, "e"),
     ], what=NodeFilter.SHOW_ALL & ~NodeFilter.SHOW_PROCESSING_INSTRUCTION)
