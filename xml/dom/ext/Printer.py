@@ -216,7 +216,7 @@ class PrintVisitor(Visitor):
         if value or not self._html:
             text = TranslateCdata(value, self.encoding)
             text, delimiter = TranslateCdataAttr(text)
-            self._write("=%s%s%s" % (delimiter, text, delimiter))
+            self.stream.write("=%s%s%s" % (delimiter, text, delimiter))
         return
 
     def visitProlog(self):
