@@ -60,8 +60,14 @@ class EsisBuilder(Builder):
 			elif event == 'C':
 				return
 
+			elif event == 'e':
+				# Indicates that this is an empty element;
+				# only produced by nsgmls for -oempty.  We
+				# can safely ignore it.
+				pass
+
 			else:
-				sys.stderr.write('Unknow event: ' + `line` + '\n')
+				sys.stderr.write('Unknown event: ' + `line` + '\n')
 
 
 backslash = r"\\"
