@@ -34,6 +34,10 @@ def print_cm(out,cm):
 
 # --- Main program
 
+if len(sys.argv) != 2:
+    print "Usage: dtddoc.py [file name of DTD file]"
+    sys.exit(1)
+
 # Parsing the DTD
 
 print "Parsing DTD"
