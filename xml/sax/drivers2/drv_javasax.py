@@ -1,10 +1,13 @@
 """
 SAX driver for the Java SAX parsers. Can only be used in Jython.
+
+$Id: drv_javasax.py,v 1.2 2001/11/18 18:50:27 larsga Exp $
 """
 
 # --- Initialization
 
-version = "0.01"
+version = "0.10"
+revision = "$Revision: 1.2 $"
 
 import string
 from xml.sax import xmlreader, saxutils
@@ -114,16 +117,28 @@ class AttributesImpl:
         return self._attrs.getType(name)
 
     def getValue(self, name):
-        return self._attrs.getValue(name) # keyerror!
+        value = self._attrs.getValue(name)
+        if value == None:
+            raise KeyError(name)
+        return value
 
     def getValueByQName(self, name):
-        return self._attrs.getValueByQName(name)
+        value = self._attrs.getValueByQName(name)
+        if value == None:
+            raise KeyError(name)
+        return value
 
     def getNameByQName(self, name):
-        return self._attrs.getNameByQName(name)
+        value = self._attrs.getNameByQName(name)
+        if value == None:
+            raise KeyError(name)
+        return value
 
     def getQNameByName(self, name):
-        return self._attrs.getQNameByName(name)
+        value = self._attrs.getQNameByName(name)
+        if value == None:
+            raise KeyError(name)
+        return value
 
     def getNames(self):
         return self._attrs.getNames()
@@ -135,7 +150,10 @@ class AttributesImpl:
         return self._attrs.getLength()
 
     def __getitem__(self, name):
-        return self._attrs.getValue(name)
+        value = self._attrs.getValue(name)
+        if value == None:
+            raise KeyError(name)
+        return value
 
     def keys(self):
         return self._attrs.getQNames()
