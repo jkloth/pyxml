@@ -136,22 +136,33 @@ class Parser:
     p.EndElementHandler = self.end
     p.CharacterDataHandler = self.cdata
 
+    exception = None
     try:
       if type(input) == type(''):
-        rv = p.Parse(input, 1)
+        try:
+          p.Parse(input, 1)
+        except pyexpat.error, exception:
+          pass
       else:
         while 1:
           s = input.read(_BLOCKSIZE)
           if not s:
-            rv = p.Parse('', 1)
-            break
-          rv = p.Parse(s, 0)
-          if rv == 0 or self.error:
+            try:
+              p.Parse('', 1)
+            except pyexpat.error, exception:
+              pass
             break
 
-      if rv == 0:
+          try:
+            rv = p.Parse(s, 0)
+          except pyexpat.error, exception:
+            pass
+          if exception or self.error:
+            break
+
+      if exception:
         s = pyexpat.ErrorString(p.ErrorCode)
-        raise error, 'expat parsing error: ' + s
+        raise error, 'expat parsing error: ' + exception
       if self.error:
         raise error, self.error
     finally:
