@@ -90,8 +90,10 @@ class Marshaller(saxlib.HandlerBase):
 
     def dumps(self, value):
         "Marshal value, returning the resulting string"
-        L = self._marshal(value, {} )
-        L = ( [self.PROLOGUE + self.DTD + '<' + self.tag_root + '>'] +
+        dict = {}
+	root_tag = self.m_root(value, dict)
+        L = self._marshal(value, dict )
+        L = ( [self.PROLOGUE + self.DTD] + root_tag +
               L +
               ['</' + self.tag_root + '>'] )
         return string.join(L, "") 
@@ -142,6 +144,9 @@ class Marshaller(saxlib.HandlerBase):
         raise ValueError, ("Marshalling of object " + repr(value) +
                            " unimplemented or not supported in this DTD")
 
+    def m_root(self, value, dict):
+        return ['<' + self.tag_root + '>']
+
     #
     # All the generic marshalling functions for various Python types
     #
@@ -180,8 +185,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_tuple(self, value, dict):
         name = self.tag_tuple ; L = []
-        i = str(id(value))
-        dict[ i ] = 1
+        i = str(id(value)) ; dict[ i ] = 1
         L.append( '<' + name + ' id="i%s">' % (i,))
         for elem in value:
             L = L + self._marshal(elem, dict)
@@ -190,8 +194,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_list(self, value, dict):
         name = self.tag_list ; L = []
-        i = str(id(value))
-        dict[ i ] = 1
+        i = str(id(value)) ; dict[ i ] = 1
         L.append( '<' + name + ' id="i%s">' % (i,))
         for elem in value:
             L = L + self._marshal(elem, dict)
@@ -200,8 +203,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_dictionary(self, value, dict):
         name = self.tag_dictionary ; L = []
-        i = str( id(value) )
-        dict[ i ] = 1
+        i = str( id(value) ) ; dict[ i ] = 1
         L.append( '<' + name + ' id="i%s">' %(i,) )
         for key, v in value.items():
             L = L + self._marshal(key, dict)
