@@ -63,7 +63,7 @@ from xml.dom import implementation, ext, XML_NAMESPACE, XMLNS_NAMESPACE, EMPTY_N
 try:
     from Ft.Lib import FtException
     import Ft.Lib
-    XML_PARSE_ERROR = Ft.Lib.XML_PARSE_ERROR
+    XML_PARSE_ERROR = Ft.Lib.Error.XML_PARSE_ERROR
 except ImportError:
     XML_PARSE_ERROR = "XML_PARSE_ERROR"
     # XXX need better definition
