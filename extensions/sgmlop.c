@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.6 2001/01/22 15:17:43 fdrake Exp $
+ * $Id: sgmlop.c,v 1.6.2.1 2001/08/04 22:47:51 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1010,27 +1010,38 @@ fastfeed(FastSGMLParserObject* self)
                 /* skip attributes */
                 int quote = 0;
                 int last = 0;
-                while (*p != '>' || quote) {
-                    if (!ISSPACE(*p)) {
-                        has_attr = 1;
-                        /* FIXME: note: end tags cannot have attributes! */
+                if (token==PI && self->xml) {
+                    int found = 0;
+                    while ((*p!='>') || (!found)) {
+                        found = (*p=='?');
+                        if (++p >= end)
+                            goto eol;
                     }
-                    if (quote) {
-                        if (*p == quote)
-                            quote = 0;
-                    } else {
-                        if (*p == '"' || *p == '\'')
-                            quote = *p;
+                    last = '?';
+                }
+                else {
+                    while (*p != '>' || quote) {
+                        if (!ISSPACE(*p)) {
+                            has_attr = 1;
+                            /* FIXME: note: end tags cannot have attributes! */
+                        }
+                        if (quote) {
+                            if (*p == quote)
+                                quote = 0;
+                        } else {
+                            if (*p == '"' || *p == '\'')
+                                quote = *p;
+                        }
+                        if (*p == '[' && !quote && self->doctype) {
+                            self->doctype = SURE;
+                            token = DTD_START;
+                            e = p++;
+                            goto eot;
+                        }
+                        last = *p;
+                        if (++p >= end)
+                            goto eol;
                     }
-                    if (*p == '[' && !quote && self->doctype) {
-                        self->doctype = SURE;
-                        token = DTD_START;
-                        e = p++;
-                        goto eot;
-                    }
-                    last = *p;
-                    if (++p >= end)
-                        goto eol;
                 }
 
                 e = p++;
