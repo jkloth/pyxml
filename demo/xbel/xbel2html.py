@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 A simple XBEL to HTML converter written with SAX.
 """
