@@ -20,19 +20,19 @@ command line option.
 
 .SH OPTIONS
 
-.IP "-l language"
+.IP "\-l language"
 ISO 3166 language code for language to use in error messages
-.IP "-o format"
+.IP "\-o format"
 Format to output parsed XML. 'e': ESIS, 'x': canonical XML  and 'n': normalized XML. No data will be output if this option is not specified.
 .IP -n
 Report qualified names as 'URI name'. (Namespace processing.)
-.IP "-c catalog"
+.IP "\-c catalog"
 Path to catalog file to use to resolve public identifiers
-.IP  --nowarn
+.IP  \-\-nowarn
 Don't write warnings to console.
-.IP  --entstck
+.IP  \-\-entstck
 Show entity stack on errors.
-.IP  --extsub
+.IP  \-\-extsub
 Read the external subset of documents.
 .IP urltodoc
 URL to the document to parse. (You can use plain file names as well.) Can be omitted if a catalog is specified and contains a DOCUMENT entry.
