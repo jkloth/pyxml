@@ -1,14 +1,15 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.2 2000/09/26 14:43:11 loewis Exp $
+$Id: drv_xmlproc.py,v 1.3 2000/10/03 10:19:24 loewis Exp $
 """
 
 import types, string
 
 from xml.parsers.xmlproc import xmlproc, xmlval, xmlapp
 from xml.sax import saxlib
-from xml.sax.saxutils import AttributesImpl, ContentGenerator
+from xml.sax.xmlreader import AttributesImpl, AttributesNSImpl
+from xml.sax.saxutils import ContentGenerator
 
 # Todo
 # - EntityResolver
@@ -171,11 +172,10 @@ class XmlprocDriver(saxlib.XMLReader):
 	self._lex_handler.comment(data)
 
     def handle_start_tag(self, name, attrs):
-        self._cont_handler.startElement(name, name, AttributesImpl(attrs,
-                                                                   attrs))
+        self._cont_handler.startElement(name, AttributesImpl(attrs))
 
     def handle_end_tag(self,name):
-        self._cont_handler.endElement(name, name)
+        self._cont_handler.endElement(name)
     
     def handle_data(self, data, start, end):
         self._cont_handler.characters(data[start : end]) # FIXME?
@@ -330,8 +330,8 @@ class NamespaceFilter:
             rawnames[a] = v
         
         # Report event
-        self._cont_handler.startElement(cooked_name, name,
-                                        AttributesImpl(attrs, rawnames))
+        self._cont_handler.startElementNS(cooked_name, name,
+                                          AttributesNSImpl(attrs, rawnames))
 
     def handle_end_tag(self, rawname):
         name = self.__process_name(rawname)
@@ -344,7 +344,7 @@ class NamespaceFilter:
         for prefix in del_ns:
             del self.ns_map[prefix]        
             
-        self._cont_handler.endElement(name, rawname)
+        self._cont_handler.endElementNS(name, rawname)
     
     def handle_data(self, data, start, end):
         self._cont_handler.characters(data[start : end]) # FIXME?
