@@ -1,4 +1,4 @@
-/* Based on Python's pyexpat.c, version 2.35.
+/* Based on Python's pyexpat.c, version 2.38.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
@@ -1173,7 +1173,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.35 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.38 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
