@@ -15,21 +15,9 @@ import xmllib
 try:
     unicode("")
 except NameError:
-    from xml.unicode.utf8_iso import code_to_utf8,ConvertError
-    from xml.unicode.iso8859 import _normalize
-    import string
+    from xml.unicode.iso8859 import wstring
     def unicode(str, encoding):
-        encoding = _normalize(encoding)
-        if encoding == "utf 8":
-            return str
-        if encoding[:8] != "iso 8859":
-            raise ConvertError("unknown encoding")
-        encoding = string.atoi(encoding[8:])
-        result = []
-        changed = 0
-        for c in str:
-            result.append(code_to_utf8(encoding, c))
-        return string.join(result,"")
+        return wstring.decode(encoding, str).utf8()
 
 # --- SAX_XLParser
 
@@ -60,7 +48,8 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
 
     def handle_xml(self, encoding, standalone):
         self.standalone= standalone=="yes"
-        self.encoding = encoding
+        if encoding is not None:
+            self.encoding = encoding
 
     def handle_data(self,data):
 	"Handles PCDATA."
