@@ -139,6 +139,8 @@ def __extract_time(m):
         seconds = float(seconds)
         if not 0 <= seconds <= 60:
             raise ValueError, "illegal seconds number: " + m.group("seconds")
+        # Python 2.3 requires seconds to be an integer
+        seconds=int(seconds)
     else:
         seconds = 0
     return hours, minutes, seconds
