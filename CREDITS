@@ -110,4 +110,9 @@
     <name> Christian Tismer </name>
   </xml-hacker>
 
+  <xml-hacker>
+    <name> Stephan Tolksdort </name>
+    <task> Add normalize() to minidom </task>
+  </xml-hacker>
+
 </xml-hackers>
