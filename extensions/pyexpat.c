@@ -352,7 +352,7 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 #ifndef Py_USING_UNICODE
 #define STRING_CONV_FUNC conv_string_to_utf8
 #else
-/* Python 2.0 and later versions */
+/* Python 2.0 and later versions, when built with Unicode support */
 #define STRING_CONV_FUNC (self->returns_unicode \
                           ? conv_string_to_unicode : conv_string_to_utf8)
 #endif
@@ -1112,21 +1112,55 @@ xmlparse_SetParamEntityParsing(xmlparseobject *p, PyObject* args)
     return PyInt_FromLong(flag);
 }
 
+PyDoc_STRVAR(xmlparse_UseForeignDTD__doc__,
+"UseForeignDTD([flag])\n\
+Allows the application to provide an artificial external subset if one is\n\
+not specified as part of the document instance.  This readily allows the\n\
+use of a 'default' document type controlled by the application, while still\n\
+getting the advantage of providing document type information to the parser.\n\
+'flag' defaults to True if not provided.");
+
+static PyObject *
+xmlparse_UseForeignDTD(xmlparseobject *self, PyObject *args)
+{
+    PyObject *flagobj = NULL;
+    XML_Bool flag = XML_TRUE;
+    enum XML_Error rc;
+    if (!PyArg_ParseTuple(args, "|O:UseForeignDTD", &flagobj))
+        return NULL;
+    if (flagobj != NULL)
+        flag = PyObject_IsTrue(flagobj) ? XML_TRUE : XML_FALSE;
+    rc = XML_UseForeignDTD(self->itself, flag);
+    if (rc != XML_ERROR_NONE) {
+        PyObject *err;
+        err = PyObject_CallFunction(ErrorObject, "s", XML_ErrorString(rc));
+        if (  err != NULL
+              && set_error_attr(err, "code", rc)) {
+            PyErr_SetObject(ErrorObject, err);
+        }
+        return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static struct PyMethodDef xmlparse_methods[] = {
     {"Parse",	  (PyCFunction)xmlparse_Parse,
 		  METH_VARARGS,	xmlparse_Parse__doc__},
     {"ParseFile", (PyCFunction)xmlparse_ParseFile,
 		  METH_VARARGS,	xmlparse_ParseFile__doc__},
     {"SetBase",   (PyCFunction)xmlparse_SetBase,
-		  METH_VARARGS,      xmlparse_SetBase__doc__},
+		  METH_VARARGS, xmlparse_SetBase__doc__},
     {"GetBase",   (PyCFunction)xmlparse_GetBase,
-		  METH_VARARGS,      xmlparse_GetBase__doc__},
+		  METH_VARARGS, xmlparse_GetBase__doc__},
     {"ExternalEntityParserCreate", (PyCFunction)xmlparse_ExternalEntityParserCreate,
-	 	  METH_VARARGS,      xmlparse_ExternalEntityParserCreate__doc__},
+	 	  METH_VARARGS, xmlparse_ExternalEntityParserCreate__doc__},
     {"SetParamEntityParsing", (PyCFunction)xmlparse_SetParamEntityParsing,
 		  METH_VARARGS, xmlparse_SetParamEntityParsing__doc__},
     {"GetInputContext", (PyCFunction)xmlparse_GetInputContext,
 		  METH_VARARGS, xmlparse_GetInputContext__doc__},
+    {"UseForeignDTD", (PyCFunction)xmlparse_UseForeignDTD,
+		  METH_VARARGS, xmlparse_UseForeignDTD__doc__},
     {NULL,	  NULL}		/* sentinel */
 };
 
@@ -1719,7 +1753,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.66 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.67 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
