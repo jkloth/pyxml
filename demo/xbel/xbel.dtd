@@ -1,5 +1,6 @@
-<!-- This is the XML Bookmarks Exchange Language, version 1.0.  It should
-     be used with the formal public identifier:
+
+<!-- This is the XML Bookmarks Exchange Language, version 1.0.  It
+     should be used with the formal public identifier:
 
         -//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML
 
@@ -80,12 +81,13 @@
 
 <!--=================== Alias =====================================-->
 
-<!-- <alias> elements correspond to Netscape bookmark aliases.  The    -->
-<!-- required "ref" attribute must refer to a <bookmark> element.      -->
-<!-- Note that MSIE aliases can refer to folders, so that is           -->
-<!-- supported in XBEL.  Applications must be careful about traversing -->
-<!-- aliases to folders to avoid improper recursion through circular   -->
-<!-- data structures.                                                  -->
+<!-- <alias> elements correspond to Netscape bookmark aliases.  The
+     required "ref" attribute must refer to a <bookmark> or <folder>
+     element.  Note that MSIE aliases can refer to folders, so that is
+     supported in XBEL.  Applications must be careful about traversing
+     aliases to folders to avoid improper recursion through circular
+     data structures.
+  -->
 
 <!ELEMENT alias EMPTY>
 <!ATTLIST alias
