@@ -18,7 +18,7 @@ from xml.dom.ext.Printer import TranslateCdata, TranslateCdataAttr
 from xml.dom.html import TranslateHtmlCdata
 from xml.xslt import XSL_NAMESPACE, NullWriter, XsltException, Error
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE, HTML_4_STRICT_INLINE
-from xml.dom import XML_NAMESPACE
+from xml.dom import XML_NAMESPACE, EMPTY_NAMESPACE
 from xml.dom.html import HTML_FORBIDDEN_END
 
 
