@@ -19,11 +19,11 @@ build:
 	python2.2 setup.py $(BUILDARGS) -q build
 	python2.3 setup.py $(BUILDARGS) -q build
 
-check:
+check:	build
 	cd test && PYTHONPATH=../build/lib.$(PLAT)-2.0 python2.0 testxml.py
 	cd test && PYTHONPATH=../build/lib.$(PLAT)-2.1 python2.1 testxml.py
 	cd test && PYTHONPATH=../build/lib.$(PLAT)-2.2 python2.2 testxml.py
 	cd test && PYTHONPATH=../build/lib.$(PLAT)-2.3 python2.3 testxml.py
 
 clean:
-	rm -r build
+	rm -rf build
