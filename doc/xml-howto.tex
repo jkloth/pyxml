@@ -1,9 +1,9 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.11 2002/05/10 21:02:53 akuchling Exp $
+% $Id: xml-howto.tex,v 1.12 2002/05/12 23:33:43 akuchling Exp $
 
 % TODO:
-%   Read over DOM section
+%   Read over and update DOM section
 %   Write outline of entire document
 %   Explain namespaces somewhere
 % XXX not covered: c14n.py, xml.marshal, scripts, namespaces, TREX/schemas,
@@ -282,6 +282,15 @@ those objects.  See section~\ref{section-SAX}.
 The Document Object Model specifies a tree-based representation for an
 XML document, as opposed to the event-driven processing provided by
 SAX.  See section~\ref{section-DOM}.
+
+  \item[\textbf{Namespaces}] One XML document can refer to elements
+  from more than one DTD.  (Such documents can no longer be validated
+  using DTDs, though other schema languages such as RELAX NG can
+  handle namespaces.) For example, a document might contain both some
+  text and a diagram.  The text might be represented using some
+  elements from the HTML DTD, and the diagram might use elements from
+  the Scalable Vector Graphics DTD.  All the relevant modules in the
+  PyXML module can be used for namespace-aware processing.
 
   \item[\textbf{XPath and XPointer}]
   XPath is a language for referring to parts of an XML document.  With
@@ -709,17 +718,6 @@ the different parsers are, or how they differ. (You can also tell
 \function{make_parser} to try a list of parsers, if you want to use a
 specific one).
 
-SAX2 supports XML namespaces.  If namespace processing is active,
-parsers won't call \method{startElement()}, but instead will call a
-method named \method{startElementNS()}. Since our \class{FindIssue}
-content handler doesn't implement the namespace-aware methods, we
-request that namespace processing is deactivated.  The default of this
-setting varies from parser to parser, so you should always set it to a
-safe value (unless your handler supports both namespace-aware and
--unaware processing).
-
-% XXX show how to do this
-
 Once you've created a parser instance, calling the
 \method{setContentHandler()} method tells the parser what to use as
 the content handler.  There are similar methods for setting the other
@@ -894,9 +892,82 @@ attributes, such as \samp{<arc name="Season of Mists"/>}, will result
 in a call to \method{startElement()}, followed immediately by a call
 to \method{endElement()}.
 
-% \subsection{Parsing External Entities}
-%XXX how are external entities handled?  Anything special need to be
-%done for them?
+\subsection{Enabling Namespace Processing}
+
+SAX2 supports XML namespaces.  If namespace processing is active,
+parsers won't call \method{startElement()}, but instead will call a
+method named \method{startElementNS()}. The default of this
+setting varies from parser to parser, so you should always set it to a
+safe value (unless your handler supports both namespace-aware and
+-unaware processing).
+
+For example, our \class{FindIssue} content handler described in
+previous section doesn't implement the namespace-aware methods, so we
+should request that namespace processing is deactivated before
+beginning to parse XML:
+
+\begin{verbatim}
+from xml.sax import make_parser
+from xml.sax.handler import feature_namespaces
+
+# Create a parser
+parser = make_parser()
+
+# Disable namespace processing
+parser.setFeature(feature_namespaces, 0)
+\end{verbatim}
+
+The second argument to \method{setFeature()} is the desired state of
+the feature, mostly commonly a Boolean.  You would call
+\code{parser.setFeature(feature_namespaces, 1)} to enable namespace
+processing.
+
+Namespaces in XML work by first defining a namespace prefix that maps
+to a given URI specified by the relevant DTD, and then using that
+prefix to mark elements and attributes that come from that DTD.  For
+example, the XLink specification says that the namaspace URI is 
+\samp{http://www.w3.org/1999/xlink}.  The following XML snippet
+includes some XLink attributes:
+
+\begin{verbatim}
+<root xmlns:xlink="http://www.w3.org/1999/xlink">
+  <elem xlink:href="http://www.python.org" />
+</root>
+\end{verbatim}
+
+The \attribute{xmlns:xlink} attribute on the \element{root} element
+declares that the prefix \samp{xlink} maps to the given URL.  The
+\element{elem} element therefore has one attribute named
+\attribute{href} that comes from the XLink namespace.  Namespace-aware
+methods expect \code{(\var{URI}, \var{name})} tuples instead of just
+element and attribute names; instead of \samp{xlink:href}, they would
+receive \code{('http://www.w3.org/1999/xlink', 'href')}.
+
+Note that the actual value of the prefix is immaterial, and software
+shouldn't make assumptions about it.  The XML document would have
+exactly the same meaning if the root element said
+\samp{xmlns:pref1="http://..."} and the attribute name was given as
+\samp{pref1:href}.
+
+If namespace processing is turned on, you would have to write
+\method{startElementNS()} and \method{endElementNS()} methods that
+looked like this:
+
+\begin{verbatim}
+    def startElementNS(self, (uri, localname), qname, attrs):
+        ...
+
+    def endElementNS(self, (uri, localname, qname):
+        ...
+\end{verbatim}
+
+The first argument is a 2-tuple containing the URI and the name of the
+element within that namespace.  \var{qname} is a string containing the
+original qualified name of the element, such as \samp{xlink:a}, and
+\var{attrs} is a dictionary of attributes.  The keys of this
+dictionary will be \code{(\var{URI}, \var{attribute_name})} pairs.  If
+no namespace is specified for an element or attribute, the URI will
+given given as \code{None}.
 
 
 \subsection{Related Links}
@@ -937,6 +1008,12 @@ process very large documents as a DOM tree.  A SAX handler, on the
 other hand, can potentially churn through amounts of data far larger
 than the available RAM.
 
+This HOWTO can't be a complete introduction to the Document Object
+Model, because there are lots of interfaces and lots of
+methods. Luckily, the DOM Recommendation is quite readable, so I'd
+recommend that you read it to get a complete picture of the available
+interfaces.  This section will only be a partial overview.
+
 
 \subsection{Getting A DOM Tree}
 
@@ -949,30 +1026,32 @@ standard.  \code{4DOM} (XXX reference) is a complete implementation of
 DOM Level 2 (which is currently work in progress), so we will use that
 in the examples.
 
-One of the modules in the \module{xml.dom} package is
-\module{xml.dom.ext.reader.Sax2}, which provides the functions
-\function{FromXmlStream}, \function{FromXml}, \function{FromXmlFile},
-and \function{FromXmlUrl} which will construct a DOM tree from their
-input (a file-like object, a string, a file name, and a URL,
-respectively). They all return a DOM \class{Document} object.
-% XXX these functions seem to be deprecated!  why?
+The \module{xml.dom.ext.reader} package contains a number of classes
+that build a DOM tree from various input sources.  One of the modules
+in the \module{xml.dom} package is named \module{Sax2}, and contains a
+\class{Reader} class that builds a DOM tree from a series of SAX2
+events.  \class{Reader} instances provide a \method{fromStream()}
+method that constructs a DOM tree from an input stream; the input can
+be a file-like object or a string.  In the second case, it will be
+assumed to be a URL and will be opened with the \module{urllib}
+module.
 
 \begin{verbatim}
 import sys
-from xml.dom.ext.reader.Sax2 import FromXmlStream
+from xml.dom.ext.reader import Sax2
+
+# create Reader object
+reader = Sax2.Reader()
 
 # parse the document
-doc = FromXmlStream(sys.stdin)
+doc = reader.fromStream(sys.stdin)
 \end{verbatim}
 
+\method{fromStream()} returns the root of a DOM tree constructed from
+the input XML document.
 
-\subsection{Manipulating The Tree}
 
-This HOWTO can't be a complete introduction to the Document Object
-Model, because there are lots of interfaces and lots of
-methods. Luckily, the DOM Recommendation is quite readable, so I'd
-recommend that you read it to get a complete picture of the available
-interfaces.  This section will only be a partial overview.
+\subsection{Printing The Tree}
 
 We'll use a single example document throughout this section.  Here's
 the sample:
@@ -1022,63 +1101,168 @@ differ in how they generate \class{Text} nodes; any of the
 \class{Text} nodes in the above tree might be split into multiple
 nodes.  
 
+A DOM tree can be converted back to XML by using the
+\function{Print(\var{doc}, \var{stream})} or
+\function{PrettyPrint(\var{doc}, \var{stream})} functions in
+\module{xml.dom.ext}.  If \var{stream} isn't provided, the resulting
+XML will be printed to standard output.  \function{Print()} will
+simply render the DOM tree without any changes, while
+\function{PrettyPrint()} will add or remove whitespace in order to
+nicely indent the resulting XML.
 
-\subsubsection{The \class{Node} class}
+
+\subsection{Manipulating the Tree}
 
 We'll start by considering the basic \class{Node} class.  All the
 other DOM nodes---\class{Document}, \class{Element}, \class{Text},
 and so forth---are subclasses of \class{Node}.  It's possible to
 perform many tasks using just the interface provided by \class{Node}.
 
-XXX table of attributes and methods
-            readonly attribute  DOMString            nodeName;
-                     attribute  DOMString            nodeValue;
-                                                           // raises(DOMException) on setting
-                                                           // raises(DOMException) on retrieval
-            readonly attribute  unsigned short       nodeType;
-            readonly attribute  Node                 parentNode;
-            readonly attribute  NodeList             childNodes;
-            readonly attribute  Node                 firstChild;
-            readonly attribute  Node                 lastChild;
-            readonly attribute  Node                 previousSibling;
-            readonly attribute  Node                 nextSibling;
-            readonly attribute  NamedNodeMap         attributes;
-            readonly attribute  Document             ownerDocument;
+First, there are the attributes provided by all \class{Node} instances:
 
-            Node                      insertBefore(in Node newChild,
-                                                   in Node refChild)
-                                                   raises(DOMException);
-            Node                      replaceChild(in Node newChild,
-                                                   in Node oldChild)
-                                                   raises(DOMException);
-            Node                      removeChild(in Node oldChild)
-                                                  raises(DOMException);
-            Node                      appendChild(in Node newChild)
-                                                  raises(DOMException);
-            boolean                   hasChildNodes();
-            Node                      cloneNode(in boolean deep);
+\begin{tableii}{|l|l|}{member}{Attribute}{Meaning}
+  \lineii{nodeType}{Integer constant giving the type of this node: 
+\constant{ELEMENT_NODE}, \constant{TEXT_NODE}, etc.}
+  \lineii{nodeName}{Name of this node.  For some types of node, such
+as \class{Element}s, the name is the element name; for others, such as
+\class{Text}, the name is a constant value such as \samp{\#text} which
+isn't very useful.
+}
+  \lineii{nodeValue}{Value of this node.  For some types of node, such
+as \class{Text} nodes, the value is a string containing
+a chunk of textual data; for others, such as
+\class{Text}, the value is just \code{None}.}
+  \lineii{parentNode}{Parent of this node, or \class{None} if this
+node is the root of a tree (usually meaning that it's a
+\class{Document} node).}
+  \lineii{childNodes}{A possibly empty list containing the children of this node.}
+  \lineii{firstChild}{First child of this node, or \code{None} 
+if it has no children.}
+  \lineii{lastChild}{Last child of this node, or \code{None} 
+if it has no children.}
+  \lineii{previousSibling}{Preceding child of this node's parent,
+or \class{None} if this node has no parent or if the parent has no
+preceding children.
+}
+  \lineii{nextSibling}{Following child of this's node's parent, 
+or \class{None} if this node has no parent or if the parent has no
+following children.
+}
+  \lineii{ownerDocument}{Owning document of this node.}
+  \lineii{attributes}{A \class{NamedNodeMap} instance 
+that behaves mostly like a dictionary, and maps attribute names
+to \class{Attribute} instances.}
+\end{tableii}
+
+Next, there are the methods.  If a node is already a child of node 1
+and is added as a child of node 2, it will automatically be removed
+from node 1; nodes always have exactly zero or one parents.
+
+\begin{tableii}{|l|l|}{method}{Method}{Effect}
+  \lineii{appendChild(\var{newChild})}{Add \var{newChild} as a child
+of this node, adding it to the end of the list of children.
+}
+  \lineii{removeChild(\var{oldChild})}{Remove \var{oldChild}; its
+\member{parentNode} attribute will now return \class{None}.}
+
+  \lineii{replaceChild(\var{newChild}, \var{oldChild}}{Replace
+the child \var{oldChild} with \var{newChild}.  
+\var{oldChild} must already be a child of the node.}
+
+  \lineii{insertBefore(\var{newChild}, \var{refChild})}{
+Add \var{newChild} as  a child of this node, adding it 
+before the node \var{refChild}. \var{refChild} 
+must already be a child of the node.
+}
+
+  \lineii{hasChildNodes()}{Returns true if this node has any children.}
+  \lineii{cloneNode(\var{deep})}{Returns a copy of this node.
+If \var{deep} is false, the copy will have no children.  If it's true,
+then all of the children will also be copied and added as children to 
+the returned copy.
+}
+\end{tableii}
+
+\class{Element} nodes and the \class{Document} node also have a useful
+method, \method{getElementsByTagName(\var{tagName})}, that returns a
+list of all elements with the given name.  For example, all the
+\samp{chapter} elements can be returned by
+\code{document.getElementsByTagName('chapter')}.
 
 
-\subsubsection{\class{Document}, \class{Element}, and \class{Text} nodes}
+\subsection{Creating New Nodes}
 
 The base of the entire tree is the \class{Document} node.  Its
 \member{documentElement} attribute contains the \class{Element} node
 for the root element.  The \class{Document} node may have additional
-children, such as \class{ProcessingInstruction} nodes; the complete
-list of children XXX.
+children, such as \class{ProcessingInstruction} nodes, but the list of
+children can include at most one \class{Element} node.
+
+When building a DOM tree from scratch, you'll need to construct new
+nodes of various types such as \class{Element} and \class{Text}.  The
+\class{Document} node has a bunch of \method{create*()} methods such
+as \method{createElement} and \method{createTextNode()}.
+
+For example, here's an example that adds a new child element named
+\samp{chapter} to the root element.
+
+\begin{verbatim}
+new = document.createElement('chapter')
+new.setAttribute('number', '5')
+document.documentElement.appendChild(new)
+\end{verbatim}
 
 
 \subsection{Walking Over The Entire Tree}
 
-The \module{xml.dom} package also includes various helper classes for
-common tasks such as walking over trees.
+Once you have a tree, another common task is to traverse it.
+\class{Document} instances have a method called
+\method{createTreeWalker(\var{root}, \var{whatToShow}, \var{filter},
+\var{entityRefExpansion})} that returns an instance of the
+\class{TreeWalker} class.
 
-XXX write this 
-XXX use the Level 2 TreeTraversal instead?
+Once you have a \class{TreeWalker} instance, it allows traversing
+through the subtree rooted at the \var{root} node.  The
+\member{currentNode} attribute contains the current node that's been
+reached in this traversal, and can be advanced forward or backward by
+calling the \method{nextNode()} and \method{previousNode()} methods.
+There are also methods titled \method{parentNode()},
+\method{firstChild()}, \method{lastChild()}, and
+\method{nextSibling()}, \method{previousSibling()} that return the
+appropriate value for the current node.
 
-The \class{Walker} class
+\var{whattoshow} is a bitmask with bits set for each type of node that
+you want to see in the traversal.  Constants are available 
+as attributes on the \class{NodeFilter} class.
+0 filters out all nodes, \constant{NodeFilter.SHOW_ALL} traverses
+every node, and constants such as \constant{SHOW_ELEMENT}
+and \constant{SHOW_TEXT} select individual types of node.
 
-Introduction to the walker class
+\var{filter} is a function that will be passed every traversed node,
+and can return \constant{NodeFilter.FILTER_ACCEPT} or
+\constant{NodeFilter.FILTER_REJECT} to accept or reject the node.
+\var{filter} can be passed as \code{None} in order to accept all
+nodes.
+
+% XXX is expandEntityReferences() actually used anywhere?
+
+Here's an example that traverses the entire tree and prints out every
+element.
+
+\begin{verbatim}
+from xml.dom.NodeFilter import NodeFilter
+
+walker = doc.createTreeWalker(doc.documentElement,
+                              NodeFilter.SHOW_ELEMENT, None, 0)
+
+while 1:
+    print walker.currentNode.tagName
+    next = walker.nextNode()
+    if next is None: break
+\end{verbatim}
+
+% XXX get a patch in and mention iterators
+
 
 \subsection{Related Links}
 
