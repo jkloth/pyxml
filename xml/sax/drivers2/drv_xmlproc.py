@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.13 2001/11/19 20:20:57 larsga Exp $
+$Id: drv_xmlproc.py,v 1.14 2001/11/27 20:01:55 larsga Exp $
 """
 
 import types, string
@@ -280,7 +280,7 @@ class NamespaceFilter:
         self._cont_handler = content
         self._lex_handler = lexical
         self.driver = driver
-        self.ns_map = {}       # Current prefix -> URI map
+        self.ns_map = {"" : None} # Current prefix -> URI map
         self.ns_map["xml"] = "http://www.w3.org/XML/1998/namespace"
         self.ns_stack = []     # Pushed for each element, used to maint ns_map
         self.rep_ns_attrs = 0  # Report xmlns-attributes?
