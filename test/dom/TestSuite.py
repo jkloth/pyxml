@@ -149,9 +149,11 @@ class TestSuite:
         if self.groups:
             self.groups[-1].testDone()
 
-    def testResults(self,expected,actual, done = 1):
+    def testResults(self,expected,actual, done = 1, msg = ""):
         if expected != actual:
-            self.error("Expected %s, got %s" % (expected,actual))
+            if msg:
+                msg = msg+":"
+            self.error("%sExpected %s, got %s" % (msg,expected,actual))
             return 0
         elif done:
             self.testDone()
