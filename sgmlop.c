@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.1 1998/08/01 03:07:15 amk Exp $
+ * $Id: sgmlop.c,v 1.1.1.1 1998/08/01 03:07:15 amk Exp $
  *
  * The sgmlop accelerator module
  *

@@ -35,7 +35,7 @@ documentation for any purpose and without fee or royalty is hereby granted,
 as per <http://www.w3.org/pub/WWW/COPYRIGHT>.
 
 written by Dan Connolly <connolly@w3.org> http://www.w3.org/People/Connolly/
-$Id: dc_parser.py,v 1.1 1998/08/01 03:07:15 amk Exp $
+$Id: dc_parser.py,v 1.1.1.1 1998/08/01 03:07:15 amk Exp $
 """
 
 import regex
