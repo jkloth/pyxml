@@ -26,7 +26,7 @@ from xml.dom.ext import reader
 
 class NsHandler:
     def initState(self, ownerDoc=None):
-        self._namespaces = {'xml': XML_NAMESPACE, None:EMPTY_NAMESPACE}
+        self._namespaces = {'xml': XML_NAMESPACE, None: EMPTY_NAMESPACE}
         self._namespaceStack = []
         return
 
@@ -119,7 +119,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
 
     def _initRootNode(self, docElementUri, docElementName):
         if not self._dt:
-            self._dt = self._impl.createDocumentType(docElementName, '', '')
+            self._dt = self._impl.createDocumentType(docElementName, None, '')
         self._ownerDoc = self._impl.createDocument(docElementUri, docElementName, self._dt)
         if self._xmlDecl:
             decl_data = 'version="%s"' % (
@@ -206,7 +206,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
 ##        print 'pref->uri',self._pref2nsuri
 ##        print 'uri->pref',self._nsuri2pref
 
-    def endPrefixMapping(self,prefix):
+    def endPrefixMapping(self, prefix):
 ##        print 'endPrefixMapping',prefix
 ##        print 'pref->uri',self._pref2nsuri
 ##        print 'uri->pref',self._nsuri2pref
@@ -225,7 +225,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
         local = name[1]
         if qname is None:
             if self._nsuri2pref[namespace][-1]:
-                qname = string.join((self._nsuri2pref[namespace][-1],local),':')
+                qname = string.join((self._nsuri2pref[namespace][-1], local), ':')
             else :
                 qname = local
         if self._ownerDoc:
@@ -234,16 +234,16 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
             self._initRootNode(namespace, qname)
             new_element = self._ownerDoc.documentElement
 
-        for ((attr_ns,lname),value) in attribs.items():
+        for ((attr_ns, lname), value) in attribs.items():
             if attr_ns is not None:
                 try:
-                    attr_qname = attribs.getQNameByName((attr_ns,lname))
+                    attr_qname = attribs.getQNameByName((attr_ns, lname))
                 except KeyError:# pyexpat doesn't report qnames...
                     attr_prefix = self._nsuri2pref[attr_ns][-1]
                     if attr_prefix is None: # I'm not sure that this is possible
                         attr_qname = lname
                     else:
-                        attr_qname = string.join((attr_prefix,lname),':')
+                        attr_qname = string.join((attr_prefix,lname), ':')
             else:
                 attr_qname = lname
             attr = self._ownerDoc.createAttributeNS(attr_ns, attr_qname)
