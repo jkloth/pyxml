@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax.py,v 1.8 2002/08/22 17:07:41 fdrake Exp $
+# $Id: test_sax.py,v 1.9 2002/09/10 21:34:56 fdrake Exp $
 
 from xml.sax import make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -337,7 +337,7 @@ def test_expat_nsattrs_wattr():
 
     return attrs.getLength() == 1 and \
            attrs.getNames() == [(ns_uri, "attr")] and \
-           attrs.getQNames() == [] and \
+           attrs.getQNames() == ["ns:attr"] and \
            len(attrs) == 1 and \
            attrs.has_key((ns_uri, "attr")) and \
            attrs.keys() == [(ns_uri, "attr")] and \
