@@ -1012,6 +1012,13 @@ defproperty(CharacterData, "length", doc="Length of the string data.")
 
 
 class Text(CharacterData):
+
+    # This class doesn't have an __init__() by design; the intent is
+    # to speed construction of new instances.  Once an instance is
+    # created, the .data and .ownerDocument attributes will need to be
+    # initialized.  Subclasses may add an __init__() and initialize
+    # those members there or require them to be initialized later.
+
     nodeType = Node.TEXT_NODE
     nodeName = "#text"
     attributes = None
