@@ -81,7 +81,7 @@ typedef struct {
 
 #define CHARACTER_DATA_BUFFER_SIZE 8192
 
-staticforward PyTypeObject Xmlparsetype;
+static PyTypeObject Xmlparsetype;
 
 typedef void (*xmlhandlersetter)(XML_Parser self, void *meth);
 typedef void* xmlhandler;
@@ -94,7 +94,7 @@ struct HandlerInfo {
     PyObject *nameobj;
 };
 
-staticforward struct HandlerInfo handler_info[64];
+static struct HandlerInfo handler_info[64];
 
 /* Set an integer attribute on the error object; return true on success,
  * false on an exception.
@@ -335,7 +335,7 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
     f = PyFrame_New(
                     tstate,			/*back*/
                     c,				/*code*/
-                    tstate->frame->f_globals,	/*globals*/
+                    PyEval_GetGlobals(),	/*globals*/
                     NULL			/*locals*/
                     );
     if (f == NULL)
@@ -871,7 +871,7 @@ readinst(char *buf, int buf_size, PyObject *meth)
 
     PyTuple_SET_ITEM(arg, 0, bytes);
 
-    if ((str = PyObject_CallObject(meth, arg)) == NULL)
+    if ((str = PyObject_Call(meth, arg, NULL)) == NULL)
         goto finally;
 
     /* XXX what to do if it returns a Unicode string? */
@@ -1406,24 +1406,35 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         }
     }
 
+#define APPEND(list, str)				\
+        do {						\
+                PyObject *o = PyString_FromString(str);	\
+                if (o != NULL)				\
+        	        PyList_Append(list, o);		\
+                Py_XDECREF(o);				\
+        } while (0)
+
     if (strcmp(name, "__members__") == 0) {
         int i;
         PyObject *rc = PyList_New(0);
         for (i = 0; handler_info[i].name != NULL; i++) {
-            PyList_Append(rc, get_handler_name(&handler_info[i]));
+            PyObject *o = get_handler_name(&handler_info[i]);
+            if (o != NULL)
+                PyList_Append(rc, o);
+            Py_XDECREF(o);
         }
-        PyList_Append(rc, PyString_FromString("ErrorCode"));
-        PyList_Append(rc, PyString_FromString("ErrorLineNumber"));
-        PyList_Append(rc, PyString_FromString("ErrorColumnNumber"));
-        PyList_Append(rc, PyString_FromString("ErrorByteIndex"));
-        PyList_Append(rc, PyString_FromString("buffer_size"));
-        PyList_Append(rc, PyString_FromString("buffer_text"));
-        PyList_Append(rc, PyString_FromString("buffer_used"));
-        PyList_Append(rc, PyString_FromString("namespace_prefixes"));
-        PyList_Append(rc, PyString_FromString("ordered_attributes"));
-        PyList_Append(rc, PyString_FromString("returns_unicode"));
-        PyList_Append(rc, PyString_FromString("specified_attributes"));
-        PyList_Append(rc, PyString_FromString("intern"));
+        APPEND(rc, "ErrorCode");
+        APPEND(rc, "ErrorLineNumber");
+        APPEND(rc, "ErrorColumnNumber");
+        APPEND(rc, "ErrorByteIndex");
+        APPEND(rc, "buffer_size");
+        APPEND(rc, "buffer_text");
+        APPEND(rc, "buffer_used");
+        APPEND(rc, "namespace_prefixes");
+        APPEND(rc, "ordered_attributes");
+        APPEND(rc, "returns_unicode");
+        APPEND(rc, "specified_attributes");
+        APPEND(rc, "intern");
 
         return rc;
     }
@@ -1682,7 +1693,7 @@ PyDoc_STRVAR(pyexpat_module_documentation,
 static PyObject *
 get_version_string(void)
 {
-    static char *rcsid = "#Revision: 2.64 $";
+    static char *rcsid = "#Revision: 2.77 $";
     char *rev = rcsid;
     int i = 0;
 
@@ -1761,7 +1772,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.69 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.70 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
@@ -1892,7 +1903,7 @@ clear_handlers(xmlparseobject *self, int initial)
     }
 }
 
-statichere struct HandlerInfo handler_info[] = {
+static struct HandlerInfo handler_info[] = {
     {"StartElementHandler",
      (xmlhandlersetter)XML_SetStartElementHandler,
      (xmlhandler)my_StartElementHandler},
