@@ -82,7 +82,10 @@ class Node(xml.dom.Node, GetattrMagic):
         if refChild is None:
             self.appendChild(newChild)
         else:
-            index = self.childNodes.index(refChild)
+            try:
+                index = self.childNodes.index(refChild)
+            except ValueError:
+                raise xml.dom.NotFoundErr()
             self.childNodes.insert(index, newChild)
             newChild.nextSibling = refChild
             refChild.previousSibling = newChild
@@ -339,6 +342,11 @@ class Attr(Node):
             d["name"] = d["nodeName"] = value
         else:
             d[name] = value
+
+    def _set_value(self, value):
+        d = self.__dict__
+        d['value'] = d['nodeValue'] = value
+        self.childNodes[0].data = value
 
 defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
 
@@ -637,7 +645,7 @@ class Childless:
             self.nodeName + " nodes do not have children")
 
     def removeChild(self, oldChild):
-        raise xml.dom.HierarchyRequestErr(
+        raise xml.dom.NotFoundErr(
             self.nodeName + " nodes do not have children")
 
     def replaceChild(self, newChild, oldChild):
@@ -1241,14 +1249,21 @@ def _clone_node(node, deep, newOwnerDocument):
                 c = _clone_node(child, deep, newOwnerDocument)
                 clone.appendChild(c)
 
+    elif node.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
+        clone = newOwnerDocument.createDocumentFragment()
+        if deep:
+            for child in node.childNodes:
+                c = _clone_node(child, deep, newOwnerDocument)
+                clone.appendChild(c)
+
     elif node.nodeType == Node.TEXT_NODE:
         clone = newOwnerDocument.createTextNode(node.data)
     elif node.nodeType == Node.CDATA_SECTION_NODE:
         clone = newOwnerDocument.createCDATASection(node.data)
-    elif node.nodeType == PROCESSING_INSTRUCTION_NODE:
+    elif node.nodeType == Node.PROCESSING_INSTRUCTION_NODE:
         clone = newOwnerDocument.createProcessingInstruction(node.target,
                                                              node.data)
-    elif node.nodeType == COMMENT_NODE:
+    elif node.nodeType == Node.COMMENT_NODE:
         clone = newOwnerDocument.createComment(node.data)
     else:
         raise Exception("Cannot clone node %s" % repr(node))
