@@ -96,6 +96,8 @@ class XBELHandler(saxlib.ContentHandler):
 
 if __name__ == '__main__':
     p=make_parser()
+    from xml.sax.handler import feature_external_ges
+    p.setFeature(feature_external_ges, 0)
     p.setContentHandler(XBELHandler())
     p.setErrorHandler(saxutils.ErrorPrinter())
     p.parse(sys.argv[1])

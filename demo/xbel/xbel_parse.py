@@ -100,6 +100,8 @@ if __name__ == '__main__':
     xbel_handler = XBELHandler()
     p=make_parser()
     p.setContentHandler( xbel_handler )
+    from xml.sax.handler import feature_external_ges
+    p.setFeature(feature_external_ges, 0)
     p.parse( sys.stdin )
     bms = xbel_handler.bms
     mode, arg = opts[0]
