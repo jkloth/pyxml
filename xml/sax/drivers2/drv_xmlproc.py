@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.11 2001/06/07 19:27:29 larsga Exp $
+$Id: drv_xmlproc.py,v 1.12 2001/09/11 11:33:54 larsga Exp $
 """
 
 import types, string
@@ -121,15 +121,14 @@ class XmlprocDriver(IncrementalParser):
         if self.__parsing:
             raise saxlib.SAXNotSupportedException("Cannot set feature '%s' during parsing" % name)
         
-        if name == saxlib.feature_string_interning:
-            pass
-        elif name == saxlib.feature_validation:
+        if name == saxlib.feature_validation:
             self.__validate = state
             if self.__validate:
                 self.__ext_pes = 1
         elif name == saxlib.feature_namespaces:
             self.__namespaces = state
-        elif name == saxlib.feature_external_ges:
+        elif name == saxlib.feature_external_ges or \
+             name == saxlib.feature_string_interning:
             if not state:
                 raise saxlib.SAXNotSupportedException("This feature cannot be turned off with xmlproc.")
         elif name == saxlib.feature_external_pes:
