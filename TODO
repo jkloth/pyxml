@@ -1,6 +1,7 @@
 TODO list:
 	* Make more passes over the documentation
 	* More demo programs 
+        * Re-indent everything to 4-space indents
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite
 	* Should PyPointers be added?
@@ -23,6 +24,8 @@ How to fix?  (Replace w/ empty Text node?)
 
 	* Should check that Document node has only one Element child
 before changing anything (DocumentFragments complicate this)
+
+	* NodeList returned from .getElementsByTagName should be live
 
 	* DocumentType class is mostly unfinished; what should the
 interface for creating them look like?
