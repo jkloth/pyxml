@@ -291,10 +291,12 @@ string_intern(xmlparseobject *self, const char* str)
 	return result;
     value = PyDict_GetItem(self->intern, result);
     if (!value) {
-	PyErr_Clear();
-	PyDict_SetItem(self->intern, result, result);
-	return result;
+	if (PyDict_SetItem(self->intern, result, result) == 0)
+            return result;
+        else
+            return NULL;
     }
+    Py_INCREF(value);
     Py_DECREF(result);
     return value;
 }
@@ -1147,9 +1149,15 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         return PyInt_FromLong((long) self->returns_unicode);
     if (strcmp(name, "specified_attributes") == 0)
         return PyInt_FromLong((long) self->specified_attributes);
-    if (strcmp(name, "intern") == 0 && self->intern) {
-	Py_INCREF(self->intern);
-	return self->intern;
+    if (strcmp(name, "intern") == 0) {
+        if (self->intern == NULL) {
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
+        else {
+            Py_INCREF(self->intern);
+            return self->intern;
+        }
     }
 
     handlernum = handlername2int(name);
@@ -1171,8 +1179,7 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         PyList_Append(rc, PyString_FromString("ordered_attributes"));
         PyList_Append(rc, PyString_FromString("returns_unicode"));
         PyList_Append(rc, PyString_FromString("specified_attributes"));
-	if (self->intern)
-	    PyList_Append(rc, PyString_FromString("intern"));
+        PyList_Append(rc, PyString_FromString("intern"));
 
         return rc;
     }
