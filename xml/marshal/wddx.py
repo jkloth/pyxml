@@ -34,17 +34,6 @@ class WDDXMarshaller(Marshaller):
     tag_instance = 'boolean'
     wddx_version = "0.9"
 
-    unmarshal_meth = {
-        'wddxPacket': ('um_start_root', 'um_end_root'),
-        'boolean': ('um_start_boolean', 'um_end_boolean'),
-        'number': ('um_start_number', 'um_end_number'),
-        'string': ('um_start_string', 'um_end_string'),
-        'array': ('um_start_list', 'um_end_list'),
-        'struct': ('um_start_dictionary', 'um_end_dictionary'),
-        'var': ('um_start_var', 'um_end_var'),
-        'recordSet': ('um_start_recordset', 'um_end_recordset'),
-        'field': ('um_start_field', 'um_end_field'),
-        }
     m_reference = m_tuple = Marshaller.m_unimplemented
     m_dictionary = m_None = m_code = Marshaller.m_unimplemented
     m_complex = Marshaller.m_unimplemented
@@ -94,6 +83,20 @@ class WDDXMarshaller(Marshaller):
         L.append( '</struct>')
         return L
 
+
+class WDDXUnmarshaller(Unmarshaller):
+    unmarshal_meth = {
+        'wddxPacket': ('um_start_root', 'um_end_root'),
+        'boolean': ('um_start_boolean', 'um_end_boolean'),
+        'number': ('um_start_number', 'um_end_number'),
+        'string': ('um_start_string', 'um_end_string'),
+        'array': ('um_start_list', 'um_end_list'),
+        'struct': ('um_start_dictionary', 'um_end_dictionary'),
+        'var': ('um_start_var', 'um_end_var'),
+        'recordSet': ('um_start_recordset', 'um_end_recordset'),
+        'field': ('um_start_field', 'um_end_field'),
+        }
+
     def um_start_boolean(self, name, attrs):
         v = attrs['value']
         self.data_stack.append( [v] )
@@ -103,8 +106,8 @@ class WDDXMarshaller(Marshaller):
         if ds[-1][0]=='true': ds[-1] = TRUE
         else: ds[-1] = FALSE
 
-    um_start_number = Marshaller.um_start_generic
-    um_end_number = Marshaller.um_end_float 
+    um_start_number = Unmarshaller.um_start_generic
+    um_end_number = Unmarshaller.um_end_float 
 
     def um_start_var(self, name, attrs):
         name = attrs['name']
@@ -133,11 +136,12 @@ class WDDXMarshaller(Marshaller):
         self.data_stack.append( field )
         self.data_stack.append(LIST)
         self.data_stack.append( [] )
-    um_end_field = Marshaller.um_end_list
-	
+    um_end_field = Unmarshaller.um_end_list
+
 _m = WDDXMarshaller()
 dump = _m.dump ; dumps = _m.dumps
-load = _m.load ; loads = _m.loads
+_um = WDDXUnmarshaller()
+load = _um.load ; loads = _um.loads
     
 if __name__ == '__main__':
     print "Testing WDDX marshalling..."

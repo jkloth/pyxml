@@ -19,22 +19,6 @@ class XMLRPCMarshaller(Marshaller):
     tag_int = 'int'
     tag_float = 'double'
 
-    unmarshal_meth = {
-        'methodCall': ('um_start_root', 'um_end_root'),
-        'i4': ('um_start_int', 'um_end_int'),
-        'int': ('um_start_int', 'um_end_int'),
-        'boolean': ('um_start_boolean', 'um_end_boolean'),
-        'string': ('um_start_string', 'um_end_string'),
-        'name': ('um_start_string', 'um_end_string'),
-        'double': ('um_start_float', 'um_end_float'),
-        'datetime.iso8601': ('um_start_iso8601', 'um_end_iso8601'),
-        'array': ('um_start_list', 'um_end_list'),
-        'value': ('um_start_ignore', 'um_end_ignore'),
-        'data': ('um_start_ignore', 'um_end_ignore'),
-        'member': ('um_start_ignore', 'um_end_ignore'),
-        'struct': ('um_start_dictionary', 'um_end_dictionary'),
-        }
-
     def m_instance(self, value, dict):
         if value not in [TRUE, FALSE]:
             self.m_unimplemented(value, dict)
@@ -63,7 +47,24 @@ class XMLRPCMarshaller(Marshaller):
         L.append( '</struct>')
         return L
 
-    um_start_boolean = Marshaller.um_start_generic
+class XMLRPCUnmarshaller(Unmarshaller):
+    unmarshal_meth = {
+        'methodCall': ('um_start_root', 'um_end_root'),
+        'i4': ('um_start_int', 'um_end_int'),
+        'int': ('um_start_int', 'um_end_int'),
+        'boolean': ('um_start_boolean', 'um_end_boolean'),
+        'string': ('um_start_string', 'um_end_string'),
+        'name': ('um_start_string', 'um_end_string'),
+        'double': ('um_start_float', 'um_end_float'),
+        'datetime.iso8601': ('um_start_iso8601', 'um_end_iso8601'),
+        'array': ('um_start_list', 'um_end_list'),
+        'value': ('um_start_ignore', 'um_end_ignore'),
+        'data': ('um_start_ignore', 'um_end_ignore'),
+        'member': ('um_start_ignore', 'um_end_ignore'),
+        'struct': ('um_start_dictionary', 'um_end_dictionary'),
+        }
+    
+    um_start_boolean = Unmarshaller.um_start_generic
     def um_end_boolean(self, name):
         ds = self.data_stack
         if ds[-1][0]=='1': ds[-1] = TRUE
@@ -79,7 +80,7 @@ class XMLRPCMarshaller(Marshaller):
         ds = self.data_stack
         self.ds[-2:] = [ (self.ds[-2], self.ds[-1] ) ]
 
-    um_start_iso8601 = Marshaller.um_start_generic
+    um_start_iso8601 = Unmarshaller.um_start_generic
     def um_end_iso8601(self, name):
         from xml.utils import iso8601
         ds = self.data_stack
@@ -98,15 +99,11 @@ class XMLRPCMarshaller(Marshaller):
             d[key] = value
         ds[index:] = [ d ]
 
-#    def um_start_list(self, name, attrs):
-#        self.data_stack.append(LIST)
-#        self.data_stack.append( [] )
-        
-#    um_end_list = Marshaller.um_end_list
         
 _m = XMLRPCMarshaller()
 dump = _m.dump ; dumps = _m.dumps
-load = _m.load ; loads = _m.loads
+_um = XMLRPCUnmarshaller()
+load = _um.load ; loads = _um.loads
 
 if __name__ == '__main__':
     print "Testing XML-RPC marshalling..."

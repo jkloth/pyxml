@@ -9,15 +9,6 @@ from types import *
 import string
 from xml.sax import saxlib
 
-# These values are used as markers in the stack when unmarshalling
-# one of the structures below.  When a <tuple> tag is encountered, for
-# example, the TUPLE object is pushed onto the stack, and further
-# objects are processed.  When the </tuple> tag is found, the code
-# looks back into the stack until TUPLE is found; all the higher
-# objects are then collected into a tuple.  Ditto for lists...
- 
-TUPLE = {} ; LIST = {} ; DICT = {}
-
 # Basic marshaller class, customizable by overriding it and
 # changing various attributes and methods.
 # It's also used as a SAX handler, which may be a good idea but may
@@ -44,38 +35,6 @@ class Marshaller(saxlib.HandlerBase):
     tag_code = 'code'
     tag_none = 'none'
 
-    # This dictionary maps element names to the names of starting and ending
-    # functions to call when unmarshalling them.  My convention is to
-    # name them um_start_foo and um_end_foo, but do whatever you like.
-    
-    unmarshal_meth = {
-        'marshal': ('um_start_root', 'um_end_root'),
-        'int': ('um_start_int', 'um_end_int'),
-        'float': ('um_start_float', 'um_end_float'),
-        'long': ('um_start_long', 'um_end_long'),
-        'string': ('um_start_string', 'um_end_string'),
-        'tuple': ('um_start_tuple', 'um_end_tuple'),
-        'list': ('um_start_list', 'um_end_list'),
-        'dictionary': ('um_start_dictionary', 'um_end_dictionary'),
-        'complex': ('um_start_complex', 'um_end_complex'),
-        'reference': ('um_start_reference', 'um_end_reference'),
-        'code': ('um_start_code', 'um_end_code'),
-        'none': ('um_start_none', 'um_end_none'),
-        }
-
-    def __init__(self):
-        saxlib.HandlerBase.__init__(self)
-
-        # Find the named methods, and convert them to the actual
-        # method object.
-        d = {}
-        for key, (sm, em) in self.unmarshal_meth.items():
-            meth1 = meth2 = None
-            if hasattr(self, sm): meth1 = getattr(self, sm)
-            if hasattr(self, em): meth2 = getattr(self, em)
-            d[ key ] = meth1, meth2
-        self.unmarshal_meth = d
-
     # The four basic functions that form the caller's interface
     def dump(self, value, file):
         "Write the value on the open file"
@@ -97,22 +56,6 @@ class Marshaller(saxlib.HandlerBase):
               L +
               ['</' + self.tag_root + '>'] )
         return string.join(L, "") 
-
-    def load(self, file):
-        "Unmarshal one value, reading it from a file-like object"
-        # Instatiate a new object; unmarshalling isn't thread-safe
-        # because it modifies attributes on the object.
-        m = self.__class__()
-        return m._load(file)
-
-    def loads(self, string):
-        "Unmarshal one value from a string"
-        # Instatiate a new object; unmarshalling isn't thread-safe
-        # because it modifies attributes on the object.
-        m = self.__class__()
-        import StringIO
-        file = StringIO.StringIO(string)
-        return m._load(file)
 
     # Entry point for marshalling.  This function gets the name of the 
     # type of the object being marshalled, and calls the
@@ -234,6 +177,65 @@ class Marshaller(saxlib.HandlerBase):
         L.append( '</code>' )
         i = str( id(value) )
         return L
+
+
+# These values are used as markers in the stack when unmarshalling
+# one of the structures below.  When a <tuple> tag is encountered, for
+# example, the TUPLE object is pushed onto the stack, and further
+# objects are processed.  When the </tuple> tag is found, the code
+# looks back into the stack until TUPLE is found; all the higher
+# objects are then collected into a tuple.  Ditto for lists...
+ 
+TUPLE = {} ; LIST = {} ; DICT = {}
+
+class Unmarshaller(saxlib.HandlerBase):
+    # This dictionary maps element names to the names of starting and ending
+    # functions to call when unmarshalling them.  My convention is to
+    # name them um_start_foo and um_end_foo, but do whatever you like.
+    
+    unmarshal_meth = {
+        'marshal': ('um_start_root', 'um_end_root'),
+        'int': ('um_start_int', 'um_end_int'),
+        'float': ('um_start_float', 'um_end_float'),
+        'long': ('um_start_long', 'um_end_long'),
+        'string': ('um_start_string', 'um_end_string'),
+        'tuple': ('um_start_tuple', 'um_end_tuple'),
+        'list': ('um_start_list', 'um_end_list'),
+        'dictionary': ('um_start_dictionary', 'um_end_dictionary'),
+        'complex': ('um_start_complex', 'um_end_complex'),
+        'reference': ('um_start_reference', 'um_end_reference'),
+        'code': ('um_start_code', 'um_end_code'),
+        'none': ('um_start_none', 'um_end_none'),
+        }
+
+    def __init__(self):
+        saxlib.HandlerBase.__init__(self)
+
+        # Find the named methods, and convert them to the actual
+        # method object.
+        d = {}
+        for key, (sm, em) in self.unmarshal_meth.items():
+            meth1 = meth2 = None
+            if hasattr(self, sm): meth1 = getattr(self, sm)
+            if hasattr(self, em): meth2 = getattr(self, em)
+            d[ key ] = meth1, meth2
+        self.unmarshal_meth = d
+
+    def load(self, file):
+        "Unmarshal one value, reading it from a file-like object"
+        # Instatiate a new object; unmarshalling isn't thread-safe
+        # because it modifies attributes on the object.
+        m = self.__class__()
+        return m._load(file)
+
+    def loads(self, string):
+        "Unmarshal one value from a string"
+        # Instatiate a new object; unmarshalling isn't thread-safe
+        # because it modifies attributes on the object.
+        m = self.__class__()
+        import StringIO
+        file = StringIO.StringIO(string)
+        return m._load(file)
 
     # Basic unmarshalling routine; it creates a SAX XML parser,
     # registers self as the SAX handler, parses it, and returns
@@ -385,8 +387,8 @@ class Marshaller(saxlib.HandlerBase):
 
 _m = Marshaller()
 dump = _m.dump ; dumps = _m.dumps
-load = _m.load ; loads = _m.loads
-
+_um = Unmarshaller()
+load = _um.load ; loads = _um.loads
 
 def test(load, loads, dump, dumps, test_values,
          do_assert = 1):
