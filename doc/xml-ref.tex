@@ -35,16 +35,6 @@ has to be filled in later, or rewritten, or verified, or something.
 
 \tableofcontents
 
-\section{\module{xml.parsers.xmllib} ---
-         Augmented version of \module{xmllib}}
-
-This is a version of the \module{xmllib} module from Python 1.5,
-modified to use the \module{sgmlop} C extension when it's available.
-This produces a significant speedup, amounting to about a factor of 5.
-The interface is unchanged from the original \module{xmllib} module;
-consult the Python Library Reference documentation for that module.
-
-
 %\section{\module{xml.dom}}
 
 \section{\module{xml.dom.ext.c14n} ---
@@ -296,6 +286,18 @@ used in that standard.
     The URI of the namespace for MIME-type bindings for WSDL.
   \end{memberdesc}
 \end{classdesc*}
+
+
+\section{\module{xml.parsers.xmllib} ---
+         Augmented version of \module{xmllib}}
+
+This is a version of the \module{xmllib} module from Python 1.5,
+modified to use the \module{sgmlop} C extension when it's available.
+This produces a significant speedup, amounting to about a factor of 5.
+The interface is unchanged from the original \module{xmllib} module;
+consult the
+\citetitle[http://www.python.org/doc/current/lib/module-xmllib.html]{Python
+Library Reference} documentation for that module.
 
 
 %\section{\module{xml.sax.drivers}}
