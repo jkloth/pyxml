@@ -61,6 +61,9 @@ class Node(xml.dom.Node, GetattrMagic):
             self.writexml(writer, "", indent, newl)
         return writer.getvalue()
 
+    def hasAttributes(self):
+        return False
+
     def hasChildNodes(self):
         if self.childNodes:
             return True
