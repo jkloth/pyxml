@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: handler.py,v 1.3 2001/08/31 07:24:53 larsga Exp $
+$Id: handler.py,v 1.4 2001/12/30 22:16:34 loewis Exp $
 """
 
 version = '2.0beta'
@@ -317,6 +317,17 @@ property_xml_string = "http://xml.org/sax/properties/xml-string"
 # description: The literal string of characters that was the source for
 #              the current event.
 # access: read-only
+
+property_encoding = "http://www.python.org/sax/properties/encoding"
+# data type: String
+# description: The name of the encoding to assume for input data.
+# access: write: set the encoding, e.g. established by a higher-level
+#                protocol. May change during parsing (e.g. after
+#                processing a META tag)
+#         read:  return the current encoding (possibly established through
+#                auto-detection.
+# initial value: UTF-8 
+#
 
 all_properties = [property_lexical_handler,
                   property_dom_node,
