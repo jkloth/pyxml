@@ -1,4 +1,4 @@
-import string, urlparse, urllib2, StringIO, xml.sax.sax2exts, xml.sax.handler
+import string, urllib, urllib2, StringIO, xml.sax.sax2exts, xml.sax.handler
 from xml.dom import minidom,pulldom, EMPTY_NAMESPACE
 
 # _XsltElementBase is used when Ft.Lib.pDomlette.Element is not available
@@ -53,7 +53,7 @@ class _ReaderBase:
         self._currText = ''
 
     def fromUri(self, uri, baseUri = '',  ownerDoc=None, stripElements=None):
-        url = urlparse.urljoin(baseUri, uri)
+        url = urllib.basejoin(baseUri, uri)
         stream = urllib2.urlopen(url)
         return self.fromStream(stream, baseUri, ownerDoc, stripElements)
 
