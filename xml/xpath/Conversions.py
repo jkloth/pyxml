@@ -20,7 +20,7 @@ from xml.xpath import NamespaceNode
 from xml.xpath import NaN, Inf
 from xml.xpath import Util
 from xml.xpath import NAMESPACE_NODE
-from xml.xpath import boolean
+from xml.utils import boolean
 
 
 import types
