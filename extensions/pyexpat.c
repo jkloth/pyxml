@@ -2,6 +2,8 @@
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
+#include "compile.h"
+#include "frameobject.h"
 #ifdef HAVE_EXPAT_H
 #include "expat.h"
 #else
@@ -59,6 +61,7 @@ struct HandlerInfo {
     const char *name;
     xmlhandlersetter setter;
     xmlhandler handler;
+    PyCodeObject *tb_code;
 };
 
 staticforward struct HandlerInfo handler_info[64];
@@ -218,6 +221,76 @@ flag_error(xmlparseobject *self)
     clear_handlers(self);
 }
 
+static PyCodeObject*
+getcode(enum HandlerTypes slot, char* func_name, int lineno)
+{
+	PyObject *code = NULL;
+	PyObject *name = NULL;
+	PyObject *nulltuple = NULL;
+	PyObject *filename = NULL;
+	if (handler_info[slot].tb_code == NULL) {
+		code = PyString_FromString("");
+		if (code == NULL)
+			goto failed;
+		name = PyString_FromString(func_name);
+		if (name == NULL)
+			goto failed;
+		nulltuple = PyTuple_New(0);
+		if (nulltuple == NULL)
+			goto failed;
+		filename = PyString_FromString("pyexpat.c");
+		handler_info[slot].tb_code = PyCode_New(
+			0,		/* argcount */
+			0,		/* nlocals */
+			0,		/* stacksize */
+			0,		/* flags */
+			code,		/* code */
+			nulltuple,	/* consts */
+			nulltuple,	/* names */
+			nulltuple,	/* varnames */
+			filename,	/* filename */
+			name,		/* name */
+			lineno,		/* firstlineno */
+			code		/* lnotab */
+			);
+		if (handler_info[slot].tb_code == NULL)
+			goto failed;
+		Py_DECREF(code);
+		Py_DECREF(nulltuple);
+		Py_DECREF(filename);
+		Py_DECREF(name);
+	}
+	return handler_info[slot].tb_code;
+  failed:
+	Py_XDECREF(code);
+	Py_XDECREF(name);
+	return NULL;
+}
+
+static PyObject*
+call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
+{
+	PyThreadState *tstate = PyThreadState_GET();
+	PyFrameObject *f;
+	PyObject *res;
+	if (c == NULL)
+		return NULL;
+	f = PyFrame_New(
+			tstate,			/*back*/
+			c,			/*code*/
+			tstate->frame->f_globals,	/*globals*/
+			NULL);			/*locals*/
+	if (f == NULL)
+		return NULL;
+	tstate->frame = f;
+	res = PyEval_CallObject(func, args);
+	if (res == NULL && tstate->curexc_traceback == NULL)
+		PyTraceBack_Here(f);
+	tstate->frame = f->f_back;
+	Py_DECREF(f);
+	return res;
+}
+
 #define RC_HANDLER(RC, NAME, PARAMS, INIT, PARAM_FORMAT, CONVERSION, \
 		RETURN, GETUSERDATA) \
 \
@@ -231,7 +304,7 @@ static RC my_##NAME##Handler PARAMS {\
 	    && self->handlers[NAME] != Py_None) { \
 		args = Py_BuildValue PARAM_FORMAT ;\
 		if (!args) return RETURN; \
-		rv = PyEval_CallObject(self->handlers[NAME], args); \
+		rv = call_with_frame(getcode(NAME,#NAME,__LINE__),self->handlers[NAME], args); \
 		Py_DECREF(args); \
 		if (rv == NULL) { \
 			flag_error(self); \
