@@ -138,16 +138,26 @@ class NodeList(UserList.UserList):
     """An ordered collection of nodes, equivalent to a Python list.  The only
     difference is that an .item() method and a .length attribute are added.
     """
-    def __init__(self, list, document):
+    def __init__(self, list, document, parent):
         # We don't make a copy of the list; instead, we take a reference
         # to it, so that the NodeList is always up-to-date.
         self.data = list
         self._document = document
+        if type(parent) != type( [] ):
+            parent = [parent] * len(list)
+        self._parent = parent
 
-    def __repr__(self): return 'NodeList' + repr(self.data)
+    def __repr__(self):
+        s = '<NodeList ['
+        for i in range(len(self.data)):
+            n = self.data[i] ; parent = self._parent[i]
+            n = NODE_CLASS[ n.type ](n, parent, self._document)
+            s = s + repr(n) + ', '
+        return s[:-2] + ']>'
+    
     def __getitem__(self, i):
         n = self.data[i]
-        return NODE_CLASS[ n.type ](n, None, self._document)
+        return NODE_CLASS[ n.type ](n, self._parent[i], self._document)
     
     item = UserList.UserList.__getitem__
     get_length = UserList.UserList.__len__
@@ -234,7 +244,7 @@ class Node:
     def _index(self):
         "Return the index of this child in its parent's child list"
         if self.parentNode:
-            return self.parentNode._node.children._index(self)
+            return self.parentNode._node.children.index(self._node)
         else:
             return -1
 
@@ -287,7 +297,7 @@ class Node:
     def get_childNodes(self):
         """Return a NodeList containing all children of this node. If there
         are no children, this is a NodeList containing no nodes."""
-        return NodeList(self._node.children, self.get_ownerDocument() )
+        return NodeList(self._node.children, self.get_ownerDocument(), self )
 
     def get_firstChild(self):
         """Return the first child of this node. If there is no such node, this
@@ -318,7 +328,7 @@ class Node:
             return None
         else:
             n = self.parentNode._node.children[i - 1]
-            return NODE_CLASS[ n.type ] (n, self, self._document)
+            return NODE_CLASS[ n.type ] (n, self.parentNode, self._document)
 
     def get_nextSibling(self):
         """Return the node immediately following this node. If there is no such
@@ -329,7 +339,8 @@ class Node:
         if i == -1 or i == len(L) - 1:
             return None
         else:
-            return L[i + 1]
+            n = L[i+1]
+            return NODE_CLASS[ n.type ] (n, self.parentNode, self._document)
 
     def get_attributes(self):
         return None
@@ -746,14 +757,17 @@ class Element(Node):
         tag name, in the order in which they would be encountered in
         a preorder traversal of the Element tree."""
 
-        L = []
+        nodes = [] ; parents = []
         for child in self._node.children:
             if child.type == ELEMENT:
                 d = Element(child, self, self._document)
                 if tagname == '*' or child.name == tagname:
-                    L.append( child )
-                L = L + d.getElementsByTagName(tagname).data
-        return NodeList(L, self.get_ownerDocument() )
+                    nodes.append( child )
+                    parents.append( self.parentNode )
+                nl = d.getElementsByTagName(tagname)
+                nodes = nodes + nl.data
+                parents = parents + nl._parent
+        return NodeList(nodes, self.get_ownerDocument(), parents )
 
     def normalize(self):
         """Puts all Text nodes in the full depth of the sub-tree
@@ -985,14 +999,15 @@ class Document(Node):
         traversal of the Document tree."""
         
         elem = self.get_documentElement()
-        if elem == None: return NodeList([], self)
-        L = []
+        if elem == None: return NodeList([], self, None)
+        nodes = [] ; parents = []
         if tagname == '*' or tagname == elem._node.name:
-            L.append( elem._node )
-        L = L + elem.getElementsByTagName(tagname).data
-        return NodeList( L, self )
+            nodes.append( elem._node ) ; parents.append( self.parentNode )
+        nl = elem.getElementsByTagName(tagname)
+        nodes = nodes + nl.data
+        parents = parents + nl._parent
+        return NodeList( nodes, self, parents )
         
-
     # Extended methods for creating entity and notation nodes
     def createNotation(self, name, publicId, systemId):
         "Return a new Notation object."
@@ -1099,7 +1114,7 @@ class Document(Node):
                 oldChild.parentNode = None
                 return oldChild
         raise NotFoundException("oldChild not a child of this node")
-    
+
 class DocumentFragment(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
