@@ -529,14 +529,17 @@ class NamedNodeMap(NewStyle, GetattrMagic):
     # same as set
     def __setitem__(self, attname, value):
         if isinstance(value, StringTypes):
-            node = Attr(attname)
+            try:
+                node = self._attrs[attname]
+            except KeyError:
+                node = Attr(attname)
+                node.ownerDocument = self._ownerElement.ownerDocument
             node.value = value
-            node.ownerDocument = self._ownerElement.ownerDocument
         else:
             if not isinstance(value, Attr):
                 raise TypeError, "value must be a string or Attr object"
             node = value
-        self.setNamedItem(node)
+            self.setNamedItem(node)
 
     def getNamedItem(self, name):
         try:
@@ -683,21 +686,41 @@ class Element(Node):
             return ""
 
     def setAttribute(self, attname, value):
-        attr = Attr(attname)
-        # for performance
-        d = attr.__dict__
-        d["value"] = d["nodeValue"] = value
-        d["ownerDocument"] = self.ownerDocument
-        self.setAttributeNode(attr)
+        attr = self.getAttributeNode(attname)
+        if attr is None:
+            attr = Attr(attname)
+            # for performance
+            d = attr.__dict__
+            d["value"] = d["nodeValue"] = value
+            d["ownerDocument"] = self.ownerDocument
+            self.setAttributeNode(attr)
+        elif value != attr.value:
+            d = attr.__dict__
+            d["value"] = d["nodeValue"] = value
+            if attr.isId:
+                _clear_id_cache(self)
 
     def setAttributeNS(self, namespaceURI, qualifiedName, value):
         prefix, localname = _nssplit(qualifiedName)
-        # for performance
-        attr = Attr(qualifiedName, namespaceURI, localname, prefix)
-        d = attr.__dict__
-        d["value"] = d["nodeValue"] = value
-        d["ownerDocument"] = self.ownerDocument
-        self.setAttributeNode(attr)
+        attr = self.getAttributeNodeNS(namespaceURI, localname)
+        if attr is None:
+            # for performance
+            attr = Attr(qualifiedName, namespaceURI, localname, prefix)
+            d = attr.__dict__
+            d["prefix"] = prefix
+            d["nodeName"] = qualifiedName
+            d["value"] = d["nodeValue"] = value
+            d["ownerDocument"] = self.ownerDocument
+            self.setAttributeNode(attr)
+        else:
+            d = attr.__dict__
+            if value != attr.value:
+                d["value"] = d["nodeValue"] = value
+                if attr.isId:
+                    _clear_id_cache(self)
+            if attr.prefix != prefix:
+                d["prefix"] = prefix
+                d["nodeName"] = qualifiedName
 
     def getAttributeNode(self, attrname):
         return self._attrs.get(attrname)
@@ -709,10 +732,10 @@ class Element(Node):
         if attr.ownerElement not in (None, self):
             raise xml.dom.InuseAttributeErr("attribute node already owned")
         old1 = self._attrs.get(attr.name, None)
-        if old1:
+        if old1 is not None:
             self.removeAttributeNode(old1)
         old2 = self._attrsNS.get((attr.namespaceURI, attr.localName), None)
-        if old2 and old2 is not old1:
+        if old2 is not None and old2 is not old1:
             self.removeAttributeNode(old2)
         _set_attribute_node(self, attr)
 

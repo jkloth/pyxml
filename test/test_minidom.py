@@ -208,7 +208,8 @@ def testRemoveAttributeNode():
     confirm(len(child.attributes) == 1)
     node = child.getAttributeNode("spam")
     child.removeAttributeNode(node)
-    confirm(len(child.attributes) == 0)
+    confirm(len(child.attributes) == 0
+            and child.getAttributeNode("spam") is None)
 
     dom.unlink()
 
@@ -218,13 +219,36 @@ def testChangeAttr():
     el.setAttribute("spam", "jam")
     confirm(len(el.attributes) == 1)
     el.setAttribute("spam", "bam")
-    confirm(len(el.attributes) == 1)
+    # Set this attribute to be an ID and make sure that doesn't change
+    # when changing the value:
+    el.setIdAttribute("spam")
+    confirm(len(el.attributes) == 1
+            and el.attributes["spam"].value == "bam"
+            and el.attributes["spam"].nodeValue == "bam"
+            and el.getAttribute("spam") == "bam"
+            and el.getAttributeNode("spam").isId)
     el.attributes["spam"] = "ham"
-    confirm(len(el.attributes) == 1)
+    confirm(len(el.attributes) == 1
+            and el.attributes["spam"].value == "ham"
+            and el.attributes["spam"].nodeValue == "ham"
+            and el.getAttribute("spam") == "ham"
+            and el.attributes["spam"].isId)
     el.setAttribute("spam2", "bam")
-    confirm(len(el.attributes) == 2)
-    el.attributes[ "spam2"] = "bam2"
-    confirm(len(el.attributes) == 2)
+    confirm(len(el.attributes) == 2
+            and el.attributes["spam"].value == "ham"
+            and el.attributes["spam"].nodeValue == "ham"
+            and el.getAttribute("spam") == "ham"
+            and el.attributes["spam2"].value == "bam"
+            and el.attributes["spam2"].nodeValue == "bam"
+            and el.getAttribute("spam2") == "bam")
+    el.attributes["spam2"] = "bam2"
+    confirm(len(el.attributes) == 2
+            and el.attributes["spam"].value == "ham"
+            and el.attributes["spam"].nodeValue == "ham"
+            and el.getAttribute("spam") == "ham"
+            and el.attributes["spam2"].value == "bam2"
+            and el.attributes["spam2"].nodeValue == "bam2"
+            and el.getAttribute("spam2") == "bam2")
     dom.unlink()
 
 def testGetAttrList():
