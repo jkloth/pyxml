@@ -60,7 +60,7 @@ class Parser:
 
     ns = self.find_prefix(name[:idx])
     if ns is None:
-      raise error, 'namespace prefix not found'
+      raise error, 'namespace prefix ("%s") not found' % name[:idx]
 
     return ns, name[idx+1:]
 
