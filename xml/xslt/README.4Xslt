@@ -47,7 +47,7 @@ XPatternParser.py
 XPattern.py
 XPatterParserBase.py   [only for testsuite]
 
-The following files where ported to use minidom:
+The following files were ported to use minidom:
 
 Processor.py
 XsltContext.py
