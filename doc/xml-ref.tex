@@ -301,6 +301,11 @@ Subclasses are expected to define the following method to determine
 how the \class{Document} instances returned by the \method{parse()}
 method will be created.
 
+\begin{notice}[warning]
+  The interface for subclasses is \emph{very} preliminary, and should
+  be considered likely to change in future releases.
+\end{notice}
+
 \begin{methoddesc}[DOMBuilder]{_parse_bytestream}{stream, options}
   Returns a \class{Document} instance parsed from the file object
   given as \var{stream} using the configuration options in the
