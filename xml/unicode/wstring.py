@@ -1,7 +1,7 @@
 "Main module for the wide string support."
 
 try:
-    from  wstrop import *
+    from _wstrop import *
 except ImportError:
     from wstremul import *
 

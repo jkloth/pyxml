@@ -1,8 +1,9 @@
 # basic tests
 
 import xmllib
-import sgmlop, sys
+import sys
 import time, string
+from xml.parsers import _sgmlop
 
 try:
     FILE, VERBOSE = sys.argv[1], 2
@@ -14,7 +15,7 @@ print "test collecting parsers on", FILE
 print
 
 # --------------------------------------------------------------------
-# sgmlop
+# _sgmlop
 
 class myCollector:
     def __init__(self):
@@ -49,7 +50,7 @@ t = time.clock()
 for i in range(1):
     out = myCollector()
     fp = open(FILE)
-    parser = sgmlop.XMLParser()
+    parser = _sgmlop.XMLParser()
     parser.register(out)
     b = 0
     while 1:

@@ -2,7 +2,7 @@
 
 import time
 
-import sgmlop
+from xml.parsers import _sgmlop
 
 import sgmllib
 
@@ -35,7 +35,7 @@ def t2():
 
 def t3():
     fp = open(FILE)
-    parser = sgmlop.SGMLParser()
+    parser = _sgmlop.SGMLParser()
     while 1:
 	data = fp.read(SIZE)
 	if not data:
@@ -56,7 +56,7 @@ class Dummy:
 
 def t4():
     fp = open(FILE)
-    parser = sgmlop.SGMLParser()
+    parser = _sgmlop.SGMLParser()
     parser.register(Dummy())
     while 1:
 	data = fp.read(SIZE)

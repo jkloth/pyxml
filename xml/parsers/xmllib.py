@@ -7,9 +7,9 @@ import re
 import string
 
 try:
-    import sgmlop
+    import _sgmlop
 except ImportError:
-    sgmlop = None
+    _sgmlop = None
 
 # standard entity defs
 
@@ -492,7 +492,7 @@ class FastXMLParser:
 	self.nomoretags = 0
 	self.literal = 0
 	self.lineno = 1
-	self.parser = sgmlop.XMLParser()
+	self.parser = _sgmlop.XMLParser()
 	self.feed = self.parser.feed
 	self.parser.register(self)
 
@@ -653,10 +653,10 @@ class FastXMLParser:
     def unknown_entityref(self, ref): pass
 
 
-#sgmlop = None
+#_sgmlop = None
 
 # pick a suitable parser
-if sgmlop:
+if _sgmlop:
     XMLParser = FastXMLParser
 else:
     XMLParser = SlowXMLParser

@@ -13,9 +13,9 @@ import re
 import string
 
 try:
-    import sgmlop
+    import _sgmlop
 except ImportError:
-    sgmlop = None
+    _sgmlop = None
 
 # standard entity defs
 
@@ -387,7 +387,7 @@ class FastSGMLParser:
 	self.lasttag = '???'
 	self.nomoretags = 0
 	self.literal = 0
-	self.parser = sgmlop.SGMLParser()
+	self.parser = _sgmlop.SGMLParser()
 	self.feed = self.parser.feed
 	self.parser.register(self)
 
@@ -421,7 +421,7 @@ class FastSGMLParser:
     # Internal -- finish processing of start tag
     # Return -1 for unknown tag, 0 for open-only tag, 1 for balanced tag
     def finish_starttag(self, tag, attrs):
-	# FIXME: should move this logic into sgmlop!
+	# FIXME: should move this logic into _sgmlop!
 	try:
 	    method = getattr(self, 'start_' + tag)
 	except AttributeError:
@@ -512,10 +512,10 @@ class FastSGMLParser:
     def unknown_entityref(self, ref): pass
 
 
-#sgmlop = None
+#_sgmlop = None
 
 # pick a suitable parser
-if sgmlop:
+if _sgmlop:
     SGMLParser = FastSGMLParser
 else:
     SGMLParser = SlowSGMLParser
