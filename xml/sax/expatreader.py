@@ -9,7 +9,7 @@ from xml.sax._exceptions import *
 try:
     from xml.parsers import expat
 except ImportError:
-    raise SAXReaderNotAvailable("expat not supported",None) 
+    raise SAXReaderNotAvailable("expat not supported",None)
 from xml.sax import xmlreader, saxutils, handler
 
 AttributesImpl = xmlreader.AttributesImpl
@@ -40,12 +40,12 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._source = source
         self.reset()
         self._cont_handler.setDocumentLocator(self)
-        xmlreader.IncrementalParser.parse(self, source)            
+        xmlreader.IncrementalParser.parse(self, source)
 
     def prepareParser(self, source):
         if source.getSystemId() != None:
             self._parser.SetBase(source.getSystemId())
-        
+
     def getFeature(self, name):
         if name == handler.feature_namespaces:
             return self._namespaces
@@ -75,8 +75,8 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def feed(self, data, isFinal = 0):
         if not self._parsing:
-            self._parsing = 1
             self.reset()
+            self._parsing = 1
             self._cont_handler.startDocument()
 
         try:
@@ -98,7 +98,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self.feed("", isFinal = 1)
         self._cont_handler.endDocument()
         self._parsing = 0
-        
+
     def reset(self):
         if self._namespaces:
             self._parser = expat.ParserCreate(None, " ")
@@ -127,8 +127,9 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 #         self._parser.NotStandaloneHandler = 
         self._parser.ExternalEntityRefHandler = self.external_entity_ref
 
+        self._parsing = 0
         self._entity_stack = []
-        
+
     # Locator methods
 
     def getColumnNumber(self):
@@ -142,7 +143,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def getSystemId(self):
         return self._source.getSystemId()
-    
+
     # event handlers
     def start_element(self, name, attrs):
         self._cont_handler.startElement(name, AttributesImpl(attrs))
@@ -154,6 +155,8 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         pair = string.split(name)
         if len(pair) == 1:
             pair = (None, name)
+        else:
+            pair = tuple(pair)
 
         newattrs = {}
         for (aname, value) in attrs.items():
@@ -165,14 +168,16 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
             newattrs[apair] = value
 
-        self._cont_handler.startElementNS(pair, None, 
+        self._cont_handler.startElementNS(pair, None,
                                           AttributesNSImpl(newattrs, {}))
 
     def end_element_ns(self, name):
         pair = string.split(name)
         if len(pair) == 1:
             pair = (None, name)
-            
+        else:
+            pair = tuple(pair)
+
         self._cont_handler.endElementNS(pair, None)
 
     # this is not used (call directly to ContentHandler)
@@ -188,7 +193,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def end_namespace_decl(self, prefix):
         self._cont_handler.endPrefixMapping(prefix)
-        
+
     def unparsed_entity_decl(self, name, base, sysid, pubid, notation_name):
         self._dtd_handler.unparsedEntityDecl(name, pubid, sysid, notation_name)
 
@@ -200,7 +205,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         source = saxutils.prepare_input_source(source,
                                                self._source.getSystemId() or
                                                "")
-        
+
         self._entity_stack.append((self._parser, self._source))
         self._parser = self._parser.ExternalEntityParserCreate(context)
         self._source = source
@@ -213,12 +218,12 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         (self._parser, self._source) = self._entity_stack[-1]
         del self._entity_stack[-1]
         return 1
-        
+
 # ---
-        
+
 def create_parser(*args, **kwargs):
     return apply(ExpatParser, args, kwargs)
-        
+
 # ---
 
 if __name__ == "__main__":
