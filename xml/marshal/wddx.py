@@ -19,16 +19,16 @@ RECORDSET = {}
 import UserDict
 class RecordSet(UserDict.UserDict):
     def __init__(self, fields, *lists):
-	UserDict.UserDict.__init__(self)	
+        UserDict.UserDict.__init__(self)        
         if len(fields) != len(lists):
-	    raise ValueError, "Number of fields and lists must be the same"
+            raise ValueError, "Number of fields and lists must be the same"
         for L in lists[1:]:
             if len(L) != len(lists[0]): 
                 raise ValueError, "Number of entries in each list must be the same"
-	self.fields = fields
-	for i in range(len(fields)):
+        self.fields = fields
+        for i in range(len(fields)):
             f = fields[i] ; L = lists[i]
-	    self.data[ f ] = L
+            self.data[ f ] = L
 
 class WDDXMarshaller(Marshaller):
     DTD = '<!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd">'
@@ -55,16 +55,16 @@ class WDDXMarshaller(Marshaller):
 
     def m_recordset(self, value, dict):
         L = ['<recordSet rowCount="%i" fieldNames="%s">' % 
-	     (len(value), string.join( value.fields, ',') )]
+             (len(value), string.join( value.fields, ',') )]
         for f in value.fields:
             recs = value[f]
             L.append('<field name="%s">' % (f))
             for r in recs: L = L + self._marshal(r, dict)
             L.append('</field>')
 
-	L.append('</recordSet>')
-	return L
-	     
+        L.append('</recordSet>')
+        return L
+             
     def m_list(self, value, dict):
         L = []
         i = str(id(value)) ; dict[ i ] = 1
@@ -80,9 +80,9 @@ class WDDXMarshaller(Marshaller):
         i = str( id(value) ) ; dict[ i ] = 1
         L.append( '<struct>' )
         for key, v in value.items():
-	    L.append('<var name="%s">' % ( key,) )
+            L.append('<var name="%s">' % ( key,) )
             L = L + self._marshal(v, dict)
-	    L.append('</var>')
+            L.append('</var>')
         L.append( '</struct>')
         return L
 
@@ -127,7 +127,7 @@ class WDDXUnmarshaller(Unmarshaller):
             if ds[index] is RECORDSET: break
         assert index!=-1
         rowCount, fields = ds[index+1]
-	lists = [None] * len(fields)
+        lists = [None] * len(fields)
         for i in range(index+2, len(ds), 2):
             field = ds[i] ; value = ds[i+1]
             pos = fields.index( field )
@@ -149,24 +149,24 @@ load = _um.load ; loads = _um.loads
 def runtests():
     print "Testing WDDX marshalling..."
     recordset = RecordSet( ['NAME', 'AGE'],
-	                   ['John Doe', 'Jane Doe'],
-	                   [34, 31] )
+                           ['John Doe', 'Jane Doe'],
+                           [34, 31] )
     test(load, loads, dump, dumps,
          [TRUE, FALSE, 1, pow(2,123L), 19.72,  
           "here is a string & a <fake tag>",
-	  [1,2,3,"foo"], recordset,
+          [1,2,3,"foo"], recordset,
           {'lowerBound':18, 'upperBound': 139,
            'eggs':['rhode island red', 'bantam']},
-	  {'s': 'a string',
-	   'obj':{'s':'a string', 'n':-12.456},
-	   'n': -12.456, 'b':TRUE, 'a': [10,'second element'],
-	  }
+          {'s': 'a string',
+           'obj':{'s':'a string', 'n':-12.456},
+           'n': -12.456, 'b':TRUE, 'a': [10,'second element'],
+          }
          ]
         )
 
     test(load, loads, dump, dumps,
-	 [(1,3,"five",7)], do_assert=0
-	)
+         [(1,3,"five",7)], do_assert=0
+        )
 
 if __name__ == '__main__':
     runtests()

@@ -40,7 +40,7 @@ class Marshaller(saxlib.HandlerBase):
     def dump(self, value, file):
         "Write the value on the open file"
         dict = { 'id':1 }
-	root_tag = self.m_root(value, dict)
+        root_tag = self.m_root(value, dict)
         L = self._marshal(value, dict )
         L = ( [self.PROLOGUE + self.DTD] + root_tag + 
               L +
@@ -53,7 +53,7 @@ class Marshaller(saxlib.HandlerBase):
     def dumps(self, value):
         "Marshal value, returning the resulting string"
         dict = {'id':1}
-	root_tag = self.m_root(value, dict)
+        root_tag = self.m_root(value, dict)
         L = self._marshal(value, dict )
         L = ( [self.PROLOGUE + self.DTD] + root_tag +
               L +
@@ -186,11 +186,11 @@ class Marshaller(saxlib.HandlerBase):
         name = self.tag_instance ; L = []
         dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
         dict[ str(id(value)) ] = i ; dict[ i ] = value
-	cls = value.__class__
-	L.append( '<%s id="i%s" module="%s" class="%s">' 
-	         % (name, i, cls.__module__, cls.__name__) )
+        cls = value.__class__
+        L.append( '<%s id="i%s" module="%s" class="%s">' 
+                 % (name, i, cls.__module__, cls.__name__) )
 
-	# Check for pickle's __getinitargs__
+        # Check for pickle's __getinitargs__
         if hasattr(value, '__getinitargs__'):
             args = value.__getinitargs__()
             len(args) # XXX Assert it's a sequence
@@ -199,18 +199,18 @@ class Marshaller(saxlib.HandlerBase):
 
         L = L + self._marshal(args, dict )
 
-	# Check for pickle's __getstate__ function
+        # Check for pickle's __getstate__ function
         try:
             getstate = value.__getstate__
         except AttributeError:
             stuff = value.__dict__
-	else:
-	    stuff = getstate()
+        else:
+            stuff = getstate()
 
         L = L + self._marshal(stuff, dict)
         
-	L.append('</%s>' % (name,) )
-	return L
+        L.append('</%s>' % (name,) )
+        return L
 
 # These values are used as markers in the stack when unmarshalling
 # one of the structures below.  When a <tuple> tag is encountered, for
@@ -249,16 +249,16 @@ class Unmarshaller(saxlib.HandlerBase):
         # method object.
         d = {}
         for key, (sm, em) in self.unmarshal_meth.items():
-	    if sm is not None: sm = getattr(self, sm)
-	    if em is not None: em = getattr(self, em)
+            if sm is not None: sm = getattr(self, sm)
+            if em is not None: em = getattr(self, em)
             d[ key ] = sm,em
         self.unmarshal_meth = d
 
     def load(self, file):
         "Unmarshal one value, reading it from a file-like object"
         # Instatiate a new object; unmarshalling isn't thread-safe
-	# with a single object because it modifies attributes on the
-	# object.  
+        # with a single object because it modifies attributes on the
+        # object.  
         m = self.__class__()
         return m._load(file)
 
@@ -328,11 +328,11 @@ class Unmarshaller(saxlib.HandlerBase):
         if em is not None: em(name)
 
     def um_start_root(self, name, attrs):
-	self.dict = {}
-	self.data_stack = []
+        self.dict = {}
+        self.data_stack = []
 
     def um_start_reference(self, name, attrs):
-	assert attrs.has_key('id')
+        assert attrs.has_key('id')
         id = attrs['id']
         assert self.dict.has_key(id)
         self.data_stack.append( self.dict[id] )
@@ -433,45 +433,45 @@ class Unmarshaller(saxlib.HandlerBase):
         ds[index:] = [ d ]
 
     def um_start_instance(self, name, attrs):
-	module = attrs['module']
-	classname = attrs['class']
-	value = _EmptyClass()
+        module = attrs['module']
+        classname = attrs['class']
+        value = _EmptyClass()
         if attrs.has_key('id'):
             id = attrs[ 'id']
             self.dict[ id ] = value
         self.data_stack.append( value )
-	self.data_stack.append( module )
-	self.data_stack.append( classname )
+        self.data_stack.append( module )
+        self.data_stack.append( classname )
 
     def um_end_instance(self, name):
-	value, module, classname, initargs, dict = self.data_stack[-5:]
+        value, module, classname, initargs, dict = self.data_stack[-5:]
         klass = self.find_class(module, classname)
         instantiated = 0
-	if (not initargs and type(klass) is ClassType and
+        if (not initargs and type(klass) is ClassType and
             not hasattr(klass, "__getinitargs__")):
             value.__class__ = klass
             instantiated = 1
 
         if not instantiated:
             try:
-	        # Uh oh... we need to call the constructor with the initial
-	        # arguments, but we also have to preserve the identity of 
-		# the object, to keep recursive objects right.
+                # Uh oh... we need to call the constructor with the initial
+                # arguments, but we also have to preserve the identity of 
+                # the object, to keep recursive objects right.
                 v2 = apply(klass, initargs)
             except TypeError, err:
                 raise TypeError, "in constructor for %s: %s" % (
                     klass.__name__, str(err)), sys.exc_info()[2]
-	    else:
+            else:
                 for k,v in v2.__dict__.items():
-	            setattr(value, k, v)
+                    setattr(value, k, v)
 
         # Now set the object's attributes from the marshalled dictionary
-	for k,v in dict.items():
-	    setattr(value, k, v)
-	self.data_stack[ -5: ] = [value]
+        for k,v in dict.items():
+            setattr(value, k, v)
+        self.data_stack[ -5: ] = [value]
 
 # Helper class for instance unmarshalling
-class _EmptyClass: pass	        
+class _EmptyClass: pass         
 
 _m = Marshaller()
 dump = _m.dump ; dumps = _m.dumps
@@ -484,14 +484,14 @@ def test(load, loads, dump, dumps, test_values,
     import StringIO
 
     for item in test_values:
-	s = dumps(item)
+        s = dumps(item)
         print item, s
-	output = loads(s)
-	# Try it from a file
-	file = StringIO.StringIO()
-	dump(item, file)
-	file.seek(0)
-	output2 = load(file)
+        output = loads(s)
+        # Try it from a file
+        file = StringIO.StringIO()
+        dump(item, file)
+        file.seek(0)
+        output2 = load(file)
 
         if do_assert:
             assert item==output and item==output2 and output==output2
@@ -510,7 +510,7 @@ def runtests():
          (1,2,3), 
          ['alpha', 'beta', 'gamma'],
          {'key':'value', 1:2}
-	 ]
+         ]
     test(load, loads, dump, dumps, L)
 
     instance = _A() ; instance.subobject = _B() 
@@ -522,7 +522,7 @@ def runtests():
     test(load, loads, dump, dumps, L, do_assert=0)
 
     recursive_list = [None, 1, pow(3,65L), {1:'spam', 2:'eggs'},
-	              '<fake tag>', 1+5j ]
+                      '<fake tag>', 1+5j ]
     recursive_list.append( recursive_list )
     test(load, loads, dump, dumps, [ recursive_list ], do_assert=0)
 
