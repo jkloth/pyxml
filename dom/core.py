@@ -3,9 +3,10 @@ core.py: `light' implementation of the Document Object Model (core) level 1.
 
 Reference: http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/
 
-Deviations from the specs:
-
- XXX not documented yet -- one hopes there are none :)
+Deviations from the Level 1 spec:
+   * The list returned by .getElementsByTagName() isn't live
+   * Parent pointers of nodes returned by NodeList and NamedNodeMap are
+     always Node.
 
 Useful classes in this module are Node (abstract) and its
 (concrete) subclasses -- Document, Element, Text, Comment,
@@ -137,8 +138,20 @@ class NodeList(UserList.UserList):
     """An ordered collection of nodes, equivalent to a Python list.  The only
     difference is that an .item() method and a .length attribute are added.
     """
+    def __init__(self, list, document):
+        # We don't make a copy of the list; instead, we take a reference
+        # to it, so that the NodeList is always up-to-date.
+        self.data = list
+        self._document = document
+
+    def __repr__(self): return 'NodeList' + repr(self.data)
+    def __getitem__(self, i):
+        n = self.data[i]
+        return NODE_CLASS[ n.type ](n, None, self._document)
+    
     item = UserList.UserList.__getitem__
     get_length = UserList.UserList.__len__
+
 
 class NamedNodeMap(UserDict.UserDict):
     """Used to represent a collection of nodes that can be accessed by name.
@@ -146,16 +159,45 @@ class NamedNodeMap(UserDict.UserDict):
     getNamedItem and removeNamedItem.
     """
 
-    getNamedItem = UserDict.UserDict.__getitem__
-    removeNamedItem = UserDict.UserDict.__delitem__
-    get_length = UserDict.UserDict.__len__
+    def __init__(self, dict, document):
+        self.data = dict
+        self._document = document
+        
+    def __getitem__(self, key):
+        n = self.data[key]
+        assert n.type == ATTRIBUTE_NODE
+        n = NODE_CLASS[ n.type ](n, None, self._document )
+        return n
+
+    def __setitem__(self, key, item):
+        self.data[key] = item._node
     def setNamedItem(self, arg):
         key = arg.nodeName
-        self.data[key] = arg
+        self[key] = arg
 
     def item(self, index):
         return self.data.values[ index ]
 
+    getNamedItem = UserDict.UserDict.__getitem__
+    removeNamedItem = UserDict.UserDict.__delitem__
+    get_length = UserDict.UserDict.__len__
+
+    def items(self):
+        L = []
+        for key, value in self.data.items():
+            L.append( (key,
+                       NODE_CLASS[ value.type ](value, None, self._document )
+                       )
+                     )
+        return L
+    
+    def values(self):
+        L = self.data.values()
+        for i in range(L):
+            n = L[i]
+            L[i] = NODE_CLASS[ n.type ](n, None, self._document )
+        return L
+    
 class _nodeData:
     """Class used for storing the data for a single node.  Instances of
     this class should never be returned to users of the DOM implementation."""
@@ -245,15 +287,7 @@ class Node:
     def get_childNodes(self):
         """Return a NodeList containing all children of this node. If there
         are no children, this is a NodeList containing no nodes."""
-
-        # Copy the list, because we're going to modify it
-        L = self._node.children[:]
-
-        # Convert the list of _nodeData instances into a list of
-        # the appropriate Node subclasses
-        for i in range(len(L)):
-            L[i] =  NODE_CLASS[ L[i].type ] (L[i], self, self.get_ownerDocument() )
-        return NodeList(L)
+        return NodeList(self._node.children, self.get_ownerDocument() )
 
     def get_firstChild(self):
         """Return the first child of this node. If there is no such node, this
@@ -298,8 +332,8 @@ class Node:
             return L[i + 1]
 
     def get_attributes(self):
-        return self._node.attributes
-
+        return None
+    
     def get_ownerDocument(self):
         """The Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
@@ -560,7 +594,7 @@ class Attr(Node):
         # This must traverse all of the node's children, and return a
         # string containing their values
         s = ""
-        for child in self._node.children:
+        for n in self._node.children:
             if n.type == TEXT_NODE:
                 s = s + n.value
             else:
@@ -602,7 +636,6 @@ class Element(Node):
         for attr, attrnode in self._node.attributes.items():
             s = s + " %s='" % (attr,)
             for value in attrnode.children:
-                print value.__dict__
                 if value.type == TEXT_NODE:
                     s = s + escape(value.value) 
                 else:
@@ -625,7 +658,12 @@ class Element(Node):
         return self._node.name
 
     # Methods
-    
+
+    def get_attributes(self):
+        "Return a NamedNodeMap containing all the attributes of this element."
+        d = NamedNodeMap( self._node.attributes, self.get_ownerDocument() )
+        return d
+        
     def getAttribute(self, name):
         "Retrieve an attribute value by name."
 
@@ -705,9 +743,9 @@ class Element(Node):
             if child.type == ELEMENT:
                 d = Element(child, self, self._document)
                 if tagname == '*' or child.name == tagname:
-                    L.append(d)
-                L = L + d.getElementsByTagName(tagname)
-        return NodeList(L)
+                    L.append( child )
+                L = L + d.getElementsByTagName(tagname).data
+        return NodeList(L, self.get_ownerDocument() )
 
     def normalize(self):
         """Puts all Text nodes in the full depth of the sub-tree
@@ -791,7 +829,7 @@ class DocumentType(Node):
         return self._node.name
 
     def get_entities(self):
-        d = NamedNodeMap()
+        d = NamedNodeMap(self._node.entities, self._document)
         for entity, value in self._node.entities:
             pass # XXX
 
@@ -877,7 +915,7 @@ class Document(Node):
         d = _nodeData(ELEMENT_NODE)
         d.name = tagName
         d.value = None
-        d.attributes = NamedNodeMap()
+        d.attributes = {}
         elem = Element(d, None, self)
         for name, value in kwdict.items():
             elem.setAttribute(name, value)
@@ -939,11 +977,13 @@ class Document(Node):
         traversal of the Document tree."""
         
         elem = self.get_documentElement()
-        if elem == None: return []
+        if elem == None: return NodeList([], self)
         L = []
         if tagname == '*' or tagname == elem._node.name:
-            L.append( elem )
-        return L + elem.getElementsByTagName(tagname)
+            L.append( elem._node )
+        L = L + elem.getElementsByTagName(tagname).data
+        return NodeList( L, self )
+        
 
     # Extended methods for creating entity and notation nodes
     def createNotation(self, name, publicId, systemId):
@@ -1068,7 +1108,7 @@ class DocumentFragment(Node):
 
 NODE_CLASS = {
 ELEMENT_NODE                : Element,
-## ATTRIBUTE_NODE              : Attr, 
+ATTRIBUTE_NODE              : Attr, 
 TEXT_NODE                   : Text, 
 CDATA_SECTION_NODE          : CDATASection,
 ENTITY_REFERENCE_NODE       : EntityReference,
