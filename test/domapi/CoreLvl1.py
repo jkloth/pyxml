@@ -2059,7 +2059,7 @@ class NodeListReadTestCase(TestCaseBase):
         self.assert_(self.list.item(0) is None)
 
     def checkGetItem(self):
-        self.assertRaises(IndexSizeErr, self.list[0])
+        self.assertRaises(xml.dom.IndexSizeErr, self.list[0])
 
     # there's no cmp for NodeList right now
     #def checkCmp(self):
