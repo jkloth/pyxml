@@ -359,9 +359,6 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
                     c,				/*code*/
                     tstate->frame->f_globals,	/*globals*/
                     NULL			/*locals*/
-#if PYTHON_API_VERSION >= 1010
-                    ,NULL			/*closure*/
-#endif
                     );
     if (f == NULL)
         return NULL;
@@ -1473,7 +1470,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.43 $";
+    char *rev = "#Revision: 2.44 $";
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module;
     PyObject *modelmod_name;
