@@ -4,7 +4,7 @@
 
 print "SAX tests:\n"
 
-from xml.sax import saxlib, saxutils, make_parser, ContentHandler
+from xml.sax import saxutils, make_parser, ContentHandler
 from xml.sax.handler import feature_namespaces
 import StringIO
 import string
@@ -118,7 +118,7 @@ if 1:
 print "DOM tests:\n"
 
 import sys
-from xml.dom.ext.reader.Sax import FromXml
+from xml.dom.ext.reader import Sax2
 from xml.dom.ext import PrettyPrint
 
 dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
@@ -134,7 +134,8 @@ dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
 </xbel>"""
 
 # Parse the input into a DOM tree
-doc = FromXml(dom_xml)
+reader = Sax2.Reader()
+doc = reader.fromStream( StringIO.StringIO(dom_xml) )
 
 # Print it
 # for testing, we must explicitly pass sys.stdout, as regrtest will
