@@ -2,11 +2,11 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.26 2001/11/23 09:19:22 afayolle Exp $
+$Id: saxutils.py,v 1.27 2001/11/25 22:36:15 jhermann Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
-import handler, _exceptions, xmlreader
+import handler, _exceptions, xmlreader, saxlib
 
 try:
     _StringTypes = [types.StringType, types.UnicodeType]
@@ -250,6 +250,49 @@ class XMLGenerator(handler.ContentHandler):
 
     def processingInstruction(self, target, data):
         self._out.write('<?%s %s?>' % (target, data))
+
+
+class LexicalXMLGenerator(XMLGenerator, saxlib.LexicalHandler):
+    """A XMLGenerator that also supports the LexicalHandler interface"""
+
+    def __init__(self, out=None, encoding="iso-8859-1"):
+        XMLGenerator.__init__(self, out, encoding)
+        self._in_cdata = 0
+
+    def characters(self, content):
+        if self._in_cdata:
+            self._out.write(string.replace(content, ']]>', ']]>]]&gt;<![CDATA['))
+        else:
+            self._out.write(escape(content))
+
+    # LexicalHandler methods
+    # (we only support the most import ones and inherit the rest)
+
+    def startDTD(self, name, public_id, system_id):
+        self._out.write('<!DOCTYPE %s' % name)
+        if public_id:
+            self._out.write(' PUBLIC %s %s' % (
+                quoteattr(public_id or ""), quoteattr(system_id or "")
+            ))
+        elif system_id:
+            self._out.write(' SYSTEM %s' % quoteattr(system_id or ""))
+
+    def endDTD(self):
+        self._out.write('>')
+
+    def comment(self, content):
+        self._out.write('<!--')
+        self._out.write(content)
+        self._out.write('-->')
+
+    def startCDATA(self):
+        self._in_cdata = 1
+        self._out.write('<![CDATA[')
+
+    def endCDATA(self):
+        self._in_cdata = 0
+        self._out.write(']]>')
+
 
 # --- ContentGenerator is the SAX1 DocumentHandler for writing back XML
 class ContentGenerator(XMLGenerator):
