@@ -552,10 +552,11 @@ class Attr(Node):
                 s = s + '&' + c.name + ';'
         return s
     
-    def get_name(self):
+    def get_nodeName(self):
         return self._node.name
-
-    def get_value(self):
+    get_name = get_nodeName
+    
+    def get_nodeValue(self):
         # This must traverse all of the node's children, and return a
         # string containing their values
         s = ""
@@ -566,8 +567,9 @@ class Attr(Node):
                 # Must be an EntityReference
                 s = s + '&' + n.name + ';'
         return s
-
-    def set_value(self, value):
+    get_value = get_nodeValue
+    
+    def set_nodeValue(self, value):
         if self.readonly:
             raise NoModificationAllowedException("Read-only object")
         t = _nodeData(TEXT_NODE)
@@ -576,7 +578,8 @@ class Attr(Node):
         self._node.value = None
         self._node.children[0:] = [ t ]
         self._node.specified = 1
-
+    set_value = set_nodeValue
+    
     def get_specified(self):
         return self._node.specified
 
@@ -624,6 +627,8 @@ class Element(Node):
     # Methods
     
     def getAttribute(self, name):
+        "Retrieve an attribute value by name."
+
         if self._node.attributes.has_key(name):
             n = self._node.attributes[name]
             assert n.type == ATTRIBUTE_NODE
@@ -633,6 +638,10 @@ class Element(Node):
             return ""
     
     def setAttribute(self, name, value):
+        """Adds a new attribute. If an attribute with that name is
+        already present in the element, its value is changed to be
+        that of the value parameter. This value is a simple string."""
+        
         if isinstance(value, Node):
             raise ValueError, "setAttribute() method expects a string value"
         t = _nodeData(TEXT_NODE)
@@ -644,10 +653,14 @@ class Element(Node):
         self._node.attributes[name] = a
 
     def removeAttribute(self, name):
+        "Removes an attribute by name."
+
         if self._node.attributes.has_key(name):
             del self._node.attributes[name]
 
     def getAttributeNode(self, name):
+        "Retrieves an Attr node by name."
+        
         if not self._node.attributes.has_key( name ):
             return None
         d = self._node.attributes[name]
@@ -655,6 +668,10 @@ class Element(Node):
         return Attr(d, None, self._document)
 
     def setAttributeNode(self, newAttr):
+        """Adds a new attribute. If an attribute with that name is
+        already present in the element, it is replaced by the new
+        one."""
+        
         if not isinstance(newAttr, Attr):
             raise ValueError, "setAttributeNode() requires an Attr node as argument"
         name = newAttr._node.name
@@ -668,6 +685,7 @@ class Element(Node):
         return retval
 
     def removeAttributeNode(self, oldAttr):
+        "Removes the specified attribute."
         # XXX this needs to know about DTDs to restore a default value
         name = oldAttr._node.name
         if self._node.attributes.has_key( name ):
@@ -678,6 +696,10 @@ class Element(Node):
         else: return None
 
     def getElementsByTagName(self, tagname):
+        """Returns a NodeList of all descendant elements with a given
+        tag name, in the order in which they would be encountered in
+        a preorder traversal of the Element tree."""
+
         L = []
         for child in self._node.children:
             if child.type == ELEMENT:
@@ -688,6 +710,12 @@ class Element(Node):
         return NodeList(L)
 
     def normalize(self):
+        """Puts all Text nodes in the full depth of the sub-tree
+        underneath this Element into a "normal" form where only
+        markup (e.g., tags, comments, processing instructions, CDATA
+        sections, and entity references) separates Text nodes, i.e.,
+        there are no adjacent Text nodes."""
+
         # Traverse the list of children, and merge adjacent text nodes
         L = self._node.children
         for i in range(len(L)-1, 0, -1):
@@ -714,6 +742,11 @@ class Text(CharacterData):
         return '<Text node %s>' % (repr(s),)
         
     def splitText(self, offset):
+        """Breaks this Text node into two Text nodes at the specified
+        offset, keeping both in the tree as siblings. This node then
+        only contains all the content up to the offset point. And a
+        new Text node, which is inserted as the next sibling of this
+        node, contains all the content at and after the offset point."""
         n1 = _nodeData(TEXT_NODE) ; n2 = _nodeData(TEXT_NODE)
         n1.name = "#text" ; n2.name = "#text"
         n1.value = self.substringData(0, offset)
@@ -839,6 +872,8 @@ class Document(Node):
         return s
 
     def createElement(self, tagName, **kwdict):
+        "Return a new Element object."
+
         d = _nodeData(ELEMENT_NODE)
         d.name = tagName
         d.value = None
@@ -849,11 +884,14 @@ class Document(Node):
         return elem
 
     def createDocumentFragment(self):
+        "Return a new DocumentFragment object."
+        
         d = _nodeData(DOCUMENT_FRAGMENT_NODE)
         d.name = "#document-fragment"
         return DocumentFragment(d, None, self)
 
     def createTextNode(self, data):
+        "Return a new Text object."
         d = _nodeData(TEXT_NODE)
         d.name = "#text"
         d.value = data
@@ -861,36 +899,45 @@ class Document(Node):
     createText = createTextNode
     
     def createComment(self, data):
+        "Return a new Comment object."
         d = _nodeData(COMMENT_NODE)
         d.name = "#comment"
         d.value = data
         return Comment(d, None, self)
 
     def createCDATAsection(self, data):
+        "Return a new CDATASection object."
         d = _nodeData(CDATA_SECTION_NODE)
         d.name = "#cdata-section"
         d.value = data
         return CDATASection(d, None, self)
 
     def createProcessingInstruction(self, target, data):
+        "Return a new ProcessingInstruction object."
         d = _nodeData(PROCESSING_INSTRUCTION_NODE)
         d.name = target
         d.value = data
         return ProcessingInstruction(d, None, self)
         
     def createAttribute(self, name):
+        "Return a new Attribute object."
         d = _nodeData(ATTRIBUTE_NODE)
         d.name = name
         d.value = ""
         return Attribute(d, None, self)
 
     def createEntityReference(self, name):
+        "Return a new EntityRefernce object."
         d = _nodeData(ENTITY_REFERENCE_NODE)
         d.name = name
         d.value = None
         return EntityReference(d, None, self)
 
     def getElementsByTagName(self, tagname):
+        """Returns a NodeList of all the Elements with a given tag name
+        in the order in which they would be encountered in a preorder
+        traversal of the Document tree."""
+        
         elem = self.get_documentElement()
         if elem == None: return []
         L = []
@@ -900,6 +947,7 @@ class Document(Node):
 
     # Extended methods for creating entity and notation nodes
     def createNotation(self, name, publicId, systemId):
+        "Return a new Notation object."
         d = _nodeData(NOTATION_NODE)
         d.name = name
         d.value = None
@@ -907,6 +955,7 @@ class Document(Node):
         return Notation(d, None, self)
 
     def createEntity(self, name, publicId, systemId, notationName = None):
+        "Return a new Entity object."
         d = _nodeData(ENTITY_NODE)
         d.name = name
         d.value = None
@@ -921,6 +970,9 @@ class Document(Node):
         return self.DOMImplementation
 
     def get_documentElement(self):
+        """Return the root element of the Document object, or None
+        if there is no root element."""
+        
         doc = None
         for elem in self._node.children:
             if elem.type == ELEMENT_NODE:
@@ -930,6 +982,7 @@ class Document(Node):
                     raise HierarchyRequestException, \
                           "Too many Element children of Document" 
         return doc
+    
     def get_ownerDocument(self):
         """Return the Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
