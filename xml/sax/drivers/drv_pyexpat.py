@@ -2,7 +2,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.18 2004/11/29 13:15:22 loewis Exp $
+$Id: drv_pyexpat.py,v 1.19 2004/11/29 13:38:23 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -129,7 +129,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         if self.parser is None:
             # make sure close is idempotent
             return
-	if needFinal:
+        if needFinal:
             if self.parser.Parse("", 1) != 1:
                 self.__report_error()
         self.parser = None
