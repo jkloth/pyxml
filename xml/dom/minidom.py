@@ -20,8 +20,6 @@ from xml.dom import EMPTY_NAMESPACE
 from xml.dom.minicompat import *
 from xml.dom.xmlbuilder import DOMImplementationLS, DocumentLS
 
-_TupleType = type(())
-
 
 class Node(xml.dom.Node, GetattrMagic):
     _makeParentNodes = 1
@@ -412,7 +410,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
 
     #FIXME: is it appropriate to return .value?
     def __getitem__(self, attname_or_tuple):
-        if isinstance(attname_or_tuple, _TupleType):
+        if isinstance(attname_or_tuple, TupleType):
             return self._attrsNS[attname_or_tuple]
         else:
             return self._attrs[attname_or_tuple]
@@ -828,7 +826,7 @@ class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
                 return n
 
     def __getitem__(self, name_or_tuple):
-        if isinstance(name_or_tuple, _TupleType):
+        if isinstance(name_or_tuple, TupleType):
             return self.getNamedItemNS(*name_or_tuple)
         else:
             return self.getNamedItem(name_or_tuple)
