@@ -1195,9 +1195,8 @@ class Document(Node):
 
     # Override the Node mutation methods in order to check that
     # there's at most a single Element child, and to update
-    # self.documentElement.  XXX this code requires copying too
-    # darned much code from the Node class: is there a simpler way?
-
+    # self.documentElement.  
+	
     def insertBefore(self, newChild, refChild):
         """Inserts the node newChild before the existing child node
         refChild. If refChild is None, insert newChild at the end of
@@ -1206,53 +1205,59 @@ class Document(Node):
         If newChild is a DocumentFragment object, all of its children
         are inserted, in the same order, before refChild. If the
         newChild is already in the tree, it is first removed."""
+
+	# Check that this operation wouldn't result in the Document node
+	# having more than one children that are Element nodes.
+	# This is done by counting the number of unique element nodes
+	# in both the Document's children, and the nodes to be inserted.
+	if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+	    nodelist = newChild._node.children
+	else:
+	    nodelist = [newChild._node]
+
+	d = {}                         # Dictionary for counting
+	for c in nodelist:
+            if c.type == ELEMENT_NODE: d[ id(c) ] = None
+        for c in self._node.children:
+            if c.type == ELEMENT_NODE: d[ id(c) ] = None
+	if len(d) > 1:
+	    raise HierarchyRequestException, \
+               "insertBefore() would result in more than one root document element"
+         
+	# Call the original version of insertBefore
+	Node.insertBefore(self, newChild, refChild)
         
-        if self.readonly:
-            raise NoModificationAllowedException, "Read-only node "+repr(self)
-        self._checkChild(newChild, self)
-
-        if newChild._document != self._node:
-            raise WrongDocumentException("newChild %s created from a "
-                                         "different document" % (repr(newChild),) )
-
-        # If newChild is already in the tree, remove it
-        if newChild.get_parentNode() != None:
-            newChild.get_parentNode().removeChild( newChild )
-
-        if refChild is None:
-            self._node.children.append( newChild._node )
-            return newChild
-
-        L = self._node.children ; n = refChild._node
-        for i in range(len(L)):
-            if L[i] == n:
-                L[i:i] = [newChild._node]
-                return newChild
-        raise NotFoundException("refChild not a child in insertBefore()")
-
     def replaceChild(self, newChild, oldChild):
         """Replaces the child node oldChild with newChild in the list of
         children, and returns the oldChild node. If the newChild is
         already in the tree, it is first removed."""
 
-        if self.readonly:
-            raise NoModificationAllowedException, "Read-only node "+repr(self)
-        self._checkChild(newChild, self)
-        if newChild._document != self._node:
-            raise WrongDocumentException("newChild %s created from a "
-                                         "different document" % (repr(newChild),) )
+	# Check that this operation wouldn't result in the Document node
+	# having more than one children that are Element nodes.
+	# This is as in insertBefore, with one change; if the old node being
+	# replaced is an element, it shouldn't be counted.
+	if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+	    nodelist = newChild._node.children
+	else:
+	    nodelist = [newChild._node]
 
-        o = oldChild._node ; L = self._node.children
-        for i in range(len(L)):
-            if L[i] == o:
-                # If newChild is already in the tree, remove it
-                if newChild.get_parentNode() != None:
-                    newChild.get_parentNode().removeChild( newChild )
+	d = {}                         # Dictionary for counting
+	for c in nodelist:
+            if c.type == ELEMENT_NODE: d[ id(c) ] = None
+        for c in self._node.children:
+            if c.type == ELEMENT_NODE: d[ id(c) ] = None
 
-                L[i] = newChild._node
-	        self._del_parentdict( id(oldChild._node) )
-                return oldChild
-        raise NotFoundException("oldChild not a child of this node")
+	# For a correct count, we should not count the oldChild node, in case
+	# it's a
+	ocn = oldChild._node
+        if ocn.type == ELEMENT_NODE and d.has_key( id(ocn) ):
+	    del d[ id(ocn) ]
+
+	if len(d) > 1:
+	    raise HierarchyRequestException, \
+              "replaceChild() would result in more than one root document element" 
+
+	Node.replaceChild(self, newChild, oldChild)
 
 class DocumentFragment(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
