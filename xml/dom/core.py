@@ -150,6 +150,7 @@ class Node:
     '''Base class for grove nodes in DOM model.  Proxies an instance
     of the _nodeData class.'''
 
+    readonly = 0
     def __init__(self, node, parent = None, document = None):
         self._node = node
         self.parentNode = parent
@@ -242,7 +243,10 @@ class Node:
     # Methods
 
     def insertBefore(self, newChild, refChild):
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
+
         if newChild._document != self._document:
             raise WrongDocumentException("newChild %s created from a "
                                          "different document" % (repr(s),) )
@@ -264,7 +268,10 @@ class Node:
         raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
+
         o = oldChild._node ; L = self._node.children
         for i in range(len(L)):
             if L[i] == o:
@@ -279,6 +286,9 @@ class Node:
         raise NotFoundException("oldChild not a child of this node")
 
     def removeChild(self, oldChild):
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
+
         try:
             self._node.children.remove(oldChild._node)
             oldChild.parentNode = None
@@ -287,7 +297,10 @@ class Node:
             raise NotFoundException("oldChild is not a child of this node")
 
     def appendChild(self, newChild):
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
+
         if newChild._document != self._document:
             raise WrongDocumentException("newChild created from a different document")
 
@@ -543,6 +556,8 @@ class CDATASection(Text):
         return self._node.value
 
 class DocumentType(Node):
+    readonly = 1    # This is a read-only class
+
     # Attributes
     def get_name(self):
         return self._node.name
@@ -554,6 +569,7 @@ class DocumentType(Node):
         pass # XXX
 
 class Notation(Node):
+    readonly = 1    # This is a read-only class
     # Attributes
     def get_publicId(self):
         pass # XXX
@@ -562,6 +578,7 @@ class Notation(Node):
         pass # XXX
         
 class Entity(Node):
+    readonly = 1    # This is a read-only class
     def get_publicId(self):
         pass # XXX
 
