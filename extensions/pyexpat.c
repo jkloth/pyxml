@@ -1056,7 +1056,7 @@ static struct PyMethodDef xmlparse_methods[] = {
 		  METH_VARARGS, xmlparse_SetParamEntityParsing__doc__},
     {"GetInputContext", (PyCFunction)xmlparse_GetInputContext,
 		  METH_VARARGS, xmlparse_GetInputContext__doc__},
-	{NULL,		NULL}		/* sentinel */
+    {NULL,	  NULL}		/* sentinel */
 };
 
 /* ---------- */
@@ -1164,14 +1164,15 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     }
     XML_SetUserData(self->itself, (void *)self);
 #ifdef Py_USING_UNICODE
-    XML_SetUnknownEncodingHandler(self->itself, (XML_UnknownEncodingHandler) PyUnknownEncodingHandler, NULL);
+    XML_SetUnknownEncodingHandler(self->itself,
+                  (XML_UnknownEncodingHandler) PyUnknownEncodingHandler, NULL);
 #endif
 
     for (i = 0; handler_info[i].name != NULL; i++)
         /* do nothing */;
 
-    self->handlers = malloc(sizeof(PyObject *)*i);
-    if (!self->handlers){
+    self->handlers = malloc(sizeof(PyObject *) * i);
+    if (!self->handlers) {
         Py_DECREF(self);
         return PyErr_NoMemory();
     }
