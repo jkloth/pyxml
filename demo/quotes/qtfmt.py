@@ -16,8 +16,11 @@ Available options:
 """
 
 import string, re, cgi, types
-import wstring, iso8859  # For fixing UTF-8 encoding
-
+try:
+    from xml.unicode import wstring  # For fixing UTF-8 encoding
+except ImportError:
+    wstring = None
+    
 def simplify(t, indent="", width=79):
     """Strip out redundant spaces, and insert newlines to 
     wrap the text at the given width."""
@@ -55,26 +58,31 @@ class Quotation:
 	self.text = [] 
 
     def as_text(self):
+        "Convert instance into a pure text form"
 	output = ""
+
 	def flatten(textobj):
+            "Flatten a list of subclasses of Text into a list of paragraphs"
 	    if type(textobj) != types.ListType: textlist=[textobj]
 	    else: textlist = textobj
 
-	    subtext = "" ; paralist = []
+	    paragraph = "" ; paralist = []
 	    for t in textlist:
-		if isinstance(t, PreformattedText) or isinstance(t, CodeFormattedText):
-		    paralist.append(subtext)
-		    subtext = ""
+		if (isinstance(t, PreformattedText) or
+                    isinstance(t, CodeFormattedText) ):
+		    paralist.append(paragraph)
+		    paragraph = ""
 		    paralist.append(t)
 		elif isinstance(t, Break): 
-		    subtext = subtext + t.as_text()
-		    paralist.append(subtext)
-		    subtext = ""
+		    paragraph = paragraph + t.as_text()
+		    paralist.append(paragraph)
+		    paragraph = ""
 		else:
-		    subtext = subtext + t.as_text()
-	    paralist.append(subtext)
+		    paragraph = paragraph + t.as_text()
+	    paralist.append(paragraph)
 	    return paralist
 
+        # Flatten the list of instances into a list of paragraphs
 	paralist = flatten(self.text) 
 	if len(paralist) > 1: 
 	    indent = 4*" "
@@ -108,13 +116,13 @@ class Quotation:
 	    if type(textobj) != types.ListType: textlist = [textobj]
 	    else: textlist = textobj
 
-	    subtext = "" ; paralist = []
+	    paragraph = "" ; paralist = []
 	    for t in textlist:
-		subtext = subtext + t.as_html()
+		paragraph = paragraph + t.as_html()
 		if isinstance(t, Break): 
-		    paralist.append(subtext)
-		    subtext = ""
-	    paralist.append(subtext)
+		    paralist.append(paragraph)
+		    paragraph = ""
+	    paralist.append(paragraph)
 	    return paralist
 
 	paralist = flatten(self.text) 
@@ -138,7 +146,9 @@ class Text:
     # We need to allow adding a string to Text instances.
     def __add__(self, val):
 	newtext = self.text + str(val)
+        # __class__ must be used so subclasses create instances of themselves.
 	return self.__class__(newtext)
+    
     def __str__(self): return self.text
     def __repr__(self):
 	s = string.strip(self.text)
@@ -177,6 +187,7 @@ class ForeignText(Text):
 	return '<i>' + string.strip(cgi.escape(str(self.text))) + '</i>'
 
 class EmphasizedText(Text):
+    "Text inside <em>...</em>"
     def as_text(self):
 	return '*' + simplify(str(self.text)) + '*'
     def as_html(self):
@@ -186,13 +197,19 @@ class Break(Text):
     def as_text(self): return ""
     def as_html(self): return "<P>"
 
-import xml.sax.saxlib, xml.sax.saxexts
+# The QuotationDocHandler class is a SAX handler class that will
+# convert a marked-up document using the quotations DTD into a list of
+# quotation objects.
 
-class QuotationDocHandler(xml.sax.saxlib.HandlerBase):
+from xml.sax import saxlib, saxexts
+
+class QuotationDocHandler(saxlib.HandlerBase):
     def __init__(self, process_func):
 	self.process_func = process_func
 	self.newqt = None
 
+    # Errors should be signaled, so we'll output a message and raise
+    # the exception to stop processing 
     def fatalError(self, exception):
 	sys.stderr.write('ERROR: '+exception.msg+'\n')
 	raise exception
@@ -200,13 +217,15 @@ class QuotationDocHandler(xml.sax.saxlib.HandlerBase):
     warning = fatalError
 
     def characters(self, ch, start, length):
-#	assert start == 0
 	if self.newqt != None:
             s = ch[start:start+length]
-            # Undo the UTF-8 encoding, converting to ISO Latin1, which is the
-            # default character set used for HTML.
-            s = wstring.from_utf8(s)
-            s = s.encode('LATIN1')
+
+            if wstring is not None:
+                # Undo the UTF-8 encoding, converting to ISO Latin1, which
+                # is the default character set used for HTML.
+                s = wstring.from_utf8(s)
+                s = s.encode('LATIN1')
+
             self.newqt.stack[-1] = self.newqt.stack[-1] + s
 
     def startDocument(self):
@@ -350,7 +369,7 @@ if __name__ == '__main__':
 
         # Enforce the use of the Expat parser, because the code needs to be
         # sure that the output will be UTF-8 encoded.
-	p=xml.sax.saxexts.XMLParserFactory.make_parser("pyexpat")
+	p=saxexts.XMLParserFactory.make_parser("pyexpat")
 	dh = QuotationDocHandler(process_func)
 	p.setDocumentHandler(dh)
 	p.setErrorHandler(dh)
