@@ -106,8 +106,17 @@ if list is type([]):
         length = property(_get_length, _set_length,
                           doc="The number of nodes in the NodeList.")
 
-    class EmptyNodeList(list):
+    class EmptyNodeList(tuple):
         __slots__ = ()
+        def __add__(self, other):
+            NL = NodeList()
+            NL.extend(other)
+            return NL
+ 
+        def __radd__(self, other):
+            NL = NodeList()
+            NL.extend(other)
+            return NL
 
         def item(self, index):
             return None
