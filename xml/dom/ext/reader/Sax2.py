@@ -26,7 +26,7 @@ from xml.dom.ext import reader
 
 class NsHandler:
     def initState(self, ownerDoc=None):
-        self._namespaces = {'xml': XML_NAMESPACE,None:EMPTY_NAMESPACE}
+        self._namespaces = {'xml': XML_NAMESPACE, None:EMPTY_NAMESPACE}
         self._namespaceStack = []
         return
 
@@ -114,7 +114,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
 
     def _initRootNode(self, docElementUri, docElementName):
         if not self._dt:
-            self._dt = implementation.createDocumentType(docElementName,'','')
+            self._dt = implementation.createDocumentType(docElementName, None, '')
         self._ownerDoc = implementation.createDocument(docElementUri, docElementName, self._dt)
         if self._xmlDecl:
             decl_data = 'version="%s"' % (
@@ -283,11 +283,11 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
         return
 
     def startDTD(self, doctype, publicID, systemID):
+        self._dt = implementation.createDocumentType(doctype, publicID, systemID)
         if not self._rootNode:
-            self._dt = implementation.createDocumentType(doctype, publicID, systemID)
             self._orphanedNodes.append(('doctype',))
-        else:
-            raise 'Illegal DocType declaration'
+        #else:
+            #raise Exception('Illegal DocType declaration')
         return
 
     def comment(self, text):
