@@ -85,4 +85,4 @@ def parse_adr(filename):
 
 if __name__ == '__main__':
     bms=parse_adr(r"c:\programfiler\opera\opera3.adr")
-    bms.dump_netscape()
+    bms.dump_xbel()
