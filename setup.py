@@ -31,7 +31,7 @@ LDFLAGS = []
 
 args = sys.argv[:]
 extra_packages = []
-with_xpath = 0
+with_xpath = 1
 with_xslt = 0
 
 for arg in args:
