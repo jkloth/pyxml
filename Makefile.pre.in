@@ -343,9 +343,9 @@ libinstall:
 		fi; \
         done
 	PYTHONPATH=$(LIBXML) \
-		python -c 'import compileall;compileall.compile_dir("$(LIBXML)")'
+		$(BINDIR)/$(PYTHON) -c 'import compileall;compileall.compile_dir("$(LIBXML)")'
 	PYTHONPATH=$(LIBDEST) \
-		python -O $(LIBDEST)/compileall.py $(LIBXML)
+		$(BINDIR)/$(PYTHON) -O $(LIBDEST)/compileall.py $(LIBXML)
 
 pyexpat$(SO) : expat/libexpat.a
 
