@@ -35,28 +35,25 @@ class Tests(unittest.TestCase):
         info = atts.itemsNS()
         info.sort()
         if info != expected:
-            raise AssertionError, "\n" + pprint.pformat(info)
+            self.fail("bad attribute information:\n" + pprint.pformat(info))
 
     def run_checks(self, attributes):
         document = self.builder.parse(self.makeSource(DOCUMENT_SOURCE))
 
-        if document.doctype.internalSubset != INTERNAL_SUBSET:
-            raise ValueError, (
-                "internalSubset not properly initialized; found:\n"
-                + repr(document.doctype.internalSubset))
-        if document.doctype.entities.length != 1:
-            raise ValueError, "entity not stored in doctype"
+        self.assertEqual(document.doctype.internalSubset, INTERNAL_SUBSET)
+        self.assertEqual(document.doctype.entities.length, 1,
+                         "entity not stored in doctype")
+
         node = document.doctype.entities['e']
-        if (  node.notationName is not None
-              or node.publicId is not None
-              or node.systemId != 'http://xml.python.org/entity/e'):
-            raise ValueError, "bad entity information"
-        if document.doctype.notations.length != 1:
-            raise ValueError, "notation not stored in doctype"
+        self.assert_(node.notationName is None)
+        self.assert_(node.publicId is None)
+        self.assertEqual(node.systemId, 'http://xml.python.org/entity/e')
+        self.assertEqual(document.doctype.notations.length, 1)
+
         node = document.doctype.notations['x']
-        if (  node.publicId is not None
-              or node.systemId != 'http://xml.python.org/notation/x'):
-            raise ValueError, "bad notation information"
+        self.assert_(node.publicId is None)
+        self.assertEqual(node.systemId, 'http://xml.python.org/notation/x')
+
         self.check_attrs(document.documentElement.attributes, attributes)
 
     def test_namespace_decls_on(self):
@@ -178,3 +175,8 @@ def test_suite():
 def test_main():
     import test_support
     test_support.run_suite(test_suite())
+
+if __name__ == "__main__":
+    import test_support
+    test_support.verbose = 1
+    test_main()
