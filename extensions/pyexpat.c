@@ -1,4 +1,4 @@
-/* Based on Python's pyexpat.c, version 2.28.
+/* Based on Python's pyexpat.c, version 2.29.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
@@ -730,7 +730,7 @@ xmlparse_getattr(xmlparseobject *self, char *name)
     if (strcmp(name, "__members__") == 0) {
         int i;
         PyObject *rc = PyList_New(0);
-        for(i = 0; handler_info[i].name!=NULL; i++) {
+        for(i = 0; handler_info[i].name != NULL; i++) {
             PyList_Append(rc, 
                           PyString_FromString(handler_info[i].name));
         }
@@ -738,6 +738,7 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         PyList_Append(rc, PyString_FromString("ErrorLineNumber"));
         PyList_Append(rc, PyString_FromString("ErrorColumnNumber"));
         PyList_Append(rc, PyString_FromString("ErrorByteIndex"));
+        PyList_Append(rc, PyString_FromString("returns_unicode"));
 
         return rc;
     }
@@ -911,7 +912,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.28 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.29 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
