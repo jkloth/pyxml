@@ -157,7 +157,11 @@ class Marshaller(saxlib.HandlerBase):
         dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
         dict[ str(id(value)) ] = i ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' %(i,) )
-        for key, v in value.items():
+        items = value.items()
+        # Sort the items to allow reproducable results across Python
+        # versions
+        items.sort()
+        for key, v in items:
             L = L + self._marshal(key, dict)
             L = L + self._marshal(v, dict)
         L.append( '</' + name + '>')
