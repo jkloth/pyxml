@@ -1,3 +1,5 @@
 *shared*
 sgmlop sgmlop.c
 pyexpat pyexpat.o expat/libexpat.a -Iexpat/xmlparse
+wstrop wstrop.c
+intl intl.c
