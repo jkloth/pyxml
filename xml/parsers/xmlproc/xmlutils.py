@@ -3,7 +3,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.27 2001/11/22 09:02:25 loewis Exp $
+# $Id: xmlutils.py,v 1.28 2001/12/14 15:22:57 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -121,7 +121,7 @@ class EntityParser:
         self.current_sysID = sysID
         try:
             infile = self.isf.create_input_source(sysID)
-        except IOError:
+        except (IOError, OSError):
             self.report_error(3000, sysID)
             return
 	
