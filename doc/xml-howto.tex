@@ -5,7 +5,7 @@
 
 \title{Python/XML HOWTO}
 
-\release{0.04}
+\release{0.05}
 
 \author{The Python/XML Special Interest Group}
 \authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
@@ -184,7 +184,7 @@ of example code.
 \subsection{Related Links}
 
 \begin{definitions}
-\term{\url{http://www.python.org/topic/xml/}}
+\term{\url{http://www.python.org/topics/xml/}}
 %
 This is the starting point for Python-related XML topics; it is
 updated to refer to all software, mailing lists, documentation, etc. 
@@ -637,6 +637,163 @@ often impose limitations on how the tree can be accessed.
 The World Wide Web Consortium's DOM page.
 
 \end{definitions}
+
+\section{xmlarch: Architectural Forms}
+
+The xmlarch module contains an XML architectural forms processor
+   written in Python. It allows you to process XML architectural forms
+   using any parser that uses the SAX interfaces. The module allows
+   you to process several architectures in one parsing
+   pass. Architectural document events for an architecture can even be
+   broadcasted to multiple DocumentHandlers. (e.g. you can have 2
+   handlers for the RDF architecture, 3 for the XLink architecture and
+   perhaps one for the HyTime architecture.)
+   
+The architecture processor uses the SAX \class{DocumentHandler} interface
+   which means that you can register the architecture handler
+   (ArchDocHandler) with any SAX 1.0 compliant parser.
+   
+It currently does not process any meta document type definition
+documents (meta-DTDs). When a DTD parser module is available the code
+will be modified to use that in order to process meta-DTD information.
+   
+Please note that validating and well-formed parsers may report
+different SAX events when parsing documents.
+
+The \module{xmlarch} module contains six classes:
+\class{ArchDocHandler}, \class{Architecture}, \class{ArchParseState},
+\class{ArchException}, \class{AttributeParser} and \class{Normalizer}.
+
+\begin{itemize}
+     \item \class{ArchDocHandler} is a subclass of the \class{saxlib.DocumentHandler}
+       interface. This is the class used for processing an architectural
+       document.
+
+     \item \class{Architecture} contains information about an architecture.
+
+     \item \class{ArchParseState} holds information about an architecture's parse
+       state when parsing a document.
+
+     \item \class{AttributeParser} parses architecture use declaration PIs (attribute
+       strings).
+
+     \item \class{ArchException} holds information about an architectural exception
+       thrown by an \class{ArchDocHandler} instance.
+
+     \item \class{Normalizer} is a document handler that outputs "normalized" XML.
+\end{itemize}
+
+Using the xmlarch module usually means that you have to do the
+following things:
+
+\begin{itemize}
+     \item Import the required SAX modules; saxexts, saxlib, saxutils.
+     \item Import the xmlarch module.
+     \item Create a SAX compliant parser object.
+     \item Create an XML architectures processor handler.
+     \item Register this handler with the parser.
+     \item Add document handlers for the architectures you want to process.
+     \item Register a default document handler with the architecture
+       processor handler.
+     \item Parse a document.
+\end{itemize}
+       
+A simple example
+
+   Python code:
+\begin{verbatim}
+# Import needed modules
+from xml.sax import saxexts, saxlib, saxutils
+import sys, xmlarch
+
+# Create architecture processor handler
+arch_handler = xmlarch.ArchDocHandler()
+
+# Create parser and register architecture processor with it
+parser = saxexts.XMLParserFactory.make_parser()
+parser.setDocumentHandler(arch_handler)
+
+# Add an document handler to process the html architecture
+arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(sys.stdout))
+
+# Parse (and process) the document
+parser.parse("simple.xml")
+\end{verbatim}
+
+A sample XML document:
+\begin{verbatim}
+<?xml version="1.0"?>
+<?IS10744:arch name="html"?>
+<doc>
+<title html="h1">My first architectual document</title>
+<author html="address">Geir Ove Gronmo, grove@infotek.no</author>
+<para>This is the first paragraph in this document</para>
+<para html="p">This is the second paragraph</para>
+</doc>
+\end{verbatim}
+
+The result:
+
+\begin{verbatim}
+<html>
+<h1>My first architectual document</h1>
+<address>Geir Ove Gronmo, grove@infotek.no</address>
+
+<p>This is the second paragraph</p>
+</html>
+\end{verbatim}
+
+See also the files \file{simple.py} and \file{simple.xml} in the
+\file{demo/arch} directory of the Python/XML distribution.
+   
+If you try to process the persons architecture in this document
+instead you get the following output:
+\begin{verbatim}
+<persons>
+
+<author>Geir Ove Grønmo</author><mentioned>Eliot Kimber</mentioned><mentioned>D
+avid Megginson</mentioned><mentioned>Lars Marius Garshol</mentioned>
+</persons>
+\end{verbatim}
+
+A more complex example:
+
+   Python code:
+\begin{verbatim}
+# Import needed modules
+from xml.sax import saxexts, saxlib, saxutils
+import sys, xmlarch
+
+# create architecture processor handler
+arch_handler = xmlarch.ArchDocHandler()
+
+# Create parser and register architecture processor with it
+parser = saxexts.XMLParserFactory.make_parser()
+parser.setDocumentHandler(arch_handler)
+
+# Add an document handlers to process the html and biblio architectures
+arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(open("html.out",
+ "w")))
+arch_handler.addArchDocumentHandler("biblio", saxutils.ESISDocHandler(open("bib
+lio1.out", "w")))
+arch_handler.addArchDocumentHandler("biblio", saxutils.Canonizer(open("biblio2.
+out", "w")))
+
+# Register a default document handler that just passes through any incoming eve
+nts
+arch_handler.setDefaultDocumentHandler(xmlarch.Normalizer(sys.stdout))
+
+# Parse (and process) the document
+parser.parse("complex.xml")
+\end{verbatim}
+
+Because this causes a lot of output I've not included the XML document
+and the results. See instead the files \file{complex.py} and
+\file{complex.xml} in the \file{demo/xml} directory of the Python/XML
+distribution and try it yourself.
+   
+\subsection{Related Links}
+
 
 \section{Glossary}
 
