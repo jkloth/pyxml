@@ -1,0 +1,363 @@
+#!/usr/bin/python
+# 
+# qtfmt.py v1.00
+#
+# Read a document in the quotation DTD, converting it to a list of Quotation
+# objects.  The list can then be output in several formats.
+
+__doc__ = """Usage: qtfmt.py [options] file1.xml file2.xml ...
+If no filenames are provided, standard input will be read.
+Available options: 
+  -f or --fortune   Produce output for the fortune(1) program
+  -h or --html      Produce HTML output
+  -t or --text      Produce plain text output
+  -m N or --max N   Suppress quotations longer than N lines; 
+                    defaults to 0, which suppresses no quotations at all.
+"""
+
+import string, re, cgi, types
+import wstring, iso8859  # For fixing UTF-8 encoding
+
+def simplify(t, indent="", width=79):
+    """Strip out redundant spaces, and insert newlines to 
+    wrap the text at the given width."""
+    t = string.strip(t)
+    t = re.sub('[\n\t]+', " ", t)	
+    t = re.sub('\s\s+', " ", t)	
+    if t=="": return t
+    t = indent + t
+    t2 = ""
+    while len(t) > width:	
+	index = string.rfind(t, ' ', 0, width)
+	if index == -1: t2 = t2 + t[:width] ; t = t[width:]
+	else: t2 = t2 + t[:index] ; t = t[index+1:]
+	t2 = t2 + '\n'
+    return t2 + t
+	
+class Quotation:
+    """Encapsulates a single quotation.
+    Attributes:
+    stack -- used during construction and then deleted
+    text -- A list of Text() instances, or subclasses of Text(),
+            containing the text of the quotation.
+    source -- A list of Text() instances, or subclasses of Text(),
+            containing the source of the quotation.  (Optional)
+    author -- A list of Text() instances, or subclasses of Text(),
+            containing the author of the quotation.  (Optional)
+
+    Methods:
+    as_fortune() -- return the quotation formatted for fortune
+    as_html() -- return an HTML version of the quotation
+    as_text() -- return a plain text version of the quotation
+    """
+    def __init__(self): 
+	self.stack = [ Text() ]
+	self.text = [] 
+
+    def as_text(self):
+	output = ""
+	def flatten(textobj):
+	    if type(textobj) != types.ListType: textlist=[textobj]
+	    else: textlist = textobj
+
+	    subtext = "" ; paralist = []
+	    for t in textlist:
+		if isinstance(t, PreformattedText) or isinstance(t, CodeFormattedText):
+		    paralist.append(subtext)
+		    subtext = ""
+		    paralist.append(t)
+		elif isinstance(t, Break): 
+		    subtext = subtext + t.as_text()
+		    paralist.append(subtext)
+		    subtext = ""
+		else:
+		    subtext = subtext + t.as_text()
+	    paralist.append(subtext)
+	    return paralist
+
+	paralist = flatten(self.text) 
+	if len(paralist) > 1: 
+	    indent = 4*" "
+	else: 
+	    indent = ""
+
+	for para in paralist: 
+	    if isinstance(para, PreformattedText) or isinstance(para, CodeFormattedText):
+		output = output + para.as_text()
+	    else: 
+		output = output + simplify(para, indent) + '\n'
+	attr = ""
+	for i in ['author', 'source']:
+	    if hasattr(self, i): 
+		paralist = flatten(getattr(self, i))
+		text = string.join(paralist)
+		if attr: 
+		    attr = attr + ', '
+		    text = string.lower(text[:1]) + text[1:]
+		attr = attr + text
+	attr=simplify(attr, width = 79 - 4 - 3)
+	if attr: output = output + '    -- '+re.sub('\n', '\n       ', attr)
+	return output + '\n'
+
+    def as_fortune(self):
+	return self.as_text() + '%'
+
+    def as_html(self):
+	output = "<P>"
+	def flatten(textobj):
+	    if type(textobj) != types.ListType: textlist = [textobj]
+	    else: textlist = textobj
+
+	    subtext = "" ; paralist = []
+	    for t in textlist:
+		subtext = subtext + t.as_html()
+		if isinstance(t, Break): 
+		    paralist.append(subtext)
+		    subtext = ""
+	    paralist.append(subtext)
+	    return paralist
+
+	paralist = flatten(self.text) 
+	for para in paralist: output = output + string.strip(para) + '\n'
+	attr = ""
+	for i in ['author', 'source']:
+	    if hasattr(self, i): 
+		paralist = flatten(getattr(self, i))
+		text = string.join(paralist)
+		attr=attr + ('<P CLASS=%s>' % i) + string.strip(text)
+	return output + attr
+
+# Text and its subclasses are used to hold chunks of text; instances 
+# know how to display themselves as plain text or as HTML.
+
+class Text:
+    "Plain text"
+    def __init__(self, text=""):
+	self.text = text
+
+    # We need to allow adding a string to Text instances.
+    def __add__(self, val):
+	newtext = self.text + str(val)
+	return self.__class__(newtext)
+    def __str__(self): return self.text
+    def __repr__(self):
+	s = string.strip(self.text)
+	if len(s) > 15: s = s[0:15] + '...'
+	return '<%s: "%s">' % (self.__class__.__name__, s)
+	
+    def as_text(self): return self.text
+    def as_html(self): return cgi.escape(self.text)
+
+class PreformattedText(Text):
+    "Text inside <pre>...</pre>"
+    def as_text(self):
+	return str(self.text)
+    def as_html(self):
+	return '<pre>' + cgi.escape(str(self.text)) + '</pre>'
+
+class CodeFormattedText(Text):
+    "Text inside <code>...</code>"
+    def as_text(self):
+	return str(self.text)
+    def as_html(self):
+	return '<code>' + cgi.escape(str(self.text)) + '</code>'
+
+class CitedText(Text):
+    "Text inside <cite>...</cite>"
+    def as_text(self):
+	return '_' + simplify(str(self.text)) + '_'
+    def as_html(self):
+	return '<cite>' + string.strip(cgi.escape(str(self.text))) + '</cite>'
+
+class ForeignText(Text):
+    "Foreign words, from Latin or French or whatever."
+    def as_text(self):
+	return '_' + simplify(str(self.text)) + '_'
+    def as_html(self):
+	return '<i>' + string.strip(cgi.escape(str(self.text))) + '</i>'
+
+class EmphasizedText(Text):
+    def as_text(self):
+	return '*' + simplify(str(self.text)) + '*'
+    def as_html(self):
+	return '<em>' + string.strip(cgi.escape(str(self.text))) + '</em>'
+
+class Break(Text):
+    def as_text(self): return ""
+    def as_html(self): return "<P>"
+
+import xml.sax.saxlib, xml.sax.saxexts
+
+class QuotationDocHandler(xml.sax.saxlib.HandlerBase):
+    def __init__(self, process_func):
+	self.process_func = process_func
+	self.newqt = None
+
+    def fatalError(self, exception):
+	sys.stderr.write('ERROR: '+exception.msg+'\n')
+	raise exception
+    error = fatalError
+    warning = fatalError
+
+    def characters(self, ch, start, length):
+#	assert start == 0
+	if self.newqt != None:
+            s = ch[start:start+length]
+            # Undo the UTF-8 encoding, converting to ISO Latin1, which is the
+            # default character set used for HTML.
+            s = wstring.from_utf8(s)
+            s = s.encode('LATIN1')
+            self.newqt.stack[-1] = self.newqt.stack[-1] + s
+
+    def startDocument(self):
+	self.quote_list = []
+
+    def startElement(self, name, attrs):	
+	if hasattr(self, 'start_'+name):
+	    method = getattr(self, 'start_'+name)
+	    method(attrs)
+	else:
+	    sys.stderr.write('unknown start tag: <' + name + ' ')
+	    for name, value in attrs:
+		sys.stderr.write(name + '=' + '"' + value + '" ')
+	    sys.stderr.write('>\n')
+
+    def endElement(self, name):
+	if hasattr(self, 'end_'+name):
+	    method = getattr(self, 'end_'+name)
+	    method()
+	else:
+	    sys.stderr.write('unknown end tag: </' + name + '>\n')
+
+    # There's nothing to be done for the <quotations> tag
+    def start_quotations(self, attrs):
+	pass
+    def end_quotations(self):
+	pass
+
+    def start_quotation(self, attrs): 
+	if self.newqt == None: self.newqt = Quotation()
+	
+    def end_quotation(self): 
+	st = self.newqt.stack
+	for i in range(len(st)):
+	    if type(st[i]) == types.StringType:
+		st[i] = Text(st[i])
+	self.newqt.text=self.newqt.text + st
+	del self.newqt.stack
+	if self.process_func: self.process_func(self.newqt)
+	else: 
+	    print "Completed quotation\n ", self.newqt.__dict__
+	self.newqt=Quotation()
+
+    # Attributes of a quotation: <author>...</author> and <source>...</source>
+    def start_author(self, data): 
+	# Add the current contents of the stack to the text of the quotation
+	self.newqt.text = self.newqt.text + self.newqt.stack
+	# Reset the stack
+	self.newqt.stack = [ Text() ]
+    def end_author(self): 
+	# Set the author attribute to contents of the stack; you can't
+	# have more than one <author> tag per quotation.
+	self.newqt.author = self.newqt.stack
+	# Reset the stack for more text.
+	self.newqt.stack = [ Text() ]
+
+    # The code for the <source> tag is exactly parallel to that for <author>
+    def start_source(self, data): 
+	self.newqt.text = self.newqt.text + self.newqt.stack
+	self.newqt.stack = [ Text() ]
+    def end_source(self): 
+	self.newqt.source = self.newqt.stack
+	self.newqt.stack = [ Text() ]
+
+    # Text markups: <br/> for breaks, <pre>...</pre> for preformatted
+    # text, <em>...</em> for emphasis, <cite>...</cite> for citations.
+
+    def start_br(self, data):
+	# Add a Break instance, and a new Text instance.
+	self.newqt.stack.append(Break())
+	self.newqt.stack.append( Text() )
+    def end_br(self): pass
+
+    def start_pre(self, data):
+	self.newqt.stack.append( Text() )
+    def end_pre(self):
+	self.newqt.stack[-1] = PreformattedText(self.newqt.stack[-1])
+	self.newqt.stack.append( Text() )
+	
+    def start_code(self, data):
+	self.newqt.stack.append( Text() )
+    def end_code(self):
+	self.newqt.stack[-1] = CodeFormattedText(self.newqt.stack[-1])
+	self.newqt.stack.append( Text() )
+	
+    def start_em(self, data):
+	self.newqt.stack.append( Text() )
+    def end_em(self):
+	self.newqt.stack[-1] = EmphasizedText(self.newqt.stack[-1])
+	self.newqt.stack.append( Text() )
+	
+    def start_cite(self, data):
+	self.newqt.stack.append( Text() )
+    def end_cite(self):
+	self.newqt.stack[-1] = CitedText(self.newqt.stack[-1])
+	self.newqt.stack.append( Text() )
+
+    def start_foreign(self, data):
+	self.newqt.stack.append( Text() )
+    def end_foreign(self):
+	self.newqt.stack[-1] = ForeignText(self.newqt.stack[-1])
+	self.newqt.stack.append( Text() )
+
+if __name__ == '__main__':
+    import sys, getopt
+    
+    # Process the command-line arguments
+    opts, args = getopt.getopt(sys.argv[1:], 'fthm:',
+			       ['fortune', 'text', 'html', 'max=', 'help'] )
+    # Set defaults
+    maxlength = 0 ; method = 'as_fortune' 
+
+    # Process arguments
+    for opt, arg in opts:
+	if opt in ['-f', '--fortune']: 
+	    method='as_fortune'
+	elif opt in ['-t', '--text']: 
+	    method = 'as_text'
+	elif opt in ['-h', '--html']: 
+	    method = 'as_html'
+	elif opt in ['-m', '--max']: 
+	    maxlength = string.atoi(arg)
+	elif opt == '--help': 
+	    print __doc__ ; sys.exit(0)
+
+    # This function will simply output each quotation by calling the
+    # desired method, as long as it's not suppressed by a setting of
+    # --max.   
+    def process_func(qt, maxlength=maxlength, method=method):
+	func = getattr(qt, method)
+	output = func()
+	length = string.count(output, '\n')
+	if maxlength!=0 and length > maxlength: return
+	print output
+
+    # Loop over the input files; use sys.stdin if no files are specified
+    if len(args) == 0: args = [sys.stdin]
+    for file in args:
+	if type(file) == types.StringType: input = open(file, 'r')
+	else: input = file
+
+        # Enforce the use of the Expat parser, because the code needs to be
+        # sure that the output will be UTF-8 encoded.
+	p=xml.sax.saxexts.XMLParserFactory.make_parser("xml.sax.drivers.drv_pyexpat")
+	dh = QuotationDocHandler(process_func)
+	p.setDocumentHandler(dh)
+	p.setErrorHandler(dh)
+	p.parseFile(input)
+
+	if type(file) == types.StringType: input.close()
+	p.close()
+    
+    # We're done!
+

@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE quotations SYSTEM "quotations.dtd">
+
+<quotations>
+
+<quotation>
+We will perhaps eventually be writing only small modules which are
+identified by name as they are used to build larger ones, so that
+devices like indentation, rather than delimiters, might become
+feasible for expressing local structure in the source language.
+
+<source>Donald E. Knuth, "Structured Programming with goto
+Statements", Computing Surveys, Vol 6 No 4, Dec. 1974</source>
+</quotation>
+
+<quotation>
+One of the things that makes it interesting, is exactly how much Guido
+has managed to exploit that <em>one</em> implementation trick of
+'namespaces'.
+<source>Steven D. Majewski, 17 Sep 1993
+</source>
+</quotation>
+
+<quotation>
+I don't know a lot about this artificial life stuff
+-- but I'm suspicious of anything Newsweek gets goofy about
+-- and I suspect its primary use is as another money extraction tool
+to be applied by ai labs to the department of defense
+(and more power to 'em).
+<br/>
+Nevertheless in wondering why free software is so good these days
+it occured to me that the propagation of free software is one gigantic
+artificial life evolution experiment, but the metaphor isn't perfect.
+<br/>
+Programs are thrown out into the harsh environment, and the bad ones
+die. The good ones adapt rapidly and become very robust in short
+order.
+<br/>
+The only problem with the metaphor is that the process isn't random
+at all. Python <em>chooses</em> to include tk's genes; Linux decides
+to make itself more suitable for symbiosis with X, etcetera. 
+<br/>
+Free software is artificial life, but better.
+<source>Aaron Watters, 29 Sep 1994</source>
+</quotation>
+
+<quotation>
+It has also been referred to as the "Don Beaudry <em>hack</em>," but
+that's a misnomer.  There's nothing hackish about it -- in fact,
+it is rather elegant and deep, even though there's something dark
+to it.
+<source>Guido van Rossum, <cite>Metaclass Programming in Python 1.5</cite></source>
+</quotation>
+
+<quotation>
+BTW, a member of the ANSI C committee once told me that the only
+thing rand is used for in C code is to decide whether to pick up the
+axe or throw the dwarf, and if that's true I guess "the typical libc
+rand" is adequate for all but the most fanatic of gamers &lt;wink&gt;.  
+<source>Tim Peters, 21 June 1997.
+</source>
+</quotation>
+
+<quotation>
+This is not a technical issue so much as a human issue; we 
+are limited and so is our time.  (Is this a bug or a feature of time?
+Careful; trick question!)
+<source>Fred Drake on the Documentation SIG, 9 Sep 1998</source> 
+</quotation>
+
+<quotation>
+There are also some surprises [in the late Miocene Australia]
+some small mammals totally unknown and not obviously related
+to any known marsupial (appropriately awarded names such as
+<foreign>Thingodonta</foreign> and <foreign>Weirdodonta</foreign>) and a giant
+python immortalized as <foreign>Montypythonoides</foreign>.
+<source><cite>The Book of Life</cite>, found by Aaron Watters
+</source> 
+</quotation>
+
+</quotations>
