@@ -166,21 +166,21 @@ def StripXml(startNode, preserveElements=None):
         node_to_remove.parentNode.removeChild(node_to_remove)
     return startNode
 
+_id_key = ('', 'ID')
 
 def GetElementById(startNode, targetId):
     '''
     Return the element in the given tree with an ID attribute of the given
     value
     '''
-    result = None
     snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT, None, 0)
     curr_node = snit.nextNode()
-    while not result and curr_node:
-        attrs = curr_node.attributes
-        if attrs.has_key("ID") and attrs["ID"] == target_id:
-            result = curr_node
+    while curr_node:
+	attr = curr_node.attributes.get(_id_key, None)
+	if attr and attr._get_nodeValue() == targetId:
+	    return curr_node
         curr_node = snit.nextNode()
-    return result
+    return None
 
 
 def XmlSpaceState(node):
