@@ -85,7 +85,8 @@ class NsHandler:
         return
 
 
-class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
+class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
+                      saxlib.LexicalHandler,
                       saxlib.DeclHandler):
     def __init__(self, keepAllWs=0):
         self._keepAllWs = keepAllWs
