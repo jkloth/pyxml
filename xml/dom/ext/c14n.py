@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2002/01/24 21:37:49 $ by $Author: rsalz $
+$Date: 2002/02/04 16:54:46 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -84,7 +84,9 @@ def _utilized(n, node, other_attrs, unsuppressedPrefixes):
         n = n[6:]
     elif n.startswith('xmlns'):
         n = n[5:]
-    if n == node.prefix or n in unsuppressedPrefixes: return 1
+    if (n == "" and node.prefix in [ "#default", None ]) or \
+    n == node.prefix or n in unsuppressedPrefixes: 
+        return 1
     for attr in other_attrs:
         if n == attr.prefix: return 1
     return 0
