@@ -198,14 +198,17 @@ class DOMBuilder:
         if fp is None and options.systemId:
             import urllib
             fp = urllib.urlopen(input.systemId)
-        import xml.dom.expatbuilder
-        builder = xml.dom.expatbuilder.makeBuilder(options)
-        return builder.parseFile(fp)
+        return self._parse_bytestream(fp, options)
 
     def parseWithContext(self, input, cnode, action):
         if action not in self._legal_actions:
             raise ValueError("not a legal action")
         raise NotImplementedError("Haven't written this yet...")
+
+    def _parse_bytestream(self, stream, options):
+        import xml.dom.expatbuilder
+        builder = xml.dom.expatbuilder.makeBuilder(options)
+        return builder.parseFile(stream)
 
 
 def _name_xform(name):
