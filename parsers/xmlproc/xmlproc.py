@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.8 1999/04/22 01:38:19 amk Exp $
+# $Id: xmlproc.py,v 1.9 1999/06/22 17:11:34 lars Exp $
    
 import re,string,sys,urllib,urlparse,types
 
@@ -328,7 +328,8 @@ class XMLProcessor(XMLCommonParser):
             self.pos=self.pos+1
 
 	try:
-            elem=self.stack.pop()
+            elem=self.stack[-1]
+            del self.stack[-1]
             if name!=elem:
 		self.report_error(3023,(name,elem))
 
