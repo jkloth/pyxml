@@ -73,7 +73,8 @@ def PrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  ',
     from xml.dom.ext import Printer
     nss_hints = SeekNss(root)
     preserveElements = preserveElements or []
-    if hasattr(root.ownerDocument, 'getElementsByName'):
+    owner_doc = root.ownerDocument or root
+    if hasattr(owner_doc, 'getElementsByName'):
         #We don't want to insert any whitespace into HTML inline elements
         preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
     visitor = Printer.PrintVisitor(stream, encoding, indent,
@@ -120,7 +121,9 @@ def StripHtml(startNode, preserveElements=None):
     preserveElements = preserveElements or []
     preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
     remove_list = []
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_TEXT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_TEXT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
         #first of all make sure it is not inside one of the preserve_elements
@@ -147,7 +150,9 @@ def StripXml(startNode, preserveElements=None):
     '''
     preserveElements = preserveElements or []
     remove_list = []
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_TEXT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_TEXT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
         #first of all make sure it is not inside xml:space='preserve'
@@ -175,7 +180,9 @@ def GetElementById(startNode, targetId):
     Return the element in the given tree with an ID attribute of the given
     value
     '''
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
 	attr = curr_node.attributes.get(_id_key, None)
