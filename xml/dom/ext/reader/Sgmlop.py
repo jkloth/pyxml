@@ -3,6 +3,7 @@ from xml.parsers import sgmlop
 from xml.dom import implementation
 from xml.dom import Node
 from xml.dom import NotSupportedErr
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom.html import HTML_DTD, HTML_CHARACTER_ENTITIES
 
 DEFAULT_CHARSET = 'ISO-8859-1'
@@ -155,8 +156,8 @@ class HtmlParser(SgmlopParser):
 
         # Add any attributes to the tag
         for (name, value) in attrs:
-            element.setAttribute(unicode(name, self._charset),
-                                 unicode(value, self._charset))
+            element.setAttributeNS(EMPTY_NAMESPACE, unicode(name, self._charset),
+                                   unicode(value, self._charset))
 
         # Look for its parent
         for i in range(1, len(self._stack)):
