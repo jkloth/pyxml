@@ -33,4 +33,9 @@ interface for creating them look like?
 	* Element.removeAttributeNode needs to know about DTDs to
 restore a default value.
 
+	* Walker: merge walk() and walk1() into one function (or at
+least make it more generic)
+
+	* XmlLineariser: what should it do with PIs and other similar things?
+
 
