@@ -33,3 +33,4 @@ Software versions and credits:
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-000705		Fredrik Lundh
 	xmlproc 0.70		Lars Marius Garshol
+	minidom			Paul Prescod

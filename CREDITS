@@ -87,6 +87,7 @@
 
   <xml-hacker>
     <name> Paul Prescod </name>
+    <task> minidom </task>
   </xml-hacker>
 
   <xml-hacker>

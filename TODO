@@ -1,43 +1,16 @@
 TODO list:
-        * Integrate widestring support with the PyExpat module (major thing)
-	* Switch to 4DOM's DOM implementation 
-	* Add SAX2 support
-	* Drop wstrop & Unicode; Python 1.6 will handle this
-	* Speed up the builder class somehow, and do some performance tests
-	* Change HTMLBuilder to use SAX instead of SGMLlib
 	* Make more passes over the documentation
 	* More demo programs 
-	* Add READMEs to existing demo programs
 	* Lots of docstrings!
         * Re-indent everything to 4-space indents
-	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite more
-	* Update the Windows DLLs and integrate Christian Tismer's WISE 
-	  installer
 
 demo/xbel/	
 	* Update all the software to match the current XBEL DTD
 	* Add a test suite for the basic parser
 
 dom/
-	* Convert all the raise statement to use the exception(arg) form
-
-	* Implement reading of SGML documents for FileReader
-
-	* DocumentType class is mostly unfinished; what should the
-interface for creating them look like?
-
 	* Element.removeAttributeNode needs to know about DTDs to
 restore a default value.
-
-	* Walker: merge walk() and walk1() into one function (or at
-least make it more generic)
-
-	* XmlLineariser: what should it do with PIs and other similar things?
-
-	* NodeList returned from .getElementsByTagName should be live.
-(Hard, and doesn't seem to be very useful; AMK doesn't really care.)
-
-	* DOM Level 2 changes
 
 	* Greg Stein owes doc on qp_xml
