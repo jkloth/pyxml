@@ -1,45 +1,52 @@
-This is a snapshot release of my current implementation of DOM (core, level 1).
+4DOM	<http://Fourthought.com/4Suite/4DOM>
 
-In fact there are many differences from the specs, for points where I
-thought that a ``pythonic'' interface was better than a ``corbaic'' one.
+Copyright (C) 2000 Fourthought Inc, USA
 
-Included files are:
+http://lists.fourthought.com/mailman/listinfo/4suite
+support@4suite.com
 
-dom/core.py : Python interpretation of the DOM.
+Description
+===========
 
-dom/pydom.py : classes to write XML/SGML/HTML in python.
-dom/pyhtml.py : classes to write HTML in python, a la HTMLGen but using dom.
+4DOM is an implementation of the World-Wide Web Consortium recommended
+standard document object model for Python.  4DOM implements
+DOM Core level 2, HTML level 2 and Level 2 Document Traversal.
 
-dom/dc_parser.py : Dan Connoly's XML parser (should be replaced by whatever
-front end one can wish for: nsgmls, xmllib, sgmllib, htmllib, xmltok. etc.)
-
-dom/builder.py : root class for event-driven DOM builders.
-
-dom/dc_builder.py : DOM builder built on dc_parser.
-
-dom/esis_builder.py : DOM builder from ESIS output.
-
-dom/sax_builder.py : DOM builder as a SAX event handler.
-
-dom/html_builder.py : DOM builder built on sgmllib.py (more tolerant than
-Dan Connoly's parser, but probably bogous wrt tag minimization).
-
-dom/transformer.py : prototypical tranformation engine.
-
-dom/writer.py : XML / HTML lineariser / writer.
-
-test.py : test the various modules.
-
-hmap, sgt : protypical clients of the dom package (hmap is supposed to
-produce description for a collection of Linux HOWTOs written in SGML,
-the other is a prototypical SGML (linuxdoc DTD) -> HTML converter, a la 
-sgml-tools.
-
-README : this file.
+4DOM should work on all platforms supported by Python.  If you have
+any problems with a particular platform, please e-mail the authors.
 
 
-These files are Copyright 1998 Stefane Fermigier. You are free to
-use / hack them under the LGPL license.
+License/Copyright
+=================
 
-Contact: fermigie@math.jussieu.fr
+4DOM is copyrighted by Fourthought Inc (http://Fourthought.com).
+Please read the file COPYRIGHT for the complete copyright and
+terms of license.
+
+
+Documentation
+=============
+
+Please see the file docs/4DOM.html for general documentation
+
+The DOM API is specified at
+
+http://www.w3.org/TR/DOM-Level-2/
+
+
+Known Bugs
+==========
+
+
+
+Contact and Support
+===================
+
+Please consider joining the 4Suite users and support mailing list
+
+http://lists.fourthought.com/mailman/listinfo/4suite
+
+Or, if you prefer, you can address the 4Suite developers directly:
+
+support@4suite.com
 
