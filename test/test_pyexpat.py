@@ -12,7 +12,20 @@ if sys.hexversion < 0x02000000:
 
 class Outputter:
     def StartElementHandler(self, name, attrs):
-        print 'Start element:\n\t', repr(name), attrs
+        print 'Start element:\n\t', repr(name), "{",
+        # attrs may contain characters >127, which are printed hex in Python
+        # 2.1, but octal in earlier versions
+        for k,v in attrs.items():
+            value = ""
+            for c in v:
+                if ord(c)>=256:
+                    value = "%s\\u%.4x" % (value, ord(c))
+                elif ord(c)>=128:
+                    value = "%s\\x%.2x" % (value, ord(c))
+                else:
+                    value = value + c
+            print "%s: %s," % (repr(k),repr(value)),
+        print "}"
 
     def EndElementHandler(self, name):
         print 'End element:\n\t', repr(name)
