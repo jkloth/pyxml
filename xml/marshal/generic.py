@@ -13,6 +13,13 @@ from xml.sax import saxlib, saxexts
 # It's also used as a SAX handler, which may be a good idea but may
 # also be a stupid hack.
 
+def version_independent_cmp(a,b):
+    ta = type(a)
+    tb = type(b)
+    if ta is not tb:
+        return cmp(ta.__name__, tb.__name__)
+    return cmp(a,b)
+
 class Marshaller(saxlib.HandlerBase):
     # XML version and DOCTYPE declaration
     PROLOGUE = '<?xml version="1.0"?>'
@@ -166,12 +173,16 @@ class Marshaller(saxlib.HandlerBase):
         items = value.items()
         # Sort the items to allow reproducable results across Python
         # versions
-        items.sort()
+        items.sort(version_independent_cmp)
         for key, v in items:
             L = L + self._marshal(key, dict)
             L = L + self._marshal(v, dict)
         L.append( '</' + name + '>')
         return L
+
+    # Python 2.2 renames dictionary to dict.
+    def m_dict(self, value, dict):
+        return self.m_dictionary(value, dict)
 
     def m_None(self, value, dict):
         return ['<' + self.tag_none + '/>']
