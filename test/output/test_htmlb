@@ -23,4 +23,5 @@ Bad document (no ignore)
 Exception raised for bad HTML
 Bad document (ignoring mismatched end tags)
 <?xml version="1.0"?>
-<B>bold and <I>italic</I></B> tags.&amp;&lt;&gt;&eacute;&ouml;&nbsp;
+<B>bold and <I>italic</I></B> tags.&amp; &lt; &gt; &eacute; &ouml; &nbsp;
+

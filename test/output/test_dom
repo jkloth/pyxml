@@ -1,4 +1,5 @@
 test_dom
+Simple document
 <?xml version="1.0"?>
 <doc>
 <title>This is a test</title>
@@ -9,3 +10,15 @@ test_dom
 <h3>Or maybe not</h3>
 End of test.
 </doc>
+
+Output of docstring example
+<?xml version="1.0"?>
+<html attr='value'><head><title>Title goes here</title></head></html>
+
+Running detailed test suite
+Test suite completed
+<DOM Document; root=<Element 'html'> >
+ <Element 'html'>
+  <Element 'head'>
+  <Element 'body'>
+   <Text node 'The body text goe...'>
