@@ -14,8 +14,8 @@ PyBooleanObject *boolean_NEW(int initval);
 static PyObject *ErrorObject = NULL;
 
 static PyMethodDef booleanMethods[] = {
-     { "BooleanValue", BooleanValue, 1 },
-     { "IsBooleanType", IsBooleanType, 1 },
+     { "BooleanValue", BooleanValue,   METH_VARARGS },
+     { "IsBooleanType", IsBooleanType, METH_VARARGS },
      { NULL, NULL }
 };
 
@@ -31,13 +31,13 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
   if (Boolean_Check(obj)){
     result = (PyBooleanObject *)obj;
   } else if (PyFloat_Check(obj)) {
-	if (NaN_Check(PyFloat_AS_DOUBLE(obj))) {
-	  result = g_false;
-	} else {
-	  result = PyObject_IsTrue(obj) ? g_true : g_false;
-	}
+        if (NaN_Check(PyFloat_AS_DOUBLE(obj))) {
+          result = g_false;
+        } else {
+          result = PyObject_IsTrue(obj) ? g_true : g_false;
+        }
   } else if (PyNumber_Check(obj) || PySequence_Check(obj)){
-	result = PyObject_IsTrue(obj) ? g_true : g_false;
+        result = PyObject_IsTrue(obj) ? g_true : g_false;
   } else if (str_func) {
     obj = PyObject_CallFunction(str_func, "(O)", obj);
     if (!obj) return NULL;
@@ -68,9 +68,9 @@ static PyObject *IsBooleanType(PyObject *self, PyObject *args) {
     return NULL;
 
   if (Boolean_Check(obj))
-    result = PyInt_FromLong((long)1);
+    result = Py_True;
   else
-    result = PyInt_FromLong((long)0);
+    result = Py_False;
   Py_INCREF(result);
   return result;
 }
@@ -232,10 +232,10 @@ initboolean(void) {
   ErrorObject = PyString_FromString("boolean.error");
   PyDict_SetItemString(d, "error", ErrorObject);
 
-  g_true = (PyBooleanObject *)boolean_NEW(1);
+  g_true = boolean_NEW(1);
   Py_INCREF(g_true);
 
-  g_false = (PyBooleanObject *)boolean_NEW(0);
+  g_false = boolean_NEW(0);
   Py_INCREF(g_false);
 
   PyDict_SetItemString(d, "true", (PyObject *)g_true);
@@ -245,29 +245,29 @@ initboolean(void) {
 }
 
 static PyNumberMethods boolean_as_number = {
-  0,       /* binaryfunc nb_add;          __add__ */
-  0,       /* binaryfunc nb_subtract;     __sub__ */
-  0,       /* binaryfunc nb_multiply;     __mul__ */
-  0,       /* binaryfunc nb_divide;       __div__ */
-  0,       /* binaryfunc nb_remainder;    __mod__ */
-  0,    /* binaryfunc nb_divmod;       __divmod__ */
-  0,       /* ternaryfunc nb_power;       __pow__ */
-  0,       /* unaryfunc nb_negative;      __neg__ */
-  0,       /* unaryfunc nb_positive;      __pos__ */
-  0,       /* unaryfunc nb_absolute;      __abs__ */
-  boolean_nonzero,   /* inquiry nb_nonzero;         __nonzero__ */
-  0,    /* unaryfunc nb_invert;        __invert__ */
-  0,    /* binaryfunc nb_lshift;       __lshift__ */
-  0,    /* binaryfunc nb_rshift;       __rshift__ */
-  boolean_and,       /* binaryfunc nb_and;         __and__ */
-  boolean_xor,       /* binaryfunc nb_xor;         __xor__ */
-  boolean_or,        /* binaryfunc nb_or;          __or__ */
-  boolean_coerce,    /* coercion nb_coerce;         __coerce__ */
-  boolean_int,       /* unaryfunc nb_int;           __int__ */
-  boolean_long,      /* unaryfunc nb_long;          __long__ */
-  boolean_float,     /* unaryfunc nb_float;          __float__ */
-  0,       /* unaryfunc nb_oct;           __oct__ */
-  0,       /* unaryfunc nb_hex;           __hex__ */
+  0,                 /* binaryfunc nb_add;       __add__ */
+  0,                 /* binaryfunc nb_subtract;  __sub__ */
+  0,                 /* binaryfunc nb_multiply;  __mul__ */
+  0,                 /* binaryfunc nb_divide;    __div__ */
+  0,                 /* binaryfunc nb_remainder; __mod__ */
+  0,                 /* binaryfunc nb_divmod;    __divmod__ */
+  0,                 /* ternaryfunc nb_power;    __pow__ */
+  0,                 /* unaryfunc nb_negative;   __neg__ */
+  0,                 /* unaryfunc nb_positive;   __pos__ */
+  0,                 /* unaryfunc nb_absolute;   __abs__ */
+  boolean_nonzero,   /* inquiry nb_nonzero;      __nonzero__ */
+  0,                 /* unaryfunc nb_invert;     __invert__ */
+  0,                 /* binaryfunc nb_lshift;    __lshift__ */
+  0,                 /* binaryfunc nb_rshift;    __rshift__ */
+  boolean_and,       /* binaryfunc nb_and;       __and__ */
+  boolean_xor,       /* binaryfunc nb_xor;       __xor__ */
+  boolean_or,        /* binaryfunc nb_or;        __or__ */
+  boolean_coerce,    /* coercion nb_coerce;      __coerce__ */
+  boolean_int,       /* unaryfunc nb_int;        __int__ */
+  boolean_long,      /* unaryfunc nb_long;       __long__ */
+  boolean_float,     /* unaryfunc nb_float;      __float__ */
+  0,                 /* unaryfunc nb_oct;        __oct__ */
+  0,                 /* unaryfunc nb_hex;        __hex__ */
 };
 
 PyTypeObject PyBoolean_Type = {
@@ -276,20 +276,20 @@ PyTypeObject PyBoolean_Type = {
     "boolean",
     sizeof(PyBooleanObject),
     0,
-    0,    /*tp_dealloc*/
-    boolean_print,   /*tp_print*/
-    0,   /*tp_getattr*/
-    0,              /*tp_setattr*/
-    (cmpfunc)boolean_cmp,                          /*tp_compare*/
-    0,          /*tp_repr*/
-    &boolean_as_number,                          /*tp_as_number*/
-    0,              /*tp_as_sequence*/
-    0,              /*tp_as_mapping*/
-    0,                             /*tp_hash*/
-    0,          /*tp_call*/
-    boolean_str,          /*tp_str*/
-    0,                      /*tp_getattro*/
-    0,          /*tp_setattro*/
+    0,                    /* tp_dealloc */
+    boolean_print,        /* tp_print */
+    0,                    /* tp_getattr */
+    0,                    /* tp_setattr */
+    (cmpfunc)boolean_cmp, /* tp_compare */
+    0,                    /* tp_repr */
+    &boolean_as_number,   /* tp_as_number */
+    0,                    /* tp_as_sequence */
+    0,                    /* tp_as_mapping */
+    0,                    /* tp_hash */
+    0,                    /* tp_call */
+    boolean_str,          /* tp_str */
+    0,                    /* tp_getattro */
+    0,                    /* tp_setattro */
 };
 
 
