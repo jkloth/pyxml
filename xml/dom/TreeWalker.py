@@ -166,6 +166,15 @@ class TreeWalker:
         else:
             return NodeFilter.FILTER_ACCEPT
 
+    def __iter__(self):
+        return self
+
+    def next(self):
+        node = self.nextNode()
+        if node is None:
+            raise StopIteration
+        return node
+
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = {'root':_get_root,
