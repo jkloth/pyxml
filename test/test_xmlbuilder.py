@@ -96,6 +96,72 @@ class Tests(unittest.TestCase):
         self.assertEqual(doc.getElementById("foo").getAttribute("name"), "a",
                          "did not get expected node")
 
+    def check_resolver(self, content_type, encoding):
+        resolver = TestingResolver(content_type)
+        source = resolver.resolveEntity(None, DUMMY_URL)
+        self.assertEqual(source.encoding, encoding,
+                         "wrong encoding; expected %s, got %s"
+                         % (repr(encoding), repr(source.encoding)))
+
+    def test_entity_resolver_encodings(self):
+        self.check_resolver((None, None, []), None)
+        self.check_resolver(("text", "plain", []), None)
+        self.check_resolver(("text", "plain", ["charset=iso-8859-1"]),
+                            "iso-8859-1")
+        self.check_resolver(("text", "plain", ["charset=UTF-8"]), "utf-8")
+
+
+DUMMY_URL = "http://xml.python.org/dummy.xml"
+
+class TestingResolver(xmlbuilder.DOMEntityResolver):
+    def __init__(self, content_type):
+        self._content_type = content_type
+
+    def _create_opener(self):
+        return FakeOpener(self._content_type)
+
+class FakeOpener:
+    def __init__(self, content_type):
+        self._content_type = content_type
+
+    def open(self, url):
+        if url != DUMMY_URL:
+            raise ValueError, "unexpected URL: " + repr(url)
+        return FakeFile(open("/dev/null", "rb"), self._content_type)
+
+class FakeFile:
+    def __init__(self, file, content_type):
+        self._file = file
+        self._content_type = content_type
+
+    def info(self):
+        return FakeMessage(self._content_type)
+
+    def __getattr__(self, name):
+        return getattr(self._file, name)
+
+class FakeMessage:
+    def __init__(self, content_type):
+        self._maintype, self._subtype, self._plist = content_type
+
+    def has_key(self, name):
+        name = name.lower()
+        if name != "content-type":
+            raise ValueError, "unexpected has_key(%s)" % repr(name)
+        return self._maintype is not None
+
+    def getplist(self):
+        return self._plist
+
+    def getmaintype(self):
+        return self._maintype or "text"
+
+    def getsubtype(self):
+        return self._subtype or "plain"
+
+    def gettype(self):
+        return "%s/%s" % (self.getmaintype(), self.getsubtype())
+
 
 def test_main():
     import test_support

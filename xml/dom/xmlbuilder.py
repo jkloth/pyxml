@@ -211,28 +211,62 @@ def _name_xform(name):
     return name.lower().replace('-', '_')
 
 
-class DOMEntityResolver:
+class DOMEntityResolver(NewStyle):
+    __slots__ = '_opener',
+
     def resolveEntity(self, publicId, systemId):
+        assert systemId is not None
         source = DOMInputSource()
         source.publicId = publicId
         source.systemId = systemId
-        if systemId:
-            import urllib2
-            self.byteStream = urllib2.urlopen(systemId)
-            # Should parse out the content-type: header to
-            # get charset information so that we can set the
-            # encoding attribute on the DOMInputSource.
+        source.byteStream = self._get_opener().open(systemId)
+
+        # determine the encoding if the transport provided it
+        source.encoding = self._guess_media_encoding(source)
+
+        # determine the base URI is we can
+        import posixpath, urlparse
+        parts = urlparse.urlparse(systemId)
+        scheme, netloc, path, params, query, fragment = parts
+        # XXX should we check the scheme here as well?
+        if path and not path.endswith("/"):
+            path = posixpath.dirname(path) + "/"
+            parts = scheme, netloc, path, params, query, fragment
+            source.baseURI = urlparse.urlunparse(parts)
+
         return source
 
+    def _get_opener(self):
+        try:
+            return self._opener
+        except AttributeError:
+            self._opener = self._create_opener()
+            return self._opener
 
-class DOMInputSource:
-    byteStream = None
-    characterStream = None
-    stringData = None
-    encoding = None
-    publicId = None
-    systemId = None
-    baseURI = None
+    def _create_opener(self):
+        import urllib2
+        return urllib2.build_opener()
+
+    def _guess_media_encoding(self, source):
+        info = source.byteStream.info()
+        if info.has_key("Content-Type"):
+            for param in info.getplist():
+                if param.startswith("charset="):
+                    return param.split("=", 1)[1].lower()
+
+
+class DOMInputSource(NewStyle):
+    __slots__ = ('byteStream', 'characterStream', 'stringData',
+                 'encoding', 'publicId', 'systemId', 'baseURI')
+
+    def __init__(self):
+        self.byteStream = None
+        self.characterStream = None
+        self.stringData = None
+        self.encoding = None
+        self.publicId = None
+        self.systemId = None
+        self.baseURI = None
 
     def _get_byteStream(self):
         return self.byteStream
