@@ -3,7 +3,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.10 2000/09/26 14:43:10 loewis Exp $
+$Id: xmlval.py,v 1.11 2001/03/03 07:32:35 loewis Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time
@@ -74,6 +74,9 @@ class XMLValidator:
     def set_data_after_wf_error(self,stop_on_wf=0):
         self.parser.set_data_after_wf_error(stop_on_wf)
 
+    def set_sysid(self, sysid):
+        self.parser.set_sysid(sysid)
+
     def set_read_external_subset(self,read_it):
         pass # This parser always reads it
         
@@ -98,8 +101,8 @@ class XMLValidator:
     def parseEnd(self):
         self.parser.parseEnd()
 
-    def read_from(self,file):
-        self.parser.read_from(file)
+    def read_from(self,file,bufsize=16384):
+        self.parser.read_from(file,bufsize)
 
     def flush(self):
         self.parser.flush()
