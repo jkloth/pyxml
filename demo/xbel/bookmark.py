@@ -64,7 +64,7 @@ class Bookmarks:
         else:
             ID = ""
         out.write('<?xml version="1.0"?>\n'
-                  '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.1//EN//XML" "xbel-1.1.dtd">\n'
+                  '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.1//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel-1.1.dtd">\n'
                   '<xbel%s>\n'
                   % ID
         )
