@@ -374,6 +374,10 @@ class Attr(Node):
     def __init__(self, node, parent = None):
         Node.__init__(self, node, parent, None)
 
+    def __repr__(self):
+        return '<Attribute node "%s", "%s">' % (self._node.name,
+                                                self._node.value)
+
     def get_name(self):
         return self._node.name
 
@@ -489,7 +493,12 @@ class Element(Node):
     
 class Text(CharacterData):
     # Methods
-    
+
+    def __repr__(self):
+        if len(self._node.value)<20: s=self._node.value
+        else: s=self._node.value[:17] + '...'
+        return '<Text node "%s">' % (s,)
+        
     def splitText(self, offset):
         n1 = _nodeData(TEXT_NODE) ; n2 = _nodeData(TEXT_NODE)
         n1.name = "#text" ; n2.name = "#text"
@@ -504,12 +513,22 @@ class Text(CharacterData):
         parent.replaceChild(n2, self)
     
 class Comment(CharacterData):
+    def __repr__(self):
+        if len(self._node.value)<20: s=self._node.value
+        else: s=self._node.value[:17] + '...'
+        return '<Comment node "%s">' % (s,)
+    
     def toxml(self):
         return '<-- %s -->' % self._node.value
 
 class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would
     otherwise be regarded as markup."""
+    def __repr__(self):
+        if len(self._node.value)<20: s=self._node.value
+        else: s=self._node.value[:17] + '...'
+        return '<CDATASection node "%s">' % (s,)
+
     def toxml(self):
         return self._node.value
 
