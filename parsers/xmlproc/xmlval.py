@@ -3,10 +3,10 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.6 1999/02/10 01:46:03 amk Exp $
+$Id: xmlval.py,v 1.7 1999/04/22 01:38:19 amk Exp $
 """
 
-import urlparse
+import urlparse,os,anydbm,string,cPickle,time
 
 from xmlproc import *
 from xmldtd import *
@@ -99,7 +99,10 @@ class XMLValidator:
 
     def flush(self):
         self.parser.flush()
-	    
+
+    def report_error(self,errno,args=None):
+        self.parser.report_error(errno,args)
+        
 # ==============================
 # Application object that checks the document
 # ==============================
@@ -142,7 +145,7 @@ class ValidatingApp(Application):
                 else:
                     self.cur_state=next
 
-	    self.stack.append(self.cur_elem,self.cur_state)
+	    self.stack.append((self.cur_elem,self.cur_state))
 	elif decl_root!=None and name!=decl_root:
 	    self.parser.report_error(2002,name)
 
@@ -174,12 +177,13 @@ class ValidatingApp(Application):
 	    next=self.cur_elem.next_state(self.cur_state,"#PCDATA")
 
 	    if next==0:
-		mo=reg_ws.match(data[start:end])
-		if mo!=None and len(mo.group(0))==len(data[start:end]):
-		    self.realapp.handle_ignorable_data(data,start,end)
-		    return
-		else:
-		    self.parser.report_error(2005)
+                self.realapp.handle_ignorable_data(data,start,end)
+                for ch in data[start:end]:
+                    if not ch in " \t\r\n":
+                        self.parser.report_error(2005)
+                        break
+
+                return		    
 	    else:
 		self.cur_state=next
 
@@ -256,8 +260,19 @@ class ValidatingApp(Application):
     def handle_doctype(self,rootname,pub_id,sys_id):
 	self.dtd.root_elem=rootname
 
+#         if pub_id!=None:
+#             sys_id=self.pubres.resolve_doctype_pubid(pub_id,sys_id)
+
+#         sys_id=join_sysids(self.parser.get_current_sysid(),sys_id)
+#         dtd=self.dtdcache.load(sys_id,self.parser.err,
+#                                [self.realapp,self.parser.err],self.parser)
+#         # join dtd with internal subset dtd
+# 	  self.realapp.handle_doctype(rootname,pub_id,sys_id)       
+            
 	p=DTDParser()
         p.err=self.parser.err # OK, ugly, but effective
+        self.realapp.set_locator(p)
+        self.parser.err.set_locator(p)
 	p.set_dtd_consumer(self.dtd)
         p.set_dtd_object(self.dtd)
 
@@ -266,6 +281,8 @@ class ValidatingApp(Application):
 
         p.parse_resource(join_sysids(self.parser.get_current_sysid(),sys_id))
         p.deref()
+        self.realapp.set_locator(self.parser)
+        self.parser.err.set_locator(self.parser)
         
 	self.realapp.handle_doctype(rootname,pub_id,sys_id)
 
@@ -286,3 +303,80 @@ class ValidatingApp(Application):
 
     def set_entity_info(self,xmlver,enc,sddecl):
 	self.realapp.set_entity_info(xmlver,enc,sddecl)
+
+# ==============================
+# DTD cache
+# ==============================
+
+# FIXME: Extend to in-memory caching as well?
+
+class DTDCache:
+    """This class provides a DTD cache that helps avoid reparsing DTDs
+    needlessly."""
+
+    def __init__(self,cachedir):
+        self.cachedir=cachedir
+        self.index=anydbm.open(self.__get_cache_file_name("index.dbm"),"c")
+        try:
+            self.lastno=string.atoi(self.index["."])
+        except KeyError,e:
+            self.lastno=0
+     
+    def load(self,sysid,err,loc_users,loc_old):        
+        """Loads the DTD at sysid, unless it's in the cache already,
+        sending errors to err. loc_users are given the new locator,
+        and afterwards reset to loc_old."""
+
+        if self.index.has_key(sysid):
+            (loadtime,cachefile)=string.split(self.index[sysid],"|")
+            if loadtime>self.__get_file_age(sysid):
+                inf=open(self.__get_cache_file_name(cachefile),"rb")
+                print "Loading DTD from cache: "+cachefile
+                dtd=cPickle.load(inf)
+                inf.close()
+                return dtd
+
+        dtd=self.__parse_dtd(sysid,err,loc_users,loc_old)
+        loadtime=time.time() # FIXME: Must be coordinated with UTC/DST/+++
+        cachefile=self.__make_file_name()
+        out=open(self.__get_cache_file_name(cachefile),"wb")
+        print "Dumping DTD to cache: "+cachefile
+        cPickle.dump(dtd,out,1) # Use binary format
+        out.close()
+
+        self.index[sysid]="%d|%s" % (loadtime,cachefile)
+        return dtd
+
+    # --- INTERNAL UTILITY METHODS
+
+    def __parse_dtd(self,sysid,err,loc_users,loc_old):
+        """Parses the DTD at sysid, sending errors to err. loc_users are
+        given the new locator, and afterwards reset to loc_old."""
+        print "Loading DTD at: "+sysid
+	p=DTDParser()
+        dtd=CompleteDTD(p)
+        p.err=err
+	p.set_dtd_consumer(dtd)
+        p.set_dtd_object(dtd)
+
+        for loc_user in loc_users:
+            loc_user.set_locator(p)       
+
+        p.parse_resource(sysid)
+        p.deref()
+
+        for loc_user in loc_users:
+            loc_user.set_locator(loc_old)
+
+        return dtd
+    
+    def __make_file_name(self): 
+        self.lastno=self.lastno+1
+        self.index["."]=str(self.lastno)
+        return str(self.lastno)
+            
+    def __get_file_age(self,sysid): # FIXME: Must handle HTTP as well
+        return os.stat(sysid)[8]
+
+    def __get_cache_file_name(self,cachefile):
+        return self.cachedir+os.sep+cachefile

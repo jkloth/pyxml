@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.6 1999/02/10 01:46:03 amk Exp $
+# $Id: xmlutils.py,v 1.7 1999/04/22 01:38:19 amk Exp $
    
 import string,re,urlparse,os
 
@@ -31,7 +31,8 @@ class EntityParser:
         self.isf=xmlapp.InputSourceFactory()
         self.pubres=xmlapp.PubIdResolver()
         self.data_charset="iso-8859-1"
-        self.errors=errors.get_error_list("en")
+        self.err_lang="en"
+        self.errors=errors.get_error_list(self.err_lang)
         
         self.reset()
 
@@ -39,6 +40,7 @@ class EntityParser:
         """Sets the language in which errors are reported. (ISO 3166 codes.)
         Throws a KeyError if the language is not supported."""
         self.errors=errors.get_error_list(string.lower(language))
+        self.err_lang=string.lower(language) # only set if supported
 
     def set_error_handler(self,err):
 	"Sets the object to send error events to."
@@ -272,10 +274,11 @@ class EntityParser:
     
     def now_at(self,test_str):
 	"Checks if we are at this string now, and if so skips over it."
-	if self.datasize-self.pos<len(test_str) and not self.final:
+        pos=self.pos
+	if self.datasize-pos<len(test_str) and not self.final:
 	    raise OutOfDataException()
 	
-	if self.data[self.pos:self.pos+len(test_str)]==test_str:
+	if self.data[pos:pos+len(test_str)]==test_str:
 	    self.pos=self.pos+len(test_str)
 	    return 1
 	else:
@@ -544,7 +547,7 @@ class XMLCommonParser(EntityParser):
     def parse_pi(self,handler,report_xml_decl=0):
 	"""Parses a processing instruction from after the '<?' to beyond
 	the '?>'."""
-	trgt=self.get_match(reg_name)
+	trgt=self._get_name()
 
 	if trgt=="xml":
             if report_xml_decl:
@@ -556,14 +559,18 @@ class XMLCommonParser(EntityParser):
 		self.report_error(3005,"?>")
 	    self.seen_xmldecl=1
 	else:
+            if self.now_at("?>"):
+                rem=""
+            else:
+                self.skip_ws(1)
+                rem=self.scan_to("?>") # OutOfDataException if not found
+
 	    if reg_res_pi.match(trgt)!=None:
 		if trgt=="xml:namespace":
 		    self.report_error(1003)
                 elif trgt!="xml-stylesheet":
 		    self.report_error(1004)
-
-            self.skip_ws()
-            rem=self.scan_to("?>") # OutOfDataException if not found
+                
             handler.handle_pi(trgt,rem)   
 
     def parse_comment(self,handler):
@@ -595,18 +602,22 @@ class XMLCommonParser(EntityParser):
 	if self.pos>self.datasize-5 and not self.final:
 	    raise OutOfDataException()
 
-        if self.data[self.pos] in namestart:
-            start=self.pos
-            self.pos=self.pos+1
+        data=self.data
+        pos=self.pos
+        if data[pos] in namestart:
+            start=pos
+            pos=pos+1
 
             try:
-                while self.data[self.pos] in namechars:
-                    self.pos=self.pos+1
+                while data[pos] in namechars:
+                    pos=pos+1
 
-                return intern(self.data[start:self.pos])
+                self.pos=pos
+                return intern(data[start:pos])
             except IndexError:
+                self.pos=pos
                 if self.final:
-                    return intern(self.data[start:])
+                    return intern(data[start:])
                 else:
                     raise OutOfDataException()
         else:
@@ -650,8 +661,9 @@ def join_sysids(base,url):
 
 # --- Some useful regexps
 
-namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"
-namechars=namestart+"0123456789.-"
+namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
+          "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
+namechars=namestart+"0123456789.·-"
 whitespace="\n\t \r"
 
 reg_ws=re.compile("[\n\t \r]+")
@@ -659,11 +671,11 @@ reg_ver=re.compile("[-a-zA-Z0-9_.:]+")
 reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
 reg_std_alone=re.compile("yes|no")
 reg_comment_content=re.compile("([^-]|-[^-])*")
-reg_name=re.compile("[A-Za-z_:][\-A-Za-z_:.0-9]*")
-reg_names=re.compile("[A-Za-z_:][\-A-Za-z_:.0-9]*"
-		     "([\n\t \r]+[A-Za-z_:][\-A-Za-z_:.0-9]*)*")
-reg_nmtoken=re.compile("[\-A-Za-z_:.0-9]+")
-reg_nmtokens=re.compile("[\-A-Za-z_:.0-9]+([\n\t \r]+[\-A-Za-z_:.0-9]+)*")
+reg_name=re.compile("["+namestart+"]["+namechars+"]*")
+reg_names=re.compile("["+namestart+"]["+namechars+"]*"
+		     "([\n\t \r]+["+namestart+"]["+namechars+"]*)*")
+reg_nmtoken=re.compile("["+namechars+"]+")
+reg_nmtokens=re.compile("["+namechars+"]+([\n\t \r]+["+namechars+"]+)*")
 reg_sysid_quote=re.compile("[^\"]*")
 reg_sysid_apo=re.compile("[^']*")
 reg_pubid_quote=re.compile("[- \n\t\ra-zA-Z0-9'()+,./:=?;!*#@$_%]*")
@@ -672,7 +684,7 @@ reg_start_tag=re.compile("<[A-Za-z_:]")
 reg_quoted_attr=re.compile("[^<\"]*")
 reg_apo_attr=re.compile("[^<']*")
 reg_c_data=re.compile("[<&]")
-reg_pe_ref=re.compile("%[A-Za-z_:][\-A-Za-z_:.0-9]*;")
+reg_pe_ref=re.compile("%["+namestart+"]["+namechars+"]*;")
 
 reg_ent_val_quote=re.compile("[^\"]+")
 reg_ent_val_apo=re.compile("[^\']+")

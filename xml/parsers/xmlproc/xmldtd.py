@@ -1,8 +1,11 @@
-
-"""These are the DTD-aware classes of xmlproc. They provide both the
+"""
+These are the DTD-aware classes of xmlproc. They provide both the
 DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
-validating parser)."""
+validating parser).
+
+$Id: xmldtd.py,v 1.7 1999/04/22 01:38:19 amk Exp $
+"""
 
 import types
 
@@ -157,6 +160,7 @@ class CompleteDTD(WFCDTD):
 	self.notations={}
 	self.attlists={}  # Attribute lists of elements not yet declared
         self.root_elem=None
+        self.cmhash={}
         
     def get_root_elem(self):
 	"Returns the name of the declared root element."
@@ -171,6 +175,7 @@ class CompleteDTD(WFCDTD):
 
     def dtd_end(self):
         WFCDTD.dtd_end(self)
+        self.cmhash={}
         
 	for elem in self.attlists.keys():
 	    self.parser.report_error(1006,elem)
@@ -182,7 +187,7 @@ class CompleteDTD(WFCDTD):
             except KeyError,e:
                 self.parser.report_error(2022,(self.used_notations[notation],
                                                notation))
-        self.used_notations={} # Not needed, save memory            
+        self.used_notations={} # Not needed, save memory
 	
     def new_notation(self,name,pubid,sysid):
 	self.notations[name]=(pubid,sysid)
@@ -197,8 +202,7 @@ class CompleteDTD(WFCDTD):
 	    model=make_empty_model()
             elem_cont=("",[],"")
 	elif elem_cont!="ANY":
-            model=make_model(make_objects(elem_cont),self.parser)
-            elem_cont=None
+            model=make_model(self.cmhash,elem_cont,self.parser)
 
 	if elem_cont=="ANY":
 	    self.elems[elem_name]=ElementTypeAny(elem_name)
@@ -266,7 +270,7 @@ class ElementType:
             for notation in a_type[1]:
                 parser.dtd.used_notations[notation]=attr
             
-	self.attrhash[attr]=Attribute(attr,a_type,a_decl,a_def)
+	self.attrhash[attr]=Attribute(attr,a_type,a_decl,a_def,parser)
 
         if a_def!=None:
             self.attrhash[attr].validate(self.attrhash[attr].default,parser)
@@ -282,19 +286,26 @@ class ElementType:
     def next_state(self,state,elem_name):
 	"""Returns the next state of the content model from the given one
         when elem_name is encountered. Character data is represented as
-        '#PCDATA'. If 0 is returned the element is not allowed here."""
-	
-	for (to,trans_name) in self.content_model[state]:
-	    if trans_name==elem_name:
-		return to
+        '#PCDATA'. If 0 is returned the element is not allowed here or if
+        the state is unknown."""
+        try:
+            return self.content_model[state][elem_name]
+        except KeyError:
+            return 0
 
-	return 0
-
+    def get_valid_elements(self,state):
+        """Returns a list of the valid elements in the given state, or the
+        empty list if none are valid (or if the state is unknown)."""
+        try:
+            return self.content_model[state].keys()
+        except KeyError:
+            return []
+        
     def get_content_model(self):
         """Returns the element content model in (sep,cont,mod) format, where
         cont is a list of (name,mod) and (sep,cont,mod) tuples. ANY content
         models are represented as None, and EMPTYs as ("",[],"")."""
-        return self.content_model_structure
+        return self.content_model_structure    
     
     # --- Methods used to create shortcut validation information
 
@@ -337,7 +348,7 @@ class ElementTypeAny(ElementType):
 class Attribute:
     "Represents a declared attribute."
 
-    def __init__(self,name,attrtype,decl,default):
+    def __init__(self,name,attrtype,decl,default,parser):
 	self.name=name
 	self.type=attrtype
 	self.decl=decl
@@ -624,6 +635,8 @@ def fnda2fda(transitions,final_state,parser):
 
     # transitions: old FNDA as [[(to,over),(to,over),...],
     #                           [(to,over),(to,over),...]] structure
+    # new FDA as [{over:to,over:to,...},
+    #             {over:to,over:to,...}] structure
     # err: error-handler
 
     #print_trans(transitions)
@@ -658,7 +671,7 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,parser,
                     closure_hash):
     "Set up transitions and create new states."
 
-    new_states[state_key]=[] # OK, a new one, create it
+    new_states[state_key]={} # OK, a new one, create it
     new_trans={} # Hash from label to a list of the possible destination states
 
     # Find all transitions from this set of states and group them by their
@@ -699,7 +712,7 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,parser,
                 closure_hash[destlist[0]]=new_state
 
         # add transition and destination state
-        new_states[state_key].append(new_state,over)
+        new_states[state_key][over]=new_state
         if not new_states.has_key(new_state):
             add_transitions(to,transitions,new_states,new_inc,\
                             new_state,parser,closure_hash)
@@ -708,7 +721,7 @@ def compute_closure(ix,included,transitions):
     "Computes the e-closure of this state."
     included[ix]=1
     for (to,what) in transitions[ix]:
-	if what=="" and not included[to]:
+        if what=="" and not included[to]:
             compute_closure(to,included,transitions)
         
 def print_trans(model):
@@ -742,11 +755,20 @@ def make_empty_model():
     "Constructs a state model for empty content models."
     return { 1:[], "final":1, "start":1 }
 
-def make_model(content_model,err):
+def make_model(cmhash,content_model,err):
     "Creates an FDA from the content model."
-    builder=FNDABuilder()
-    content_model.add_states(builder)
-    return fnda2fda(builder.get_automaton(),builder.get_current_state(),err)
+    cm=`content_model`
+    if cmhash.has_key(cm):
+        return cmhash[cm]
+    else:    
+        content_model=make_objects(content_model)
+        builder=FNDABuilder()
+        content_model.add_states(builder)
+        content_model=fnda2fda(builder.get_automaton(),
+                               builder.get_current_state(),
+                               err)
+        cmhash[cm]=content_model
+        return content_model
 
 def make_objects(content_model):
     "Turns a tuple-ized content model into one based on objects."

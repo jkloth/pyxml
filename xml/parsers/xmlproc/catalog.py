@@ -12,8 +12,11 @@ class CatParserFactory:
     """This class is used by the CatalogManager to create new parsers as they
     are needed."""
 
+    def __init__(self,error_lang=None):
+        self.error_lang=error_lang
+
     def make_parser(self,sysid):
-        return CatalogParser()
+        return CatalogParser(self.error_lang)
 
 # --- Empty catalog application class
 
@@ -45,9 +48,10 @@ class CatalogApp:
 class AbstrCatalogParser:
     "Abstract catalog parser with functionality needed in all such parsers."
 
-    def __init__(self):
+    def __init__(self,error_lang=None):
         self.app=CatalogApp()
         self.err=xmlapp.ErrorHandler(None)
+        self.error_lang=error_lang
     
     def set_application(self,app):
         self.app=app
@@ -60,8 +64,8 @@ class AbstrCatalogParser:
 class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
     "A parser for SGML Open catalog files."
 
-    def __init__(self):
-        AbstrCatalogParser.__init__(self)
+    def __init__(self,error_lang=None):
+        AbstrCatalogParser.__init__(self,error_lang)
         xmlutils.EntityParser.__init__(self)
 
         # p=pubid (or prefix)
@@ -71,7 +75,11 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                           "CATALOG": ("s"), "DOCUMENT": ("s"),
                           "BASE": ("o"), "SYSTEM": ("o","s"), 
                           "OVERRIDE": ("o") }
-    
+
+    def parseStart(self):
+        if self.error_lang:
+            self.set_error_language(self.error_lang)
+        
     def do_parse(self):
 	try:
 	    while self.pos+1<self.datasize:
@@ -83,9 +91,9 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
 
                 entryname=self.find_reg(xmlutils.reg_ws)
                 if not self.entry_hash.has_key(entryname):
-                    self.err.fatal("Invalid or unsupported construct!")
-                
-                self.parse_entry(entryname,self.entry_hash[entryname])
+                    self.report_error(5100,(entryname,))
+                else:
+                    self.parse_entry(entryname,self.entry_hash[entryname])
 
 	except xmlutils.OutOfDataException,e:
 	    if self.final:
@@ -138,7 +146,7 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
 
 class CatalogManager(CatalogApp):
 
-    def __init__(self):
+    def __init__(self,error_handler=None):
         self.__public={}
         self.__system={}
         self.__delegations=[]
@@ -147,8 +155,11 @@ class CatalogManager(CatalogApp):
 
         # Keeps track of sysid base even if we recurse into other catalogs
         self.__catalog_stack=[] 
-        
-        self.err=xmlapp.ErrorHandler(None)
+
+        if error_handler==None:
+            self.err=xmlapp.ErrorHandler(None)
+        else:
+            self.err=error_handler
         self.parser_fact=CatParserFactory()
         self.parser=None
 
@@ -261,10 +272,10 @@ class CatalogManager(CatalogApp):
 
 class xmlproc_catalog:
 
-    def __init__(self,sysid,pf):        
-        self.catalog=CatalogManager()
+    def __init__(self,sysid,pf,error_handler=None):        
+        self.catalog=CatalogManager(error_handler)
         self.catalog.set_parser_factory(pf)
-        self.catalog.parse_catalog(sysid)
+        self.catalog.parse_catalog(sysid)        
 
     def get_document_sysid(self):
         return self.catalog.get_document_sysid()

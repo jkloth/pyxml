@@ -2,7 +2,7 @@
 A parser filter for namespace support. Placed externally to the parser
 for efficiency reasons.
 
-$Id: namespace.py,v 1.1 1999/02/10 01:46:03 amk Exp $
+$Id: namespace.py,v 1.2 1999/04/22 01:38:19 amk Exp $
 """
 
 import string

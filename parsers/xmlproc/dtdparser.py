@@ -1,6 +1,8 @@
 """
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
+
+$Id: dtdparser.py,v 1.2 1999/04/22 01:38:19 amk Exp $
 """
 
 import types,string
@@ -184,6 +186,18 @@ class DTDParser(XMLCommonParser):
         self.includes_entered=0
         self.own_ent_stack=[]               # Keeps includes_entered
 
+    def reset(self):
+        EntityParser.reset(self)
+        if hasattr(self,"dtd"):
+            self.dtd.reset()
+
+        self.internal=0
+        self.seen_xmldecl=0
+        self.in_peref=0
+        self.ignores_entered=0
+        self.includes_entered=0
+        self.own_ent_stack=[]               # Keeps includes_entered        
+        
     def parseStart(self):
         self.dtd_consumer.dtd_start()
 
@@ -291,6 +305,7 @@ class DTDParser(XMLCommonParser):
 	    self.skip_ws()
 
             ndata=self._get_name()
+	    self.skip_ws()
 	else:
 	    ndata=""
 
@@ -416,7 +431,12 @@ class DTDParser(XMLCommonParser):
 	else:
             sysid=self.pubres.resolve_pe_pubid(ent.get_pubid(),
                                                ent.get_sysid())
-	    self.open_entity(sysid) # Does parsing and popping
+            int=self.internal
+            self.set_internal(0)
+            try:
+                self.open_entity(sysid) # Does parsing and popping
+            finally:
+                self.set_internal(int)            
 	    
     def parse_attlist(self):
 	"Parses an attribute list declaration."
@@ -437,6 +457,13 @@ class DTDParser(XMLCommonParser):
 	    elif self.now_at("("):
 		self.pos=self.pos-1 # Does not expect '(' to be skipped
 		a_type=self.__parse_list(reg_nmtoken,"|")
+
+                tokens={}
+                for token in a_type:
+                    if tokens.has_key(token):
+                        self.report_error(3044,(token,))
+                    else:
+                        tokens[token]=1
 	    else:
 		self.report_error(3039)
 		self.scan_to(">")
@@ -484,7 +511,7 @@ class DTDParser(XMLCommonParser):
 	    elem_cont=self._parse_content_model()
 	else:
 	    self.report_error(3004,("EMPTY, ANY","("))
-	    elem_cont=None
+	    elem_cont="ANY" # Just so things don't fall apart downstream
 
 	self.skip_ws()
 	if not self.now_at(">"):
@@ -690,3 +717,5 @@ class DTDConsumerPE(DTDConsumer):
     def resolve_pe(self,name):
         return self.param_ents[name]
             
+    def reset(self):
+        self.param_ents={}

@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.7 1999/02/10 01:46:03 amk Exp $
+# $Id: xmlproc.py,v 1.8 1999/04/22 01:38:19 amk Exp $
    
 import re,string,sys,urllib,urlparse,types
 
@@ -13,7 +13,7 @@ from xmlutils import *
 from xmlapp import *
 from xmldtd import *
 
-version="0.60"
+version="0.62"
         
 # ==============================
 # A full well-formedness parser
@@ -63,6 +63,7 @@ class XMLProcessor(XMLCommonParser):
 	self.seen_root=0
 	self.seen_doctype=0
 	self.seen_xmldecl=0
+        self.stop_on_wf=1
 
     def deref(self):
         "Deletes circular references."
@@ -75,9 +76,10 @@ class XMLProcessor(XMLCommonParser):
 		prepos=self.pos
 
 		if self.data[self.pos]=="<":
-                    if self.now_at("</"):
+                    t=self.data[self.pos+1] # Optimization
+                    if t=="/":
                         self.parse_end_tag()
-                    elif not (self.test_str("<!") or self.test_str("<?")):
+                    elif t!="!" and t!="?":
                         self.parse_start_tag()
                     elif self.now_at("<!--"):
                         self.parse_comment(self.app)
@@ -99,10 +101,11 @@ class XMLProcessor(XMLCommonParser):
                 else:
                     self.parse_data()
 
-        except IndexError,e:
-            # Means self.pos was outside the buffer when we did a raw compare.
-            # This is both a little ugly and risky, but this loop is rather
-            # time-critical, so we do raw compares anyway.
+        except IndexError,e:            
+            # Means self.pos was outside the buffer when we did a raw
+            # compare.  This is both a little ugly and fragile to
+            # changes, but this loop is rather time-critical, so we do
+            # raw compares anyway.
             
 	    if self.final:
 		raise OutOfDataException()
@@ -141,8 +144,7 @@ class XMLProcessor(XMLCommonParser):
             attrs={}
             fixeds={}
         
-        if not (self.pos<self.datasize and (self.data[self.pos]==">" or \
-                                       self.data[self.pos]=="/")):
+        if self.data[self.pos]!=">" and self.data[self.pos]!="/":
             seen={}
             while not self.test_str(">") and not self.test_str("/>"):
                 a_name=self._get_name()
@@ -316,23 +318,26 @@ class XMLProcessor(XMLCommonParser):
     
     def parse_end_tag(self):
 	"Parses the end tag from after the '</' and beyond '>'."
-	#name=self.get_match(reg_name)
+        self.pos=self.pos+2 # Skips the '</'
         name=self._get_name()
         
-	if not self.now_at(">"):
+	if self.data[self.pos]!=">":
             self.skip_ws() # Probably rare to find whitespace here
             if not self.now_at(">"): self.report_error(3005,">")
+        else:
+            self.pos=self.pos+1
 
 	try:
-	    if not name==self.stack[-1]:
-		self.report_error(3023,(name,self.stack[-1]))
+            elem=self.stack.pop()
+            if name!=elem:
+		self.report_error(3023,(name,elem))
 
 		# Let's do some guessing in case we continue
-		if len(self.stack)>1 and self.stack[-2]==name:
-		    del self.stack[-1]
-		    del self.stack[-1]
-	    else:
-		del self.stack[-1]
+		if len(self.stack)>0 and self.stack[-1]==name:
+                    del self.stack[-1]
+                else:
+                    self.stack.append(elem) # Put it back
+
 	except IndexError,e:
 	    self.report_error(3024,name)
 
@@ -511,6 +516,7 @@ class XMLProcessor(XMLCommonParser):
 	p=DTDParser()
 	p.set_error_handler(self.err)
 	p.set_dtd_consumer(self.dtd)
+        p.set_error_language(self.err_lang)
         p.set_dtd_object(self.dtd)
         if self.dtd_listener!=None:
             self.dtd.set_dtd_listener(self.dtd_listener)

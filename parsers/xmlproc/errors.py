@@ -110,6 +110,7 @@ english={
     3040: "Choice and sequence lists cannot be mixed",
     3041: "Conditional sections not allowed in internal subset",
     3043: "Conditional section not closed",
+    3044: "Token '%s' defined more than once",
     
     # From regular expressions that were not matched
     3900: "Not a valid name",
@@ -128,8 +129,14 @@ english={
     4000: "Internal error: Entity stack broken",
     4001: "Internal error: Entity reference expected.",
     4002: "Internal error: Unknown error number.",
-    4003: "Internal error: External PE references not allowed in declarations"
+    4003: "Internal error: External PE references not allowed in declarations",
 
+    # --- XCatalog errors: 5000-5099
+    5000: "Uknown XCatalog element: %s.",
+    5001: "Required XCatalog attribute %s on %s missing.",
+     
+    # --- SOCatalog errors: 5100-5199
+    5100: "Invalid or unsupported construct: %s.",
     }
 
 # Errors in Norwegian
@@ -229,6 +236,7 @@ norsk={
     3040: "Valg- og sekvens-lister kan ikke blandes",
     3041: "'Conditional sections' er ikke tillatt i det interne DTD-subsettet",
     3043: "'Conditional section' ikke lukket",
+    3044: "Symbolet '%s' er definert mer enn en gang",
 
     # From regular expressions that were not matched
     3900: "Ikke et gyldig navn",
@@ -247,7 +255,13 @@ norsk={
     4000: "Intern feil: Entitets-stakken korrupt.",
     4001: "Intern feil: Entitets-referanse forventet.",
     4002: "Intern feil: Ukjent feilmelding.",
-    4003: "Intern feil: Eksterne parameter-entiteter ikke tillatt i deklarasjoner"
+    4003: "Intern feil: Eksterne parameter-entiteter ikke tillatt i deklarasjoner",
+    # --- XCatalog errors: 5000-5099
+    5000: "Ukjent XCatalog-element: %s.",
+    5001: "Påkrevd XCatalog-attributt %s på %s mangler.",
+     
+    # --- SOCatalog errors: 5100-5199
+    5100: "Ugyldig eller ikke støttet konstruksjon: %s.",
     }
 
 # Updating the error hash
