@@ -34,6 +34,7 @@ class Marshaller(saxlib.HandlerBase):
     tag_reference = 'reference'
     tag_code = 'code'
     tag_none = 'none'
+    tag_instance = 'object'
 
     # The four basic functions that form the caller's interface
     def dump(self, value, file):
@@ -128,8 +129,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_tuple(self, value, dict):
         name = self.tag_tuple ; L = []
-        i = str(id(value)) ; dict[ i ] = 1
-        L.append( '<' + name + ' id="i%s">' % (i,))
+        L.append( '<' + name + '>')
         for elem in value:
             L = L + self._marshal(elem, dict)
         L.append( '</' + name + '>')
@@ -137,7 +137,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_list(self, value, dict):
         name = self.tag_list ; L = []
-        i = str(id(value)) ; dict[ i ] = 1
+        i = str(id(value)) ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' % (i,))
         for elem in value:
             L = L + self._marshal(elem, dict)
@@ -146,7 +146,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_dictionary(self, value, dict):
         name = self.tag_dictionary ; L = []
-        i = str( id(value) ) ; dict[ i ] = 1
+        i = str( id(value) ) ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' %(i,) )
         for key, v in value.items():
             L = L + self._marshal(key, dict)
@@ -178,6 +178,34 @@ class Marshaller(saxlib.HandlerBase):
         i = str( id(value) )
         return L
 
+    def m_instance(self, value, dict):
+        name = self.tag_instance ; L = []
+        i = str(id(value)) ; dict[ i ] = value
+	cls = value.__class__
+	L.append( '<%s id="i%s" module="%s" class="%s">' 
+	         % (name, i, cls.__module__, cls.__name__) )
+
+	# Check for pickle's __getinitargs__
+        if hasattr(value, '__getinitargs__'):
+            args = value.__getinitargs__()
+            len(args) # XXX Assert it's a sequence
+        else:
+            args = ()
+
+        L = L + self._marshal(args, dict )
+
+	# Check for pickle's __getstate__ function
+        try:
+            getstate = value.__getstate__
+        except AttributeError:
+            stuff = value.__dict__
+	else:
+	    stuff = getstate()
+
+        L = L + self._marshal(stuff, dict)
+        
+	L.append('</%s>' % (name,) )
+	return L
 
 # These values are used as markers in the stack when unmarshalling
 # one of the structures below.  When a <tuple> tag is encountered, for
@@ -186,7 +214,7 @@ class Marshaller(saxlib.HandlerBase):
 # looks back into the stack until TUPLE is found; all the higher
 # objects are then collected into a tuple.  Ditto for lists...
  
-TUPLE = {} ; LIST = {} ; DICT = {}
+TUPLE = {} ; LIST = {} ; DICT = {} 
 
 class Unmarshaller(saxlib.HandlerBase):
     # This dictionary maps element names to the names of starting and ending
@@ -206,6 +234,7 @@ class Unmarshaller(saxlib.HandlerBase):
         'reference': ('um_start_reference', None),
         'code': ('um_start_code', 'um_end_code'),
         'none': ('um_start_none', 'um_end_none'),
+        'object': ('um_start_instance', 'um_end_instance')
         }
 
     def __init__(self):
@@ -249,6 +278,20 @@ class Unmarshaller(saxlib.HandlerBase):
         p.parseFile(file)
         assert len(self.data_stack) == 1
         return self.data_stack[0]
+
+    # find_class() is copied from pickle.py
+    def find_class(self, module, name):
+        env = {}
+
+        try:
+            exec 'from %s import %s' % (module, name) in env
+        except ImportError:
+            raise SystemError, \
+                  "Failed to import class %s from module %s" % \
+                  (name, module)
+        klass = env[name]
+        return klass
+
     
     # SAXlib handler methods.
     #
@@ -384,6 +427,46 @@ class Unmarshaller(saxlib.HandlerBase):
             d[key] = value
         ds[index:] = [ d ]
 
+    def um_start_instance(self, name, attrs):
+	module = attrs['module']
+	classname = attrs['class']
+	value = _EmptyClass()
+        if attrs.has_key('id'):
+            id = attrs[ 'id']
+            self.dict[ id ] = value
+        self.data_stack.append( value )
+	self.data_stack.append( module )
+	self.data_stack.append( classname )
+
+    def um_end_instance(self, name):
+	value, module, classname, initargs, dict = self.data_stack[-5:]
+        klass = self.find_class(module, classname)
+        instantiated = 0
+	if (not initargs and type(klass) is ClassType and
+            not hasattr(klass, "__getinitargs__")):
+            value.__class__ = klass
+            instantiated = 1
+
+        if not instantiated:
+            try:
+	        # Uh oh... we need to call the constructor with the initial
+	        # arguments, but we also have to preserve the identity of 
+		# the object, to keep recursive objects right.
+                v2 = apply(klass, initargs)
+            except TypeError, err:
+                raise TypeError, "in constructor for %s: %s" % (
+                    klass.__name__, str(err)), sys.exc_info()[2]
+	    else:
+                for k,v in v2.__dict__.items():
+	            setattr(value, k, v)
+
+        # Now set the object's attributes from the marshalled dictionary
+	for k,v in dict.items():
+	    setattr(value, k, v)
+	self.data_stack[ -5: ] = [value]
+
+# Helper class for instance unmarshalling
+class _EmptyClass: pass	        
 
 _m = Marshaller()
 dump = _m.dump ; dumps = _m.dumps
@@ -411,15 +494,27 @@ def test(load, loads, dump, dumps, test_values,
 
 if __name__ == '__main__':
     print "Testing XML marshalling..."
+
     L = [None, 1, pow(2,123L), 19.72, 1+5j, 
          "here is a string & a <fake tag>",
          (1,2,3), 
          ['alpha', 'beta', 'gamma'],
          {'key':'value', 1:2}, 
-         test.func_code ]
+         test.func_code 
+	 ]
     test(load, loads, dump, dumps, L)
 
+    class A: pass
+    class B: pass
+    instance = A() ; instance.subobject = B() 
+    instance.subobject.list=[None, 1, pow(2,123L), 19.72, 1+5j, 
+                             "here is a string & a <fake tag>"]
+    instance.self = instance
+    L = [ instance ]
+
+    test(load, loads, dump, dumps, L, do_assert=0)
+
     recursive_list = [None, 1, pow(3,65L), {1:'spam', 2:'eggs'},
-	              '<fake tag>', 1+5j]
+	              '<fake tag>', 1+5j ]
     recursive_list.append( recursive_list )
     test(load, loads, dump, dumps, [ recursive_list ], do_assert=0)
