@@ -12,7 +12,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import re, string, copy
+import re, string
 
 
 from DOMImplementation import implementation

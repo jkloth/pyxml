@@ -5,7 +5,7 @@ imitated) by clients that want to handle these functions themselves.
 Application is the class that receives document data from the parser,
 and is probably the one most people want.
 
-$Id: xmlapp.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
+$Id: xmlapp.py,v 1.10 2001/05/13 12:51:52 loewis Exp $
 """
 
 import sys,urllib
@@ -153,7 +153,7 @@ class EntityHandler:
 
 	try:
 	    return (1,predef_ents[entname])
-	except KeyError,e:
+	except KeyError:
 	    self.parser.report_error(3021,entname)
 	    return (1,"")
 

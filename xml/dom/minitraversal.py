@@ -10,7 +10,7 @@ class DOMImplementation(minidom.DOMImplementation):
         feature = string.lower(feature)
         if feature in ['traversal','range']:
             return 1
-        return mindom.DOMImplementation.hasFeature(self, feature, version)
+        return minidom.DOMImplementation.hasFeature(self, feature, version)
 
     def _createDocument(self):
         return Document()

@@ -2,7 +2,7 @@
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
 
-$Id: dtdparser.py,v 1.9 2001/03/30 15:45:37 loewis Exp $
+$Id: dtdparser.py,v 1.10 2001/05/13 12:51:52 loewis Exp $
 """
 
 import string
@@ -128,7 +128,7 @@ class DTDParser(XMLCommonParser):
 
             try:
                 ent=self.dtd.resolve_pe(name)
-            except KeyError,e:
+            except KeyError:
                 self.report_error(3038,name)
                 return 
 
@@ -343,7 +343,6 @@ class DTDParser(XMLCommonParser):
 	"""Parses an entity replacement text and resolves all character
 	entity and parameter entity references in it."""
 
-	val=""
         if self.now_at('"'):
             delim='"'
         elif self.now_at("'"):
@@ -405,7 +404,7 @@ class DTDParser(XMLCommonParser):
                         val=val+self.parse_ent_litval(ent.value)
                     else:
                         self.report_error(3037) # FIXME: Easily solved now...?
-                except KeyError,e:
+                except KeyError:
                     self.report_error(3038,name)
 
                 pos=endpos+1
@@ -434,7 +433,7 @@ class DTDParser(XMLCommonParser):
 
         try:
             ent=self.dtd.resolve_pe(name)
-	except KeyError,e:
+	except KeyError:
 	    self.report_error(3038,name)
             return 
 
@@ -625,7 +624,6 @@ class DTDParser(XMLCommonParser):
 	"Parses a conditional section."	
 	if self.internal:
 	    self.report_error(3041)
-	    ignore=1
 	    self.scan_to("]]>")
 	else:
 	    self.skip_ws()

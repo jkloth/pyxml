@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.18 2001/05/07 12:24:00 larsga Exp $
+# $Id: xmlutils.py,v 1.19 2001/05/13 12:51:52 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -28,7 +28,7 @@ try:
                 return lambda c,d = decoder:(d(c)[0])
             enc = dest
             encoder = codecs.lookup(dest)[0]
-            return lambda c,d=decoder,e=encode:e(d(c)[0])[0]
+            return lambda c,d=decoder,e=encoder:e(d(c)[0])[0]
         except LookupError:
             parser.report_error(1002,enc)
             return lambda s:s
@@ -117,7 +117,7 @@ class EntityParser:
         self.current_sysID=sysID
         try:
             infile=self.isf.create_input_source(sysID)
-        except IOError,e:
+        except IOError:
             self.report_error(3000,sysID)
             return
 	
@@ -144,7 +144,7 @@ class EntityParser:
 
         try:
             inf=self.isf.create_input_source(sysID)
-        except IOError,e:
+        except IOError:
             self.report_error(3000,sysID)
             return
 
@@ -194,7 +194,7 @@ class EntityParser:
 
             try:
                 self.feed(buf)
-            except OutOfDataException,e:
+            except OutOfDataException:
                 break
 
     def reset(self):
@@ -346,7 +346,7 @@ class EntityParser:
             pos=self.pos
             try:
                 self.do_parse()
-            except OutOfDataException,e:
+            except OutOfDataException:
                 if pos!=self.pos:
                     self.report_error(3001)
                 
@@ -430,17 +430,14 @@ class EntityParser:
     
     def skip_ws(self,necessary=0):
         "Skips over any whitespace at this point."
-        start=self.pos
-        
-        try:
-            while self.data[self.pos] in whitespace:
-                self.pos=self.pos+1
-        except IndexError:
-            if necessary and start==self.pos:
-                if self.final:
-                    self.report_error(3002)
-                else:
-                    raise OutOfDataException()
+        match = reg_ws.match(self.data,self.pos)
+        if not match:
+            if necessary:
+                self.report_error(3002)
+            return
+        if match.end() == self.datasize:
+            raise OutOfDataException()
+        self.pos = match.end()
 
     def test_reg(self,regexp):
         "Checks if we match the regexp."
@@ -841,14 +838,17 @@ else:
     
 # --- Some useful regexps
 
-if not using_unicode:
+if using_unicode:
+    _re_flags = re.UNICODE
+else:
+    _re_flags = 0
     namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
                "¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ¯˘˙˚¸˝˛ˇ"
     namechars=namestart+"0123456789.∑-"
 whitespace="\n\t \r"
 
-reg_ws=re.compile("[\n\t \r]+")
-reg_ver=re.compile("[-a-zA-Z0-9_.:]+")
+reg_ws=re.compile("[\n\t \r]+",_re_flags)
+reg_ver=re.compile("[-a-zA-Z0-9_.:]+",_re_flags)
 reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
 reg_std_alone=re.compile("yes|no")
 if using_unicode:

@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.14 2001/03/30 15:45:38 loewis Exp $
+$Id: xmldtd.py,v 1.15 2001/05/13 12:51:52 loewis Exp $
 """
 
 import types
@@ -215,7 +215,7 @@ class CompleteDTD(WFCDTD):
         for notation in self.used_notations.keys():
             try:
                 self.get_notation(notation)
-            except KeyError,e:
+            except KeyError:
                 self.parser.report_error(2022,(self.used_notations[notation],
                                                notation))
         self.used_notations={} # Not needed, save memory
@@ -253,10 +253,10 @@ class CompleteDTD(WFCDTD):
         self.dtd_listener.new_attribute(elem,attr,a_type,a_decl,a_def)
 	try:
 	    self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
-	except KeyError,e:
+	except KeyError:
 	    try:
 		self.attlists[elem].append((attr,a_type,a_decl,a_def))
-	    except KeyError,e:
+	    except KeyError:
 		self.attlists[elem]=[(attr,a_type,a_decl,a_def)]
                 
 # ==============================
@@ -786,7 +786,7 @@ def print_states(states,stop=0):
 	for (to,what) in trans:
 	    try:
 		print "  To: "+`to`+" over: "+what
-	    except TypeError,e:
+	    except TypeError:
 		print "ERROR: "+`what`
 
         if stop>1:

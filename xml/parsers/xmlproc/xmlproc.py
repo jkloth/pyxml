@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.17 2001/03/30 15:45:38 loewis Exp $
+# $Id: xmlproc.py,v 1.18 2001/05/13 12:51:52 loewis Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.17 $"
+revision="$Revision: 1.18 $"
         
 # ==============================
 # A full well-formedness parser
@@ -123,7 +123,7 @@ class XMLProcessor(XMLCommonParser):
 		raise OutOfDataException()
 	    else:
 		self.pos=self.prepos  # Didn't complete the construct        
-	except OutOfDataException,e:
+	except OutOfDataException:
 	    if self.final:
 		raise e
 	    else:
@@ -251,7 +251,7 @@ class XMLProcessor(XMLCommonParser):
                         self.pop_entity()
                     else:
                         self.report_error(3020)
-                except KeyError,e:
+                except KeyError:
                     self.report_error(3021,name) ## FIXME: Check standalone dcl
 
                 del self.open_ents[-1]
@@ -278,7 +278,7 @@ class XMLProcessor(XMLCommonParser):
         while 1:
             try:
                 piece=self.find_reg(reg_stop)
-            except OutOfDataException,e:
+            except OutOfDataException:
                 # Only character data left
                 val=val+ws_trans(self.data[self.pos:])
                 self.pos=self.datasize
@@ -313,7 +313,7 @@ class XMLProcessor(XMLCommonParser):
                         self.pop_entity()
                     else:
                         self.report_error(3020)
-                except KeyError,e:
+                except KeyError:
                     self.report_error(3021,name)	       
 
                 del self.open_ents[-1]
@@ -350,7 +350,7 @@ class XMLProcessor(XMLCommonParser):
                 else:
                     self.stack.append(elem) # Put it back
 
-	except IndexError,e:
+	except IndexError:
 	    self.report_error(3024,name)
 
         self.app.handle_end_tag(name)
@@ -393,7 +393,7 @@ class XMLProcessor(XMLCommonParser):
 	else:
             try:
                 digs=int(self.get_match(reg_digits))
-            except ValueError,e:
+            except ValueError:
                 self.report_error(3027)
                 digs=None
 
@@ -429,7 +429,7 @@ class XMLProcessor(XMLCommonParser):
 
         try:
             ent=self.ent.resolve_ge(name)
-	except KeyError,e:
+	except KeyError:
 	    self.report_error(3021,name)
             return
 
@@ -555,7 +555,7 @@ class XMLProcessor(XMLCommonParser):
 		p.set_sysid(self.get_current_sysid())
                 p.final=1
 		p.feed(int_dtd, decoded = 1)
-	    except OutOfDataException,e:
+	    except OutOfDataException:
 		self.report_error(3034)
 	finally:
             p.deref()

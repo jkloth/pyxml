@@ -152,14 +152,14 @@ if sys.platform == 'win32':
 docfiles="""
 recursive-include doc *.html *.tex *.txt *.gif *.css *.api *.web
 
-recursive-include demo README demo *.py demo *.xml *.dtd *.html *.htm
+recursive-include demo README *.py *.xml *.dtd *.html *.htm
 include demo/genxml/data.txt
 include demo/dom/html2html
 include demo/xbel/doc/xbel.bib
 include demo/xbel/doc/xbel.tex
 include demo/xmlproc/catalog.soc
 
-recursive-include test *.py *.xml
+recursive-include test *.py *.xml *.html *.dtd
 include test/test.xml.out
 graft test/output
 

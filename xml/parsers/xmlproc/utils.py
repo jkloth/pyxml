@@ -1,7 +1,7 @@
 """
 Some utilities for use with xmlproc.
 
-$Id: utils.py,v 1.3 2001/03/27 19:27:43 larsga Exp $
+$Id: utils.py,v 1.4 2001/05/13 12:51:52 loewis Exp $
 """
 
 import xmlapp,sys,string,types
@@ -46,8 +46,9 @@ class ErrorPrinter(xmlapp.ErrorHandler):
 class ErrorRaiser(xmlapp.ErrorHandler):
     """An error handler that raises exceptions."""
 
-    def __init__(self, level = 0):
+    def __init__(self, locator = None, level = 0):
         xmlapp.ErrorHandler.__init__(self, locator)
+        self.level = level
         
     def warning(self, msg):
         if self.level < 1:

@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.11 2001/04/16 10:58:09 larsga Exp $
+$Id: catalog.py,v 1.12 2001/05/13 12:51:52 loewis Exp $
 """
 
 import string,sys
@@ -105,10 +105,9 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                 else:
                     self.parse_entry(entryname,self.entry_hash[entryname])
 
-	except xmlutils.OutOfDataException,e:
+	except xmlutils.OutOfDataException:
 	    if self.final:
-		raise sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-	        #raise e
+	        raise
 	    else:
 		self.pos=prepos  # Didn't complete the construct
 
@@ -274,7 +273,7 @@ class CatalogManager(CatalogApp):
             if not resolved:
                 try:
                     sysid=self.__public[pubid]
-                except KeyError,e:
+                except KeyError:
                     self.err.error("Unknown public identifier '%s'" % pubid)
 
             return self.remap_sysid(sysid)

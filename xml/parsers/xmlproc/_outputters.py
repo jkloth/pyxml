@@ -1,8 +1,6 @@
 
 # This module contains common functionality used by xvcmd.py and xpcmd.py
 
-import sys,string
-
 from xml.parsers.xmlproc import xmlapp, utils
 
 # Backwards compatibility declarations

@@ -551,7 +551,9 @@ class Element(Node):
         return _getElementsByTagNameHelper(self, name, [])
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        _getElementsByTagNameNSHelper(self, namespaceURI, localName, [])
+        rc = []
+        _getElementsByTagNameNSHelper(self, namespaceURI, localName, rc)
+        return rc
 
     def __repr__(self):
         return "<DOM Element: %s at %s>" % (self.tagName, id(self))
@@ -811,7 +813,10 @@ class Document(Node):
         return a
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        _getElementsByTagNameNSHelper(self, namespaceURI, localName)
+        # XXX test case
+        rc = []
+        _getElementsByTagNameNSHelper(self, namespaceURI, localName, rc)
+        return rc
 
     def getElementsByTagName(self, name):
         rc = []

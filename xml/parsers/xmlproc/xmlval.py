@@ -3,7 +3,7 @@
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up.
 
-$Id: xmlval.py,v 1.12 2001/03/27 19:41:32 larsga Exp $
+$Id: xmlval.py,v 1.13 2001/05/13 12:51:52 loewis Exp $
 """
 
 import urlparse,os,anydbm,string,cPickle,time
@@ -132,7 +132,7 @@ class XMLValidator:
 
     def get_raw_construct(self):
         "Returns the raw form of the current construct."
-        return self.parser.data[self.parser.prepos:parser.self.pos]
+        return self.parser.data[self.parser.prepos:self.parser.pos]
 
     def get_current_ent_stack(self):
         """Returns a snapshot of the entity stack. A list of the system
@@ -191,7 +191,7 @@ class ValidatingApp(Application):
 	    self.cur_elem=self.dtd.get_elem(name)
             self.cur_state=self.cur_elem.get_start_state()
 	    self.validate_attributes(self.dtd.get_elem(name),attrs)
-	except KeyError,e:
+	except KeyError:
 	    self.parser.report_error(2003,name)
 	    self.cur_state=-1
 
@@ -235,7 +235,7 @@ class ValidatingApp(Application):
 	for attr in attrs.keys():
 	    try:
 		decl=element.get_attr(attr)
-	    except KeyError,e:
+	    except KeyError:
 		self.parser.report_error(2006,attr)
                 return
         
@@ -277,9 +277,9 @@ class ValidatingApp(Application):
             else:
                 try:
                     self.dtd.get_notation(ent.notation)
-                except KeyError,e:
+                except KeyError:
                     self.parser.report_error(2009,ent.notation)
-        except KeyError,e:
+        except KeyError:
             self.parser.report_error(3021,name)        
                 
     def doc_end(self):
