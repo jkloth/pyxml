@@ -3,30 +3,39 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.6.2 of the Python/XML distribution is now available.  It
+Version 0.6.3 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://download.sourceforge.net/pyxml/PyXML-0.6.2.tar.gz
-http://download.sourceforge.net/pyxml/PyXML-0.6.2.win32-py1.5.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.2.win32-py2.0.exe
-http://download.sourceforge.net/pyxml/PyXML-0.6.2-1.5.2.i586.rpm
-http://download.sourceforge.net/pyxml/PyXML-0.6.2-2.0.i586.rpm
+http://download.sourceforge.net/pyxml/PyXML-0.6.3.tar.gz
+http://download.sourceforge.net/pyxml/PyXML-0.6.3.win32-py1.5.exe
+http://download.sourceforge.net/pyxml/PyXML-0.6.3.win32-py2.0.exe
+http://download.sourceforge.net/pyxml/PyXML-0.6.3-1.5.2.i386.rpm
+http://download.sourceforge.net/pyxml/PyXML-0.6.3-2.0.i386.rpm
 
-Changes in this version, compared to 0.6.1:
+Changes in this version, compared to 0.6.2:
 
-	* Synchronize with standard library from Python 2.0
+	* Include documentation in binary packages as well.
 
-	* Updated to 4DOM from 4Suite 0.9.1. This corrects many
-	errors, see the 4Suite ChangeLog for details. Most notably,
-	the SAX reader interface has been expanded to support
-	arbitrary parsers, and a PyExpat reader class was added.
+	* Update to Expat 1.2, offer all Python Unicode codecs to
+          expat.
 
-	* Add minidom functions: normalize and hasAttribute.
+        * support the lexical-handler property in the expat SAX driver.
 
-	* Fix a number of minor bugs.
+	* Restructure DOM interfaces to better accomodate multiple
+          DOM implementations: provide standard exceptions and symbolic
+          constants (including those inside of the Node interface) in
+          xml.dom.
 
-	* More tests pass now, in particular test_dom, and test/dom/test.
+	* Improve minidom: validate arguments and raise DOM exceptions,
+          correct NameNodeMap operations, offer cloneNode, splitText,
+          DocumentType, DOMImplementation, and correct various other
+          errors.
+
+	* Restore xml.unicode for compatibility with PyXML 0.5. This is
+          a pure-Python implementation of the iso8859 module, which can
+          only convert between ISO-8859-x and UTF-8. Python 2 users
+          should use the Unicode type instead of this service.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled

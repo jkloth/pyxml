@@ -133,7 +133,7 @@ else:
     xmldocfiles = []
 
 setup (name = "PyXML",
-       version = "0.6.2", # Needs to match xml/__init__.version_info
+       version = "0.6.3", # Needs to match xml/__init__.version_info
        description = "Python/XML package",
        author = "XML-SIG",
        author_email = "xml-sig@python.org",
@@ -153,7 +153,7 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
        packages = [xml(''), 
                    xml('.dom'), xml('.dom.html'), xml('.dom.ext'),
                    xml('.dom.ext.reader'),
-                   xml('.marshal'),
+                   xml('.marshal'), xml('.unicode'),
                    xml('.parsers'), xml('.parsers.xmlproc'), 
                    xml('.sax'), xml('.sax.drivers'),
                    xml('.sax.drivers2'), xml('.utils')
