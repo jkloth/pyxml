@@ -2,8 +2,8 @@
 #
 # This module is needed to run generated parsers.
 
-from string import *
-import exceptions
+# from string import *
+# import exceptions
 import re
 
 class SyntaxError(Exception):
