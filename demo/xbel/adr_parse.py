@@ -20,10 +20,10 @@ class OperaParseException(Exception):
 
 # --- Methods
 
-def readfield(infile,fieldname):
-    line=string.rstrip(infile.readline())
-    pos=string.find(line,fieldname+"=")
-    if pos==-1:
+def readfield(infile, fieldname, required = 1):
+    line = string.rstrip(infile.readline())
+    pos = string.find(line,fieldname+"=")
+    if pos == -1 and required:
         raise OperaParseException("Field '%s' missing" % fieldname)
 
     return line[pos+len(fieldname)+1:]
@@ -71,11 +71,10 @@ def parse_adr(filename):
         line=string.rstrip(line)
 
         if line=="#FOLDER":
-            print "FOLDER"
             name=readfield(infile,"NAME")
             created=parse_date(readfield(infile,"CREATED"))
-            parse_date(readfield(infile,"VISITED")) # Just throw this away
-            order=readfield(infile,"ORDER")
+            parse_date(readfield(infile, "VISITED", 0)) # just throw this away
+            order = readfield(infile, "ORDER", 0)
             swallow_rest(infile)
 
             bms.add_folder(name,created)
@@ -83,15 +82,13 @@ def parse_adr(filename):
             name=readfield(infile,"NAME")
             url=readfield(infile,"URL")
             created=parse_date(readfield(infile,"CREATED"))
-            visited=parse_date(readfield(infile,"VISITED"))
-            order=readfield(infile,"ORDER")
+            visited=parse_date(readfield(infile, "VISITED", 0))
+            order = readfield(infile, "ORDER", 0)
             swallow_rest(infile)
 
             bms.add_bookmark(name,created,visited,None,url)
         elif line=="-":
             bms.leave_folder()
-        else:
-            print `line`
 
     return bms
 
