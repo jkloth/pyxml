@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.27 2001/11/25 22:36:15 jhermann Exp $
+$Id: saxutils.py,v 1.28 2001/11/25 22:45:58 jhermann Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -266,7 +266,7 @@ class LexicalXMLGenerator(XMLGenerator, saxlib.LexicalHandler):
             self._out.write(escape(content))
 
     # LexicalHandler methods
-    # (we only support the most import ones and inherit the rest)
+    # (we only support the most important ones and inherit the rest)
 
     def startDTD(self, name, public_id, system_id):
         self._out.write('<!DOCTYPE %s' % name)
