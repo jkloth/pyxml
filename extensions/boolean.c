@@ -77,13 +77,7 @@ static PyObject *IsBooleanType(PyObject *self, PyObject *args) {
 
 PyBooleanObject *boolean_NEW(int initval)
 {
-  PyBooleanObject *object = (PyBooleanObject *)malloc(sizeof(PyBooleanObject));
-
-  if (object == NULL)
-    /*FIXME: figure out low memory exception procedure*/
-    return (PyBooleanObject *)PyErr_NoMemory();
-
-  object->ob_type = &PyBoolean_Type;
+  PyBooleanObject *object = PyObject_NEW(PyBooleanObject, &PyBoolean_Type);
   object->value = initval;
   return object;
 }
