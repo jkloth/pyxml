@@ -3,8 +3,11 @@ TODO list:
 (SAX namespace support can wait and see what the current effort to revise
 SAX will produce in a few months; SAX2 may add a standard filter for
 namespaces or something similar.) 
-	* Switch to /F's Unicode module, probably
         * Integrate widestring support with the PyExpat module (major thing)
+	* Speed up the builder class somehow, and do some performance tests
+	* Change HTMLBuilder to use SAX instead of SGMLlib
+	* Update CREDITS file (move it to an XML format?)
+	* Switch to /F's Unicode module, probably
 	* Make more passes over the documentation
 	* More demo programs 
 	* Add READMEs to existing demo programs
@@ -19,6 +22,8 @@ demo/xbel/
 	* Add a test suite for the basic parser
 
 dom/
+	* Convert all the raise statement to use the exception(arg) form
+
 	* Implement reading of SGML documents for FileReader
 
 	* DocumentType class is mostly unfinished; what should the
