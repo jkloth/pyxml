@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.12 2000/09/26 14:43:10 loewis Exp $
+# $Id: xmlproc.py,v 1.13 2001/01/14 10:42:24 loewis Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.12 $"
+revision="$Revision: 1.13 $"
         
 # ==============================
 # A full well-formedness parser
@@ -86,7 +86,10 @@ class XMLProcessor(XMLCommonParser):
 		self.prepos=self.pos
 
 		if self.data[self.pos]=="<":
-                    t=self.data[self.pos+1] # Optimization
+                    try:
+                        t=self.data[self.pos+1] # Optimization
+                    except IndexError,e:            
+                        raise OutOfDataException()
                     if t=="/":
                         self.parse_end_tag()
                     elif t!="!" and t!="?":
@@ -110,19 +113,6 @@ class XMLProcessor(XMLCommonParser):
                         self.parse_ent_ref()
                 else:
                     self.parse_data()
-
-        except IndexError,e:            
-            # Means self.pos was outside the buffer when we did a raw
-            # compare.  This is both a little ugly and fragile to
-            # changes, but this loop is rather time-critical, so we do
-            # raw compares anyway.
-            # Should try to lose this since it gets very hard to find
-            # problems if the user throws an IndexError...
-            
-	    if self.final:
-		raise OutOfDataException()
-	    else:
-		self.pos=self.prepos  # Didn't complete the construct        
 	except OutOfDataException,e:
 	    if self.final:
 		raise e
