@@ -115,7 +115,7 @@ class Document(FtNode):
         return None
 
     def getElementsByTagName(self, tagName):
-        return self.getElementsByTagNameNS(EMPTY_NAMESPACE,tagname)
+        return self.getElementsByTagNameNS(EMPTY_NAMESPACE, tagName)
 
     ### DOM Level 2 Methods ###
 
