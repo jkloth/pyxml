@@ -11,7 +11,8 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-"""Some Helper functions: 4DOM-specific Extensions to the DOM"""
+"""Some Helper functions: 4DOM/PyXML-specific Extensions to the DOM,
+and DOM-related utilities."""
 
 import sys,string
 
@@ -19,6 +20,7 @@ from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE, DOMException
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE
+from c14n import Canonicalize
 import re
 
 
