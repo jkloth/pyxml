@@ -17,12 +17,10 @@ USRDIR = r"c:\windows" # 95 version
 class MSIE:
     # internet explorer
 
-    def __init__(self,bookmarks):
-        # FIXME: use registry for this!
-
+    def __init__(self,bookmarks, path):
         self.bms=bookmarks
         self.root = None
-        self.path = os.path.join(USRDIR, DIR)
+        self.path = path
 
         self.__walk()
 
@@ -32,13 +30,13 @@ class MSIE:
         for file in os.listdir(path):
             fullname = os.path.join(path, file)
             if os.path.isdir(fullname):
-                self.bms.add_folder(file,None,None)
+                self.bms.add_folder(file,None)
                 self.__walk(subpath + [file])
             else:
                 url = self.__geturl(fullname)
                 if url:
                     self.bms.add_bookmark(os.path.splitext(file)[0],None,
-                                          None,url)
+                                          None,None,url)
 
     def __geturl(self, file):
         try:
@@ -58,5 +56,22 @@ class MSIE:
 # --- Testprogram
 
 if __name__ == '__main__':
-    msie=MSIE(bookmark.Bookmarks())
+    import sys
+    if len(sys.argv)>1:
+        path = sys.argv[1]
+    else:
+        try:
+            import win32api, win32con
+        except ImportError:
+            print "The win32api module is not available on this system"
+            print "so we can't automatically find your favorites folder."
+            print "Please re-run this program specifiying the location of your"
+            print "favorites folder on the command line."
+            sys.exit(1)
+        keyname = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+        hkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, keyname)
+        path, pathtype = win32api.RegQueryValueEx(hkey, "Favorites")
+        assert pathtype == win32con.REG_SZ
+
+    msie=MSIE(bookmark.Bookmarks(), path)
     msie.bms.dump_xbel()
