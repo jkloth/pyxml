@@ -55,6 +55,7 @@ class RuntimeException(FtException):
         FtException.__init__(self, errorCode, MessageSource.RUNTIME, args)
         return
 
+from XPathParserBase import SyntaxException
 
 import MessageSource
 
