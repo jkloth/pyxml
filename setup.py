@@ -121,7 +121,7 @@ if build_pyexpat:
             # Python 1.x doesn't provide sys.byteorder
             try:
                 byteorder = sys.byteorder
-            except NameError:
+            except AttributeError:
                 try:
                     import struct
                 except ImportError:
