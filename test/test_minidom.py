@@ -17,10 +17,8 @@ else:
 tstfile = os.path.join(os.path.dirname(base), "test.xml")
 del base
 
-def confirm(test, testname = "Test"):
-    if test:
-        print "Passed " + testname
-    else:
+def confirm(test, testname="Test"):
+    if not test:
         print "Failed " + testname
         raise Exception
 
@@ -308,7 +306,7 @@ def testTooManyDocumentElements():
     try:
         doc.appendChild(elem)
     except HierarchyRequestErr:
-        print "Caught expected exception when adding extra document element."
+        pass
     else:
         print "Failed to catch expected exception when" \
               " adding extra document element."
@@ -520,7 +518,6 @@ for name in names:
         func = globals()[name]
         try:
             func()
-            print "Test Succeeded " + name
         except:
             failed.append(name)
             oldstdout = sys.stdout
@@ -539,6 +536,3 @@ if failed:
     print "\n\n\n**** Check for failures in these tests:"
     for name in failed:
         print "  " + name
-    print
-else:
-    print "All tests succeeded"
