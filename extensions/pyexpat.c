@@ -880,7 +880,7 @@ static char pyexpat_module_documentation[] =
 
 void initpyexpat(void);  /* avoid compiler warnings */
 
-#if PY_VERSION_HEX < 0x2000000
+#if PY_VERSION_HEX < 0x20000F0
 
 /* 1.5 compatibility: PyModule_AddObject */
 static int
