@@ -1,7 +1,7 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.12 2000/12/22 06:47:03 uche Exp $
+$Id: saxexts.py,v 1.13 2001/01/27 09:03:52 loewis Exp $
 """
 
 import _exceptions, handler, sys, string, os, types
@@ -74,7 +74,7 @@ class ParserFactory:
                     raise _exceptions.SAXReaderNotAvailable
                 sys.modules[parser_name].create_parser = _create_parser
 
-        raise _exceptions.SAXReaderNotAvailable("No parsers found", None)  
+        raise _exceptions.SAXReaderNotAvailable("No parsers found", None)
 
 # --- Experimental extension to Parser interface
 import saxlib
@@ -92,8 +92,8 @@ class ExtendedParser(saxlib.Parser):
 
     def get_driver_version(self):
         "Returns the version number of the driver."
-        raise _exceptions.SAXException("Method not supported.",None)        
-    
+        raise _exceptions.SAXException("Method not supported.",None)
+
     def is_validating(self):
         "True if the parser is validating, false otherwise."
         raise _exceptions.SAXException("Method not supported.",None)
@@ -106,7 +106,7 @@ class ExtendedParser(saxlib.Parser):
     def reset(self):
         "Makes the parser start parsing afresh."
         raise _exceptions.SAXException("Method not supported.",None)
-    
+
     def feed(self,data):
         "Feeds data to the parser."
         raise _exceptions.SAXException("Method not supported.",None)
@@ -114,7 +114,7 @@ class ExtendedParser(saxlib.Parser):
     def close(self):
         "Called after the last call to feed, when there are no more data."
         raise _exceptions.SAXException("Method not supported.",None)
-        
+
 # --- Experimental document handler which does not slice strings
 
 class NosliceDocumentHandler(saxlib.DocumentHandler):
@@ -140,7 +140,7 @@ class NosliceDocumentHandler(saxlib.DocumentHandler):
     def noslice_handler(self,data,start,length):
         "A character event handler that never slices strings."
         self.handle_data(data)
-        
+
     def handle_data(self,data):
         "This is the character data event method to override."
         pass

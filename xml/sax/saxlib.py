@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: saxlib.py,v 1.10 2000/09/26 20:01:02 loewis Exp $
+$Id: saxlib.py,v 1.11 2001/01/27 09:03:52 loewis Exp $
 """
 
 version = '2.0beta'
@@ -55,8 +55,8 @@ class XMLFilter(XMLReader):
         parent on instantiation."""
         XMLReader.__init__(self)
         self._parent = parent
-    
-    def setParent(self, parent):        
+
+    def setParent(self, parent):
         """Sets the parent XMLReader of this filter. The argument may
         not be None."""
         self._parent = parent
@@ -93,31 +93,31 @@ class Attributes:
         """Returns the namespace name of the attribute with the given
         raw (or qualified) name."""
         raise NotImplementedError("This method must be implemented!")
-    
+
     def getNames(self):
-        """Returns a list of the names of all attributes 
+        """Returns a list of the names of all attributes
         in the list."""
         raise NotImplementedError("This method must be implemented!")
-    
+
     def getQNames(self):
         """Returns a list of the raw qualified names of all attributes
         in the list."""
         raise NotImplementedError("This method must be implemented!")
-    
+
     def __len__(self):
-	"Alias for getLength."
+        "Alias for getLength."
         raise NotImplementedError("This method must be implemented!")
 
     def __getitem__(self, name):
-	"Alias for getValue."
+        "Alias for getValue."
         raise NotImplementedError("This method must be implemented!")
 
     def keys(self):
-	"Returns a list of the attribute names in the list."
+        "Returns a list of the attribute names in the list."
         raise NotImplementedError("This method must be implemented!")
 
     def has_key(self, name):
-	"True if the attribute is in the list, false otherwise."
+        "True if the attribute is in the list, false otherwise."
         raise NotImplementedError("This method must be implemented!")
 
     def get(self, name, alternative=None):
@@ -137,7 +137,7 @@ class Attributes:
         "Return a list of all attribute values."
         raise NotImplementedError("This method must be implemented!")
 
-    
+
 #============================================================================
 #
 # HANDLER INTERFACES
@@ -205,7 +205,7 @@ class DeclHandler:
         public and system identifiers of the entity. public_id will be
         None if none were declared."""
 
-        
+
 
 # ===== LEXICALHANDLER =====
 
@@ -224,7 +224,7 @@ class LexicalHandler:
     guarantee that the XMLReader will support or recognize this
     property."""
 
-    def comment(self, content):        
+    def comment(self, content):
         """Reports a comment anywhere in the document (including the
         DTD and outside the document element).
 
@@ -293,30 +293,30 @@ class AttributeList:
     or specified."""
 
     def getLength(self):
-	"Return the number of attributes in list."
+        "Return the number of attributes in list."
 
     def getName(self, i):
-	"Return the name of an attribute in the list."
+        "Return the name of an attribute in the list."
 
     def getType(self, i):
-	"""Return the type of an attribute in the list. (Parameter can be
-	either integer index or attribute name.)"""
+        """Return the type of an attribute in the list. (Parameter can be
+        either integer index or attribute name.)"""
 
     def getValue(self, i):
-	"""Return the value of an attribute in the list. (Parameter can be
-	either integer index or attribute name.)"""
+        """Return the value of an attribute in the list. (Parameter can be
+        either integer index or attribute name.)"""
 
     def __len__(self):
-	"Alias for getLength."
+        "Alias for getLength."
 
     def __getitem__(self, key):
-	"Alias for getName (if key is an integer) and getValue (if string)."
+        "Alias for getName (if key is an integer) and getValue (if string)."
 
     def keys(self):
-	"Returns a list of the attribute names."
+        "Returns a list of the attribute names."
 
     def has_key(self, key):
-	"True if the attribute is in the list, false otherwise."
+        "True if the attribute is in the list, false otherwise."
 
     def get(self, key, alternative=None):
         """Return the value associated with attribute name; if it is not
@@ -331,7 +331,7 @@ class AttributeList:
     def values(self):
         "Return a list of all attribute values."
 
-        
+
 # ===== DOCUMENTHANDLER =====
 
 class DocumentHandler:
@@ -346,34 +346,34 @@ class DocumentHandler:
     supplied by setDocumentLocator()."""
 
     def characters(self, ch, start, length):
-	"Handle a character data event."
+        "Handle a character data event."
 
     def endDocument(self):
-	"Handle an event for the end of a document."
+        "Handle an event for the end of a document."
 
     def endElement(self, name):
-	"Handle an event for the end of an element."
+        "Handle an event for the end of an element."
 
     def ignorableWhitespace(self, ch, start, length):
-	"Handle an event for ignorable whitespace in element content."
+        "Handle an event for ignorable whitespace in element content."
 
     def processingInstruction(self, target, data):
-	"Handle a processing instruction event."
+        "Handle a processing instruction event."
 
     def setDocumentLocator(self, locator):
-	"Receive an object for locating the origin of SAX document events."
+        "Receive an object for locating the origin of SAX document events."
 
     def startDocument(self):
-	"Handle an event for the beginning of a document."
+        "Handle an event for the beginning of a document."
 
     def startElement(self, name, atts):
-	"Handle an event for the beginning of an element."
+        "Handle an event for the beginning of an element."
 
-        
+
 # ===== HANDLERBASE =====
-        
+
 class HandlerBase(EntityResolver, DTDHandler, DocumentHandler,\
-		     ErrorHandler):
+                     ErrorHandler):
     """Default base class for handlers. This class implements the
     default behaviour for four SAX interfaces: EntityResolver,
     DTDHandler, DocumentHandler, and ErrorHandler: rather
@@ -393,36 +393,36 @@ class Parser:
     parsers should also implement a zero-argument constructor."""
 
     def __init__(self):
-	self.doc_handler = DocumentHandler()
-	self.dtd_handler = DTDHandler()
-	self.ent_handler = EntityResolver()
-	self.err_handler = ErrorHandler()
+        self.doc_handler = DocumentHandler()
+        self.dtd_handler = DTDHandler()
+        self.ent_handler = EntityResolver()
+        self.err_handler = ErrorHandler()
 
     def parse(self, systemId):
-	"Parse an XML document from a system identifier."
+        "Parse an XML document from a system identifier."
 
     def parseFile(self, fileobj):
         "Parse an XML document from a file-like object."
 
     def setDocumentHandler(self, handler):
-	"Register an object to receive basic document-related events."
-	self.doc_handler=handler
+        "Register an object to receive basic document-related events."
+        self.doc_handler=handler
 
     def setDTDHandler(self, handler):
-	"Register an object to receive basic DTD-related events."
-	self.dtd_handler=handler
+        "Register an object to receive basic DTD-related events."
+        self.dtd_handler=handler
 
     def setEntityResolver(self, resolver):
-	"Register an object to resolve external entities."
-	self.ent_handler=resolver
+        "Register an object to resolve external entities."
+        self.ent_handler=resolver
 
     def setErrorHandler(self, handler):
-	"Register an object to receive error-message events."
-	self.err_handler=handler
+        "Register an object to receive error-message events."
+        self.err_handler=handler
 
     def setLocale(self, locale):
-        """Allow an application to set the locale for errors and warnings. 
-   
+        """Allow an application to set the locale for errors and warnings.
+
         SAX parsers are not required to provide localisation for errors
         and warnings; if they cannot support the requested locale,
         however, they must throw a SAX exception. Applications may

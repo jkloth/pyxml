@@ -35,7 +35,7 @@ def parseString(string, handler, errorHandler=ErrorHandler()):
         from cStringIO import StringIO
     except ImportError:
         from StringIO import StringIO
-        
+
     if errorHandler is None:
         errorHandler = ErrorHandler()
     parser = make_parser()

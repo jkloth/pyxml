@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.2 $'
+__version__ = '$Revision: 1.3 $'
 
 import string
 
@@ -52,7 +52,7 @@ from xml.sax.saxutils import escape
 DEFAULT_LINELENGTH = 74
 
 
-
+
 class Syntax:
     com = "--"                          # comment start or end
     cro = "&#"                          # character reference open
@@ -92,7 +92,7 @@ class XHTMLSyntax(XMLSyntax):
     empty_stagc = " />"
 
 
-
+
 class DoctypeInfo:
     syntax = XMLSyntax()
 
@@ -200,7 +200,7 @@ class SGMLDoctypeInfo(DoctypeInfo):
             m = self.__element_prefix_search(pubtext)
 
 
-
+
 class XmlWriter:
     """Basic XML output handler."""
 
