@@ -1,11 +1,9 @@
 TODO list:
-
 	* Make more passes over the documentation
 	* More demo programs 
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite
 	* Should PyPointers be added?
-	* Start working on DOM again (August 18 draft)
 
 test/
 	* Add xmlarch tests to test suite
@@ -13,13 +11,23 @@ test/
 
 demo/xbel/	
 	* Implement dump_lynx method in bookmark.py
+	* Update all the software to match the current XBEL DTD
 
 dom/
-	* Implement the .cloneNode() method
+	* Should 'Exception' be removed from exception names?
 	* Problem: Take two Text nodes next to each other.  Hold a
 reference to the second one.  Call .normalize() on the parent.  The
 second Text node has now vanished, so calls using it will now crash.
 How to fix?  (Replace w/ empty Text node?)
 	* Add indentation & pretty-printing to .toxml()
-	* Document methods: createTextNode but createElement?  Weird
-inconsistency...
+
+	* Should check that Document node has only one Element child
+before changing anything (DocumentFragments complicate this)
+
+	* DocumentType class is mostly unfinished; what should the
+interface for creating them look like?
+
+	* Element.removeAttributeNode needs to know about DTDs to
+restore a default value.
+
+
