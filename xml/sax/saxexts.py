@@ -1,10 +1,10 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.9 2000/09/28 06:54:50 loewis Exp $
+$Id: saxexts.py,v 1.10 2000/09/29 20:57:48 loewis Exp $
 """
 
-import _exceptions,handler,sys,string,os
+import _exceptions,handler,sys,string,os,types
 
 # --- Parser factory
 
@@ -12,7 +12,7 @@ class ParserFactory:
     """A general class to be used by applications for creating parsers on
     foreign systems where it is unknown which parsers exist."""
 
-    def __init__(self,list=None):
+    def __init__(self,list=[]):
         # Python 2 compatibility: let consider environment variables
         # and properties override list argument
         if os.environ.has_key("PY_SAX_PARSER"):
@@ -48,7 +48,15 @@ class ParserFactory:
         the driver and if that exists imports it to see if the parser also
         exists. If no parsers are available a SAXException is thrown.
 
-        Accepts the driver package name as an optional argument."""
+        Accepts a list of driver package names as an optional argument."""
+
+        # SAX1 expected a single package name as optional argument
+        # Python 2 changed this to be a list of parser names
+        # We now support both, as well as None (which was the default)
+        if parser_list is None:
+            parser_list = []
+        elif type(parser_list) == types.StringType:
+            parser_list = [parser_list]
 
         for parser_name in parser_list+self.parsers:
             try:

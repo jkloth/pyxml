@@ -1,12 +1,12 @@
 """
 SAX driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.6 2000/09/26 14:43:11 loewis Exp $
+$Id: drv_sgmlop.py,v 1.7 2000/09/29 20:57:48 loewis Exp $
 """
 
 version="0.11"
 
-import sgmlop
+from xml.parsers import sgmlop
 from xml.sax import saxlib,saxutils
 import urllib
 

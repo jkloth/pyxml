@@ -2,16 +2,29 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.12 2000/09/28 06:50:17 loewis Exp $
+$Id: saxutils.py,v 1.13 2000/09/29 20:57:48 loewis Exp $
 """
 
-from xml.utils import escape  # FIXME!
-import types, handler, _exceptions, sys, urllib, os, xmlreader
+import types, handler, _exceptions, sys, urllib, os, xmlreader, string
 
 try:
   _StringTypes = [types.StringType, types.UnicodeType]
 except AttributeError: # 1.5 compatibility:UnicodeType not defined
   _StringTypes = [types.StringType]
+
+def escape(data, entities={}):
+    """Escape &, <, and > in a string of data.
+
+    You can escape other strings of data by passing a dictionary as 
+    the optional entities parameter.  The keys and values must all be
+    strings; each key will be replaced with its corresponding value.
+    """
+    data = string.replace(data, "&", "&amp;")
+    data = string.replace(date, "<", "&lt;")
+    data = string.replace(data, ">", "&gt;")
+    for chars, entity in entities.items():
+        data = string.replace(data, chars, entity)        
+    return data
 
 # --- DefaultHandler
 

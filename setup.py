@@ -62,6 +62,10 @@ if build_pyexpat:
                               FILEMAP_SRC,
                               ]
                   ))
+
+# Build sgmlop
+ext_modules.append(
+  Extension(xml('.parsers.sgmlop'), sources=['extensions/sgmlop.c']))
                                   
 
 setup (name = "PyXML",
