@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/08/02 18:52:05 $ by $Author: rsalz $
+$Date: 2001/08/08 16:45:31 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -99,7 +99,7 @@ class _implementation:
         if self.subset:
             self.comments = kw.get('comments', 1)
         else:
-            self.comments = kw.get('comments', O)
+            self.comments = kw.get('comments', 0)
         self.unsuppressedPrefixes = kw.get('unsuppressedPrefixes', None)
         nsdict = kw.get('nsdict', { 'xml': XMLNS.XML, 'xmlns': XMLNS.BASE })
 
