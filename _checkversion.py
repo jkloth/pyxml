@@ -5,7 +5,7 @@ _checkversion.py file"""
 import pyversioncheck
 
 _PACKAGE="xml"
-_VERSION="0.4"
+_VERSION="0.5"
 _URL="http://www.python.org/sigs/xml-sig/files/xmlpackageversion.txt"
 
 try:
