@@ -2,11 +2,13 @@
 SAX driver for xmllib.py
 """
 
-version="0.90"
+version="0.91"
 
 from xml.sax import saxutils
 from xml.sax.drivers import pylibs
 
+# from xml.parsers import xmllib2
+# xmllib=xmllib2
 import xmllib
 
 # --- SAX_XLParser
@@ -15,13 +17,13 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
     "SAX driver for xmllib.py."
 
     def __init__(self):
-        xmllib.XMLParser.__init__(self)
+	xmllib.XMLParser.__init__(self)
         pylibs.LibParser.__init__(self)
         self.standalone=0
         self.reset()
 
     def unknown_starttag(self,tag,attributes):
-        self.doc_handler.startElement(tag,saxutils.AttributeMap(attributes))
+	self.doc_handler.startElement(tag,saxutils.AttributeMap(attributes))
         
     def handle_endtag(self,tag,method):
         self.doc_handler.endElement(tag)
@@ -30,10 +32,10 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
         self.doc_handler.processingInstruction(name,data[1:])
 
     def getLineNumber(self):
-        return self.lineno
+	return self.lineno
 
     def getSystemId(self):
-        return self.sysID
+	return self.sysID
 
     def _can_locate(self):
         "Internal: returns true if location info is available."
@@ -69,7 +71,7 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
     
     def close(self):
         xmllib.XMLParser.close(self)
-        self.doc_handler.endDocument()
+	self.doc_handler.endDocument()
     
 # --- Global functions
 

@@ -1,6 +1,15 @@
-"""A module of experimental extensions to the standard SAX interface."""
+"""
+A module of experimental extensions to the standard SAX interface.
 
-import saxlib,imp,sys,string
+$Id: saxexts.py,v 1.4 2000/05/15 20:21:48 lars Exp $
+"""
+
+import saxlib,sys,string
+
+try:
+    import imp
+except ImportError:
+    pass  # imp does not exist in JPython, it seems.
 
 # --- Internal utility methods
 
@@ -39,7 +48,7 @@ class ParserFactory:
         "Sets the driver list."
         self.parsers=list
 
-    def make_parser(self,drv_name=None):
+    def make_parser(self, drv_name = None):
         """Returns a SAX driver for the first available parser of the parsers
         in the list. Note that the list is one of drivers, so it first tries
         the driver and if that exists imports it to see if the parser also
@@ -50,19 +59,29 @@ class ParserFactory:
         if drv_name==None:
             list=self.parsers
         else:
-            list=[ drv_name ]
+            list=[drv_name]
             
         for parser_name in list:
-	    # Commented out at LMG's request
-#            parser_name = 'xml.sax.drivers.drv_' + parser_name
-            try:
-                info=rec_find_module(parser_name)
-                drv_module=apply(imp.load_module,info)
-                return drv_module.create_parser()
-            except ImportError,e:
-                pass
+	    if sys.platform[:4] == "java": # JPython compatibility patch
+	        try:
+		    from org.python.core import imp
+		    drv_module = imp.importName(parser_name, 0, globals())
+	            return drv_module.create_parser()
+                except ImportError,e:
+                    pass
+                except:
+                    raise saxlib.SAXException("Problems during import, gave up"
+                                              ,None)
+	    else:
+		import imp
+	        try:
+		    info=rec_find_module(parser_name)
+                    drv_module=apply(imp.load_module,info)
+	            return drv_module.create_parser()
+                except ImportError,e:
+                    pass
 
-        raise saxlib.SAXException("No parsers found",None)
+        raise saxlib.SAXException("No parsers found",None)  
 
 # --- Experimental extension to Parser interface
 
@@ -135,25 +154,22 @@ class NosliceDocumentHandler(saxlib.DocumentHandler):
 
 # --- Creating parser factories
 
-XMLParserFactory=ParserFactory(["xml.sax.drivers.drv_pyexpat", 
-				"xml.sax.drivers.drv_xmltok", 
-				"xml.sax.drivers.drv_xmlproc",
-                                "xml.sax.drivers.drv_xmltoolkit", 
-				"xml.sax.drivers.drv_xmllib", 
-				"xml.sax.drivers.drv_xmldc",
+XMLParserFactory=ParserFactory(["xml.sax.drivers.drv_pyexpat",
+                                "xml.sax.drivers.drv_xmltok",
+                                "xml.sax.drivers.drv_xmlproc",
+                                "xml.sax.drivers.drv_xmltoolkit",
+                                "xml.sax.drivers.drv_xmllib",
+                                "xml.sax.drivers.drv_xmldc",
                                 "xml.sax.drivers.drv_sgmlop"])
 
 XMLValParserFactory=ParserFactory(["xml.sax.drivers.drv_xmlproc_val"])
 
-HTMLParserFactory=ParserFactory(["xml.sax.drivers.drv_htmllib", 
-				 "xml.sax.drivers.drv_sgmlop", 
-				 "xml.sax.drivers.drv_sgmllib"])
+HTMLParserFactory=ParserFactory(["xml.sax.drivers.drv_htmllib",
+                                 "xml.sax.drivers.drv_sgmlop",
+                                 "xml.sax.drivers.drv_sgmllib"])
 
-SGMLParserFactory=ParserFactory(["xml.sax.drivers.drv_sgmlop", 
-				 "xml.sax.drivers.drv_sgmllib"])
+SGMLParserFactory=ParserFactory(["xml.sax.drivers.drv_sgmlop",
+                                 "xml.sax.drivers.drv_sgmllib"])
 
-def make_parser(parser=None):
-    if parser==None:
-        return XMLParserFactory.make_parser()
-    else:
-        return XMLParserFactory.make_parser(parser)
+def make_parser(parser = None):
+    return XMLParserFactory.make_parser(parser)

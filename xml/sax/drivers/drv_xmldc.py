@@ -80,7 +80,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
         self.doc_handler.endElement(name)
 
     def comment(self, stuff):
-        pass
+	pass
 
     def pi(self, stuff):
         end_of_target=regex.search(reg_ws,stuff)
@@ -94,7 +94,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
                                                    stuff[start_of_data:])
 
     def decl(self, name, parts):
-        pass
+	pass
 
     def cref(self, numeral):
         numeral=string.atoi(numeral)
@@ -112,7 +112,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
         return self.parser.line()
 
     def getSystemId(self):
-        return self.current_sysid
+	return self.current_sysid
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
 

@@ -1,24 +1,17 @@
 """
 SAX driver for the sgmlop parser.
+
+$Id: drv_sgmlop.py,v 1.5 2000/05/15 20:21:49 lars Exp $
 """
 
-version="0.10"
+version="0.11"
 
-from xml.parsers import sgmlop
+import sgmlop
 from xml.sax import saxlib,saxutils
 import urllib
 
-class DHWrapper:
+# --- Driver
 
-    def __init__(self,real_dh):
-        self.real_dh=real_dh
-
-    def __getattr__(self,attr):
-        return getattr(self.real_dh,attr)
-
-    def startElement(self,name,attrs):
-        self.real_dh.startElement(name,saxutils.AttributeMap(attrs))
-        
 class Parser(saxlib.Parser):
 
     def __init__(self):
@@ -26,22 +19,43 @@ class Parser(saxlib.Parser):
         self.parser = sgmlop.XMLParser()
     
     def setDocumentHandler(self, dh):
-        self.parser.register(DHWrapper(dh), 1)
+	self.parser.register(self) # older version wanted ,1 arg
         self.doc_handler=dh
 
     def parse(self, url):
         self.parseFile(urllib.urlopen(url))
         
     def parseFile(self, file):
-        parser = self.parser
+	parser = self.parser
 
-        while 1:
-            data = file.read(16384)
-            if not data:
-                break
-            parser.feed(data)
+	while 1:
+	    data = file.read(16384)
+	    if not data:
+		break
+	    parser.feed(data)
 
-        self.close()
+	self.close()
+
+    # --- SAX 1.0 METHODS
+
+    def handle_cdata(self, data):
+        self.doc_handler.characters(data,0,len(data))
+
+    def handle_data(self, data):
+        self.doc_handler.characters(data,0,len(data))
+        
+    def handle_proc(self, target, data):
+        self.doc_handler.processingInstruction(target,data)
+
+    def handle_charref(self, charno):
+        if charno<256:
+            self.doc_handler.characters(chr(charno),0,1)
+
+    def finish_starttag(self, name, attrs):
+        self.doc_handler.startElement(name,saxutils.AttributeMap(attrs))
+
+    def finish_endtag(self,name):
+        self.doc_handler.endElement(name)
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
 

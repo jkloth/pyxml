@@ -15,7 +15,7 @@ class SAX_SLParser(pylibs.SGMLParsers,sgmllib.SGMLParser):
     "SAX driver for sgmllib.py."
 
     def __init__(self):
-        sgmllib.SGMLParser.__init__(self)
+	sgmllib.SGMLParser.__init__(self)
         pylibs.LibParser.__init__(self)
         self.standalone=0
 
@@ -40,7 +40,7 @@ class SAX_SLParser(pylibs.SGMLParsers,sgmllib.SGMLParser):
     
     def close(self):
         sgmllib.SGMLParser.close(self)
-        self.doc_handler.endDocument()
+	self.doc_handler.endDocument()
         
 # --- Global functions
 

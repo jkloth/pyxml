@@ -1,12 +1,12 @@
 """
 A SAX driver for xmlproc
 
-$Id: drv_xmlproc.py,v 1.10 2000/05/13 14:24:49 lars Exp $
+$Id: drv_xmlproc.py,v 1.11 2000/05/15 20:21:49 lars Exp $
 """
 
 version="0.95"
 
-from xml.sax import saxlib,saxutils
+from xml.sax import saxlib, saxutils
 from xml.parsers.xmlproc import xmlproc
 
 import os
@@ -19,6 +19,7 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
     def __init__(self):
 	saxlib.Parser.__init__(self)
         self.reset()
+        self.ns_separator=" "
         self.locator=1
         self.is_parsing=0
         self.stop_on_error=1
@@ -145,9 +146,9 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
             self.parser.deref()
         self.parser=self._create_parser()
         self.parser.set_application(self)
-        self.parser.set_dtd_listener(self) # FIXME: Should we always do this?
 	self.parser.set_error_handler(self)
         self.parser.set_pubid_resolver(self)
+        self.parser.set_dtd_listener(self)
 	self.parser.reset()
     
     def feed(self,data):

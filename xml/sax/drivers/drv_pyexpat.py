@@ -1,26 +1,19 @@
 """
 SAX driver for the Pyexpat C module.
+
+$Id: drv_pyexpat.py,v 1.7 2000/05/15 20:21:49 lars Exp $
 """
 
-# Note: this driver is 100% experimental and has never been tested at all.
-# The following things are missing because I couldn't figure out how to do
-# them:
-#  - location handling
-#
 # Event handling can be speeded up by bypassing the driver for some events.
 # This will be implemented later when I can test this driver.
 #
-# This driver has been much improved by Geir Ove Grønmo, who writes:
-#
-#   "This version of the driver should work, but there are things that
-#    need fixing. I have to create a new parser object every time parse_file
-#    is called! This is necessary because pyexpat is not reset after parsing."
+# This driver has been much improved by Geir Ove Grønmo.
 
-version="0.10"
+version="0.13"
 
 from xml.sax import saxlib,saxutils
-from xml.parsers import pyexpat
-import urllib
+
+import pyexpat,urllib,types
 
 # --- SAX_expat
 
@@ -29,60 +22,51 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def __init__(self):
         saxlib.Parser.__init__(self)
-        self.parser=pyexpat.ParserCreate()
-        self.parser.StartElementHandler = self.startElement
-        self.parser.EndElementHandler = self.endElement
-        self.parser.CharacterDataHandler = self.characters
-        self.parser.ProcessingInstructionHandler = self.processingInstruction
+        self.reset()
 
     def startElement(self,name,attrs):
-        # Backward compatibility code, for older versions of the 
-        # PyExpat module
-        if type(attrs) != type({}):
-            at = {}
-            print attrs
-            for i in range(0, len(attrs), 2):
-                at[attrs[i]] = attrs[i+1]
-            attrs = at
+        at = {}
+	for i in range(0, len(attrs), 2):
+	    at[attrs[i]] = attrs[i+1]
+	    
+        self.doc_handler.startElement(name,saxutils.AttributeMap(at))
 
-        self.doc_handler.startElement(name,saxutils.AttributeMap(attrs))
-
+    # FIXME: bypass!
     def endElement(self,name):
         self.doc_handler.endElement(name)
 
     def characters(self,data):
         self.doc_handler.characters(data,0,len(data))
 
+    # FIXME: bypass!
     def processingInstruction(self,target,data):
         self.doc_handler.processingInstruction(target,data)
 
     def parse(self,sysID):
-        self.sysID=sysID
-        self.parseFile(urllib.urlopen(sysID))
+        self.parseFile(urllib.urlopen(sysID),sysID)
         
-    def parseFile(self,fileobj):
+    def parseFile(self,fileobj,sysID=None):
         self.reset()
-        self.doc_handler.startDocument()
-
-#        while 1:
-#            buf=fileobj.read(16384)
-#
-#            if buf:
-#               if not self.parser.Parse(buf):
-#                    self.__report_error()
-#                    return
-#           else:
-#               break
-        try:
-            if not self.parser.Parse(fileobj.read(),1):
+        self.sysID=sysID
+	self.doc_handler.startDocument()
+        
+        buf = fileobj.read(16384)
+        while buf != "":
+            if self.parser.Parse(buf, 0) != 1:
                 self.__report_error()
-        except pyexpat.error:
-            self.__report_error()
+            buf = fileobj.read(16384)
+        self.parser.Parse("", 1)
             
         self.doc_handler.endDocument()
 
     # --- Locator methods. Only usable after errors.
 
+    def getSystemId(self):
+        if self.sysID!=None:
+            return self.sysID
+        else:
+            return "Unknown"
+    
     def getLineNumber(self):
         return self.parser.ErrorLineNumber
 
@@ -92,8 +76,10 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
     # --- Internal
 
     def __report_error(self):
-        msg=pyexpat.ErrorString(self.parser.ErrorCode)
-        self.err_handler.fatalError(saxlib.SAXParseException(msg,None,self))
+        errc=self.parser.ErrorCode
+        msg=pyexpat.ErrorString(errc)
+        exc=saxlib.SAXParseException(msg,None,self)
+        self.err_handler.fatalError(exc)
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
         
@@ -113,21 +99,110 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         return 0
 
     def reset(self):
+        self.sysID=None
         self.parser=pyexpat.ParserCreate()
         self.parser.StartElementHandler = self.startElement
         self.parser.EndElementHandler = self.endElement
         self.parser.CharacterDataHandler = self.characters
         self.parser.ProcessingInstructionHandler = self.processingInstruction
-    
-    def feed(self,data):
-        if not self.parser.Parse(data):
+        self.doc_handler.setDocumentLocator(self)
+
+    def feed(self, data):
+        if self.parser.Parse(data, 0) != 1:
             self.__report_error()
 
     def close(self):
-        if not self.parser.Parse("",1):
+        if self.parser.Parse("", 0) != 1:
             self.__report_error()
-        self.parser = None
         
+# --- An expat driver that uses the lazy map
+
+class LazyExpatDriver(SAX_expat):
+
+    def __init__(self):
+        SAX_expat.__init__(self)
+        self.map=LazyAttributeMap([])
+        
+    def startElement(self,name,attrs):
+        self.map.list=attrs
+        self.doc_handler.startElement(name,self.map)    
+            
+# --- A lazy attribute map
+
+# This avoids the costly conversion from a list to a hash table
+
+class LazyAttributeMap:    
+    """A lazy implementation of AttributeList that takes an
+    [attr,val,attr,val,...] list and uses it to implement the AttributeList
+    interface."""
+
+    def __init__(self, list):
+	self.list=list
+    
+    def getLength(self):
+	return len(self.list)/2
+	
+    def getName(self, i):
+        try:
+            return self.list[2*i]
+        except IndexError,e:
+            return None
+
+    def getType(self, i):
+	return "CDATA"
+
+    def getValue(self, i):
+        try:
+            if type(i)==types.IntType:
+                return self.list[2*i+1]
+            else:
+                for ix in range(0,len(self.list),2):
+                    if self.list[ix]==i:
+                        return self.list[ix+1]
+
+                return None
+        except IndexError,e:
+            return None
+
+    def __len__(self):
+	return len(self.list)/2
+
+    def __getitem__(self, key):
+	if type(key)==types.IntType:
+            return self.list[2*key+1]
+	else:
+            for ix in range(0,len(self.list),2):
+                if self.list[ix]==key:
+                    return self.list[ix+1]
+
+            return None
+            
+    def items(self):
+        result=[""]*(len(self.list)/2)
+        for ix in range(0,len(self.list),2):
+            result[ix/2]=(self.list[ix],self.list[ix+1])
+        return result
+        
+    def keys(self):
+        result=[""]*(len(self.list)/2)
+        for ix in range(0,len(self.list),2):
+            result[ix/2]=self.list[ix]
+        return result
+
+    def has_key(self,key):
+        for ix in range(0,len(self.list),2):
+            if self.list[ix]==key:
+                return 1
+
+        return 0
+    
+    def get(self, key, alternative):
+        for ix in range(0,len(self.list),2):
+            if self.list[ix]==key:
+                return self.list[ix+1]
+
+        return alternative
+            
 # ---
         
 def create_parser():

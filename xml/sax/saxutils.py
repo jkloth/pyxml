@@ -1,7 +1,21 @@
-"""A library of useful subclasses to the saxlib classes, for the
-convenience of application and driver writers."""
+"""
+A library of useful helper classes to the saxlib classes, for the
+convenience of application and driver writers.
 
-import types,saxlib,string,sys,saxexts
+$Id: saxutils.py,v 1.6 2000/05/15 20:21:48 lars Exp $
+"""
+
+from xml.utils import escape  # FIXME!
+import types, saxlib, string, sys, saxexts, urllib
+
+# --- DefaultHandler
+
+class DefaultHandler(saxlib.EntityResolver, saxlib.DTDHandler,
+                     saxlib.ContentHandler, saxlib.ErrorHandler):
+    """Default base class for SAX2 event handlers. Implements empty
+    methods for all callback methods, which can be overridden by
+    application implementors. Replaces the deprecated SAX1 HandlerBase
+    class."""
 
 # --- Location
 
@@ -11,72 +25,310 @@ class Location:
     stored internally."""
 
     def __init__(self, locator):
-        self.__col=locator.getColumnNumber()
-        self.__line=locator.getLineNumber()
-        self.__pubid=locator.getPublicId()
-        self.__sysid=locator.getSystemId()
+	self.__col = locator.getColumnNumber()
+	self.__line = locator.getLineNumber()
+	self.__pubid = locator.getPublicId()
+	self.__sysid = locator.getSystemId()
     
     def getColumnNumber(self):
-        return self.__col
+	return self.__col
 
     def getLineNumber(self):
-        return self.__line
+	return self.__line
 
     def getPublicId(self):
-        return self.__pubid
+	return self.__pubid
 
     def getSystemId(self):
-        return self.__sysid
+	return self.__sysid
 
 # --- ErrorPrinter
     
 class ErrorPrinter:
     "A simple class that just prints error messages to standard out."
 
-    def __init__(self,level=0,outfile=sys.stderr):
-        self.level=level
-        self.outfile=outfile
+    def __init__(self, level=0, outfile=sys.stderr):
+        self._level = level
+        self._outfile = outfile
     
-    def error(self, exception):
-        if self.level>1:
-            return
+    def warning(self, exception):
+        if self._level <= 0:
+            self._outfile.write("WARNING in %s: %s\n" %
+                               (self.__getpos(exception),
+                                exception.getMessage()))
         
-        self.outfile.write("ERROR in %s: %s\n" % (self.__getpos(exception),\
-                                                  exception.getMessage()))
+    def error(self, exception):
+        if self._level <= 1:
+            self._outfile.write("ERROR in %s: %s\n" %
+                               (self.__getpos(exception),
+                                exception.getMessage()))
 
     def fatalError(self, exception):
-        if self.level>2:
-            return
-        
-        self.outfile.write("FATAL ERROR in %s: %s\n" % \
-                           (self.__getpos(exception),exception.getMessage()))
-
-    def warning(self, exception):
-        if self.level>0:
-            return
-        
-        self.outfile.write("WARNING in %s: %s\n" % (self.__getpos(exception),\
-                                                    exception.getMessage()))
+        if self._level <= 2:
+            self._outfile.write("FATAL ERROR in %s: %s\n" % 
+                               (self.__getpos(exception),
+                                exception.getMessage()))
 
     def __getpos(self, exception):
-        return "%s:%s:%s" % (exception.getSystemId(),\
-                             exception.getLineNumber(),\
-                             exception.getColumnNumber())
+        if isinstance(exception, saxlib.SAXParseException):
+            return "%s:%s:%s" % (exception.getSystemId(),
+                                 exception.getLineNumber(),
+                                 exception.getColumnNumber())
+        else:
+            return "<unknown>"
 
 # --- ErrorRaiser
 
 class ErrorRaiser:
     "A simple class that just raises the exceptions it is passed."
 
+    def __init__(self, level = 0):
+        self._level = level
+        
     def error(self, exception):
-        raise exception
+        if self._level <= 1:
+            raise exception
 
     def fatalError(self, exception):
-        raise exception
+        if self._level <= 2:
+            raise exception
 
     def warning(self, exception):
-        raise exception
+        if self._level <= 0:
+            raise exception
+
+# --- AttributesImpl
+
+class AttributesImpl:
+
+    def __init__(self, attrs, rawnames):
+        self._attrs = attrs
+        self._rawnames = rawnames
+
+    def getLength(self):
+        return len(self._attrs)
+
+    def getType(self, name):
+        return "CDATA"
+
+    def getValue(self, name):
+        return self._attrs[name]
+
+    def getValueByQName(self, name):
+        return self._attrs[self._rawnames[name]]
+
+    def getNameByQName(self, name):
+        return self._rawnames[name]
+
+    def getNames(self):
+        return self._attrs.keys()
+
+    def getQNames(self):
+        return self._rawnames.keys()    
     
+    def __len__(self):
+        return len(self._attrs)
+
+    def __getitem__(self, name):
+        return self._attrs[name]
+
+    def keys(self):
+        return self._attrs.keys()
+
+    def has_key(self, name):
+        return self._attrs.has_key(name)
+
+    def get(self, name, alternative=None):
+        return self._attrs.get(name, alternative)
+
+    def copy(self):
+        return self.__class__(self._attrs, self._rawnames)
+
+    def items(self):
+        return self._attrs.items()
+
+    def values(self):
+        return self._attrs.values()
+
+# --- ContentGenerator
+    
+class ContentGenerator(saxlib.ContentHandler):
+
+    def __init__(self, out = sys.stdout):
+        saxlib.ContentHandler.__init__(self)
+        self._out = out
+
+    # ContentHandler methods
+        
+    def startDocument(self):
+        self._out.write('<?xml version="1.0" encoding="iso-8859-1"?>\n')
+
+    def startPrefixMapping(self, prefix, uri):
+        pass
+
+    def endPrefixMapping(self, prefix):
+        pass
+
+    def startElement(self, name, rawname, attrs):
+        self._out.write('<' + rawname)
+        for (name, value) in attrs.items():
+            self._out.write(' %s="%s"' % (name, escape(value)))
+        self._out.write('>')
+
+    def endElement(self, name, rawname):
+        self._out.write('</%s>' % rawname)
+
+    def characters(self, content):
+        self._out.write(escape(content))
+
+    def ignorableWhitespace(self, content):
+        self._out.write(content)
+        
+    def processingInstruction(self, target, data):
+        self._out.write('<?%s %s?>' % (target, data))
+
+# --- XMLFilterImpl
+
+class XMLFilterImpl(saxlib.XMLFilter):
+    """This class is designed to sit between an XMLReader and the
+    client application's event handlers.  By default, it does nothing
+    but pass requests up to the reader and events on to the handlers
+    unmodified, but subclasses can override specific methods to modify
+    the event stream or the configuration requests as they pass
+    through."""
+
+    # ErrorHandler methods
+
+    def error(self, exception):
+        self._err_handler.error(exception)
+
+    def fatalError(self, exception):
+        self._err_handler.fatalError(exception)
+
+    def warning(self, exception):
+        self._err_handler.warning(exception)
+
+    # ContentHandler methods
+        
+    def setDocumentLocator(self, locator):
+        self._cont_handler.setDocumentLocator(locator)
+        
+    def startDocument(self):
+        self._cont_handler.startDocument()
+
+    def endDocument(self):
+        self._cont_handler.endDocument()
+
+    def startPrefixMapping(self, prefix, uri):
+        self._cont_handler.startPrefixMapping(prefix, uri)
+
+    def endPrefixMapping(self, prefix):
+        self._cont_handler.endPrefixMapping(prefix)
+
+    def startElement(self, name, qname, attrs):
+        self._cont_handler.startElement(name, qname, attrs)
+
+    def endElement(self, name, qname):
+        self._cont_handler.endElement(name, qname)
+
+    def characters(self, content):
+        self._cont_handler.characters(content)
+
+    def ignorableWhitespace(self, chars, start, end):
+        self._cont_handler.ignorableWhitespace(chars, start, end)
+
+    def processingInstruction(self, target, data):
+        self._cont_handler.processingInstruction(target, data)
+
+    def skippedEntity(self, name):
+        self._cont_handler.skippedEntity(name)
+
+    # DTDHandler methods
+
+    def notationDecl(self, name, publicId, systemId):
+        self._dtd_handler.notationDecl(name, publicId, systemId)
+
+    def unparsedEntityDecl(self, name, publicId, systemId, ndata):
+        self._dtd_handler.unparsedEntityDecl(name, publicId, systemId, ndata)
+
+    # EntityResolver methods
+
+    def resolveEntity(self, publicId, systemId):
+        self._ent_handler.resolveEntity(publicId, systemId)
+
+    # XMLReader methods
+
+    def parse(self, source):
+        self._parent.setContentHandler(self)
+        self._parent.setErrorHandler(self)
+        self._parent.setEntityResolver(self)
+        self._parent.setDTDHandler(self)
+        self._parent.parse(source)
+
+    def setLocale(self, locale):
+        self._parent.setLocale(locale)
+    
+    def getFeature(self, name):
+        return self._parent.getFeature(name)
+
+    def setFeature(self, name, state):
+        self._parent.setFeature(name, state)
+
+    def getProperty(self, name):
+        return self._parent.getProperty(name)
+
+    def setProperty(self, name, value):
+        self._parent.setProperty(name, value)
+        
+# --- BaseIncrementalParser
+
+class BaseIncrementalParser(saxlib.IncrementalParser):
+    """This class implements the parse method of the XMLReader
+    interface using the feed, close and reset methods of the
+    IncrementalParser interface as a convenience to SAX 2.0 driver
+    writers."""
+
+    def parse(self, source):
+        source = prepare_input_source(source)
+        self.prepareParser(source)
+
+        self._cont_handler.startDocument()
+
+        # FIXME: what about char-stream?
+        inf = source.getByteStream()
+        buffer = inf.read(16384)
+        while buffer != "":
+            self.feed(buffer)
+            buffer = inf.read(16384)
+
+        self.close()
+        self.reset()
+        
+        self._cont_handler.endDocument()
+
+    def prepareParser(self, source):
+        """This method is called by the parse implementation to allow
+        the SAX 2.0 driver to prepare itself for parsing."""
+        raise NotImplementedError("prepareParser must be overridden!")
+        
+# --- Utility functions
+
+def prepare_input_source(source):
+    
+    if type(source) == types.StringType:
+        source = saxlib.InputSource(source)
+
+    if source.getByteStream() == None:
+        source.setByteStream(urllib.urlopen(source.getSystemId()))
+        
+    return source
+    
+# ===========================================================================
+#
+# DEPRECATED SAX 1.0 CLASSES
+#
+# ===========================================================================
+        
 # --- AttributeMap
 
 class AttributeMap:
@@ -84,11 +336,11 @@ class AttributeMap:
     and uses it to implement the AttributeList interface."""    
 
     def __init__(self, map):
-        self.map=map
+	self.map=map
     
     def getLength(self):
-        return len(self.map.keys())
-        
+	return len(self.map.keys())
+	
     def getName(self, i):
         try:
             return self.map.keys()[i]
@@ -96,7 +348,7 @@ class AttributeMap:
             return None
 
     def getType(self, i):
-        return "CDATA"
+	return "CDATA"
 
     def getValue(self, i):
         try:
@@ -108,28 +360,32 @@ class AttributeMap:
             return None
 
     def __len__(self):
-        return len(self.map.keys())
+	return len(self.map)
 
     def __getitem__(self, key):
-        if type(key)==types.IntType:
+	if type(key)==types.IntType:
             return self.map.keys()[key]
-        else:
+	else:
             return self.map[key]
 
     def items(self):
         return self.map.items()
         
     def keys(self):
-        return self.map.keys()
+	return self.map.keys()
 
     def has_key(self,key):
-        return self.map.has_key(key)
-
-    def get(self, key, alternative):
-        """Return the value associated with attribute name; if it is not
-        available, then return the alternative."""
+	return self.map.has_key(key)
+    
+    def get(self, key, alternative=None):
         return self.map.get(key, alternative)
 
+    def copy(self):
+        return AttributeMap(self.map.copy())
+
+    def values(self):
+        return self.map.values()
+    
 # --- Event broadcasting object
 
 class EventBroadcaster:    
@@ -157,95 +413,86 @@ class EventBroadcaster:
     def __repr__(self):
         return "<EventBroadcaster instance at %d>" % id(self)
 
-# ESIS document handler
+# --- ESIS document handler
 
 class ESISDocHandler(saxlib.HandlerBase):
     "A SAX document handler that produces naive ESIS output."
 
     def __init__(self,writer=sys.stdout):
-        self.writer=writer
+	self.writer=writer
     
     def processingInstruction (self,target, remainder):
-        """Receive an event signalling that a processing instruction
-        has been found."""
-        self.writer.write("?"+target+" "+remainder+"\n")
+	"""Receive an event signalling that a processing instruction
+	has been found."""
+	self.writer.write("?"+target+" "+remainder+"\n")
 
     def startElement(self,name,amap):
-        "Receive an event signalling the start of an element."
-        self.writer.write("("+name+"\n")
-        for a_name in amap.keys():
-            self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
+	"Receive an event signalling the start of an element."
+	self.writer.write("("+name+"\n")
+	for a_name in amap.keys():
+	    self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
 
     def endElement(self,name):
-        "Receive an event signalling the end of an element."
-        self.writer.write(")"+name+"\n")
+	"Receive an event signalling the end of an element."
+	self.writer.write(")"+name+"\n")
 
     def characters(self,data,start_ix,length):
-        "Receive an event signalling that character data has been found."
-        self.writer.write("-"+data[start_ix:start_ix+length]+"\n")
-
-    def endDocument(self):
-        try:
-            pass
-            # self.writer.close()
-        except NameError:
-            pass # It's OK, if the method isn't there we probably don't need it
+	"Receive an event signalling that character data has been found."
+	self.writer.write("-"+data[start_ix:start_ix+length]+"\n")
         
-# XML canonizer
+# --- XML canonizer
 
 class Canonizer(saxlib.HandlerBase):
     "A SAX document handler that produces canonized XML output."
 
     def __init__(self,writer=sys.stdout):
-        self.elem_level=0
-        self.writer=writer
+	self.elem_level=0
+	self.writer=writer
     
     def processingInstruction (self,target, remainder):
-        if not target=="xml":
-            self.writer.write("<?"+target+" "+remainder+"?>")
+	if not target=="xml":
+	    self.writer.write("<?"+target+" "+remainder+"?>")
 
     def startElement(self,name,amap):
-        self.writer.write("<"+name)
-        
-        a_names=amap.keys()
-        a_names.sort()
+	self.writer.write("<"+name)
+	
+	a_names=amap.keys()
+	a_names.sort()
 
-        for a_name in a_names:
-            self.writer.write(" "+a_name+"=\"")
-            self.write_data(amap[a_name])
-            self.writer.write("\"")
-        self.writer.write(">")
-        self.elem_level=self.elem_level+1
+	for a_name in a_names:
+	    self.writer.write(" "+a_name+"=\"")
+	    self.write_data(amap[a_name])
+	    self.writer.write("\"")
+	self.writer.write(">")
+	self.elem_level=self.elem_level+1
 
     def endElement(self,name):
-        self.writer.write("</"+name+">")
-        self.elem_level=self.elem_level-1
+	self.writer.write("</"+name+">")
+	self.elem_level=self.elem_level-1
 
     def ignorableWhitespace(self,data,start_ix,length):
-        self.characters(data,start_ix,length)
-        
+	self.characters(data,start_ix,length)
+	
     def characters(self,data,start_ix,length):
-        if self.elem_level>0:
+	if self.elem_level>0:
             self.write_data(data[start_ix:start_ix+length])
-            
+	    
     def write_data(self,data):
-        "Writes datachars to writer."
-        data=string.replace(data,"&","&amp;")
-        data=string.replace(data,"<","&lt;")
-        data=string.replace(data,"\"","&quot;")
-        data=string.replace(data,">","&gt;")
+	"Writes datachars to writer."
+	data=string.replace(data,"&","&amp;")
+	data=string.replace(data,"<","&lt;")
+	data=string.replace(data,"\"","&quot;")
+	data=string.replace(data,">","&gt;")
         data=string.replace(data,chr(9),"&#9;")
         data=string.replace(data,chr(10),"&#10;")
         data=string.replace(data,chr(13),"&#13;")
-        self.writer.write(data)
-        
-    def endDocument(self):
-        try:
-            pass #self.writer.close()
-        except NameError:
-            pass # It's OK, if the method isn't there we probably don't need it
-
+	self.writer.write(data)
+	
 # --- mllib
+
+class mllib:
+    """A re-implementation of the htmllib, sgmllib and xmllib interfaces as a
+    SAX DocumentHandler."""
 
 # Unsupported:
 # - setnomoretags
@@ -258,10 +505,6 @@ class Canonizer(saxlib.HandlerBase):
 # - handle_comment
 # - handle_cdata
 # - tag_attributes
-
-class mllib:
-    """A re-implementation of the htmllib, sgmllib and xmllib interfaces as a
-    SAX DocumentHandler."""
 
     def __init__(self):
         self.reset()
