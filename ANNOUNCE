@@ -23,6 +23,9 @@ Changes in this version, compared to 0.6.3:
           hasAttributes, and the extension toprettyxml. A number of
 	  bugs have been fixed
 
+	* A DOM implementation registration is now available (functions
+	  getDOMImplementation and registerDOMImplementation in xml.dom).
+
 	* If expat 1.95.x is available on the system, this is used instead
 	  of the included expat copy; it will then offer additional handlers.
 
