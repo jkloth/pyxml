@@ -78,7 +78,7 @@ class Builder:
     def text(self, s):
         if self.current_element is not None:
             text_node = self.document.createTextNode(s)
-            if (self.current_element is self.document and
+            if (self.current_element == self.document and
                 string.strip(s) == ""):
                 return
 
