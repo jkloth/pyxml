@@ -7,7 +7,9 @@ include README*
 include TODO 
 include setup.py
 
-recursive-include xml *.py 
+recursive-include xml *.py
+recursive-include xml *.po
+recursive-include xml *.mo
 
 recursive-include mac *.prj 
 recursive-include mac *.prj.exp
