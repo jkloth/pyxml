@@ -19,39 +19,27 @@ else:
     from distutils.command.build import Build
     from distutils.command.install_ext import InstallExt
     
-    class XMLBuild(Build):
-        def set_default_options (self):
-            Build.set_default_options( self )
-            self.build_platlib = 'build/lib/xml/parsers' 
-
-    class XMLInstallExt(InstallExt):
-        def set_default_options (self):
-            InstallExt.set_default_options( self )
-            self.build_dir = 'build/lib/xml/parsers' 
-            self.install_dir = 'build/lib/xml/parsers' 
-
     # XXX should detect whether to use the unixfilemap or readfilemap
     # depending on the platform
     FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
     
     setup (name = "PyXML",
-           version = "0.5.2",
+           version = "0.5.3",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
            url = "http://www.python.org/sigs/xml-sig/",
 
-           cmdclass = {'build':XMLBuild,
-                       'install_ext':XMLInstallExt},
-           
            packages = ['xml', 'xml.arch', 'xml.dom', 'xml.marshal',
                        'xml.parsers', 'xml.parsers.xmlproc', 
                        'xml.sax', 'xml.sax.drivers',
                        'xml.unicode', 'xml.utils'
                        ],
-           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c']
+           ext_modules = [('xml.parsers.sgmlop', { 'sources' : ['extensions/sgmlop.c']
                                        }),
-                          ('pyexpat', { 'define': [('XML_NS', None)],
+                          ('xml.unicode.wstrop', { 'sources' : ['extensions/wstrop.c']
+                                       }),
+                          ('xml.parsers.pyexpat', { 'define': [('XML_NS', None)],
                                         'include_dirs': [ 'extensions/expat/xmltok',
                                                           'extensions/expat/xmlparse' ], 
                                                           
