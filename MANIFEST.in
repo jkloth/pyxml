@@ -38,6 +38,7 @@ recursive-include extensions/expat *.dsp
 
 recursive-include test *.py 
 recursive-include test *.xml
+include test/test.xml.out
 
 recursive-include test/output test_*
 
