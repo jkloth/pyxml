@@ -43,7 +43,7 @@ class Builder:
 
 	def startElement(self, name, attrs = {}):
 		if hasattr(self, 'start_' + name):
-			getattr(self, 'start_' + name)(elm)
+			getattr(self, 'start_' + name)(name, attrs)
 		else:
 			element = self.document.createElement(name)
 			for key, value in attrs.items():
