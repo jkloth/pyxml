@@ -97,11 +97,8 @@ def test_suite():
     """Return a test suite for the Zope testing framework."""
     return DOMImplementationTestSuite(implementation, DOMParseString)
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
-
 if __name__ == "__main__":
-    main()
+    unittest.main(defaultTest="test_suite")
 else:
     import sys
     print >>sys.__stderr__, \

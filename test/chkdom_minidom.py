@@ -14,8 +14,5 @@ def test_suite():
     return DOMImplementationTestSuite(xml.dom.minidom.getDOMImplementation(),
                                       DOMParseString)
 
-def main():
-    unittest.TextTestRunner().run(test_suite())
-
 if __name__ == "__main__":
-    main()
+    unittest.main(defaultTest="test_suite")
