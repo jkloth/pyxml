@@ -17,11 +17,26 @@ else:
     # this at the moment. 
     
     # Use either unixfilemap or readfilemap depending on the platform
-    if sys.platform[:3] in ('win', 'mac'):
+    if sys.platform == 'win32':
+        FILEMAP_SRC = 'extensions/expat/xmlwf/win32filemap.c'
+    elif sys.platform[:3] == 'mac':
         FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
     else:
+        # Assume all other platforms are Unix-compatible; this is almost
+        # certainly wrong. :)
         FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c' 
-   
+
+    # Check if we need to compile the wide string modules, or if this version
+    # of Python has Unicode support.
+    import __builtin__
+    if hasattr(__builtin__, 'unicode'):
+        wstr_modules = []
+    else:
+        wstr_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c'] }),
+                        ('xml.unicode.wstrop', { 'sources' : ['extensions/wstrop.c']
+                                                 })
+                        ]
+                         
     setup (name = "PyXML",
            version = "0.5.3",
            description = "Python/XML package",
@@ -35,15 +50,13 @@ else:
                        'xml.unicode', 'xml.utils'
                        ],
 
-           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c'] }),
-                          ('xml.unicode.wstrop', { 'sources' : ['extensions/wstrop.c']
-                                       }),
-                          ('xml.parsers.pyexpat', { 'define': [('XML_NS', None)],
-                                        'include_dirs': [ 'extensions/expat/xmltok',
-                                                          'extensions/expat/xmlparse' ], 
-                                                          
-                                        'sources' :
-                                        [
+           ext_modules = wstr_modules +
+                         [('xml.parsers.pyexpat',
+                           { 'define': [('XML_NS', None)],
+                             'include_dirs': [ 'extensions/expat/xmltok',
+                                               'extensions/expat/xmlparse' ], 
+                             'sources' :
+                             [
         'extensions/pyexpat.c',
         'extensions/expat/xmltok/xmltok.c',
         'extensions/expat/xmltok/xmlrole.c',
