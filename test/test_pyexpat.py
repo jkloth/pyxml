@@ -5,27 +5,9 @@
 
 from xml.parsers import expat
 
-import sys
-# Make test fail for 1.5, since it also tests for Unicode
-if sys.hexversion < 0x02000000:
-    raise ImportError,"pyexpat does not support Unicode"
-
 class Outputter:
     def StartElementHandler(self, name, attrs):
-        print 'Start element:\n\t', repr(name), "{",
-        # attrs may contain characters >127, which are printed hex in Python
-        # 2.1, but octal in earlier versions
-        for k,v in attrs.items():
-            value = ""
-            for c in v:
-                if ord(c)>=256:
-                    value = "%s\\u%.4x" % (value, ord(c))
-                elif ord(c)>=128:
-                    value = "%s\\x%.2x" % (value, ord(c))
-                else:
-                    value = value + c
-            print "%s: %s," % (repr(k),repr(value)),
-        print "}"
+        print 'Start element:\n\t', repr(name), attrs
 
     def EndElementHandler(self, name):
         print 'End element:\n\t', repr(name)
@@ -68,7 +50,7 @@ class Outputter:
 
     def ExternalEntityRefHandler(self, *args):
         context, base, sysId, pubId = args
-        print 'External entity ref:', args
+        print 'External entity ref:', args[1:]
         return 1
 
     def DefaultHandler(self, userData):
@@ -168,3 +150,34 @@ except expat.error:
     print '** Line', parser.ErrorLineNumber
     print '** Column', parser.ErrorColumnNumber
     print '** Byte', parser.ErrorByteIndex
+
+
+# Tests that make sure we get errors when the namespace_separator value
+# is illegal, and that we don't for good values:
+print
+print "Testing constructor for proper handling of namespace_separator values:"
+expat.ParserCreate()
+expat.ParserCreate(namespace_separator=None)
+expat.ParserCreate(namespace_separator=' ')
+print "Legal values tested o.k."
+try:
+    expat.ParserCreate(namespace_separator=42)
+except TypeError, e:
+    print "Caught expected TypeError:"
+    print e
+else:
+    print "Failed to catch expected TypeError."
+try:
+    expat.ParserCreate(namespace_separator='too long')
+except ValueError, e:
+    print "Caught expected ValueError:"
+    print e
+else:
+    print "Failed to catch expected ValueError."
+try:
+    expat.ParserCreate(namespace_separator='') # too short
+except ValueError, e:
+    print "Caught expected ValueError:"
+    print e
+else:
+    print "Failed to catch expected ValueError."
