@@ -119,7 +119,8 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
     def close(self):
         if not self.parser.Parse("",1):
             self.__report_error()
-    
+        self.parser = None
+        
 # ---
         
 def create_parser():
