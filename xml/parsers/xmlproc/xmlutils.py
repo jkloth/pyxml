@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.24 2001/08/15 19:48:34 larsga Exp $
+# $Id: xmlutils.py,v 1.25 2001/08/28 06:55:34 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -155,9 +155,12 @@ class EntityParser:
         self.encoded_data = ""
         self.input_encoding = None
         self.charset_converter = None
+        tmp = self.seen_xmldecl
+        self.seen_xmldecl = 0 # Avoid complaints
 
         self.read_from(inf)
 
+        self.seen_xmldecl = tmp
         self.flush()
         self.pop_entity()
 
@@ -165,15 +168,15 @@ class EntityParser:
         """Parse some text and consider it a new entity, making it possible
         to return to the original entity later."""
         self._push_ent_stack(name)
-        self.data=contents
-        self.encoded_data=""
-        self.current_sysID=sysID
-        self.pos=0
-        self.line=1
-        self.last_break=0
-        self.datasize=len(contents)
-        self.last_upd_pos=0
-        self.final=1
+        self.data = contents
+        self.encoded_data = ""
+        self.current_sysID = sysID
+        self.pos = 0
+        self.line = 1
+        self.last_break = 0
+        self.datasize = len(contents)
+        self.last_upd_pos = 0
+        self.final = 1
 
     def pop_entity(self):
         "Skips out of the current entity and back to the previous one."
@@ -633,10 +636,10 @@ class XMLCommonParser(EntityParser):
             else:
                 self.report_error(3010)
 
-        enc=None
+        enc = None
 
-        sddecl=None
-        ver=None
+        sddecl = None
+        ver = None
         self.skip_ws()
 
         if self.now_at("version"):

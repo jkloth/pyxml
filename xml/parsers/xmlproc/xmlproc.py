@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.20 2001/08/08 07:29:09 larsga Exp $
+# $Id: xmlproc.py,v 1.21 2001/08/28 06:55:34 larsga Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.20 $"
+revision="$Revision: 1.21 $"
         
 # ==============================
 # A full well-formedness parser
@@ -458,17 +458,14 @@ class XMLProcessor(XMLCommonParser):
 	    if ent.notation != None:
 		self.report_error(3031)
             else:
-                tmp = self.seen_xmldecl
-                self.seen_xmldecl = 0 # Avoid complaints
                 self.seen_root = 0    # Haven't seen root in the new entity yet
                 self.open_entity(self.pubres.resolve_entity_pubid(ent.get_pubid(),
                                                                   ent.get_sysid()),
                                  name)
-                self.seen_root = 1 # Entity references only allowed inside elements
-                self.seen_xmldecl = tmp
+                self.seen_root = 1
 
         # Did any elements cross the entity boundary?
-        if stack_size!=len(self.stack):
+        if stack_size != len(self.stack):
             self.report_error(3042)
             
 	del self.open_ents[-1]
@@ -482,10 +479,10 @@ class XMLProcessor(XMLCommonParser):
 	    self.report_error(3033)
 	
 	self.skip_ws(1)
-        rootname=self._get_name()
+        rootname = self._get_name()
 	self.skip_ws(1)
 
-        (pub_id,sys_id)=self.parse_external_id()
+        (pub_id, sys_id) = self.parse_external_id()
 	self.skip_ws()
 
         self.app.handle_doctype(rootname, pub_id, sys_id)
