@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.14 2000/09/30 21:04:10 loewis Exp $
+$Id: saxutils.py,v 1.15 2000/10/03 10:20:30 loewis Exp $
 """
 
 import types, handler, _exceptions, sys, urllib, os, xmlreader, string
@@ -118,7 +118,7 @@ class ErrorRaiser:
 # --- AttributesImpl now lives in xmlreader
 from xmlreader import AttributesImpl
 
-# --- ContentGenerator, now called XMLGenerator in Python 2
+# --- XMLGenerator is the SAX2 ContentHandler for writing back XML
 try:
   import codecs
   def _outputwrapper(stream,encoding):
@@ -166,7 +166,10 @@ class XMLGenerator(handler.ContentHandler):
         self._out.write('</%s>' % name)
 
     def startElementNS(self, name, qname, attrs):
-        name = self._current_context[name[0]] + ":" + name[1]
+        if name[0] is None:
+            name = name[1]
+        else:
+            name = self._current_context[name[0]] + ":" + name[1]
         self._out.write('<' + name)
 
         for pair in self._undeclared_ns_maps:
@@ -182,7 +185,10 @@ class XMLGenerator(handler.ContentHandler):
         # XXX: if qname is not None, we better use it.
         # Python 2.0b2 requires us to use the recorded prefix for
         # name[0], though
-        qname = self._current_context[name[0]] + ":" + name[1]
+        if name[0] is None:
+            qname = name[1]
+        else:
+            qname = self._current_context[name[0]] + ":" + name[1]
         self._out.write('</%s>' % qname)
 
     def characters(self, content):
@@ -194,8 +200,13 @@ class XMLGenerator(handler.ContentHandler):
     def processingInstruction(self, target, data):
         self._out.write('<?%s %s?>' % (target, data))
 
-# --- FIXME: remove backwards compatibility name when not needed anymore
-ContentGenerator = XMLGenerator
+# --- ContentGenerator is the SAX1 DocumentHandler for writing back XML
+class ContentGenerator(XMLGenerator):
+
+    def characters(self, str, start, end):
+        # In SAX1, characters receives start and end; in SAX2, it receives
+        # a string. For plain strings, we may want to use a buffer object.
+        return XMLGenerator.characters(self, str[start:start+end])
 
 # --- XMLFilterImpl
 class XMLFilterBase(xmlreader.XMLReader):
