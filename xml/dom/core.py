@@ -350,7 +350,7 @@ class Node:
         if (not self.__dict__.has_key(key) and 
 	    hasattr(self.__class__, 'set_'+key) ):
             func = getattr(self.__class__, 'set_'+key)
-            func( value )
+            func( self, value )
         self.__dict__[key] = value
 
     def __cmp__(self, other):
@@ -837,7 +837,7 @@ class Element(Node):
             append("'")
             
         if len(self._node.children) == 0:
-            append("/>")
+            append(" />")
             return string.join(L, "")
         append(">")
         for child in self._node.children:
