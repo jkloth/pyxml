@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.17 2001/05/05 10:58:44 larsga Exp $
+# $Id: xmlutils.py,v 1.18 2001/05/07 12:24:00 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -123,8 +123,7 @@ class EntityParser:
 	
         self.read_from(infile,bufsize)
         infile.close()
-        self.flush()
-        self.parseEnd()
+        self.close()
 
     def parse_string(self, doc, sysid = None, pubid = None):
 	"""Parse an XML document from the doc string."""
@@ -134,8 +133,7 @@ class EntityParser:
         # FIXME: pubid!
 
         self.feed(doc)
-	self.flush()
-	self.parseEnd()
+	self.close()
         
     def open_entity(self,sysID,name="None"):
         """Starts parsing a new entity, pushing the old onto the stack. This
