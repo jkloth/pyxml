@@ -22,6 +22,22 @@ Changes in this version, compared to 0.6.6:
 	* James Tauber has contributed an implementation of TREX,
 	  in the xml.schema.trex module.
 
+	* xmlproc has been updated to produce Unicode strings in
+	  Python 2.x using the Python codecs to convert the input.
+
+	* 4XPath from the 4Suite package has been integrated as 
+	  xml.xpath. Integrating 4XSLT is still in progress, xml.xslt
+	  is not included in this release.
+
+	* XBEL has been updated to revision 1.1.
+
+	* The C14N code in xml.dom.ext.c14n was completely rewritten.
+
+	* Swedish and French messages have been added to xmlproc.
+
+	* New SAX2 drivers have been added for htmllib, sgmllib,
+	  sgmlop, and sgmlop_html.
+
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
 into one easy-to-install package.  The distribution includes parsers
@@ -35,7 +51,7 @@ Garshol), sgmlop (Fredrik Lundh).
 
 	* SAX interface (Lars Marius Garshol)
 	* minidom DOM implementation (Paul Prescod)
-	* 4DOM from Fourthought (Uche Ogbuji, Mike Olson)
+	* 4DOM and 4XPath from Fourthought (Uche Ogbuji, Mike Olson)
 	* Schema implementations: TREX (James Tauber)
 	* Various utility modules and functions (various people)
 	* Documentation and example programs (various people)
