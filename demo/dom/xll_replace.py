@@ -28,7 +28,7 @@ def xll_replace(start_node):
 	        #Then make a tree of the new file and insert it
                 f = open(href, "r")
                 str = f.read()
-                new_df = Sax.FromXml(str, ownerDocument=start_node.ownerDocument, validate=0)
+                new_df = Sax2.FromXml(str, ownerDocument=start_node.ownerDocument, validate=0)
 
 	        #Get the first element node and assume it's the document node
                 for a_node in new_df.childNodes:
