@@ -3,9 +3,10 @@
 #
 # Targets: build test install help
 
-import sys, os
+import sys, os, string
 
 from distutils.core import setup, Extension
+from setupext import Data_Files, install_Data_Files
 
 # I want to override the default build directory so the extension
 # modules are compiled and placed in the build/xml directory
@@ -68,7 +69,61 @@ if build_pyexpat:
 # Build sgmlop
 ext_modules.append(
   Extension(xml('.parsers.sgmlop'), sources=['extensions/sgmlop.c']))
-                                  
+
+
+# On Windows, install the documentation into a directory xmldoc, along
+# with xml/_xmlplus. For RPMs, docs are installed into the RPM doc
+# directory via setup.cfg (usuall /usr/doc). On all other systems, the
+# documentation is not installed.
+
+doc2xmldoc = 1
+if sys.platform == 'win32':
+    doc2xmldoc = 1
+
+# This is a fragment from MANIFEST.in which should contain all
+# files which are considered documentation (doc, demo, test, plus some
+# toplevel files)
+docfiles="""
+recursive-include doc *.html 
+recursive-include doc *.tex 
+recursive-include doc *.txt 
+recursive-include doc *.gif 
+recursive-include doc *.css
+recursive-include doc *.api
+recursive-include doc *.web
+
+recursive-include demo README 
+recursive-include demo *.py 
+recursive-include demo *.xml
+recursive-include demo *.dtd
+recursive-include demo *.html
+recursive-include demo *.htm
+include demo/genxml/data.txt
+include demo/dom/html2html
+include demo/xbel/doc/xbel.bib
+include demo/xbel/doc/xbel.tex
+include demo/xmlproc/catalog.soc
+
+recursive-include test *.py 
+recursive-include test *.xml
+include test/test.xml.out
+recursive-include test/output test_*
+
+include ANNOUNCE 
+include CREDITS 
+include LICENCE 
+include README* 
+include TODO 
+"""
+
+if doc2xmldoc:
+    xmldocfiles = [
+        Data_Files(copy_to = 'xmldoc',
+                   template = string.split(docfiles,"\n"),
+                   preserve_path = 1)
+        ]
+else:
+    xmldocfiles = []
 
 setup (name = "PyXML",
        version = "0.6.2", # Needs to match xml/__init__.version_info
@@ -80,8 +135,13 @@ setup (name = "PyXML",
 """XML Parsers and API for Python
 This version of PyXML was tested with Python 2.0 and 1.5.2.
 """,
+
+       # Override certain command classes with our own ones
+       cmdclass = {'install_data':install_Data_Files}, 
        
        package_dir = {xml(''):'xml'},
+
+       data_files = xmldocfiles,
        
        packages = [xml(''), 
                    xml('.dom'), xml('.dom.html'), xml('.dom.ext'),
