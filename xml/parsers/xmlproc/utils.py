@@ -1,7 +1,7 @@
 """
 Some utilities for use with xmlproc.
 
-$Id: utils.py,v 1.6 2002/04/13 19:11:53 larsga Exp $
+$Id: utils.py,v 1.7 2002/05/01 09:02:37 loewis Exp $
 """
 
 import xmlapp, sys, string, types
@@ -29,7 +29,8 @@ class XMLParseException(Exception):
 class ErrorPrinter(xmlapp.ErrorHandler):
     """An error handler that prints out warning messages."""
 
-    def __init__(self, level = 0, out = sys.stderr):
+    def __init__(self, locator, level = 0, out = sys.stderr):
+        xmlapp.ErrorHandler.__init__(self, locator)
         self.level = level
         self.out = out
 
@@ -248,9 +249,9 @@ def load_dtd(sysid):
 def validate_doc(dtd,sysid):
     import xmlval
 
-    parser=xmlval.XMLValidator(dtd)
+    parser=xmlval.XMLValidator()
     parser.dtd=dtd # FIXME: what to do if there is a !DOCTYPE?
     parser.set_error_handler(ErrorPrinter(parser))
     parser.parse_resource(sysid)
 
-    dtd.rollback_changes()
+    #dtd.rollback_changes()
