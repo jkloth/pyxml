@@ -17,7 +17,6 @@ cdata
 end quotation
 cdata   
 end collection
-Parser returned 1
 Summary of XML parser upcalls:
 start elements: 5
 end elements: 5
