@@ -11,6 +11,7 @@ import xml.dom.minidom
 import xml.parsers.expat
 
 from xml.dom.minidom import parse, Node, Document, parseString
+from xml.dom.minidom import getDOMImplementation
 
 
 if __name__ == "__main__":
@@ -410,18 +411,205 @@ def _testCloneElementCopiesAttributes(e1, e2, test):
         confirm(a2.ownerElement is e2,
                 "clone of attribute node correctly owned")
 
+def testCloneDocumentShallow():
+    doc = parseString("<?xml version='1.0'?>\n"
+                      "<!-- comment -->"
+                      "<!DOCTYPE doc [\n"
+                      "<!NOTATION notation SYSTEM 'http://xml.python.org/'>\n"
+                      "]>\n"
+                      "<doc attr='value'/>")
+    doc2 = doc.cloneNode(0)
+    confirm(doc2 is None,
+            "testCloneDocumentShallow:"
+            " shallow cloning of documents makes no sense!")
 
-def testCloneDocumentShallow(): pass
+def testCloneDocumentDeep():
+    doc = parseString("<?xml version='1.0'?>\n"
+                      "<!-- comment -->"
+                      "<!DOCTYPE doc [\n"
+                      "<!NOTATION notation SYSTEM 'http://xml.python.org/'>\n"
+                      "]>\n"
+                      "<doc attr='value'/>")
+    doc2 = doc.cloneNode(1)
+    confirm(not (doc.isSameNode(doc2) or doc2.isSameNode(doc)),
+            "testCloneDocumentDeep: document objects not distinct")
+    confirm(len(doc.childNodes) == len(doc2.childNodes),
+            "testCloneDocumentDeep: wrong number of Document children")
+    confirm(doc2.documentElement.nodeType == Node.ELEMENT_NODE,
+            "testCloneDocumentDeep: documentElement not an ELEMENT_NODE")
+    confirm(doc2.documentElement.ownerDocument.isSameNode(doc2),
+            "testCloneDocumentDeep: documentElement owner is not new document")
+    confirm(not doc.documentElement.isSameNode(doc2.documentElement),
+            "testCloneDocumentDeep: documentElement should not be shared")
+    if doc.doctype is not None:
+        # check the doctype iff the original DOM maintained it
+        confirm(doc2.doctype.nodeType == Node.DOCUMENT_TYPE_NODE,
+                "testCloneDocumentDeep: doctype not a DOCUMENT_TYPE_NODE")
+        confirm(doc2.doctype.ownerDocument.isSameNode(doc2))
+        confirm(not doc.doctype.isSameNode(doc2.doctype))
 
-def testCloneDocumentDeep(): pass
+def testCloneDocumentTypeDeepOk():
+    doctype = create_nonempty_doctype()
+    clone = doctype.cloneNode(1)
+    confirm(clone is not None
+            and clone.nodeName == doctype.nodeName
+            and clone.name == doctype.name
+            and clone.publicId == doctype.publicId
+            and clone.systemId == doctype.systemId
+            and len(clone.entities) == len(doctype.entities)
+            and clone.entities.item(len(clone.entities)) is None
+            and len(clone.notations) == len(doctype.notations)
+            and clone.notations.item(len(clone.notations)) is None
+            and len(clone.childNodes) == 0)
+    for i in range(len(doctype.entities)):
+        se = doctype.entities.item(i)
+        ce = clone.entities.item(i)
+        confirm((not se.isSameNode(ce))
+                and (not ce.isSameNode(se))
+                and ce.nodeName == se.nodeName
+                and ce.notationName == se.notationName
+                and ce.publicId == se.publicId
+                and ce.systemId == se.systemId
+                and ce.encoding == se.encoding
+                and ce.actualEncoding == se.actualEncoding
+                and ce.version == se.version)
+    for i in range(len(doctype.notations)):
+        sn = doctype.notations.item(i)
+        cn = clone.notations.item(i)
+        confirm((not sn.isSameNode(cn))
+                and (not cn.isSameNode(sn))
+                and cn.nodeName == sn.nodeName
+                and cn.publicId == sn.publicId
+                and cn.systemId == sn.systemId)
 
-def testCloneAttributeShallow(): pass
+def testCloneDocumentTypeDeepNotOk():
+    doc = create_doc_with_doctype()
+    clone = doc.doctype.cloneNode(1)
+    confirm(clone is None, "testCloneDocumentTypeDeepNotOk")
 
-def testCloneAttributeDeep(): pass
+def testCloneDocumentTypeShallowOk():
+    doctype = create_nonempty_doctype()
+    clone = doctype.cloneNode(0)
+    confirm(clone is not None
+            and clone.nodeName == doctype.nodeName
+            and clone.name == doctype.name
+            and clone.publicId == doctype.publicId
+            and clone.systemId == doctype.systemId
+            and len(clone.entities) == 0
+            and clone.entities.item(0) is None
+            and len(clone.notations) == 0
+            and clone.notations.item(0) is None
+            and len(clone.childNodes) == 0)
 
-def testClonePIShallow(): pass
+def testCloneDocumentTypeShallowNotOk():
+    doc = create_doc_with_doctype()
+    clone = doc.doctype.cloneNode(0)
+    confirm(clone is None, "testCloneDocumentTypeShallowNotOk")
 
-def testClonePIDeep(): pass
+def check_import_document(deep, testName):
+    doc1 = parseString("<doc/>")
+    doc2 = parseString("<doc/>")
+    try:
+        doc1.importNode(doc2, deep)
+    except xml.dom.NotSupportedErr:
+        pass
+    else:
+        raise Exception(testName +
+                        ": expected NotSupportedErr when importing a document")
+
+def testImportDocumentShallow():
+    check_import_document(0, "testImportDocumentShallow")
+
+def testImportDocumentDeep():
+    check_import_document(1, "testImportDocumentDeep")
+
+# The tests of DocumentType importing use these helpers to construct
+# the documents to work with, since not all DOM builders actually
+# create the DocumentType nodes.
+
+def create_doc_without_doctype(doctype=None):
+    return getDOMImplementation().createDocument(None, "doc", doctype)
+
+def create_nonempty_doctype():
+    doctype = getDOMImplementation().createDocumentType("doc", None, None)
+    doctype.entities._seq = []
+    doctype.notations._seq = []
+    notation = xml.dom.minidom.Notation("my-notation", None,
+                                        "http://xml.python.org/notations/my")
+    doctype.notations._seq.append(notation)
+    entity = xml.dom.minidom.Entity("my-entity", None,
+                                    "http://xml.python.org/entities/my",
+                                    "my-notation")
+    entity.version = "1.0"
+    entity.encoding = "utf-8"
+    entity.actualEncoding = "us-ascii"
+    doctype.entities._seq.append(entity)
+    return doctype
+
+def create_doc_with_doctype():
+    doctype = create_nonempty_doctype()
+    doc = create_doc_without_doctype(doctype)
+    doctype.entities.item(0).ownerDocument = doc
+    doctype.notations.item(0).ownerDocument = doc
+    return doc
+
+def testImportDocumentTypeShallow():
+    src = create_doc_with_doctype()
+    target = create_doc_without_doctype()
+    try:
+        imported = target.importNode(src.doctype, 0)
+    except xml.dom.NotSupportedErr:
+        pass
+    else:
+        raise Exception(
+            "testImportDocumentTypeShallow: expected NotSupportedErr")
+
+def testImportDocumentTypeDeep():
+    src = create_doc_with_doctype()
+    target = create_doc_without_doctype()
+    try:
+        imported = target.importNode(src.doctype, 1)
+    except xml.dom.NotSupportedErr:
+        pass
+    else:
+        raise Exception(
+            "testImportDocumentTypeDeep: expected NotSupportedErr")
+
+# Testing attribute clones uses a helper, and should always be deep,
+# even if the argument to cloneNode is false.
+def check_clone_attribute(deep, testName):
+    doc = parseString("<doc attr='value'/>")
+    attr = doc.documentElement.getAttributeNode("attr")
+    assert attr is not None
+    clone = attr.cloneNode(deep)
+    confirm(not clone.isSameNode(attr))
+    confirm(not attr.isSameNode(clone))
+    confirm(clone.ownerElement is None,
+            testName + ": ownerElement should be None")
+    confirm(clone.ownerDocument.isSameNode(attr.ownerDocument),
+            testName + ": ownerDocument does not match")
+    confirm(clone.specified,
+            testName + ": cloned attribute must have specified == True")
+
+def testCloneAttributeShallow():
+    check_clone_attribute(0, "testCloneAttributeShallow")
+
+def testCloneAttributeDeep():
+    check_clone_attribute(1, "testCloneAttributeDeep")
+
+def check_clone_pi(deep, testName):
+    doc = parseString("<?target data?><doc/>")
+    pi = doc.firstChild
+    assert pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE
+    clone = pi.cloneNode(deep)
+    confirm(clone.target == pi.target
+            and clone.data == pi.data)
+
+def testClonePIShallow():
+    check_clone_pi(0, "testClonePIShallow")
+
+def testClonePIDeep():
+    check_clone_pi(1, "testClonePIDeep")
 
 def testNormalize():
     doc = parseString("<doc/>")
