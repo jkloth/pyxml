@@ -44,6 +44,14 @@ try:
         if type(text) is not UnicodeType:
             text = unicode(text, "utf-8")
         return encoder(text)[0] # result,size
+    def strobj_to_utf8str(text, encoding):
+        if string.upper(encoding) not in ["UTF-8", "ISO-8859-1", "LATIN-1"]:
+            raise ValueError("Invalid encoding: %s"%encoding)
+        encoder = codecs.lookup(encoding)[0] # encode,decode,reader,writer
+        if type(text) is not UnicodeType:
+            text = unicode(text, "utf-8")
+        #FIXME
+        return str(encoder(text)[0])
 except ImportError:
     def utf8_to_code(text, encoding):
         encoding = string.upper(encoding)
@@ -58,6 +66,7 @@ except ImportError:
         #This version would skip all untranslatable chars: see wstrop.c
         #text = ws.encode(encoding, 1)
         return text
+    strobj_to_utf8str = utf8_to_code
 
 
 def TranslateCdataAttr(characters):
@@ -78,8 +87,15 @@ def TranslateCdataAttr(characters):
     return new_chars, delimiter
 
 
-#Note: UCS-2 only for now
-def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0):
+#Note: Unicode object only for now
+def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0,
+                   charsetHandler=utf8_to_code):
+    """
+    charsetHandler is a function that takes a string or unicode object as the
+    first argument, representing the string to be procesed, and an encoding
+    specifier as the second argument.  It must return a string or unicode
+    object
+    """
     if not characters:
         return ''
     if not markupSafe:
@@ -100,12 +116,13 @@ def TranslateCdata(characters, encoding='UTF-8', prev_chars='', markupSafe=0):
         new_string = XML_ILLEGAL_CHAR_PATTERN.subn(
             lambda m: '&#%i;' % ord(m.group()),
             new_string)[0]
-    new_string = utf8_to_code(new_string, encoding)
+    new_string = charsetHandler(new_string, encoding)
     return new_string
 
 
 class PrintVisitor(Visitor):
-    def __init__(self, stream, encoding, indent='', plainElements=None, nsHints=None, isXhtml=0):
+    def __init__(self, stream, encoding, indent='', plainElements=None,
+                 nsHints=None, isXhtml=0, force8bit=0):
         self.stream = stream
         self.encoding = encoding
         # Namespaces
@@ -119,11 +136,20 @@ class PrintVisitor(Visitor):
         # HTML support
         self._html = None
         self._isXhtml = isXhtml
+        self.force8bit = force8bit
         return
 
+    def _write(self, text):
+        if self.force8bit:
+            obj = strobj_to_utf8str(text, self.encoding)
+        else:
+            obj = utf8_to_code(text, self.encoding)
+        self.stream.write(obj)
+        return
+    
     def _tryIndent(self):
         if not self._inText and self._indent:
-            self.stream.write('\n' + str(self._indent*self._depth))
+            self._write('\n' + self._indent*self._depth)
         return
 
     def visit(self, node):
@@ -185,16 +211,16 @@ class PrintVisitor(Visitor):
         if node.namespaceURI == XMLNS_NAMESPACE:
             # Skip namespace declarations
             return
-        self.stream.write(' ' + node.name)
+        self._write(' ' + node.name)
         value = node.value
         if value or not self._html:
             text = TranslateCdata(value, self.encoding)
             text, delimiter = TranslateCdataAttr(text)
-            self.stream.write("=%s%s%s" % (delimiter, text, delimiter))
+            self._write("=%s%s%s" % (delimiter, text, delimiter))
         return
 
     def visitProlog(self):
-        self.stream.write("<?xml version='1.0' encoding='%s'?>" % (
+        self._write("<?xml version='1.0' encoding='%s'?>" % (
             self.encoding or 'utf-8'
             ))
         self._inText = 0
@@ -214,7 +240,7 @@ class PrintVisitor(Visitor):
         self._namespaces.append(self._namespaces[-1].copy())
         inline = node.tagName in self._plainElements
         not inline and self._tryIndent()
-        self.stream.write('<%s' % node.tagName)
+        self._write('<%s' % node.tagName)
         if self._isXhtml or not self._html:
             namespaces = ''
             if self._isXhtml:
@@ -235,23 +261,23 @@ class PrintVisitor(Visitor):
                     namespaces = namespaces + xmlns
 
                 self._namespaces[-1][prefix] = nss[prefix]
-            self.stream.write(namespaces)
+            self._write(namespaces)
         for attr in node.attributes.values():
             self.visitAttr(attr)
         if len(node.childNodes):
-            self.stream.write('>')
+            self._write('>')
             self._depth = self._depth + 1
             self.visitNodeList(node.childNodes)
             self._depth = self._depth - 1
             if not self._html or (node.tagName not in HTML_FORBIDDEN_END):
                 not (self._inText and inline) and self._tryIndent()
-                self.stream.write('</%s>' % node.tagName)
+                self._write('</%s>' % node.tagName)
         elif not self._html:
-            self.stream.write('/>')
+            self._write('/>')
         elif node.tagName not in HTML_FORBIDDEN_END:
-            self.stream.write('></%s>' % node.tagName)
+            self._write('></%s>' % node.tagName)
         else:
-            self.stream.write('>')
+            self._write('>')
         del self._namespaces[-1]
         self._inText = 0
         return
@@ -271,7 +297,7 @@ class PrintVisitor(Visitor):
 
     def visitDocumentType(self, doctype):
         self._tryIndent()
-        self.stream.write('<!DOCTYPE %s' % doctype.name)
+        self._write('<!DOCTYPE %s' % doctype.name)
         if doctype.systemId and '"' in doctype.systemId:
             system = "'%s'" % doctype.systemId
         else:
@@ -284,61 +310,61 @@ class PrintVisitor(Visitor):
         else:
             public = '"%s"' % doctype.publicId
         if doctype.publicId and doctype.systemId:
-            self.stream.write(' PUBLIC %s %s' % (public, system))
+            self._write(' PUBLIC %s %s' % (public, system))
         elif doctype.systemId:
-            self.stream.write(' SYSTEM %s' % system)
+            self._write(' SYSTEM %s' % system)
         if doctype.entities or doctype.notations:
-            self.stream.write(' [')
+            self._write(' [')
             self._depth = self._depth + 1
             self.visitNamedNodeMap(doctype.entities)
             self.visitNamedNodeMap(doctype.notations)
             self._depth = self._depth - 1
             self._tryIndent()
-            self.stream.write(']>')
+            self._write(']>')
         else:
-            self.stream.write('>')
+            self._write('>')
         self._inText = 0
         return
 
     def visitEntity(self, node):
         """Visited from a NamedNodeMap in DocumentType"""
         self._tryIndent()
-        self.stream.write('<!ENTITY %s' % (node.nodeName))
-        node.publicId and self.stream.write(' PUBLIC %s' % node.publicId)
-        node.systemId and self.stream.write(' SYSTEM %s' % node.systemId)
-        node.notationName and self.stream.write(' NDATA %s' % node.notationName)
-        self.stream.write('>')
+        self._write('<!ENTITY %s' % (node.nodeName))
+        node.publicId and self._write(' PUBLIC %s' % node.publicId)
+        node.systemId and self._write(' SYSTEM %s' % node.systemId)
+        node.notationName and self._write(' NDATA %s' % node.notationName)
+        self._write('>')
         return
 
     def visitNotation(self, node):
         """Visited from a NamedNodeMap in DocumentType"""
         self._tryIndent()
-        self.stream.write('<!NOTATION %s' % node.nodeName)
-        node.publicId and self.stream.write(' PUBLIC %s' % node.publicId)
-        node.systemId and self.stream.write(' SYSTEM %s' % node.systemId)
-        self.stream.write('>')
+        self._write('<!NOTATION %s' % node.nodeName)
+        node.publicId and self._write(' PUBLIC %s' % node.publicId)
+        node.systemId and self._write(' SYSTEM %s' % node.systemId)
+        self._write('>')
         return
 
     def visitCDATASection(self, node):
         self._tryIndent()
-        self.stream.write('<![CDATA[%s]]>' % (node.data))
+        self._write('<![CDATA[%s]]>' % (node.data))
         self._inText = 0
         return
 
     def visitComment(self, node):
         self._tryIndent()
-        self.stream.write('<!--%s-->' % (node.data))
+        self._write('<!--%s-->' % (node.data))
         self._inText = 0
         return
 
     def visitEntityReference(self, node):
-        self.stream.write('&%s;' % node.nodeName)
+        self._write('&%s;' % node.nodeName)
         self._inText = 1
         return
 
     def visitProcessingInstruction(self, node):
         self._tryIndent()
-        self.stream.write('<?%s %s?>' % (node.target, node.data))
+        self._write('<?%s %s?>' % (node.target, node.data))
         self._inText = 0
         return
 

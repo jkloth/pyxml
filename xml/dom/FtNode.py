@@ -24,6 +24,7 @@ from xml.dom import HierarchyRequestErr
 from xml.dom import WrongDocumentErr
 from xml.dom import InvalidCharacterErr
 from xml.dom import UnspecifiedEventTypeErr
+from xml.dom import XML_NAMESPACE
 
 import re, copy
 #FIXME: should allow combining characters: fix when Python gets Unicode
@@ -342,7 +343,7 @@ class FtNode(Event.EventTarget, Node):
     ### Unsupported, undocumented DOM Level 3 methods ###
     ### documented in the Python binding ###
 
-    def isSameNode(other):
+    def isSameNode(self, other):
         return self == other
 
     ### Internal Methods ###

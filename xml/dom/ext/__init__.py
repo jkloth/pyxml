@@ -11,7 +11,8 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-"""Some Helper functions: 4DOM-specific Extensions to the DOM"""
+"""Some Helper functions: 4DOM/PyXML-specific Extensions to the DOM,
+and DOM-related utilities."""
 
 import sys,string
 
@@ -19,6 +20,7 @@ from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE, DOMException
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE
+from c14n import Canonicalize
 import re
 
 
@@ -71,7 +73,8 @@ def PrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  ',
     from xml.dom.ext import Printer
     nss_hints = SeekNss(root)
     preserveElements = preserveElements or []
-    if hasattr(root.ownerDocument, 'getElementsByName'):
+    owner_doc = root.ownerDocument or root
+    if hasattr(owner_doc, 'getElementsByName'):
         #We don't want to insert any whitespace into HTML inline elements
         preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
     visitor = Printer.PrintVisitor(stream, encoding, indent,
@@ -118,7 +121,9 @@ def StripHtml(startNode, preserveElements=None):
     preserveElements = preserveElements or []
     preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
     remove_list = []
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_TEXT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_TEXT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
         #first of all make sure it is not inside one of the preserve_elements
@@ -145,7 +150,9 @@ def StripXml(startNode, preserveElements=None):
     '''
     preserveElements = preserveElements or []
     remove_list = []
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_TEXT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_TEXT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
         #first of all make sure it is not inside xml:space='preserve'
@@ -173,7 +180,9 @@ def GetElementById(startNode, targetId):
     Return the element in the given tree with an ID attribute of the given
     value
     '''
-    snit = startNode.ownerDocument.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT, None, 0)
+    owner_doc = startNode.ownerDocument or startNode
+    snit = owner_doc.createNodeIterator(startNode, NodeFilter.SHOW_ELEMENT,
+                                        None, 0)
     curr_node = snit.nextNode()
     while curr_node:
 	attr = curr_node.attributes.get(_id_key, None)
@@ -269,6 +278,12 @@ def SeekNss(node, nss=None):
                 nss[child.prefix] = child.namespaceURI
             for attr in child.attributes.values():
                 if attr.namespaceURI == XMLNS_NAMESPACE:
-                    nss[attr.localName] = attr.value
+                    if attr.localName == 'xmlns':
+                        nss[''] = attr.value
+                    else:
+                        nss[attr.localName] = attr.value
+                elif attr.namespaceURI:
+                    nss[attr.prefix] = attr.namespaceURI
             SeekNss(child, nss)
     return nss
+

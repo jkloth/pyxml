@@ -15,10 +15,12 @@ source_1 = """<?xml version='1.0' encoding='iso-8859-1'?>
 <element>àéèêëïîöôùü</element>"""
 
 
-expected_1 = """<element>\303\240\303\251\303\250\303\252\303\253\303\257\303\256\303\266\303\264\303\271\303\274</element>"""
+expected_1 = """\
+<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE element><element>\303\240\303\251\303\250\303\252\303\253\303\257\303\256\303\266\303\264\303\271\303\274</element>"""
 
 
-expected_2 = """<element>àéèêëïîöôùü</element>"""
+expected_2 = """\
+<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE element><element>àéèêëïîöôùü</element>"""
 
 
 def Test(tester):

@@ -4,7 +4,7 @@ from xml.dom import Node        # MUST be first
 from xml.dom import implementation, DOMException
 from xml.dom import HIERARCHY_REQUEST_ERR, NOT_FOUND_ERR
 from xml.dom import INDEX_SIZE_ERR, INVALID_CHARACTER_ERR, SYNTAX_ERR
-from xml.dom.ext.reader.Sax import FromXml
+from xml.dom.ext.reader.Sax2 import FromXml
 from xml.dom.ext import PrettyPrint
 
 # Internal test function: traverse a DOM tree, then verify that all

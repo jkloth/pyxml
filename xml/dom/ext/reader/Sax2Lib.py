@@ -59,7 +59,7 @@ class  AttributeList2(saxlib. AttributeList):
         Whether the attribute value with the given name or index was
         explicitly specified in the element, or was determined from the
         default.  Parameter can be either integer index or attribute name.
-        None (the default) signals "Don't Know", else a boolean return
+        None (the default) signals 'Don't Know', else a boolean return
         """
         pass
 
@@ -168,7 +168,7 @@ class NamespaceHandler:
 
     handlerId = 'http://xml.org/sax/handlers/namespace'
 
-    def startNamespaceDeclScope(prefix, uri):
+    def startNamespaceDeclScope(self, prefix, uri):
         """
         Report the start of the scope of a namespace declaration.
         This event will be reported before the startElement event
@@ -180,7 +180,7 @@ class NamespaceHandler:
         """
         pass
 
-    def endNamespaceDeclScope(prefix):
+    def endNamespaceDeclScope(self, prefix):
         """
         Report the end of the scope of a namespace declaration.
         This event will be reported after the endElement event for

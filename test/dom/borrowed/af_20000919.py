@@ -40,9 +40,9 @@ source_1 = """<?xml version = "1.0"?>
         </ENTRY>
 </ADDRBOOK>"""
         
-expected_1 = """<doc><elt xmlns:spam='http://logilab' spam:att='value1'/></doc>"""
+expected_1 = """<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE doc><doc><elt xmlns:spam='http://logilab' spam:att='value1'/></doc>"""
 
-expected_2 = """<doc>
+expected_2 = """<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE doc><doc>
   <elt xmlns:spam='http://logilab' spam:att='value1'/>
 </doc>
 """

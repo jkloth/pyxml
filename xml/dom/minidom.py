@@ -279,7 +279,7 @@ def _getElementsByTagNameHelper(parent, name, rc):
 def _getElementsByTagNameNSHelper(parent, nsURI, localName, rc):
     for node in parent.childNodes:
         if node.nodeType == Node.ELEMENT_NODE:
-            if ((localName == "*" or node.tagName == localName) and
+            if ((localName == "*" or node.localName == localName) and
                 (nsURI == "*" or node.namespaceURI == nsURI)):
                 rc.append(node)
             _getElementsByTagNameNSHelper(node, nsURI, localName, rc)
@@ -551,7 +551,7 @@ class Element(Node):
         return _getElementsByTagNameHelper(self, name, [])
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        _getElementsByTagNameNSHelper(self, namespaceURI, localName, [])
+        return _getElementsByTagNameNSHelper(self, namespaceURI, localName, [])
 
     def __repr__(self):
         return "<DOM Element: %s at %s>" % (self.tagName, id(self))
@@ -613,24 +613,77 @@ class ProcessingInstruction(Node):
     def writexml(self, writer, indent="", addindent="", newl=""):
         writer.write("%s<?%s %s?>%s" % (indent,self.target, self.data, newl))
 
-class Text(Node):
-    nodeType = Node.TEXT_NODE
-    nodeName = "#text"
-    attributes = None
-    childNodeTypes = ()
-
+class CharacterData(Node):
     def __init__(self, data):
         if type(data) not in _StringTypes:
             raise TypeError, "node contents must be a string"
         Node.__init__(self)
         self.data = self.nodeValue = data
+        self.length = len(data)
 
     def __repr__(self):
         if len(self.data) > 10:
             dotdotdot = "..."
         else:
             dotdotdot = ""
-        return "<DOM Text node \"%s%s\">" % (self.data[0:10], dotdotdot)
+        return "<DOM %s node \"%s%s\">" % (
+            self.__class__.__name__, self.data[0:10], dotdotdot)
+
+    def substringData(self, offset, count):
+        if offset < 0:
+            raise xml.dom.IndexSizeErr("offset cannot be negative")
+        if offset >= len(self.data):
+            raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
+        if count < 0:
+            raise xml.dom.IndexSizeErr("count cannot be negative")
+        return self.data[offset:offset+count]
+
+    def appendData(self, arg):
+        self.data = self.data + arg
+        self.nodeValue = self.data
+        self.length = len(self.data)
+
+    def insertData(self, offset, arg):
+        if offset < 0:
+            raise xml.dom.IndexSizeErr("offset cannot be negative")
+        if offset >= len(self.data):
+            raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
+        if arg:
+            self.data = "%s%s%s" % (
+                self.data[:offset], arg, self.data[offset:])
+            self.nodeValue = self.data
+            self.length = len(self.data)
+
+    def deleteData(self, offset, count):
+        if offset < 0:
+            raise xml.dom.IndexSizeErr("offset cannot be negative")
+        if offset >= len(self.data):
+            raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
+        if count < 0:
+            raise xml.dom.IndexSizeErr("count cannot be negative")
+        if count:
+            self.data = self.data[:offset] + self.data[offset+count:]
+            self.nodeValue = self.data
+            self.length = len(self.data)
+
+    def replaceData(self, offset, count, arg):
+        if offset < 0:
+            raise xml.dom.IndexSizeErr("offset cannot be negative")
+        if offset >= len(self.data):
+            raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
+        if count < 0:
+            raise xml.dom.IndexSizeErr("count cannot be negative")
+        if count:
+            self.data = "%s%s%s" % (
+                self.data[:offset], arg, self.data[offset+count:])
+            self.nodeValue = self.data
+            self.length = len(self.data)
+
+class Text(CharacterData):
+    nodeType = Node.TEXT_NODE
+    nodeName = "#text"
+    attributes = None
+    childNodeTypes = ()
 
     def splitText(self, offset):
         if offset < 0 or offset > len(self.data):
@@ -643,10 +696,21 @@ class Text(Node):
             else:
                 self.parentNode.insertBefore(newText, next)
         self.data = self.data[:offset]
+        self.nodeValue = self.data
+        self.length = len(self.data)
         return newText
 
     def writexml(self, writer, indent="", addindent="", newl=""):
         _write_data(writer, "%s%s%s"%(indent, self.data, newl))
+
+
+class CDATASection(Text):
+    nodeType = Node.CDATA_SECTION_NODE
+    nodeName = "#cdata-section"
+
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        _write_data(writer, "<![CDATA[%s]]>" % self.data)
+
 
 def _nssplit(qualifiedName):
     fields = _string.split(qualifiedName, ':', 1)
@@ -663,7 +727,7 @@ class DocumentType(Node):
     name = None
     publicId = None
     systemId = None
-    internalSubset = ""
+    internalSubset = None
     entities = None
     notations = None
 
@@ -781,6 +845,11 @@ class Document(Node):
         t.ownerDocument = self
         return t
 
+    def createCDATASection(self, data):
+        c = CDATASection(data)
+        c.ownerDocument = self
+        return c
+
     def createComment(self, data):
         c = Comment(data)
         c.ownerDocument = self
@@ -810,13 +879,11 @@ class Document(Node):
         a.value = ""
         return a
 
-    def getElementsByTagNameNS(self, namespaceURI, localName):
-        _getElementsByTagNameNSHelper(self, namespaceURI, localName)
-
     def getElementsByTagName(self, name):
-        rc = []
-        _getElementsByTagNameHelper(self, name, rc)
-        return rc
+        return _getElementsByTagNameHelper(self, name, [])
+
+    def getElementsByTagNameNS(self, namespaceURI, localName):
+        return _getElementsByTagNameNSHelper(self, namespaceURI, localName, [])
 
     def writexml(self, writer, indent="", addindent="", newl=""):
         writer.write('<?xml version="1.0" ?>\n')

@@ -1,6 +1,7 @@
 import string
 import Printer
-from xml.dom.html import HTML_FORBIDDEN_END, XHTML_NAMESPACE
+from xml.dom import XHTML_NAMESPACE
+from xml.dom.html import HTML_FORBIDDEN_END
 
 class HtmlDocType:
     name = 'HTML'

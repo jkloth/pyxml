@@ -60,7 +60,7 @@ class XmlDomGenerator(saxlib.HandlerBase):
         new_notation = self._ownerDoc.createNotation(self._ownerDoc,  publicId, systemId, name)
         self._ownerDoc.documentType.notations.setNamedItem(new_notation)
 
-    def unparsedEntityDecl (self, publicId, systemId, notationName):
+    def unparsedEntityDecl (self, name, publicId, systemId, notationName):
         new_notation = implementation.createEntity(self._ownerDoc,  publicId, systemId, notationName)
         self._ownerDoc.documentType.entities.setNamedItem(new_notation)
 
