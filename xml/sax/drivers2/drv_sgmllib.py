@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for sgmllib.
 
-$Id: drv_sgmllib.py,v 1.1 2001/07/26 08:03:44 larsga Exp $
+$Id: drv_sgmllib.py,v 1.2 2001/07/26 08:16:09 larsga Exp $
 """
 
 import types, string
@@ -27,6 +27,11 @@ class SgmllibDriver(sgmllib.SGMLParser, IncrementalParser):
     def prepareParser(self, source):
         self._sysid = source.getSystemId()
         self._pubid = source.getPublicId()
+        self._cont_handler.startDocument()
+
+    def close(self):
+        sgmllib.SGMLParser.close(self)
+        self._cont_handler.endDocument()
 
     def setLocale(self, locale):
         raise SAXNotSupportedException("setLocale not supported")
