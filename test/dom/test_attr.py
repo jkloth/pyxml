@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def test(tester):
 
     tester.startGroup('Attr')
@@ -15,7 +16,7 @@ def test(tester):
     try:
         from xml.dom import implementation
         dt = implementation.createDocumentType('','','')
-        doc = implementation.createDocument('','ROOT',dt)
+        doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
     except:
         tester.error('Error creating document')
 

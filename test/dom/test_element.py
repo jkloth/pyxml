@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def get_exception_name(code):
     import types
     from xml import dom
@@ -29,9 +30,9 @@ def test(tester):
     from xml.dom import implementation
 
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('','ROOT',dt)
+    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
-    doc_nons = implementation.createDocument('','ROOT',dt)
+    doc_nons = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
     ns = 'www.fourthought.com'
     e_ns = doc.createElementNS(ns, 'TEST')

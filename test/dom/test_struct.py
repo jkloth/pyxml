@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def testRestriction(tester, doc, mapping, node, good):
     # Any keys that are in the mapping but not in good are automaticly bad
     bad = []
@@ -39,12 +40,12 @@ def test(tester):
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('dt1', '', '')
-    doc = implementation.createDocument('', None, dt)
+    doc = implementation.createDocument(EMPTY_NAMESPACE, None, dt)
     df = doc.createDocumentFragment()
     element = doc.createElement('TestElement')
 
     Nodes = {
-        'Document' : implementation.createDocument('','ROOT2', dt),
+        'Document' : implementation.createDocument(EMPTY_NAMESPACE,'ROOT2', dt),
         'DocType' : implementation.createDocumentType('dt2', '', ''),
         'Element' : doc.createElement('tagName1'),
         'Text' : doc.createTextNode('data'),

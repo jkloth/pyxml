@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def test(tester):
     tester.startGroup('DOMImplementation')
 
@@ -36,7 +37,7 @@ def test(tester):
 
 
     tester.startTest('Testing createDocument()')
-    doc = di.createDocument('','NAME',dt)
+    doc = di.createDocument(EMPTY_NAMESPACE,'NAME',dt)
     if doc.namespaceURI != None:
         tester.error('createDocumnent does not set namespaceURI properly')
     if doc.documentElement.nodeName != 'NAME':

@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def test(tester):
 
     tester.startGroup('Notation')
@@ -14,7 +15,7 @@ def test(tester):
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('','ROOT',dt)
+    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
     nota = doc._4dom_createNotation("-//FOURTHOUGHT//EN", "/tmp/notation", "TestNotation")
     tester.testDone()

@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def test(tester):
 
     tester.startGroup('NodeIterator')
@@ -13,7 +14,7 @@ def test(tester):
 
     tester.startTest('Creating test environment')
     from xml.dom import implementation
-    doc = implementation.createDocument('',None,None);
+    doc = implementation.createDocument(EMPTY_NAMESPACE,None,None);
 
     #xml_string = '<a><b><c/><d/></b><e><f/><g/></e></a>'
     try:

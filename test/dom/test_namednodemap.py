@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def get_exception_name(code):
     import types
     from xml import dom
@@ -23,7 +24,7 @@ def test(tester):
     nodes = []
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('','ROOT',dt)
+    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
     try:
         for ctr in range(3):

@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+from TestSuite import EMPTY_NAMESPACE
+
 def test(tester):
     tester.startGroup('Python Representation')
 
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('','ROOT',dt)
+    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
     c = doc.createComment("Comment")
     tester.testDone()
 

@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def test(tester):
     tester.startGroup('Document')
 
@@ -18,7 +19,7 @@ def test(tester):
     from xml.dom import HIERARCHY_REQUEST_ERR
 
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('',None,dt);
+    doc = implementation.createDocument(EMPTY_NAMESPACE,None,dt);
     tester.testDone()
 
 

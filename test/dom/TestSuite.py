@@ -4,6 +4,13 @@ OK = 0
 PASSED = 1
 FAILED = -1
 
+try:
+    from xml.dom import EMPTY_NAMESPACE
+except ImportError:
+    # For compatibility with older DOM implementations, it
+    # may be necessary to set this to an empty string
+    EMPTY_NAMESPACE = None
+
 class TestItem:
     def __init__(self, suite, title):
         self.suite = suite

@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 def printer(tester, tw, spc):
     n = tw.currentNode
     tester.message("%s<%s>" % (spc, n.nodeName))
@@ -23,7 +24,7 @@ def test(tester):
     from xml.dom.ext.reader import Sax
 
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument('',None,dt);
+    doc = implementation.createDocument(EMPTY_NAMESPACE,None,dt);
 
     xml_string = '<a><b><c/><d/></b><e><f/><g/></e></a>'
     doc = Sax.FromXml(xml_string)

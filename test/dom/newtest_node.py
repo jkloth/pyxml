@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 from xml.dom import DOMException
 from xml.dom import HIERARCHY_REQUEST_ERR
 from xml.dom import WRONG_DOCUMENT_ERR
@@ -9,7 +10,7 @@ class NodeTestCase(TestSuite.TestCase):
     def create(self):
         from xml.dom import implementation
     	dt = implementation.createDocumentType('','','')
-        doc = implementation.createDocument(None,'ROOT',dt)
+        doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
     	#We cannot use just plain old nodes, we need to use Elements
     	self.pNode = doc.createElement('PARENT')

@@ -1,3 +1,4 @@
+from TestSuite import EMPTY_NAMESPACE
 from xml.dom import DOMException
 from xml.dom import NO_MODIFICATION_ALLOWED_ERR
 
@@ -26,7 +27,7 @@ def test(tester):
     try:
         from xml.dom import implementation
         dt = implementation.createDocumentType('','','')
-        doc = implementation.createDocument('','ROOT',dt)
+        doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
     except:
         tester.error('Error creating document')
 
