@@ -3,6 +3,7 @@ Bookmark Exchange Language proposed by Mark Hammond on the XML-SIG.
 Scripts are provided to convert the bookmark files for various Web
 browsers to XBEL, and to render an XBEL document as HTML.
 
+xbel-1.1.dtd	The Document Type Definition for XBEL 1.1.
 xbel-1.0.dtd	The Document Type Definition for XBEL 1.0.
 bookmark.py     Contains the Bookmarks and Bookmark classes, which represent
 		a bookmark file, and can be output in any of the
