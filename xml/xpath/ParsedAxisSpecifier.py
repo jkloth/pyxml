@@ -111,7 +111,7 @@ class ParsedChildAxisSpecifier(AxisSpecifier):
         """Select all of the children of the context node"""
         rt = filter(lambda node, test=nodeTest, context=context, pt=self.principalType:
                     test(context, node, pt),
-                    context.node.childNodes)
+                    list(context.node.childNodes))
         return (rt, 0)
 
 
