@@ -84,12 +84,10 @@ if __name__ == '__main__':
         except ImportError:
             print "The win32api module is not available on this system"
             print "so we can't automatically find your favorites folder."
-            print "Please re-run this program specifiying the location of
-your"
+            print "Please re-run this program specifiying the location of your"
             print "favorites folder on the command line."
             sys.exit(1)
-        keyname = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell
-Folders"
+        keyname = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
         hkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, keyname)
         path, pathtype = win32api.RegQueryValueEx(hkey, "Favorites")
         assert pathtype == win32con.REG_SZ
