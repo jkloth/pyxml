@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax.py,v 1.11 2002/10/28 18:16:36 fdrake Exp $
+# $Id: test_sax.py,v 1.12 2002/10/28 18:19:26 fdrake Exp $
 
 from xml.sax import make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -71,6 +71,17 @@ def test_escape_all():
 
 def test_escape_extra():
     return escape("Hei på deg", {"å" : "&aring;"}) == "Hei p&aring; deg"
+
+# ===== unescape
+
+def test_unescape_basic():
+    return unescape("Donald Duck &amp; Co") == "Donald Duck & Co"
+
+def test_unescape_all():
+    return unescape("&lt;Donald Duck &amp; Co&gt;") == "<Donald Duck & Co>"
+
+def test_unescape_extra():
+    return unescape("Hei på deg", {"å" : "&aring;"}) == "Hei p&aring; deg"
 
 def test_unescape_amp_extra():
     return unescape("&amp;foo;", {"&foo;": "splat"}) == "&foo;"
