@@ -31,6 +31,10 @@ class Locator:
 
 # --- SAXException
 
+import sys
+if sys.platform[0:4] == 'java':
+    from exceptions import Exception
+
 class SAXException(Exception):
     """Encapsulate an XML error or warning. This class can contain
     basic error or warning information from either the XML parser or
