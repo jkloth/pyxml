@@ -353,7 +353,7 @@ class Attr(Node):
 defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
 
 
-class NamedNodeMap(GetattrMagic):
+class NamedNodeMap(NewStyle, GetattrMagic):
     """The attribute list is a transient interface to the underlying
     dictionaries.  Mutations here will change the underlying element's
     dictionary.
@@ -807,7 +807,9 @@ def _nssplit(qualifiedName):
     elif len(fields) == 1:
         return (None, fields[0])
 
-class ReadOnlySequentialNamedNodeMap(GetattrMagic):
+class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
+    __slots__ = '_seq',
+
     def __init__(self, seq=()):
         # seq should be a list or tuple
         self._seq = seq

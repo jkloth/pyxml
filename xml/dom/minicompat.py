@@ -3,7 +3,7 @@
 # XXX This module needs more explanation!
 # It should only be imported using "import *".
 
-__all__ = ["isinstance", "NodeList", "EmptyNodeList",
+__all__ = ["isinstance", "NodeList", "EmptyNodeList", "NewStyle",
            "StringTypes", "TupleType", "defproperty", "GetattrMagic"]
 
 try:
@@ -48,6 +48,8 @@ else:
 
 if list is type([]):
     class NodeList(list):
+        __slots__ = ()
+
         def item(self, index):
             if 0 <= index < len(self):
                 return self[index]
@@ -59,6 +61,8 @@ if list is type([]):
                           doc="The number of nodes in the NodeList.")
 
     class EmptyNodeList(tuple):
+        __slots__ = ()
+
         def item(self, index):
             return None
 
@@ -73,6 +77,7 @@ else:
 
     def EmptyNodeList():
         return ()
+
 
 try:
     property
@@ -92,6 +97,9 @@ except NameError:
                 raise AttributeError, key
             return get()
 
+    class NewStyle:
+        pass
+
 else:
     def defproperty(klass, name, doc):
         get = getattr(klass, ("_get_" + name)).im_func
@@ -101,3 +109,5 @@ else:
 
     class GetattrMagic:
         pass
+
+    NewStyle = object
