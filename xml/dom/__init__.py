@@ -188,6 +188,7 @@ XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace"
 XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
 XHTML_NAMESPACE = "http://www.w3.org/1999/xhtml"
 EMPTY_NAMESPACE = None
+EMPTY_PREFIX = None
 
 import MessageSource
 DOMExceptionStrings = MessageSource.__dict__['DOMExceptionStrings']
