@@ -114,6 +114,12 @@ class Marshaller(saxlib.HandlerBase):
         L.append( s )
         L.append( '</' + name + '>')
         return L
+
+    # Since Python 2.2, the string type has a name of 'str'
+    # To avoid having to rewrite all classes that implement m_string
+    # we delegate m_str to m_string.
+    def m_str(self, value, dict):
+        return self.m_string(value, dict)
     
     def m_int(self, value, dict):
         name = self.tag_int ; L = []
