@@ -726,14 +726,22 @@ class Element(Node):
     setAttributeNodeNS = setAttributeNode
 
     def removeAttribute(self, name):
-        attr = self._attrs[name]
+        try:
+            attr = self._attrs[name]
+        except KeyError:
+            raise xml.dom.NotFoundErr()
         self.removeAttributeNode(attr)
 
     def removeAttributeNS(self, namespaceURI, localName):
-        attr = self._attrsNS[(namespaceURI, localName)]
+        try:
+            attr = self._attrsNS[(namespaceURI, localName)]
+        except KeyError:
+            raise xml.dom.NotFoundErr()
         self.removeAttributeNode(attr)
 
     def removeAttributeNode(self, node):
+        if node is None:
+            raise xml.dom.NotFoundErr()
         try:
             self._attrs[node.name]
         except KeyError:
