@@ -23,12 +23,10 @@ To compile everything, simply perform the following steps.
 2) To install everything in the site-packages directory as an xml/
    package, run "python setup.py install".
 
-If you intend to install FourThought's 4Suite package, there may be a
-conflict between the packages xml.xpath and xml.xslt provided here,
-and those provided by 4Suite. In this case, it is advisable not to
-install XPath and XSLT support from this package. To do so, pass the
-options --without-xpath and --without-xslt to setup.py: "python
-setup.py --without-xpath --without-xslt install".
+If you want to use PyXML's experimental XPath and XSLT packages, you
+need to pass --with-xpath and --with-xslt to setup.py. If you also
+want to install FourThought's 4Suite package, you should avoid doing
+that.
 
 If you use a binary distribution package, no compiler is needed, and
 setup.py does not need to be run.
