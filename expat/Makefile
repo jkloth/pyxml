@@ -21,9 +21,9 @@ xmlwf/xmlwf$(EXE): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
 clean:
-	rm -f $(OBJS) xmlwf/xmlwf$(EXE)
+	rm -f $(OBJS) libexpat.a xmlwf/xmlwf$(EXE)
 
-clobber:
+clobber: clean
 	rm -f libexpat.a
 
 xmltok/nametab.h: gennmtab/gennmtab$(EXE)
