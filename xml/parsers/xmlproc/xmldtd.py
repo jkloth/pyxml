@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.11 2000/09/26 14:43:10 loewis Exp $
+$Id: xmldtd.py,v 1.12 2001/03/27 19:33:48 larsga Exp $
 """
 
 import types
@@ -144,7 +144,7 @@ class WFCDTD(DTDConsumer):
         
         if ndata!="" and hasattr(self,"notations"):
             if not self.notations.has_key(ndata):
-                self.used_notations[ndata]=(ent_name,2023)
+                self.used_notations[ndata]= ent_name
                 
         ent=ExternalEntity(ent_name,pubid,sysid,ndata)
 	self.gen_ents[ent_name]=ent
@@ -378,8 +378,11 @@ class ElementTypeAny(ElementType):
 	return 1
 
     def next_state(self,state,elem_name):
-	return 1
-    
+	return 1 
+
+    def get_valid_elements(self, state):
+        return [] # any better ideas? can't get DTD here...
+   
 # ==============================
 # Attribute
 # ==============================
@@ -405,14 +408,12 @@ class Attribute:
                 parser.report_error(2015)
                 return
 
-            if len(self.type)!=2:
-                error=1
+            if len(self.type) < 1 or len(self.type) > 2:
+                error = 1
             else:
-                if (self.type[0]=="default" and self.type[1]=="preserve") or \
-                   (self.type[1]=="default" and self.type[0]=="preserve"):
-                    error=0
-                else:
-                    error=1
+                for alt in self.type:
+                    if alt not in ["default", "preserve"]:
+                        error = 1
 
             if error: parser.report_error(2016)                            
             
@@ -865,6 +866,17 @@ def load_dtd(sysid):
     dtd=CompleteDTD(dp)
     dp.set_dtd_consumer(dtd)
     dp.parse_resource(sysid)
+    
+    return dtd
+    
+def load_dtd_string(dtdstr):
+    import dtdparser, utils
+    
+    dp = dtdparser.DTDParser()
+    dp.set_error_handler(utils.ErrorPrinter(dp))
+    dtd = CompleteDTD(dp)
+    dp.set_dtd_consumer(dtd)
+    dp.parse_string(dtdstr)
     
     return dtd
     
