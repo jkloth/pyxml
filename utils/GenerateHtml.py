@@ -1,15 +1,28 @@
 #!/usr/bin/python
-import string, os
-from BisonGen import BGenReader
-Node = BGenReader.Node
-
+import string, os, sys
+try:
+    from BisonGen import BGenReader
+    Reader = BGenReader.ReadBisonGen
+    Node = BGenReader.Node
+except ImportError:
+    try:
+        from xml.dom.ext.reader import Sax
+        import xml.dom.Node
+        Reader = Sax.FromXmlFile
+        Node = xml.dom.Node.Node
+    except ImportError:
+        print 'You need to have either BisonGen or PyXML installed to run this program'
+        raise
+        sys.exit(1)
+        
+    
 def Generate(fileName,
              output_dir=None,
              program_name=None
              ):
     output_dir = output_dir or '.'
 
-    dom = BGenReader.ReadBisonGen(fileName)
+    dom = Reader(fileName)
 
     header = CreateHeader(dom, program_name)
     classes = dom.getElementsByTagName('class')
@@ -254,8 +267,6 @@ def GenClassFile(klass, header, output_dir):
     return fileName
 
 if __name__ == '__main__':
-    import sys
-
     program_name = os.path.basename(sys.argv[0])
     output_dir = None
 
