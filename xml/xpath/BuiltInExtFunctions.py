@@ -179,7 +179,7 @@ def Evaluate(context, expr):
 
 try:
     # Import something small and "safe"
-    import Ft.Lib.DumpBgTuple.
+    import Ft.Lib.DumpBgTuple
     def GenerateUuid(context):
 	from Ft.Lib import Uuid
 	return Uuid.UuidAsString(Uuid.GenerateUuid())
