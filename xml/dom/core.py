@@ -904,18 +904,18 @@ class ProcessingInstruction(Node):
     childNodeTypes = []
     
     def toxml(self):
-        return "<? " + self._node.name + ' ' +self._node.target + "?>"
+        return "<? " + self._node.name + ' ' +self._node.value + "?>"
 
     def get_target(self):
         return self._node.name
 
     def get_data(self):
-        return self._node.target
+        return self._node.value
 
     def set_data(self, data):
         if self.readonly:
             raise NoModificationAllowedException("Read-only object")
-        self._node.target = data
+        self._node.value = data
 
 
 class Document(Node):
