@@ -463,7 +463,19 @@ def TranslateHtmlCdata(characters, encoding='UTF-8', prev_chars=''):
     if prev_chars[-2:] == ']]' and new_string[0] == '>':
         new_string = '&gt;' + new_string[1:]
     new_string = UseHtmlCharEntities(new_string)
-    new_string = utf8_to_code(new_string, encoding)
+    try:
+        new_string = utf8_to_code(new_string, encoding)
+    except:
+        #FIXME: This is a work-around, contributed by Mike Brown, that
+        #Deals with escaping output, until we have XML/HTML aware codecs
+        tmp_new_string = ""
+        for c in new_string:
+            try:
+                new_c = utf8_to_code(c, encoding)
+            except:
+                new_c = '&#%i;'%ord(c)
+            tmp_new_string = tmp_new_string + new_c
+        new_string = tmp_new_string
     #new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#%i;'%ord(m.group()), new_string)
     #Note: use decimal char entity rep because some browsers are broken
     return new_string
