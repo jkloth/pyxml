@@ -1534,7 +1534,7 @@ def _clone_node(node, deep, newOwnerDocument):
                                                  node.nodeName)
         for attr in node.attributes.values():
             clone.setAttributeNS(attr.namespaceURI, attr.nodeName, attr.value)
-            a = clone.getAttributeNodeNS(attr.namespaceURI, attr.nodeName)
+            a = clone.getAttributeNodeNS(attr.namespaceURI, attr.localName)
             a.specified = attr.specified
 
         if deep:
