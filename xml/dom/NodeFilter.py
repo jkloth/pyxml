@@ -4,44 +4,12 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/NodeFilter.py.html
 #
-# History:
-# $Log: NodeFilter.py,v $
-# Revision 1.3  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.10  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.9  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.8  2000/04/27 18:19:54  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.7  1999/11/19 01:51:28  molson
-# Added Filter support
-#
-# Revision 1.6  1999/11/19 01:32:41  uche
-# Python/DOM binding changes.
-#
-# Revision 1.5  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.4  1999/09/09 08:04:52  uche
-# NodeIterator.nextNode works and is tested.
-#
-# Revision 1.3  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 class NodeFilter:
     """

@@ -4,70 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/HtmlLib.py.html
 #
-# History:
-# $Log: HtmlLib.py,v $
-# Revision 1.3  2000/09/27 23:45:26  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.10  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.9  2000/05/24 18:03:39  uogbuji
-# Fix bugs and name inconsistencies
-# Convert extensions doc to XML
-#
-# Revision 1.8  2000/05/24 04:05:47  uogbuji
-# fixed tab issues
-# fixed nasty recursion bug in HtmlLib
-#
-# Revision 1.7  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.6  2000/05/10 00:51:01  uogbuji
-# Resurrect fixes to HTML reader and printer.
-#
-# Revision 1.5  2000/05/09 03:52:00  molson
-# Fixed bug in creting a document
-#
-# Revision 1.4  2000/05/06 09:12:17  jkloth
-# fixed problems with allowed children on HTML elements
-#
-# Revision 1.3  2000/05/06 05:43:56  jkloth
-# fixed import error
-#
-# Revision 1.2  2000/04/27 19:08:50  jkloth
-# fixed imports for xml-sig
-#
-# Revision 1.1  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.6  2000/04/19 17:31:51  uogbuji
-# Minor fixes to Printer UTF8 handling
-# Added Eivind Tagseth's patch for reader/HtmlLib.py
-#
-# Revision 1.5  2000/03/07 17:47:10  uche
-# Fixed bug reports by "Sebastian Jekutsch" <SJekutsch@TRIVIUM.DE>
-#
-# Revision 1.4  1999/12/24 20:05:01  uche
-# Fix nasty HTML bugs
-# Add namespace-alias support
-# Add some XSLT test files
-#
-# Revision 1.3  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.2  1999/10/10 08:14:50  uche
-# Added a SAX2 driver for reading XML -> DOM.
-# Modified XSLT to use the SAX2 driver for its advanced capabilities.
-# Added xsl-comment and xsl-copy, along with test harnesses.
-# Modified URLs throughout the XSL to match the final version (yay! W3C finally got it right: no version in the bloody namespace, sheesh!)
-# Added getNodeType and other basic operations to the node wrappers in XPath
-# Added a new node type: NAMESPACE_NODE = 10000
-#
-# Revision 1.1  1999/09/26 00:14:31  uche
-# Added the reader ext module to supersede Builder.  Made the appropriate conversions to other 4Suite components.
-#
-#
 """
 Components for reading HTML files using htmllib.py.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -75,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import string
 from sgmllib import SGMLParser

@@ -4,58 +4,12 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/HTMLCollection.py.html
 #
-# History:
-# $Log: HTMLCollection.py,v $
-# Revision 1.4  2000/09/27 23:45:26  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.25  2000/08/03 23:30:28  jkloth
-# Cleaned up TraceOut stuff
-# Fixed small bugs
-#
-# Revision 1.24  2000/06/09 01:36:39  jkloth
-# Moved to generated source files
-# Updated to Level 2 specification
-# Fixed Copyright
-# Updated to new TraceOut constructor
-#
-# Revision 1.23  2000/05/24 18:14:48  molson
-# Fixed tab errors
-#
-# Revision 1.22  2000/05/06 09:12:18  jkloth
-# fixed problems with allowed children on HTML elements
-#
-# Revision 1.21  2000/05/05 02:48:26  pweinstein
-# ...
-#
-# Revision 1.19  2000/05/03 23:38:15  pweinstein
-# Migration to xml.doc, but still xml.doc.Html, pre-w3 conformance check
-#
-# Revision 1.18  1999/12/04 19:31:17  uche
-# Completed update to latest Python/DOM so that it goes through HTML test suite.
-#
-# Revision 1.17  1999/12/03 23:14:00  uche
-# More Python/DOM binding updates.
-#
-# Revision 1.16  1999/12/03 17:52:09  uche
-# Complete first pass of new Python/DOM conersion for HTML
-# Normalize staging scripts and rename from 'promote' to 'stage'
-#
-# Revision 1.15  1999/11/04 01:38:12  molson
-# Fixed Minor bugs
-#
-# Revision 1.14  1999/08/29 04:08:00  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 from xml.dom import DOMException
 from xml.dom import INDEX_SIZE_ERR

@@ -4,175 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Document.py.html
 #
-# History:
-# $Log: Document.py,v $
-# Revision 1.3  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.75  2000/09/22 02:47:23  uogbuji
-# Fixes before 0.9.0.1
-#
-# Revision 1.74  2000/09/22 01:55:46  uogbuji
-# Namespace bugs fixed
-#
-# Revision 1.73  2000/09/19 23:20:08  uogbuji
-# Pre-packaging bug-fixes
-#
-# Revision 1.72  2000/09/19 20:24:00  uogbuji
-# Buncha DOM fixes: namespaces, printing, etc.
-# Add Alex F's problem reports to Dom/test_suite/problems
-#
-# Revision 1.71  2000/09/13 07:10:18  molson
-# More packaging
-#
-# Revision 1.70  2000/09/10 22:56:46  uogbuji
-# Minor fixes
-#
-# Revision 1.69  2000/09/09 00:43:19  uogbuji
-# Fix illegal character checks
-# Printer fixes
-#
-# Revision 1.68  2000/09/07 15:11:34  molson
-# Modified to abstract import
-#
-# Revision 1.67  2000/08/17 06:31:08  uogbuji
-# Update SplitQName to simplify usage
-# Fix namespace declaration namespaces acc to May DOM CR
-#
-# Revision 1.66  2000/08/07 05:16:29  molson
-# HHHunted down memory leakes
-#
-# Revision 1.65  2000/07/26 18:37:21  molson
-# Tested speed and made some improvements
-#
-# Revision 1.64  2000/07/25 18:25:09  jkloth
-# Fixed cloning bugs
-#
-# Revision 1.63  2000/07/18 16:58:52  jkloth
-# Fixed small bugs
-#
-# Revision 1.62  2000/07/09 19:02:20  uogbuji
-# Begin implementing Events
-# bug-fixes
-#
-# Revision 1.61  2000/07/03 02:12:52  jkloth
-#
-# fixed up/improved cloneNode
-# changed Document to handle DTS as children
-# fixed miscellaneous bugs
-#
-# Revision 1.60  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.59  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.58  2000/04/27 18:19:54  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.57  2000/02/10 06:22:27  molson
-# Fixed bugs
-#
-# Revision 1.56  2000/01/26 05:53:31  uche
-# Fix AVTs
-# Implement optimization by delaying and not repeating parser invocation
-# Completed error-message framework
-# NaN --> None, hopefully temporarily
-#
-# Revision 1.55  2000/01/25 07:56:17  uche
-# Fix DOM Namespace compliance & update XPath and XSLT accordingly.
-# More Error checks in XSLT.
-# Add i18n hooks.
-#
-# Revision 1.54  1999/12/18 22:54:51  uche
-# Fix Namespaces to Match DOM Level 2 spec.
-# Bug-fixes.
-#
-# Revision 1.53  1999/12/17 23:24:11  uche
-# Began testing using xsl-list messages and fixed many bugs consequently.
-#
-# Revision 1.52  1999/12/04 19:31:17  uche
-# Completed update to latest Python/DOM so that it goes through HTML test suite.
-#
-# Revision 1.51  1999/12/03 23:14:00  uche
-# More Python/DOM binding updates.
-#
-# Revision 1.50  1999/11/26 08:22:42  uche
-# Complete python/DOM binding updates for XML
-#
-# Revision 1.49  1999/11/19 02:13:23  uche
-# Python/DOM binding update.
-#
-# Revision 1.48  1999/11/19 01:51:28  molson
-# Added Filter support
-#
-# Revision 1.47  1999/11/19 01:16:57  molson
-# Tested DOM level 2
-#
-# Revision 1.46  1999/11/19 01:08:12  molson
-# Tested Document with new interface
-#
-# Revision 1.45  1999/11/18 09:59:06  molson
-# Converted Element to no python/DOM binding
-# Removed Factories
-#
-# Revision 1.44  1999/11/18 08:08:09  molson
-# Added namespaces
-#
-# Revision 1.43  1999/11/18 07:50:59  molson
-# Added namespaces to Nodes
-#
-# Revision 1.42  1999/11/18 07:23:01  molson
-# Removed factories
-#
-# Revision 1.41  1999/11/18 07:02:09  molson
-# Removed Factories from node and node list and named node map
-#
-# Revision 1.40  1999/11/18 06:55:28  uche
-# Python/DOM binding changes.
-#
-# Revision 1.39  1999/11/18 06:42:41  molson
-# Convert to new interface
-#
-# Revision 1.38  1999/11/18 06:38:36  uche
-# Changes to new Python/Dom Binding
-#
-# Revision 1.37  1999/11/18 05:21:40  molson
-# Modified CharacterData and all Derivitives to work with new interface
-#
-# Revision 1.36  1999/11/16 02:31:43  molson
-# Started change over to complete orbless environment
-#
-# Revision 1.35  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.34  1999/09/14 03:42:43  uche
-# XXX -> FIXME
-# Fix retrieval of attr values
-#
-# Revision 1.33  1999/09/09 17:03:41  molson
-# Added __repr__ to all Core interfaces
-#
-# Revision 1.32  1999/09/09 08:04:52  uche
-# NodeIterator.nextNode works and is tested.
-#
-# Revision 1.31  1999/09/09 05:40:33  molson
-# Implemented Core Level 2.  Tested in all three makes
-#
-# Revision 1.30  1999/09/08 23:54:07  uche
-# Add machinery for updated DOM Level 2 Iterators and Filters (untested)
-#
-# Revision 1.29  1999/08/31 21:02:16  molson
-# Fixed to work over ilu orb
-#
-# Revision 1.28  1999/08/31 15:54:58  molson
-# Abstracted node comparision to config_core.  Tested orbless and fnorb
-#
-# Revision 1.27  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -251,7 +82,6 @@ class Document(Node):
         if not g_namePattern.match(tagname):
             raise DOMException(INVALID_CHARACTER_ERR)
         e = Element(self,tagname,'','',tagname)
-        #trace("Create Element")
         return e
 
     def createDocumentFragment(self):
@@ -261,13 +91,11 @@ class Document(Node):
 
     def createTextNode(self, data):
         tn = Text.Text(self,data)
-        #trace("Create Text Node")
         return tn
 
     def createComment(self, data):
         Comment = implementation._4dom_fileImport('Comment').Comment
         c = Comment(self,data)
-        #trace("Create comment")
         return c
 
     def createCDATASection(self, data):
@@ -284,7 +112,6 @@ class Document(Node):
         #FIXME: Technically, chacters from the unicode surrogate blocks are illegal.  Fix when Python gets unicode
         #for c in target:
         #    if c in unicode_surrogate_blocks:
-        #        trace('Create Processing Instruction Failed, Invalid character')
         #        raise DOMException(INVALID_CHARACTER_ERR);
         if not g_namePattern.match(target):
             raise DOMException(INVALID_CHARACTER_ERR)
@@ -417,7 +244,6 @@ class Document(Node):
             self.__dict__['__doctype'] = doctype
             doctype._4dom_setOwnerDocument(self)
             return Node.appendChild(self, doctype)
-        pass
 
     def _4dom_addSingle(self, node):
         '''Make sure only one Element node is added to a Document'''

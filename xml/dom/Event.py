@@ -4,17 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Event.py.html
 #
-# History:
-# $Log: Event.py,v $
-# Revision 1.1  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.1  2000/07/09 19:02:20  uogbuji
-# Begin implementing Events
-# bug-fixes
-#
-#
-#
 """
 Implements DOM level 2 Mutation Events
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -22,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 
 supportedEvents = [

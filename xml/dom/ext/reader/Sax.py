@@ -4,83 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Sax.py.html
 #
-# History:
-# $Log: Sax.py,v $
-# Revision 1.3  2000/09/27 23:45:26  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.6  2000/07/13 23:09:14  uogbuji
-# Printer and reader fixes
-#
-# Revision 1.5  2000/07/12 05:29:52  molson
-# Modified to use only the DOM interface
-#
-# Revision 1.4  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.3  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.2  2000/04/27 19:08:50  jkloth
-# fixed imports for xml-sig
-#
-# Revision 1.1  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.12  2000/04/19 03:59:44  uogbuji
-# A flurry, plethora, profusion, plurality and parade of changes
-# Fix minor bugs in Sax, restored support for provided documents to Sax2
-# Bug-fixes to translate, etca in XPath
-# Bug-fixes to stripping, HTML printing, etc in DOM
-# Add node-set and match extension functions
-# Split Processor into processor and writer classes
-# Implement SaxWriter (similar to previous) and new TextWriter
-# Implement disable-output-escaping
-# Add many tests to suite
-#
-# Revision 1.11  2000/01/25 07:56:17  uche
-# Fix DOM Namespace compliance & update XPath and XSLT accordingly.
-# More Error checks in XSLT.
-# Add i18n hooks.
-#
-# Revision 1.10  2000/01/03 23:50:25  uche
-# Implemented xsl:sort
-# Many bug-fixes and additions
-#
-# Revision 1.9  1999/12/18 22:54:51  uche
-# Fix Namespaces to Match DOM Level 2 spec.
-# Bug-fixes.
-#
-# Revision 1.8  1999/12/18 08:28:50  uche
-# Fix SAX for default namespaces.
-# Correct namespaces in XSLT context to read from stylesheet rather than XML source.
-#
-# Revision 1.7  1999/12/10 18:48:48  uche
-# Added Copyright files to all packages
-# Added HTML pseudo-SAX engine for 4XSLT
-# Added xsl:output
-# Various bug-fixes.
-#
-# Revision 1.6  1999/12/02 20:39:59  uche
-# More changes to conform to new Python/DOM binding.
-#
-# Revision 1.5  1999/11/19 02:13:23  uche
-# Python/DOM binding update.
-#
-# Revision 1.4  1999/11/19 01:32:41  uche
-# Python/DOM binding changes.
-#
-# Revision 1.3  1999/11/18 09:30:02  uche
-# Python/DOM binding update.
-#
-# Revision 1.2  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.1  1999/09/26 00:14:31  uche
-# Added the reader ext module to supersede Builder.  Made the appropriate conversions to other 4Suite components.
-#
-#
-#
 """
 Components for reading XML files from a SAX producer.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -88,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import sys, string, cStringIO
 from xml.sax import saxlib, saxexts, drivers
@@ -152,7 +74,6 @@ class XmlDomGenerator(saxlib.HandlerBase):
         new_element = self.__ownerDoc.createElement(name)
 
         for curr_attrib_key in attribs.keys():
-            pass
             new_element.setAttribute(
                 curr_attrib_key,
                 attribs[curr_attrib_key]

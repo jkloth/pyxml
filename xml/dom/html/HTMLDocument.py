@@ -4,99 +4,12 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/HTMLDocument.py.html
 #
-# History:
-# $Log: HTMLDocument.py,v $
-# Revision 1.4  2000/09/27 23:45:26  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.42  2000/09/08 20:44:07  jkloth
-# Fixed cloning of HTMLDocuments
-#
-# Revision 1.41  2000/08/03 23:30:28  jkloth
-# Cleaned up TraceOut stuff
-# Fixed small bugs
-#
-# Revision 1.40  2000/07/27 20:05:56  jkloth
-# Bug fixes galore
-#
-# Revision 1.39  2000/07/05 21:45:40  jkloth
-# fixed method name errors
-# fixed stupid errors in code
-#
-# Revision 1.38  2000/06/09 01:36:39  jkloth
-# Moved to generated source files
-# Updated to Level 2 specification
-# Fixed Copyright
-# Updated to new TraceOut constructor
-#
-# Revision 1.37  2000/05/24 18:14:48  molson
-# Fixed tab errors
-#
-# Revision 1.36  2000/05/06 09:12:18  jkloth
-# fixed problems with allowed children on HTML elements
-#
-# Revision 1.35  2000/05/05 02:48:26  pweinstein
-# ...
-#
-# Revision 1.33  2000/05/04 01:24:07  pweinstein
-# changing xml.dom.Html to xml.dom.html
-#
-# Revision 1.32  2000/05/03 23:38:15  pweinstein
-# Migration to xml.doc, but still xml.doc.Html, pre-w3 conformance check
-#
-# Revision 1.31  2000/04/27 19:08:49  jkloth
-# fixed imports for xml-sig
-#
-# Revision 1.30  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.29  2000/01/25 07:56:17  uche
-# Fix DOM Namespace compliance & update XPath and XSLT accordingly.
-# More Error checks in XSLT.
-# Add i18n hooks.
-#
-# Revision 1.28  1999/12/15 04:18:21  uche
-# Fixes to HTML Properties
-# Update XSLT test suite
-# Many bug fixes
-#
-# Revision 1.27  1999/12/10 02:19:31  molson
-# Fixed some bugs in Html
-#
-# Revision 1.26  1999/12/04 19:31:17  uche
-# Completed update to latest Python/DOM so that it goes through HTML test suite.
-#
-# Revision 1.25  1999/12/03 23:14:00  uche
-# More Python/DOM binding updates.
-#
-# Revision 1.24  1999/12/03 17:52:09  uche
-# Complete first pass of new Python/DOM conersion for HTML
-# Normalize staging scripts and rename from 'promote' to 'stage'
-#
-# Revision 1.23  1999/12/02 20:39:59  uche
-# More changes to conform to new Python/DOM binding.
-#
-# Revision 1.22  1999/09/26 00:14:31  uche
-# Added the reader ext module to supersede Builder.  Made the appropriate conversions to other 4Suite components.
-#
-# Revision 1.21  1999/09/09 05:40:33  molson
-# Implemented Core Level 2.  Tested in all three makes
-#
-# Revision 1.20  1999/08/31 21:02:16  molson
-# Fixed to work over ilu orb
-#
-# Revision 1.19  1999/08/29 04:08:00  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 from xml.dom.Document import Document
 from xml.dom.Node import Node

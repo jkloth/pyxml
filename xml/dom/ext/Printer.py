@@ -4,240 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Printer.py.html
 #
-# History:
-# $Log: Printer.py,v $
-# Revision 1.5  2000/09/28 06:54:13  loewis
-# Don't try to decode Unicode objects.
-#
-# Revision 1.4  2000/09/27 23:45:25  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.36  2000/09/27 22:25:12  uogbuji
-# Dom printer updates for embryonic Py 2.0 compatability
-#
-# Revision 1.35  2000/09/25 21:43:56  uogbuji
-# Doc and other packaging fixes
-#
-# Revision 1.34  2000/09/22 21:56:13  uogbuji
-# Add output encoding support to printer
-#
-# Revision 1.33  2000/09/21 23:47:41  uogbuji
-# Dom fixes: Alex F and Nico
-#
-# Revision 1.32  2000/09/19 20:24:00  uogbuji
-# Buncha DOM fixes: namespaces, printing, etc.
-# Add Alex F's problem reports to Dom/test_suite/problems
-#
-# Revision 1.31  2000/09/15 22:10:33  molson
-# Removed isHtml reference
-#
-# Revision 1.30  2000/09/15 18:21:21  molson
-# Fixed minor import bugs
-#
-# Revision 1.29  2000/09/11 08:35:44  uogbuji
-# Fix output translation... again.
-#
-# Revision 1.28  2000/09/10 22:56:46  uogbuji
-# Minor fixes
-#
-# Revision 1.27  2000/09/09 00:43:20  uogbuji
-# Fix illegal character checks
-# Printer fixes
-#
-# Revision 1.26  2000/09/09 00:22:33  uogbuji
-# undo cogbuji's erroneous commit
-#
-# Revision 1.24  2000/09/05 05:28:07  uogbuji
-# small fixes
-#
-# Revision 1.23  2000/09/04 22:53:57  uogbuji
-# bug-fix
-#
-# Revision 1.22  2000/09/04 00:14:39  uogbuji
-# Make Printer smarter about multiply-declared namespaces
-#
-# Revision 1.21  2000/08/29 21:07:06  uogbuji
-# Fix xsl:strip and preserve-space
-#
-# Revision 1.20  2000/08/29 02:26:52  uogbuji
-# Fix silly attribute bug
-#
-# Revision 1.19  2000/08/28 08:31:41  uogbuji
-# Optimization and some bug-fixes to printer
-#
-# Revision 1.18  2000/08/28 06:34:46  uogbuji
-# bug fixes
-#
-# Revision 1.17  2000/08/27 20:07:19  cogbuji
-# minor bug fixes to Printer
-#
-# Revision 1.16  2000/08/26 00:47:06  uogbuji
-# Bug fixes
-# Add some IEEE 754 pseudo-support
-#
-# Revision 1.15  2000/08/25 23:32:49  uogbuji
-# Fix bugs where xmlns is introduced erroneously by xsl:copy-element and unnecessarily duplicated in Printer
-#
-# Revision 1.14  2000/08/17 06:31:08  uogbuji
-# Update SplitQName to simplify usage
-# Fix namespace declaration namespaces acc to May DOM CR
-#
-# Revision 1.13  2000/07/13 23:09:14  uogbuji
-# Printer and reader fixes
-#
-# Revision 1.12  2000/07/13 19:47:25  uogbuji
-# Use wstring for encodings: much broader support
-#
-# Revision 1.11  2000/07/12 05:29:52  molson
-# Modified to use only the DOM interface
-#
-# Revision 1.10  2000/07/09 19:02:20  uogbuji
-# Begin implementing Events
-# bug-fixes
-#
-# Revision 1.9  2000/07/03 02:12:53  jkloth
-#
-# fixed up/improved cloneNode
-# changed Document to handle DTS as children
-# fixed miscellaneous bugs
-#
-# Revision 1.8  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.7  2000/06/05 14:56:45  uogbuji
-# Improve XSLT stage test
-# Add proper UTF-8 and ISO-8859-1 encoding support
-# Improve XPath stringvalue for number
-#
-# Revision 1.6  2000/05/24 18:39:20  jkloth
-# Added default single-line element support to (Pretty)Print
-#
-# Revision 1.5  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.4  2000/05/10 00:51:00  uogbuji
-# Resurrect fixes to HTML reader and printer.
-#
-# Revision 1.3  2000/05/04 00:35:53  pweinstein
-# Changing Ft.Dom.Html to xml.dom.html
-#
-# Revision 1.2  2000/04/27 19:08:49  jkloth
-# fixed imports for xml-sig
-#
-# Revision 1.1  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.46  2000/04/19 17:31:51  uogbuji
-# Minor fixes to Printer UTF8 handling
-# Added Eivind Tagseth's patch for reader/HtmlLib.py
-#
-# Revision 1.45  2000/04/19 03:59:44  uogbuji
-# A flurry, plethora, profusion, plurality and parade of changes
-# Fix minor bugs in Sax, restored support for provided documents to Sax2
-# Bug-fixes to translate, etca in XPath
-# Bug-fixes to stripping, HTML printing, etc in DOM
-# Add node-set and match extension functions
-# Split Processor into processor and writer classes
-# Implement SaxWriter (similar to previous) and new TextWriter
-# Implement disable-output-escaping
-# Add many tests to suite
-#
-# Revision 1.44  2000/03/13 07:05:14  molson
-# Fixed bug in Pretty Print of plain elements
-#
-# Revision 1.43  2000/03/06 03:32:36  uche
-# Complete wrapping of XSLT exceptions
-# Add Syntax/Semantic exception support to XPattern parser
-# Fix UTF-8 printing in DOM
-# Fix memory leak with variables and parameters and RTFs in XSLT
-# Bug-fixes
-#
-# Revision 1.42  2000/03/01 03:23:14  uche
-# Fix Oracle driver EscapeQuotes
-# Add credits file
-# Fix Various DOM bugs
-#
-# Revision 1.41  2000/02/21 05:56:35  molson
-# Fixed an ugly bug in the printing of attributes
-#
-# Revision 1.40  2000/02/18 16:23:08  uche
-# More HTML white-space fixes
-# Implemented xsl:number
-# bug-fixes
-#
-# Revision 1.39  2000/02/17 15:02:28  uche
-# Fix whitespace issues in printer.
-#
-# Revision 1.38  2000/01/25 07:56:17  uche
-# Fix DOM Namespace compliance & update XPath and XSLT accordingly.
-# More Error checks in XSLT.
-# Add i18n hooks.
-#
-# Revision 1.37  1999/12/27 07:07:03  uche
-# Added Evaluate, Compile and CreateContext for XPath API
-# Added template priority
-# Updated XSL builtins, including mode support
-# Removed extra spacing about attribute printing
-# Fixed many bugs
-#
-# Revision 1.36  1999/12/18 22:54:51  uche
-# Fix Namespaces to Match DOM Level 2 spec.
-# Bug-fixes.
-#
-# Revision 1.35  1999/12/17 23:24:11  uche
-# Began testing using xsl-list messages and fixed many bugs consequently.
-#
-# Revision 1.34  1999/12/16 20:22:25  molson
-# Fixed some bugs
-#
-# Revision 1.33  1999/12/15 04:18:21  uche
-# Fixes to HTML Properties
-# Update XSLT test suite
-# Many bug fixes
-#
-# Revision 1.32  1999/12/10 18:48:48  uche
-# Added Copyright files to all packages
-# Added HTML pseudo-SAX engine for 4XSLT
-# Added xsl:output
-# Various bug-fixes.
-#
-# Revision 1.31  1999/11/26 08:22:43  uche
-# Complete python/DOM binding updates for XML
-#
-# Revision 1.30  1999/11/19 01:32:41  uche
-# Python/DOM binding changes.
-#
-# Revision 1.29  1999/11/18 09:30:02  uche
-# Python/DOM binding update.
-#
-# Revision 1.28  1999/11/18 06:42:41  molson
-# Convert to new interface
-#
-# Revision 1.27  1999/11/18 05:21:40  molson
-# Modified CharacterData and all Derivitives to work with new interface
-#
-# Revision 1.26  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.25  1999/09/14 14:46:57  uche
-# Remove &quot; from text escaping.
-# Update changelog.
-#
-# Revision 1.24  1999/09/10 22:12:38  uche
-# Added treewalker test
-# Fixed serious problems with PrettyPrint
-#
-# Revision 1.23  1999/09/09 05:40:33  molson
-# Implemented Core Level 2.  Tested in all three makes
-#
-# Revision 1.22  1999/09/08 23:54:07  uche
-# Add machinery for updated DOM Level 2 Iterators and Filters (untested)
-#
-# Revision 1.21  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 The printing sub-system.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -245,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import string, re
 from xml.dom.Node import Node
@@ -269,10 +34,11 @@ g_charToEntity = {
 
 
 try:
-    import codecs                     #will fail on 1.5
+    #The following stanza courtesy Martin von Loewis
+    import codecs # Python 1.5 only
     from types import UnicodeType
     def utf8_to_code(text, encoding):
-        encoder = codecs.lookup(encoding)[0]       # encode,decode,reader,writer
+        encoder = codecs.lookup(encoding)[0] # encode,decode,reader,writer
         if type(text) is not UnicodeType:
             text = unicode(text, "utf-8")
         return encoder(text)[0] # result,size
@@ -406,7 +172,12 @@ class PrintVisitor(Visitor):
         self.stream.write(st)
         return
 
+    def visitProlog(self):
+        self.stream.write("<?xml version='1.0' encoding='%s'>" % (self.encoding or 'UTF-8'))
+
     def visitDocument(self, node):
+        if not hasattr(node.ownerDocument,'isXml') or node.ownerDocument.isXml():
+            self.visitProlog()
         if node.doctype != None:
             self.visit(node.doctype)
         self.visitNodeList(node.childNodes, exclude=node.doctype)
@@ -530,6 +301,10 @@ class PrettyPrintVisitor(PrintVisitor):
         self.stream = stream
         return
 
+    def visitProlog(self):
+        PrintVisitor.visitProlog(self)
+        self.stream.write("\n")
+
     def visitElement(self, node):
         if self._printPlain:
             PrintVisitor.visitElement(self, node)
@@ -619,6 +394,7 @@ class PrettyPrintVisitor(PrintVisitor):
     def visitDocumentType(self, node):
         self._emptyReturn = 1
         return PrintVisitor.visitDocumentType(self, node)
+
 
 
 class PrintWalker(WalkerInterface):

@@ -4,120 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Node.py.html
 #
-# History:
-# $Log: Node.py,v $
-# Revision 1.3  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.67  2000/09/09 00:43:19  uogbuji
-# Fix illegal character checks
-# Printer fixes
-#
-# Revision 1.66  2000/09/07 15:11:34  molson
-# Modified to abstract import
-#
-# Revision 1.65  2000/07/25 18:25:09  jkloth
-# Fixed cloning bugs
-#
-# Revision 1.64  2000/07/09 19:02:20  uogbuji
-# Begin implementing Events
-# bug-fixes
-#
-# Revision 1.63  2000/07/03 02:12:53  jkloth
-#
-# fixed up/improved cloneNode
-# changed Document to handle DTS as children
-# fixed miscellaneous bugs
-#
-# Revision 1.62  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.61  2000/05/24 07:53:52  molson
-# Fixed bug Glenn forgot to check in.,  Ask him what it is a bout
-#
-# Revision 1.60  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.59  2000/05/06 03:14:05  molson
-# Fixed import errors
-#
-# Revision 1.58  2000/04/27 18:19:54  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.57  2000/03/01 03:23:14  uche
-# Fix Oracle driver EscapeQuotes
-# Add credits file
-# Fix Various DOM bugs
-#
-# Revision 1.56  2000/01/26 05:53:31  uche
-# Fix AVTs
-# Implement optimization by delaying and not repeating parser invocation
-# Completed error-message framework
-# NaN --> None, hopefully temporarily
-#
-# Revision 1.55  1999/12/07 08:12:31  molson
-# Fixed errors in parser
-#
-# Revision 1.54  1999/12/03 23:14:00  uche
-# More Python/DOM binding updates.
-#
-# Revision 1.53  1999/11/26 08:22:43  uche
-# Complete python/DOM binding updates for XML
-#
-# Revision 1.52  1999/11/19 02:13:23  uche
-# Python/DOM binding update.
-#
-# Revision 1.51  1999/11/19 01:08:12  molson
-# Tested Document with new interface
-#
-# Revision 1.50  1999/11/18 09:59:06  molson
-# Converted Element to no python/DOM binding
-# Removed Factories
-#
-# Revision 1.49  1999/11/18 07:50:59  molson
-# Added namespaces to Nodes
-#
-# Revision 1.48  1999/11/18 07:02:09  molson
-# Removed Factories from node and node list and named node map
-#
-# Revision 1.47  1999/11/18 06:42:41  molson
-# Convert to new interface
-#
-# Revision 1.46  1999/11/18 06:38:36  uche
-# Changes to new Python/Dom Binding
-#
-# Revision 1.45  1999/11/16 03:25:43  molson
-# Finished testing node in the new format
-#
-# Revision 1.44  1999/11/16 02:31:43  molson
-# Started change over to complete orbless environment
-#
-# Revision 1.43  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.42  1999/09/09 05:40:33  molson
-# Implemented Core Level 2.  Tested in all three makes
-#
-# Revision 1.41  1999/09/08 23:54:07  uche
-# Add machinery for updated DOM Level 2 Iterators and Filters (untested)
-#
-# Revision 1.40  1999/08/31 21:02:16  molson
-# Fixed to work over ilu orb
-#
-# Revision 1.39  1999/08/31 19:03:10  uche
-# Change NodeLists and NamedNodeMaps to use UserList and UserDict.
-#
-# Revision 1.38  1999/08/31 15:54:58  molson
-# Abstracted node comparision to config_core.  Tested orbless and fnorb
-#
-# Revision 1.37  1999/08/31 14:45:51  molson
-# Tested over the orb with Fnorb
-#
-# Revision 1.36  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 Implements the basic tree structure of DOM
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -125,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import DOMImplementation
 implementation = DOMImplementation.implementation

@@ -4,61 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/NodeIterator.py.html
 #
-# History:
-# $Log: NodeIterator.py,v $
-# Revision 1.3  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.22  2000/09/07 15:11:34  molson
-# Modified to abstract import
-#
-# Revision 1.21  2000/07/12 05:29:52  molson
-# Modified to use only the DOM interface
-#
-# Revision 1.20  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.19  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.18  2000/04/27 18:19:54  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.17  2000/03/01 03:23:14  uche
-# Fix Oracle driver EscapeQuotes
-# Add credits file
-# Fix Various DOM bugs
-#
-# Revision 1.16  1999/11/19 02:13:23  uche
-# Python/DOM binding update.
-#
-# Revision 1.15  1999/11/19 01:51:28  molson
-# Added Filter support
-#
-# Revision 1.14  1999/11/19 01:32:41  uche
-# Python/DOM binding changes.
-#
-# Revision 1.13  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.12  1999/09/10 02:12:19  uche
-# Added TreeWalker implementation.
-# Fixes to NodeIterator (runs all the way through the test suite now)
-#
-# Revision 1.11  1999/09/09 08:04:52  uche
-# NodeIterator.nextNode works and is tested.
-#
-# Revision 1.10  1999/09/08 23:54:07  uche
-# Add machinery for updated DOM Level 2 Iterators and Filters (untested)
-#
-# Revision 1.9  1999/08/31 21:02:16  molson
-# Fixed to work over ilu orb
-#
-# Revision 1.8  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 Node Iterators from DOM Level 2.  Allows "flat" iteration over nodes.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -66,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import DOMImplementation
 implementation = DOMImplementation.implementation

@@ -4,45 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/TreeWalker.py.html
 #
-# History:
-# $Log: TreeWalker.py,v $
-# Revision 1.3  2000/09/27 23:45:24  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.9  2000/09/07 15:11:34  molson
-# Modified to abstract import
-#
-# Revision 1.8  2000/07/18 16:58:52  jkloth
-# Fixed small bugs
-#
-# Revision 1.7  2000/07/03 02:12:53  jkloth
-#
-# fixed up/improved cloneNode
-# changed Document to handle DTS as children
-# fixed miscellaneous bugs
-#
-# Revision 1.6  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.5  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.4  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.3  1999/10/19 19:12:39  uche
-# Fixed TraceOut, docs,  and other minor bugs.
-#
-# Revision 1.2  1999/09/10 22:12:38  uche
-# Added treewalker test
-# Fixed serious problems with PrettyPrint
-#
-# Revision 1.1  1999/09/10 02:12:19  uche
-# Added TreeWalker implementation.
-# Fixes to NodeIterator (runs all the way through the test suite now)
-#
-#
-#
 """
 Tree Walker from DOM Level 2.  Allows multi-directional iteration over nodes.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -50,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import DOMImplementation
 implementation = DOMImplementation.implementation

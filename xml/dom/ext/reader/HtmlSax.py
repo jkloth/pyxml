@@ -13,7 +13,6 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-
 import sys, string, cStringIO
 import xml.dom.ext
 from xml.dom import Entity, DocumentType, Document
@@ -58,8 +57,6 @@ class HtmlDomGenerator:
     #Overridden DocumentHandler methods
     def startElement(self, name, attribs):
         self.__completeTextNode()
-        for curr_attrib_key in attribs.keys():
-            pass
         new_element = self.__ownerDoc.createElement(name)
 
         for curr_attrib_key in attribs.keys():

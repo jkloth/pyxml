@@ -4,47 +4,12 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Visitor.py.html
 #
-# History:
-# $Log: Visitor.py,v $
-# Revision 1.3  2000/09/27 23:45:25  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.5  2000/09/09 00:22:33  uogbuji
-# undo cogbuji's erroneous commit
-#
-# Revision 1.3  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.2  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.1  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.9  2000/03/01 03:23:14  uche
-# Fix Oracle driver EscapeQuotes
-# Add credits file
-# Fix Various DOM bugs
-#
-# Revision 1.8  1999/11/18 09:30:02  uche
-# Python/DOM binding update.
-#
-# Revision 1.7  1999/08/31 21:02:16  molson
-# Fixed to work over ilu orb
-#
-# Revision 1.6  1999/08/29 04:07:59  uche
-# Added headers to 4DOM
-# Added COPYRIGHT files
-#
-#
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
-
 
 class Visitor:
     def visit(self, node):

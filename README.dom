@@ -20,26 +20,8 @@ any problems with a particular platform, please e-mail the authors.
 Installation
 ============
 
-If you wish to use HTML with 4DOM you will need to build all the HTML
-modules.  To do so, use the GenerateHtml.py script.
-
-After installing the PyXML files, determine where the HTML files go.
-This should be
-
-$PYTHONHOME/site-packages/xml/dom/html/
-
-We'll call this <OUTDIR>
-
-If you don't know where $PYTHONHOME is, you can find out by running
-
-	python -c "import os; print os.path.split(os.__file__)[0]"
-
-Now change directory to the utils directory of the PyXML archive and
-run GenerateHtml.py as follows:
-
-	python GenerateHtml.py html_classes.xml <OUTDIR>
-
-This should generate a series of files of the form HTML*Element.py
+Simply copy to a directory in your PYTHONPATH.  GenerateHtml.py is no longer
+needed.
 
 
 License/Copyright

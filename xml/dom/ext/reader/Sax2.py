@@ -4,147 +4,6 @@
 #
 # Documentation:        http://docs.4suite.com/4DOM/Sax2.py.html
 #
-# History:
-# $Log: Sax2.py,v $
-# Revision 1.3  2000/09/27 23:45:26  uche
-# Update to 4DOM from 4Suite 0.9.1
-#
-# Revision 1.19  2000/09/22 01:55:46  uogbuji
-# Namespace bugs fixed
-#
-# Revision 1.18  2000/09/19 20:24:00  uogbuji
-# Buncha DOM fixes: namespaces, printing, etc.
-# Add Alex F's problem reports to Dom/test_suite/problems
-#
-# Revision 1.17  2000/09/09 00:22:33  uogbuji
-# undo cogbuji's erroneous commit
-#
-# Revision 1.15  2000/09/07 17:57:38  molson
-# Fixed dumb ass bugs in reader
-#
-# Revision 1.14  2000/09/07 15:11:34  molson
-# Modified to abstract import
-#
-# Revision 1.13  2000/08/17 06:31:08  uogbuji
-# Update SplitQName to simplify usage
-# Fix namespace declaration namespaces acc to May DOM CR
-#
-# Revision 1.12  2000/07/27 20:05:56  jkloth
-# Bug fixes galore
-#
-# Revision 1.11  2000/07/26 19:02:39  molson
-# Fixed attribute bugs in optimization
-#
-# Revision 1.10  2000/07/26 18:37:21  molson
-# Tested speed and made some improvements
-#
-# Revision 1.9  2000/07/13 23:09:14  uogbuji
-# Printer and reader fixes
-#
-# Revision 1.8  2000/07/12 05:29:52  molson
-# Modified to use only the DOM interface
-#
-# Revision 1.7  2000/07/09 19:02:20  uogbuji
-# Begin implementing Events
-# bug-fixes
-#
-# Revision 1.6  2000/06/09 01:37:43  jkloth
-# Fixed copyright to Fourthought, Inc
-#
-# Revision 1.5  2000/06/06 21:21:53  uogbuji
-# Test and fix demos
-# Improve parse error handling in XSLT
-# Packaging and documentation
-#
-# Revision 1.4  2000/05/25 02:35:00  jkloth
-# Moved Sax2Lib to eader directory
-#
-# Revision 1.3  2000/05/22 16:29:33  uogbuji
-# Kill tabs
-#
-# Revision 1.2  2000/05/02 04:30:26  jkloth
-# Minor bug fixes
-#
-# Revision 1.1  2000/04/27 18:19:55  uogbuji
-# Checking in XML-SIG/Zope conversion for Jeremy (jkloth), who made the changes
-#
-# Revision 1.15  2000/04/19 03:59:44  uogbuji
-# A flurry, plethora, profusion, plurality and parade of changes
-# Fix minor bugs in Sax, restored support for provided documents to Sax2
-# Bug-fixes to translate, etca in XPath
-# Bug-fixes to stripping, HTML printing, etc in DOM
-# Add node-set and match extension functions
-# Split Processor into processor and writer classes
-# Implement SaxWriter (similar to previous) and new TextWriter
-# Implement disable-output-escaping
-# Add many tests to suite
-#
-# Revision 1.14  2000/03/12 20:48:00  uche
-# Fixed nasty attr namespace defaulting bug in Sax2
-# Made DumpParseTree more readable
-# Fix exception bug in XSLT
-# Add Postgres QueryAdapter
-#
-# Revision 1.13  2000/01/25 07:56:17  uche
-# Fix DOM Namespace compliance & update XPath and XSLT accordingly.
-# More Error checks in XSLT.
-# Add i18n hooks.
-#
-# Revision 1.12  1999/12/27 07:07:03  uche
-# Added Evaluate, Compile and CreateContext for XPath API
-# Added template priority
-# Updated XSL builtins, including mode support
-# Removed extra spacing about attribute printing
-# Fixed many bugs
-#
-# Revision 1.11  1999/12/18 22:54:51  uche
-# Fix Namespaces to Match DOM Level 2 spec.
-# Bug-fixes.
-#
-# Revision 1.10  1999/12/18 07:37:33  uche
-# Fixed deault namespace problem in SAX2
-# Updated documentation
-# Changed TRACEOUT environment variables.
-#
-# Revision 1.9  1999/12/16 20:22:25  molson
-# Fixed some bugs
-#
-# Revision 1.8  1999/12/15 07:54:14  molson
-# Fixed minor bugs
-#
-# Revision 1.7  1999/12/15 04:18:21  uche
-# Fixes to HTML Properties
-# Update XSLT test suite
-# Many bug fixes
-#
-# Revision 1.6  1999/12/10 18:48:48  uche
-# Added Copyright files to all packages
-# Added HTML pseudo-SAX engine for 4XSLT
-# Added xsl:output
-# Various bug-fixes.
-#
-# Revision 1.5  1999/12/07 08:12:31  molson
-# Fixed errors in parser
-#
-# Revision 1.4  1999/12/02 20:39:59  uche
-# More changes to conform to new Python/DOM binding.
-#
-# Revision 1.3  1999/11/11 19:39:01  uche
-# Add Error-Handling to Sax2 driver.
-#
-# Revision 1.2  1999/10/14 18:21:02  uche
-# Fix Result Tree Fragment processing.
-#
-# Revision 1.1  1999/10/10 08:14:50  uche
-# Added a SAX2 driver for reading XML -> DOM.
-# Modified XSLT to use the SAX2 driver for its advanced capabilities.
-# Added xsl-comment and xsl-copy, along with test harnesses.
-# Modified URLs throughout the XSL to match the final version (yay! W3C finally got it right: no version in the bloody namespace, sheesh!)
-# Added getNodeType and other basic operations to the node wrappers in XPath
-# Added a new node type: NAMESPACE_NODE = 10000
-#
-#
-#
 """
 Components for reading XML files from a SAX2 producer.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
@@ -152,7 +11,6 @@ WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 import sys, string, cStringIO
 from xml.sax import saxlib, saxexts
@@ -280,7 +138,6 @@ class XmlDomGenerator(saxlib.HandlerBase,
             new_element = self.__ownerDoc.documentElement
 
         for curr_attrib_key,curr_attrib_value in attribs.items():
-            pass
             (prefix, local) = SplitQName(curr_attrib_key)
             if local == 'xmlns':
                 namespace = XMLNS_NAMESPACE
