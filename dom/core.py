@@ -239,9 +239,14 @@ class Node:
             if newChild._document != self._document:
                 raise WrongDocumentException("newChild created from a different document")
 
+            # If newChild is already in the tree, remove it
+            if newChild._parent != None:
+                newChild._parent.removeChild( newChild )
+                
             if refChild == None:
                 self.appendChild(newChild)
                 return newChild
+
             L = self._node.children ; n = refChild._node
             for i in range(len(L)):
                 if L[i] == n:
@@ -252,9 +257,12 @@ class Node:
 			
 	def replaceChild(self, newChild, oldChild):
             o = oldChild._node ; L = self._node.children
-            print o,L
             for i in range(len(L)):
                 if L[i] == o:
+                    # If newChild is already in the tree, remove it
+                    if newChild._parent != None:
+                        newChild._parent.removeChild( newChild )
+
                     L[i] = newChild._node
                     newChild._parent = self
                     oldChild._parent = None
@@ -273,7 +281,11 @@ class Node:
             if newChild._document != self._document:
                 raise WrongDocumentException("newChild created from a different document")
 
-            self._node.children.append(newChild._node)
+            # If newChild is already in the tree, remove it
+            if newChild._parent != None:
+                newChild._parent.removeChild( newChild )
+
+            self._node.children.append( newChild._node )
             newChild._parent = self
             return newChild
         
@@ -355,8 +367,8 @@ class CharacterData(Node):
 
     # XXX define __getslice__ & friends here...
 
-    def __str__(self):
-        return self._node.value
+    def toxml(self):
+        return escape(self._node.value) 
     
 class Attr(Node):
     def __init__(self, node, parent = None):
@@ -380,9 +392,9 @@ class Element(Node):
         Node.__init__(self, node, parent, document)
         
     def __repr__(self):
-        return "<element '%s'>" % (self._node.name)
+        return "<Element '%s'>" % (self._node.name)
 
-    def __str__(self):
+    def toxml(self):
         s = "<" + self._node.name
         for name, value in self._node.attributes.items():
             s = s + " %s='%s'" % (name, value)
@@ -391,7 +403,7 @@ class Element(Node):
         s = s + '>'
         for child in self._node.children:
             n = NODE_CLASS[ child.type ] (child, self, self._document)
-            s = s + str(n)
+            s = s + n.toxml()
         s = s + "</" + self._node.name + '>'
         return s
 
@@ -418,7 +430,7 @@ class Element(Node):
     def getAttributeNode(self, name):
         if not self._node.attributes.has_key[ name ]:
             return None
-        d = _nodeData()
+        d = _nodeData(ATTRIBUTE_NODE)
         d.name = name
         d.value = self._node.attributes[name]
         d.attributes = None
@@ -426,7 +438,7 @@ class Element(Node):
 
     def setAttributeNode(self, newAttr):
         if self._node.attributes.has_key[ newAttr._node.name ]:
-            d = _nodeData()
+            d = _nodeData(ATTRIBUTE_NODE)
             d.name = newAttr._node.name
             d.value = self._node.attributes[ newAttr._node.name]
             d.attributes = None
@@ -448,40 +460,58 @@ class Element(Node):
             return retval
         else: return None
 
-    def getElementsByTagName(self, name):
+    def getElementsByTagName(self, tagname):
         L = []
         for child in self._node.children:
             if child.type == ELEMENT:
-                d = Element(d, self, self._document)
-                if child.name == name:
+                d = Element(child, self, self._document)
+                if child.name == tagname:
                     L.append(d)
-                L = L + d.getElementsByTagName(name)
+                L = L + d.getElementsByTagName(tagname)
         return NodeList(L)
 
     def normalize(self):
-        # XXX this should traverse its children and merge adjacent text nodes
-        pass
+        # Traverse the list of children, and merge adjacent text nodes
+        L = self._node.children
+        for i in range(len(L)-1, 0, -1):
+            if L[i].type == TEXT_NODE and L[i-1].type == TEXT_NODE:
+                # Two text nodes together, so merge them
+                # XXX any Text instances proxying the deleted
+                # _nodeData instance will find themselves
+                # disconnected from the tree.  
+                L[i-1].value = L[i-1].value + L[i].value
+                del L[i:i+1]
+                
+        for i in range(len(L)):
+            if L[i].type == ELEMENT_NODE:
+                n = NODE_CLASS[ L[i].type ] (L[i], self, self._document)
+                n.normalize()
     
 class Text(CharacterData):
-    def __str__(self):
-        return self._node.value
-
     # Methods
     
     def splitText(self, offset):
-        n1 = self.substringData(0, offset)
-        n2 = self.substringData(offset, len(self) - offset)
-        # XXX delete this node, insert Text nodes from n1 and n2
-        pass # XXX
+        n1 = _nodeData(TEXT_NODE) ; n2 = _nodeData(TEXT_NODE)
+        n1.name = "#text" ; n2.name = "#text"
+        n1.value = self.substringData(0, offset)
+        n2.value = self.substringData(offset, len(self) - offset)
+        parent = self._parent
+        n1 = Text(n1, None, self._document)
+        n2 = Text(n2, None, self._document)
+
+        # Insert n1 and n2, and delete this node
+        parent.insertBefore(n1, self)
+        parent.replaceChild(n2, self)
     
 class Comment(CharacterData):
-    def __str__(self):
+    def toxml(self):
         return '<-- %s -->' % self._node.value
 
 class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would
     otherwise be regarded as markup."""
-    pass 
+    def toxml(self):
+        return self._node.value
 
 class DocumentType(Node):
     # Attributes
@@ -516,8 +546,8 @@ class EntityReference(Node):
     pass 
 
 class ProcessingInstruction(Node):
-    def __str__(self):
-        return "<? " + self._node.name + ' ' +self._node.target + ">"
+    def toxml(self):
+        return "<? " + self._node.name + ' ' +self._node.target + "?>"
 
     def get_target(self):
         return self._node.name
@@ -535,13 +565,13 @@ class Document(Node):
         self.documentType = None
         self.DOMImplementation = __import__(__name__)
 
-    def __str__(self):
+    def toxml(self):
         s = '<?xml version="1.0"?>\n'
         s = s + "<!DOCTYPE XXX>\n"
         if len(self._node.children):
             n = self._node.children[0]
             n =  NODE_CLASS[ n.type ] (n, self, self._document)
-            s = s + str( n )
+            s = s + n.toxml()
         return s
 
     def createElement(self, tagName):
@@ -558,46 +588,40 @@ class Document(Node):
         d = _nodeData(TEXT_NODE)
         d.name = "#text"
         d.value = data
-        d.attributes = None
         return Text(d, None, self)
 
     def createComment(self, data):
         d = _nodeData(COMMENT_NODE)
         d.name = "#comment"
         d.value = data
-        d.attributes = None
         return Comment(d, None, self)
 
     def createCDATAsection(self, data):
         d = _nodeData(CDATA_SECTION_NODE)
         d.name = "#cdata-section"
         d.value = data
-        d.attributes = None
         return CDATASection(d, None, self)
 
     def createProcessingInstruction(self, target, data):
         d = _nodeData(PROCESSING_INSTRUCTION_NODE)
         d.name = target
         d.value = data
-        d.attributes = None
         return ProcessingInstruction(d, None, self)
         
     def createAttribute(self, name):
         d = _nodeData(ATTRIBUTE_NODE)
         d.name = name
         d.value = ""
-        d.attributes = None
         return Attribute(d, None, self)
 
     def createEntityReference(self, name):
         d = _nodeData(ENTITY_REFERENCE_NODE)
         d.name = name
         d.value = None
-        d.attributes = None
         return EntityReference(d, None, self)
 
     def getElementsByTagName(self, tagname):
-        return self.documentElement.getElementsByTagName(name)
+        return self.get_documentElement().getElementsByTagName(tagname)
 
     # Attributes
     def get_doctype(self):
