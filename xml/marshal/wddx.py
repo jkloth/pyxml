@@ -99,9 +99,9 @@ class WDDXMarshaller(Marshaller):
     def m_root(self, value, dict):
         L = ['<%s version="%s">' % (self.tag_root, self.wddx_version) ]
         # add header
-        L.append('<header/>')
+        L.append('<header/><data>')
         L = L + self._marshal(value, dict)
-        L.append('</%s>' % self.tag_root)
+        L.append('</data></%s>' % self.tag_root)
         return L
 
     def m_instance(self, value, dict):
@@ -172,8 +172,10 @@ class WDDXMarshaller(Marshaller):
 
 class WDDXUnmarshaller(Unmarshaller):
     unmarshal_meth = {
-        'wddxPacket': ('um_start_root', None),
+        'wddxPacket': (None, None),
+        'data': ('um_start_root', None),
         'header': (None, None),
+        'char':('um_start_char', None),
         'boolean': ('um_start_boolean', 'um_end_boolean'),
         'number': ('um_start_number', 'um_end_number'),
         'string': ('um_start_string', 'um_end_string'),
@@ -183,6 +185,10 @@ class WDDXUnmarshaller(Unmarshaller):
         'recordSet': ('um_start_recordset', 'um_end_recordset'),
         'field': ('um_start_field', 'um_end_field'),
         }
+
+    def um_start_char(self, name, attrs):
+        print self.data_stack[-1]
+        self.data_stack[-1].append(str(chr(string.atoi(attrs['code'], 16))))
 
     def um_start_boolean(self, name, attrs):
         v = attrs['value']
