@@ -1,9 +1,17 @@
 /*
 Copyright (c) 1998, 1999 Thai Open Source Software Center Ltd
-See the file copying.txt for copying permission.
+See the file COPYING for copying permission.
 */
 
-#include "xmldef.h"
+static char RCSId[]
+  = "$Header: /cvsroot/pyxml/xml/extensions/expat/lib/xmlrole.c,v 1.1 2001/08/11 07:19:41 loewis Exp $";
+
+#ifdef COMPILED_FROM_DSP
+#  include "winconfig.h"
+#else
+#  include <config.h>
+#endif /* ndef COMPILED_FROM_DSP */
+
 #include "xmlrole.h"
 #include "ascii.h"
 
@@ -193,7 +201,7 @@ int doctype1(PROLOG_STATE *state,
     return XML_ROLE_NONE;
   case XML_TOK_OPEN_BRACKET:
     state->handler = internalSubset;
-    return XML_ROLE_NONE;
+    return XML_ROLE_DOCTYPE_INTERNAL_SUBSET;
   case XML_TOK_DECL_CLOSE:
     state->handler = prolog2;
     return XML_ROLE_DOCTYPE_CLOSE;
@@ -257,7 +265,7 @@ int doctype4(PROLOG_STATE *state,
     return XML_ROLE_NONE;
   case XML_TOK_OPEN_BRACKET:
     state->handler = internalSubset;
-    return XML_ROLE_NONE;
+    return XML_ROLE_DOCTYPE_INTERNAL_SUBSET;
   case XML_TOK_DECL_CLOSE:
     state->handler = prolog2;
     return XML_ROLE_DOCTYPE_CLOSE;
@@ -492,7 +500,7 @@ int entity5(PROLOG_STATE *state,
     return XML_ROLE_NONE;
   case XML_TOK_DECL_CLOSE:
     setTopLevel(state);
-    return XML_ROLE_EXTERNAL_GENERAL_ENTITY_NO_NOTATION;
+    return XML_ROLE_ENTITY_COMPLETE;
   case XML_TOK_NAME:
     if (XmlNameMatchesAscii(enc, ptr, end, KW_NDATA)) {
       state->handler = entity6;
@@ -1005,6 +1013,8 @@ int element3(PROLOG_STATE *state,
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
   case XML_TOK_CLOSE_PAREN:
+    state->handler = declClose;
+    return XML_ROLE_GROUP_CLOSE;
   case XML_TOK_CLOSE_PAREN_ASTERISK:
     state->handler = declClose;
     return XML_ROLE_GROUP_CLOSE_REP;

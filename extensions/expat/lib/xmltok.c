@@ -1,9 +1,14 @@
 /*
 Copyright (c) 1998, 1999 Thai Open Source Software Center Ltd
-See the file copying.txt for copying permission.
+See the file COPYING for copying permission.
 */
 
-#include "xmldef.h"
+#ifdef COMPILED_FROM_DSP
+#  include "winconfig.h"
+#else
+#  include <config.h>
+#endif /* ndef COMPILED_FROM_DSP */
+
 #include "xmltok.h"
 #include "nametab.h"
 
@@ -1019,6 +1024,7 @@ int doParseXmlDecl(const ENCODING *(*encodingFinder)(const ENCODING *,
 		   const char *end,
 		   const char **badPtr,
 		   const char **versionPtr,
+		   const char **versionEndPtr,
 		   const char **encodingName,
 		   const ENCODING **encoding,
 		   int *standalone)
@@ -1041,6 +1047,8 @@ int doParseXmlDecl(const ENCODING *(*encodingFinder)(const ENCODING *,
   else {
     if (versionPtr)
       *versionPtr = val;
+    if (versionEndPtr)
+      *versionEndPtr = ptr;
     if (!parsePseudoAttribute(enc, ptr, end, &name, &nameEnd, &val, &ptr)) {
       *badPtr = ptr;
       return 0;
@@ -1489,6 +1497,7 @@ int initScan(const ENCODING **encodingTable,
       if (ptr + 2 == end)
 	return XML_TOK_PARTIAL;
       if ((unsigned char)ptr[2] == 0xBF) {
+	*nextTokPtr = ptr + 3;
 	*encPtr = encodingTable[UTF_8_ENC];
 	return XML_TOK_BOM;
       }

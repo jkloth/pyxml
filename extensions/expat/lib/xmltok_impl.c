@@ -1,6 +1,6 @@
 /*
 Copyright (c) 1998, 1999 Thai Open Source Software Center Ltd
-See the file copying.txt for copying permission.
+See the file COPYING for copying permission.
 */
 
 #ifndef IS_INVALID_CHAR
@@ -1270,8 +1270,11 @@ int PREFIX(entityValueTok)(const ENCODING *enc, const char *ptr, const char *end
       *nextTokPtr = ptr;
       return XML_TOK_DATA_CHARS;
     case BT_PERCNT:
-      if (ptr == start)
-	return PREFIX(scanPercent)(enc, ptr + MINBPC(enc), end, nextTokPtr);
+      if (ptr == start) {
+	int tok =  PREFIX(scanPercent)(enc, ptr + MINBPC(enc),
+				       end, nextTokPtr);
+	return (tok == XML_TOK_PERCENT) ? XML_TOK_INVALID : tok;
+      }
       *nextTokPtr = ptr;
       return XML_TOK_DATA_CHARS;
     case BT_LF:
