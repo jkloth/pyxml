@@ -25,18 +25,16 @@ if len(sys.argv) < 3:
 
 # Create parser
 pf=saxexts.ParserFactory([
-    "xml.sax.drivers.drv_xmlproc",
-    "xml.sax.drivers.drv_xmlproc_val",
-    "xml.sax.drivers.drv_pyexpat",
-    "xml.sax.drivers.drv_sgmlop", 
-    "xml.sax.drivers.drv_xmllib", 
-    "xml.sax.drivers.drv_xmltok",
-    "xml.sax.drivers.drv_xmltoolkit",
-    "drv_xmldc.py"])
+    "xmlproc",
+    "xmlproc_val",
+    "pyexpat",
+    "sgmlop", 
+    "xmllib", 
+    "xmltok",
+    "xmltoolkit",
+    "xmldc"])
 
 parser = pf.make_parser()
-#parser = xml.sax.drivers.drv_xmlproc_val.create_parser()
-#print parser.get_parser_name()
 
 # Create architectures handler
 arch_handler = xmlarch.ArchDocHandler()
