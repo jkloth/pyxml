@@ -28,7 +28,7 @@ This avoids all the overhead of SAX and pulldom to gain performance.
 #      nice speedup is achieved this way as well!)
 
 from xml.dom import xmlbuilder, minidom, Node
-from xml.dom import EMPTY_NAMESPACE, XMLNS_NAMESPACE
+from xml.dom import EMPTY_NAMESPACE, EMPTY_PREFIX, XMLNS_NAMESPACE
 from xml.parsers import expat
 from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
@@ -62,7 +62,7 @@ def _parse_ns_name(builder, name):
         localname = intern(localname, localname)
     else:
         uri, localname = parts
-        prefix = None
+        prefix = EMPTY_PREFIX
         qname = localname = intern(localname, localname)
     return intern(uri, uri), localname, prefix, qname
 
@@ -296,7 +296,8 @@ class ExpatBuilder:
 
         if attributes:
             for i in range(0, len(attributes), 2):
-                a = minidom.Attr(attributes[i], EMPTY_NAMESPACE, None, None)
+                a = minidom.Attr(attributes[i], EMPTY_NAMESPACE,
+                                 None, EMPTY_PREFIX)
                 d = a.__dict__
                 d['value'] = d['nodeValue'] = attributes[i+1]
                 d['ownerDocument'] = self.document
@@ -425,9 +426,11 @@ class ExpatBuilder:
 # where allowed.
 _ALLOWED_FILTER_RETURNS = (FILTER_ACCEPT, FILTER_REJECT, FILTER_SKIP)
 
-class FilterVisibilityController:
+class FilterVisibilityController(NewStyle):
     """Wrapper around a DOMBuilderFilter which implements the checks
     to make the whatToShow filter attribute work."""
+
+    __slots__ = 'filter',
 
     def __init__(self, filter):
         self.filter = filter
@@ -481,10 +484,11 @@ class FilterVisibilityController:
         }
 
 
-class FilterCrutch:
-    _level = 0
+class FilterCrutch(NewStyle):
+    __slots__ = '_builder', '_level', '_old_start', '_old_end'
 
     def __init__(self, builder):
+        self._level = 0
         self._builder = builder
         parser = builder._parser
         self._old_start = parser.StartElementHandler
@@ -493,6 +497,8 @@ class FilterCrutch:
         parser.EndElementHandler = self.end_element_handler
 
 class Rejecter(FilterCrutch):
+    __slots__ = ()
+
     def __init__(self, builder):
         FilterCrutch.__init__(self, builder)
         parser = builder._parser
@@ -519,6 +525,8 @@ class Rejecter(FilterCrutch):
             self._level = self._level - 1
 
 class Skipper(FilterCrutch):
+    __slots__ = ()
+
     def start_element_handler(self, *args):
         node = self._builder.curNode
         self._old_start(*args)
@@ -702,7 +710,8 @@ class Namespaces:
         else:
             uri = EMPTY_NAMESPACE
             qname = name
-            localname = prefix = None
+            localname = None
+            prefix = EMPTY_PREFIX
         if self.document is None:
             doctype = self._create_doctype()
             doc = theDOMImplementation.createDocument(
@@ -726,7 +735,8 @@ class Namespaces:
                     a = minidom.Attr(_intern(self, 'xmlns:' + prefix),
                                      XMLNS_NAMESPACE, prefix, "xmlns")
                 else:
-                    a = minidom.Attr("xmlns", XMLNS_NAMESPACE, "xmlns", None)
+                    a = minidom.Attr("xmlns", XMLNS_NAMESPACE,
+                                     "xmlns", EMPTY_PREFIX)
                 d = a.__dict__
                 d['value'] = d['nodeValue'] = uri
                 d['ownerDocument'] = self.document
@@ -747,7 +757,8 @@ class Namespaces:
                     _attrs[localname] = a
                     _attrsNS[(uri, localname)] = a
                 else:
-                    a = minidom.Attr(aname, EMPTY_NAMESPACE, aname, None)
+                    a = minidom.Attr(aname, EMPTY_NAMESPACE,
+                                     aname, EMPTY_PREFIX)
                     _attrs[aname] = a
                     _attrsNS[(EMPTY_NAMESPACE, aname)] = a
                 d = a.__dict__
