@@ -1,103 +1,35 @@
-The following files were taken from 4XPath/4Xslt unmodified:
-
-BuiltInExtFunctions.py
-Context.py
-Conversions.py
-CoreFunctions.py
-ExpandedNameWrapper.py
-NamespaceNode.py
-ParsedToken.py
-ParsedStep.py
-ParsedPredicateList.py
-ParsedAbsoluteLocationPath.py
-ParsedRelativeLocationPath.py
-ParsedAbbreviatedAbsoluteLocationPath.py
-ParsedNodeTest.py
-ParsedAxisSpecifier.py
-ParsedPredicate.py     [only for testsuite]
-ParsedLocationPath.py  [only for testsuite]
-#XSLT
-ParsedPattern.py
-ParsedStepPattern.py
-ParsedRelativePathPattern.py
-ParsedLocationPathPattern.py
-MessageSource.py
-OutputHandler.py
-NullWriter.py
-PlainTextWriter.py
-HtmlWriter.py
-XmlWriter.py
-AttributeElement.py
-AttributeValueTemplate.py
-ChooseElement.py
-WhenElement.py
-OtherwiseElement.py
-CopyElement.py
-CopyOfElement.py
-CommentElement.py
-ElementElement.py
-ForEachElement.py
-IfElement.py
-LiteralText.py
-MessageElement.py
-NumberElement.py
-Roman.py
-ParamElement.py
-ProcessingInstructionElement.py
-SortElement.py
-TemplateElement.py
-TextElement.py
-VariableElement.py
-ValueOfElement.py
-WithParamElement.py
-InternalException.py
-BuiltInExtElements.py
-TextWriter.py
-TextSax.py
-_4xslt.py
-RtfWriter.py
+The following files were taken from 4XPath unmodified:
+    BuiltInExtFunctions.py
+    Context.py
+    Conversions.py
+    CoreFunctions.py
+    ExpandedNameWrapper.py
+    NamespaceNode.py
+    ParsedToken.py
+    ParsedStep.py
+    ParsedPredicateList.py
+    ParsedAbsoluteLocationPath.py
+    ParsedRelativeLocationPath.py
+    ParsedAbbreviatedAbsoluteLocationPath.py
+    ParsedNodeTest.py
+    ParsedAxisSpecifier.py
+    ParsedPredicate.py     [only for testsuite]
+    ParsedLocationPath.py  [only for testsuite]
 
 The following files were adjusted for use with the Yapps parser:
-
-XPathParserBase.py
-XPathParser.py
-XPath.py
-xml.xpath.__init__.py
-#XSLT
-xml.xslt.__init__.py
-XPatternParser.py
-XPattern.py
-XPatterParserBase.py   [only for testsuite]
+    XPathParserBase.py
+    XPathParser.py
+    XPath.py
+    xml.xpath.__init__.py
 
 The following files were taken from Ft.Lib:
-
-Set.py
+    Set.py
 
 The following files were modified not to use Ft.Lib.Set
-
-ParsedAbbreviatedRelativeLocationPath.py
-ParsedExpr.py
-
-The following files where ported to use minidom:
-
-Processor.py
-XsltContext.py
-StylesheetReader.py
-LiteralText.py
-StyleSheet.py
-LiteralElement.py
-
-The following files where modified not to use Ft.Lib.Uri, and
-pDomlette:
-
-XsltFunctions.py
-ApplyTemplatesElement.py
-AttributeSetElement.py
-CallTemplateElement.py
-OtherXslElement.py
+    ParsedAbbreviatedRelativeLocationPath.py
+    ParsedExpr.py
 
 In the following files, usage of ownerDocument for Document nodes was
 fixed:
-
-Util.py
-ParsedAbsoluteLocationPath.py
+    Util.py
+    ParsedAbsoluteLocationPath.py
