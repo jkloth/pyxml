@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.6 $'
+__version__ = '$Revision: 1.7 $'
 
 import string
 
@@ -423,7 +423,7 @@ class XmlWriter:
                 rpos = string.rfind(s, "\n")
                 self._offset = len(s) - (rpos + 1) + len(end)
             else:
-                self._offset = self.__offset + len(s) + len(start + end)
+                self._offset = self._offset + len(s) + len(start + end)
             self._write(s)
         else:
             self._offset = 0
