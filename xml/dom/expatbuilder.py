@@ -33,6 +33,8 @@ from xml.parsers import expat
 from xml.dom.minidom import _appendChild, _setAttributeNode
 from xml.dom.NodeFilter import NodeFilter
 
+from xml.dom.minicompat import *   # True, False
+
 TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
 DOCUMENT_NODE = Node.DOCUMENT_NODE
@@ -272,7 +274,7 @@ class ExpatBuilder:
             doc = theDOMImplementation.createDocument(
                 None, name, doctype)
             if self._standalone >= 0:
-                doc.standalone = self._standalone
+                doc.standalone = self._standalone and True or False
             doc.encoding = self._encoding
             doc.version = self._version
             self.document = doc
