@@ -75,19 +75,22 @@ static PyObject *IsBooleanType(PyObject *self, PyObject *args) {
   return result;
 }
 
-PyBooleanObject *boolean_NEW(int initval)
+DL_EXPORT(PyBooleanObject *)
+boolean_NEW(int initval)
 {
   PyBooleanObject *object = PyObject_NEW(PyBooleanObject, &PyBoolean_Type);
   object->value = initval;
   return object;
 }
 
-void boolean_dealloc(PyObject *self)
+DL_EXPORT(void)
+boolean_dealloc(PyObject *self)
 {
   PyMem_DEL(self);
 }
 
-int boolean_cmp(PyObject *o1, PyObject *o2){
+DL_EXPORT(int)
+boolean_cmp(PyObject *o1, PyObject *o2){
   int result = -1;
 /*   int *res = (int *)malloc(sizeof(int)); */
   PyBooleanObject *b1;
@@ -215,7 +218,8 @@ static PyObject *boolean_float(PyObject *o){
   return result;
 }
 
-void initboolean(void) {
+DL_EXPORT(void) 
+initboolean(void) {
   PyObject *m, *d;
 
   m = Py_InitModule("boolean", booleanMethods);
@@ -266,7 +270,7 @@ static PyNumberMethods boolean_as_number = {
   0,       /* unaryfunc nb_hex;           __hex__ */
 };
 
-static PyTypeObject PyBoolean_Type = {
+PyTypeObject PyBoolean_Type = {
     PyObject_HEAD_INIT(0)
     0,
     "boolean",

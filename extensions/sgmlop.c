@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.7 2001/08/04 22:45:36 loewis Exp $
+ * $Id: sgmlop.c,v 1.8 2001/12/14 16:36:34 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -844,10 +844,7 @@ static PyMethodDef _functions[] = {
     {NULL, NULL}
 };
 
-void
-#ifdef WIN32
-__declspec(dllexport)
-#endif
+DL_EXPORT(void)
 initsgmlop(void)
 {
     /* Patch object type */
