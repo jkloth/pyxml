@@ -108,6 +108,12 @@ else:
         ('BYTEORDER', xmlbo),
         ('XML_CONTEXT_BYTES','1024'),
         ]
+    if sys.platform == "win32":
+        # HAVE_MEMMOVE is not in PC/pyconfig.h
+        define_macros.extend([
+         ('HAVE_MEMMOVE', '1'),
+         ('XML_STATIC', ''),
+        ])
     include_dirs = ['extensions/expat/lib']
     sources.extend([
         'extensions/expat/lib/xmlparse.c',
