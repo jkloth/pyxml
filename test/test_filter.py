@@ -151,9 +151,9 @@ src = """\
 """
 
 checkFilterEvents(src, [
+    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.ENTITY_NODE, "e"),
     ("accept", Node.NOTATION_NODE, "n"),
-    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.COMMENT_NODE, "#comment"),
     ("accept", Node.PROCESSING_INSTRUCTION_NODE, "sample"),
     ("start", Node.ELEMENT_NODE, "e"),
@@ -167,9 +167,9 @@ checkFilterEvents(src, [
 # black-box test, but will get us started.
 
 checkFilterEvents(src, [
+    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.ENTITY_NODE, "e"),
     ("accept", Node.NOTATION_NODE, "n"),
-    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.PROCESSING_INSTRUCTION_NODE, "sample"),
     ("start", Node.ELEMENT_NODE, "e"),
     ("accept", Node.PROCESSING_INSTRUCTION_NODE, "pi"),
@@ -177,9 +177,9 @@ checkFilterEvents(src, [
     ], what=NodeFilter.SHOW_ALL & ~NodeFilter.SHOW_COMMENT)
 
 checkFilterEvents(src, [
+    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.ENTITY_NODE, "e"),
     ("accept", Node.NOTATION_NODE, "n"),
-    ("accept", Node.DOCUMENT_TYPE_NODE, "doc"),
     ("accept", Node.COMMENT_NODE, "#comment"),
     ("start", Node.ELEMENT_NODE, "e"),
     ("accept", Node.COMMENT_NODE, "#comment"),
