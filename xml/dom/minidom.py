@@ -378,6 +378,9 @@ class NamedNodeMap:
         self.setNamedItem(node)
 
     def setNamedItem(self, node):
+        if not isinstance(node, Attr):
+            raise HierarchyRequestErr, \
+                  "%s cannot be child of %s" % (repr(node), repr(self))
         old = self._attrs.get(node.name)
         if old:
             old.unlink()
@@ -779,3 +782,6 @@ def parseString(*args, **kwargs):
     """Parse a file into a DOM from a string."""
     from xml.dom import pulldom
     return _doparse(pulldom.parseString, args, kwargs)
+
+def getDOMImplementation():
+    return Document.implementation
