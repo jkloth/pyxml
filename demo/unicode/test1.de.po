@@ -1,0 +1,31 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: test1 1.0\n"
+"POT-Creation-Date: 1997-01-17 01:42+0100\n"
+"PO-Revision-Date: 1997-01-17 01:47 MET\n"
+"Last-Translator: Martin von Löwis\n"
+"Language-Team: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: test1.py:7
+msgid "Warsaw"
+msgstr "Warschau"
+
+#: test1.py:8
+msgid "Moscow"
+msgstr "Moskau"
+
+#: test1.py:9
+msgid "some more"
+msgstr "und noch ein paar."
+
+#: test1.py:12
+#, c-format
+msgid "The capital is %s."
+msgstr "Die Hauptstadt ist %s."
