@@ -2,11 +2,16 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.15 2001/03/27 19:41:31 larsga Exp $
+# $Id: xmlutils.py,v 1.16 2001/03/30 15:45:38 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
 import xmlapp,charconv,errors
+
+try:
+    StringTypes = [types.StringType, types.UnicodeType]
+except AttributeError:
+    StringTypes = [types.StringType]
 
 try:
     import codecs
@@ -33,6 +38,7 @@ try:
             return intern(x)
         return _interned.setdefault(x,x)
     using_unicode = 1
+    xml_chr = unichr
 except ImportError:
     def mkconverter(parser,src,dest):
         if dest == None:
@@ -44,6 +50,7 @@ except ImportError:
             return lambda s:s
     string_intern = intern
     using_unicode = 0
+    xml_chr = chr
 
 # Standard exceptions
 
@@ -69,7 +76,7 @@ class EntityParser:
         self.data_charset=None
         # the default charset in XML is UTF-8
         self.input_encoding=None           # not determined, yet
-        self.charset_converter=mkconverter(self,"utf-8",None)
+        self.charset_converter=None
         self.err_lang="en"
         self.errors=errors.get_error_list(self.err_lang)
         
@@ -101,7 +108,7 @@ class EntityParser:
         to applications. The default is None, which means to return Unicode
         string if supported and UTF-8 otherwise."""
         self.data_charset=charset
-        
+
     def parse_resource(self,sysID,bufsize=16384):
         """Begin parsing an XML entity with the specified system
         identifier.  Only used for the document entity, not to handle
@@ -136,7 +143,7 @@ class EntityParser:
         that."""
 
         sysID=join_sysids(self.get_current_sysid(),sysID)
-        
+
         try:
             inf=self.isf.create_input_source(sysID)
         except IOError,e:
@@ -149,7 +156,10 @@ class EntityParser:
         self.line=1
         self.last_break=0
         self.data=""
-    
+        self.encoded_data=""
+        self.input_encoding = None
+        self.charset_converter = None
+
         self.read_from(inf)
 
         self.flush()
@@ -160,6 +170,7 @@ class EntityParser:
         to return to the original entity later."""
         self._push_ent_stack(name)
         self.data=contents
+        self.encoded_data=""
         self.current_sysID=sysID
         self.pos=0
         self.line=1
@@ -173,7 +184,6 @@ class EntityParser:
         if self.ent_stack==[]: self.report_error(4000)
 
         self._pop_ent_stack()
-        self.final=0
     
     def read_from(self,fileobj,bufsize=16384):
         """Reads data from a file-like object until EOF. Does not close it.
@@ -198,6 +208,7 @@ class EntityParser:
 
         # Block information
         self.data=""
+        self.encoded_data=""
         self.final=0
         self.datasize=0
         self.start_point=-1
@@ -210,7 +221,12 @@ class EntityParser:
         self.last_upd_pos=0
 
     def autodetect_encoding(self, new_data):
-        if new_data[:4] == '\0\0\0\x3c':
+        if len(new_data)<5:
+            # If this is a very short external entity, it may not
+            # have enough bytes for auto-detection. In that case,
+            # it must be UTF-8
+            enc = "utf-8"
+        elif new_data[:4] == '\0\0\0\x3c':
             enc = "ucs-4-be"
         elif new_data[:4] == '\x3c\0\0\0':
             enc = "ucs-4-le"
@@ -234,20 +250,56 @@ class EntityParser:
             enc = "utf-8"
         self.input_encoding = enc
         self.charset_converter = mkconverter(self,enc,self.data_charset)
+
+    def _handle_decoding_error(self, new_data, exc):
+        """If there was an error decoding input data, there could be
+        to reasons: the data could be genuinely incorrect, or the
+        decoder could have run out of data. The latter case is very
+        hard to determine in Python 2.0"""
+
+        if str(exc) in ["UTF-8 decoding error: unexpected end of data",
+                        "UTF-16 decoding error: truncated data"]:
+            while 1:
+                self.encoded_data = new_data[-1]+self.encoded_data
+                new_data = new_data[:-1]
+                try:
+                    new_data = self.charset_converter(new_data)
+                except UnicodeError:
+                    continue
+                return new_data
+        else:
+            self.report_error(3048, exc)
+            # stop feeding any more data
+            self.charset_converter = lambda s:""
+            return ""
             
-    def feed(self,new_data):
+    def feed(self, new_data, decoded = 0):
         """Accepts more data from the data source. This method must
         set self.datasize and correctly update self.pos and self.data.
-        It also does character encoding translation."""
+        It also does character encoding translation. If decoded is true,
+        the data are assumed to have been decoded into the data_charset
+        already."""
         if self.first_feed:
             self.first_feed=0                    
             self.parseStart()
-            if not self.input_encoding and len(new_data)>=5:
-                self.autodetect_encoding(new_data)
+
+        new_data = new_data+self.encoded_data
+        self.encoded_data = ""
+        if not decoded and not self.charset_converter:
+            self.autodetect_encoding(new_data)
+            # If this returns with no auto-detected encoding, i.e.  if
+            # we are in before an xml declaration, no encoding will be
+            # set. However, the input encoding should be determined
+            # after returning from do_parse, since parse_xml_decl
+            # expects to see the entire xml decl at once.
             
         self.update_pos() # Update line/col count
 
-        new_data=self.charset_converter(new_data)
+        if not decoded:
+            try:
+                new_data=self.charset_converter(new_data)
+            except UnicodeError, e:
+                new_data = self._handle_decoding_error(new_data, e)
         
         if self.start_point==-1:
             self.block_offset=self.block_offset+self.datasize
@@ -278,6 +330,14 @@ class EntityParser:
 
     def flush(self):
         "Parses any remnants of data in the last block."
+        if self.encoded_data:
+            try:
+                new_data = self.charset_converter(self.encoded_data)
+                self.data = self.data + new_data
+                self.datasize = len(self.data)
+            except UnicodeError,e:
+                self.report_error(3048, e)
+            self.encoded_data = ""
         if not self.pos+1==self.datasize:
             self.final=1
             pos=self.pos
@@ -490,11 +550,13 @@ class EntityParser:
         self.ent_stack.append((self.get_current_sysid(),self.data,self.pos,\
                                self.line,self.last_break,self.datasize,\
                                self.last_upd_pos,self.block_offset,self.final,
+                               self.input_encoding,self.charset_converter,
                                name))
 
     def _pop_ent_stack(self):
         (self.current_sysID,self.data,self.pos,self.line,self.last_break,\
-         self.datasize,self.last_upd_pos,self.block_offset,self.final,dummy)=\
+         self.datasize,self.last_upd_pos,self.block_offset,self.final,\
+         self.input_encoding,self.charset_converter,dummy)=\
              self.ent_stack[-1]
         del self.ent_stack[-1]
 
@@ -574,10 +636,11 @@ class XMLCommonParser(EntityParser):
                 self.report_error(3010)
 
         enc=None
+
         sddecl=None
         ver=None
         self.skip_ws()
-        
+
         if self.now_at("version"):
             self.skip_ws()
             if not self.now_at("="): self.report_error(3005,"=")
@@ -607,16 +670,6 @@ class XMLCommonParser(EntityParser):
             if self.input_encoding and self.input_encoding!=enc:
                 self.report_error(3047)
 
-            # Setting up correct conversion
-            self.charset_converter = mkconverter(self, enc, self.data_charset)
-
-            # convert the rest of the data according to the encoding
-            # so far, we should have only seen proper ASCII characters,
-            # so the position should not have changed due to the recoding.
-            if not self.input_encoding:
-                self.data = self.charset_converter(self.data)
-                self.input_encoding = enc
-
             self.skip_ws()      
 
         if self.now_at("standalone"):
@@ -636,6 +689,24 @@ class XMLCommonParser(EntityParser):
                 self.skip_ws()
 
         self.skip_ws()
+
+        if not self.input_encoding:
+            # enc gets reported to the application, so don't mess with it.
+            enc1 = enc
+            if not enc:
+                # If no higher-level input encoding is specified, the
+                # default is UTF-8
+                enc1 = "utf-8"
+
+            # Setting up correct conversion
+            self.charset_converter = mkconverter(self, enc1, self.data_charset)
+        
+            # convert the rest of the data according to the encoding
+            # so far, we should have only seen proper ASCII
+            # characters, so the position should not have changed due
+            # to the recoding.
+            self.data = self.charset_converter(self.data)
+            self.input_encoding = enc1
 
         if handler!=None:
             handler.set_entity_info(ver,enc,sddecl)
@@ -687,12 +758,16 @@ class XMLCommonParser(EntityParser):
         if not (digs==9 or digs==10 or digs==13 or \
                 (digs>=32 and digs<=255)):
             if digs>255:
-                self.report_error(1005,digs)
+                # XXX check for surrogate references
+                if using_unicode and digs<65536:
+                    self.app.handle_data(xml_chr(digs),0,1)
+                else:
+                    self.report_error(1005,digs)
             else:
                 self.report_error(3018,digs)
             return ""
         else:
-            return chr(digs)
+            return xml_chr(digs)
 
     def _get_name(self):
         """Parses the name at the current position and returns it. An error
@@ -700,27 +775,15 @@ class XMLCommonParser(EntityParser):
         if self.pos>self.datasize-5 and not self.final:
             raise OutOfDataException()
 
-        data=self.data
-        pos=self.pos
-        if data[pos] in namestart:
-            start=pos
-            pos=pos+1
-
-            try:
-                while data[pos] in namechars:
-                    pos=pos+1
-
-                self.pos=pos
-                return string_intern(data[start:pos])
-            except IndexError:
-                self.pos=pos
-                if self.final:
-                    return string_intern(data[start:])
-                else:
-                    raise OutOfDataException()
+        match = reg_name.match(self.data,self.pos)
+        if match:
+            self.pos = match.end()
+            if match.end()==self.datasize and not self.final:
+                raise OutOfDataException()
+            return string_intern(match.group())
         else:
             self.report_error(3900)
-            return ""            
+            return ""
     
 # --- A collection of useful functions
 
@@ -775,14 +838,7 @@ else:
     
 # --- Some useful regexps
 
-if using_unicode:
-    # XXX need to deal with name characters differently if unicode
-    # is available. Just listing the Latin-1 letters will give codec
-    # errors
-    namestart = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"
-    namestart = unicode(namestart)
-    namechars = namestart + "0123456789.-"
-else:
+if not using_unicode:
     namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
                "¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ¯˘˙˚¸˝˛ˇ"
     namechars=namestart+"0123456789.∑-"
@@ -792,11 +848,21 @@ reg_ws=re.compile("[\n\t \r]+")
 reg_ver=re.compile("[-a-zA-Z0-9_.:]+")
 reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
 reg_std_alone=re.compile("yes|no")
-reg_name=re.compile("["+namestart+"]["+namechars+"]*")
-reg_names=re.compile("["+namestart+"]["+namechars+"]*"
-             "([\n\t \r]+["+namestart+"]["+namechars+"]*)*")
-reg_nmtoken=re.compile("["+namechars+"]+")
-reg_nmtokens=re.compile("["+namechars+"]+([\n\t \r]+["+namechars+"]+)*")
+if using_unicode:
+    from xml.utils import characters
+    reg_name = characters.re_Name
+    reg_names = characters.re_Names
+    reg_nmtoken = characters.re_Nmtoken
+    reg_nmtokens = characters.re_Nmtokens
+    reg_pe_ref = re.compile("%"+characters.Name+";")
+    del characters
+else:
+    reg_name=re.compile("["+namestart+"]["+namechars+"]*")
+    reg_names=re.compile("["+namestart+"]["+namechars+"]*"
+                         "([\n\t \r]+["+namestart+"]["+namechars+"]*)*")
+    reg_nmtoken=re.compile("["+namechars+"]+")
+    reg_nmtokens=re.compile("["+namechars+"]+([\n\t \r]+["+namechars+"]+)*")
+    reg_pe_ref=re.compile("%["+namestart+"]["+namechars+"]*;")
 reg_sysid_quote=re.compile("[^\"]*")
 reg_sysid_apo=re.compile("[^']*")
 reg_pubid_quote=re.compile("[- \n\t\ra-zA-Z0-9'()+,./:=?;!*#@$_%]*")
@@ -805,7 +871,6 @@ reg_start_tag=re.compile("<[A-Za-z_:]")
 reg_quoted_attr=re.compile("[^<\"]*")
 reg_apo_attr=re.compile("[^<']*")
 reg_c_data=re.compile("[<&]")
-reg_pe_ref=re.compile("%["+namestart+"]["+namechars+"]*;")
 
 reg_ent_val_quote=re.compile("[^\"]+")
 reg_ent_val_apo=re.compile("[^\']+")
@@ -849,8 +914,27 @@ reg2code={
 
 predef_ents={"lt":"&#60;","gt":"&#62;","amp":"&#38;","apos":"&#39;",
              "quot":'&#34;'}
+if using_unicode:
+    for k in predef_ents.keys():
+        predef_ents[k]=unicode(predef_ents[k])
 
 # Translation tables
 
-ws_trans=string.maketrans("\r\t\n","   ")  # Whitespace normalization
+_ws_trans=string.maketrans("\r\t\n","   ")  # Whitespace normalization
+if using_unicode:
+    _ws_dict = {}
+    for c in "\r\t\n":_ws_dict[ord(c)] = ord(' ')
+    def ws_trans(data,_ws_dict=_ws_dict):
+        if type(data)==types.StringType:
+            # In theory, this should not happen. Unfortunately,
+            # if the input encoding is not known, a 1:1 decoder
+            # is return, which does provide string objects
+            return data.translate(_ws_trans)
+        return data.translate(_ws_dict)
+else:
+    def ws_trans(data,_ws_trans=_ws_trans,translate=string.translate):
+        return translate(data,_ws_trans)
+
+# XXX not used
 id_trans=string.maketrans("","")           # Identity transform 
+

@@ -72,6 +72,7 @@ english={
     3004: "One of %s or '%s' expected",
     3005: "'%s' expected",
     3047: "encoding '%s' conflicts with autodetected encoding",
+    3048: "character set conversion problem: %s",
 
     # From xmlproc.XMLCommonParser
     3006: "SYSTEM or PUBLIC expected",
@@ -118,7 +119,7 @@ english={
     3041: "Conditional sections not allowed in internal subset",
     3043: "Conditional section not closed",
     3044: "Token '%s' defined more than once",
-    # next: 3048
+    # next: 3049
     
     # From regular expressions that were not matched
     3900: "Not a valid name",

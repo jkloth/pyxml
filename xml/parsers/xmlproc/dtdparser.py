@@ -2,10 +2,9 @@
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
 
-$Id: dtdparser.py,v 1.8 2001/03/27 20:21:02 larsga Exp $
+$Id: dtdparser.py,v 1.9 2001/03/30 15:45:37 loewis Exp $
 """
 
-from types import StringType
 import string
 
 string_find = string.find # optimization
@@ -383,11 +382,14 @@ class DTDParser(XMLCommonParser):
                 if not (digs==9 or digs==10 or digs==13 or \
                         (digs>=32 and digs<=255)):
                     if digs>255:
-                        self.report_error(1005,digs)
+                        if using_unicode and digs<65536:
+                            val = val+xml_chr(digs)
+                        else:
+                            self.report_error(1005,digs)
                     else:
                         self.report_error(3018,digs)
                 else:
-                    val=val+chr(digs)
+                    val=val+xml_chr(digs)
                     
                 pos=endpos+1
 	    elif litval[pos]=="%":
@@ -560,7 +562,7 @@ class DTDParser(XMLCommonParser):
             else:
                 mod=""                
 
-            if type(cp)==StringType:
+            if type(cp) in StringTypes:
                 cont_list.append((cp,mod))
             else:
                 cont_list.append(cp)

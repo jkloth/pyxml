@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.16 2001/03/27 20:21:02 larsga Exp $
+# $Id: xmlproc.py,v 1.17 2001/03/30 15:45:38 loewis Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -16,13 +16,8 @@ from xmlutils import *
 from xmlapp import *
 from xmldtd import *
 
-if using_unicode:
-    _chr = unichr
-else:
-    _chr = chr
-
 version="0.70"
-revision="$Revision: 1.16 $"
+revision="$Revision: 1.17 $"
         
 # ==============================
 # A full well-formedness parser
@@ -224,7 +219,7 @@ class XMLProcessor(XMLCommonParser):
 	        
         while 1:
             piece=self.find_reg(reg_attval_stop)
-            val=val+string_translate(piece,ws_trans)
+            val=val+ws_trans(piece)
 
 	    if self.now_at(delim):
                 break
@@ -285,11 +280,11 @@ class XMLProcessor(XMLCommonParser):
                 piece=self.find_reg(reg_stop)
             except OutOfDataException,e:
                 # Only character data left
-                val=val+string_translate(self.data[self.pos:],ws_trans)
+                val=val+ws_trans(self.data[self.pos:])
                 self.pos=self.datasize
                 break
-            
-            val=val+string_translate(piece,ws_trans)
+
+            val=val+ws_trans(piece)
 
 	    if self.now_at("&#"):
                 val=val+self._read_char_ref()		
@@ -408,8 +403,8 @@ class XMLProcessor(XMLCommonParser):
 	if not (digs==9 or digs==10 or digs==13 or \
 		(digs>=32 and digs<=255)):
 	    if digs>255:
-                if using_unicode:
-                    self.app.handle_data(_chr(digs),0,1)
+                if using_unicode and digs<65536:
+                    self.app.handle_data(xml_chr(digs),0,1)
                 else:
                     self.report_error(1005,digs)
 	    else:
@@ -417,7 +412,7 @@ class XMLProcessor(XMLCommonParser):
 	else:
 	    if self.stack==[]:
 		self.report_error(3028)
-	    self.app.handle_data(_chr(digs),0,1)
+	    self.app.handle_data(xml_chr(digs),0,1)
 
     def parse_cdata(self):
 	"Parses a CDATA marked section from after the '<![CDATA['."
@@ -559,7 +554,7 @@ class XMLProcessor(XMLCommonParser):
 		
 		p.set_sysid(self.get_current_sysid())
                 p.final=1
-		p.feed(int_dtd)
+		p.feed(int_dtd, decoded = 1)
 	    except OutOfDataException,e:
 		self.report_error(3034)
 	finally:

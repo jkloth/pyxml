@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.13 2001/03/27 20:21:02 larsga Exp $
+$Id: xmldtd.py,v 1.14 2001/03/30 15:45:38 loewis Exp $
 """
 
 import types
@@ -404,7 +404,7 @@ class Attribute:
         # Handling code for special attribute xml:space
         
         if name=="xml:space":
-            if type(self.type)==types.StringType:
+            if type(self.type) in StringTypes:
                 parser.report_error(2015)
                 return
 
@@ -420,7 +420,7 @@ class Attribute:
     def validate(self,value,parser):
 	"Validates given value for correctness."
 
-	if type(self.type)!=types.StringType:
+	if type(self.type) not in StringTypes:
 	    for val in self.type:
 		if val==value: return
 	    parser.report_error(2017,(value,self.name))
