@@ -2,7 +2,7 @@
 SAX driver for the Pyexpat C module.  This driver works with
 pyexpat.__version__ == '1.5'.
 
-$Id: drv_pyexpat.py,v 1.1 2000/05/15 20:21:50 lars Exp $
+$Id: drv_pyexpat.py,v 1.2 2000/09/17 18:27:07 loewis Exp $
 """
 
 # Todo on driver:
@@ -30,10 +30,11 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
     "SAX driver for the Pyexpat C module."
 
     def __init__(self):
-        saxlib.XMLReader.__init__(self)
+        saxutils.BaseIncrementalParser.__init__(self)
         self._source = None
         self._parser = None
         self._namespaces = 1
+        self._parsing = 0
 
     # XMLReader methods
 
@@ -76,9 +77,16 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
     # IncrementalParser methods
 
     def feed(self, data):
+        if not self._parsing:
+            self._parsing=1
+            self.reset()
+            self._cont_handler.startDocument()
         self._parser.Parse(data, 0)
 
     def close(self):
+        if self._parsing:
+            self._cont_handler.endDocument()
+            self._parsing=0
         self._parser.Parse("", 1)
         
     def reset(self):

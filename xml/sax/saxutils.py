@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.6 2000/05/15 20:21:48 lars Exp $
+$Id: saxutils.py,v 1.7 2000/09/17 18:27:07 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!
@@ -189,7 +189,7 @@ class ContentGenerator(saxlib.ContentHandler):
 
 # --- XMLFilterImpl
 
-class XMLFilterImpl(saxlib.XMLFilter):
+class XMLFilterBase(saxlib.XMLFilter):
     """This class is designed to sit between an XMLReader and the
     client application's event handlers.  By default, it does nothing
     but pass requests up to the reader and events on to the handlers
@@ -279,6 +279,9 @@ class XMLFilterImpl(saxlib.XMLFilter):
 
     def setProperty(self, name, value):
         self._parent.setProperty(name, value)
+
+# FIXME: remove this backward compatibility hack when not needed anymore
+XMLFilterImpl = XMLFilterBase
         
 # --- BaseIncrementalParser
 
@@ -314,9 +317,22 @@ class BaseIncrementalParser(saxlib.IncrementalParser):
 # --- Utility functions
 
 def prepare_input_source(source):
-    
+
     if type(source) == types.StringType:
         source = saxlib.InputSource(source)
+
+    try:
+        if type(source) == types.UnicodeType:
+            source = saxlib.InputSource(source)
+    except AttributeError:
+        # pre-2.0, no UnicodeType
+        pass
+
+    if hasattr(source,"read"):
+        # It's a file-like object
+        f = source
+        source = saxlib.InputSource()
+        source.setByteStream(f)
 
     if source.getByteStream() == None:
         source.setByteStream(urllib.urlopen(source.getSystemId()))
@@ -603,3 +619,40 @@ class mllib:
 
         def fatalError(self, exception):
             raise RuntimeError(str(exception))
+
+# --- Python 2 compatibility
+class XMLGenerator(saxlib.ContentHandler):
+
+    def __init__(self, out = sys.stdout):
+        saxlib.ContentHandler.__init__(self)
+        self._out = out
+
+    # ContentHandler methods
+        
+    def startDocument(self):
+        self._out.write('<?xml version="1.0" encoding="iso-8859-1"?>\n')
+
+    def startPrefixMapping(self, prefix, uri):
+        pass
+
+    def endPrefixMapping(self, prefix):
+        pass
+
+    def startElement(self, name, qname, attrs):
+        self._out.write('<' + qname)
+        for (name, value) in attrs.items():
+            self._out.write(' %s="%s"' % (qname, escape(value)))
+        self._out.write('>')
+
+    def endElement(self, name, qname):
+        # FIXME: not namespace friendly yet
+        self._out.write('</%s>' % qname)
+
+    def characters(self, content):
+        self._out.write(escape(content))
+
+    def ignorableWhitespace(self, content):
+        self._out.write(content)
+        
+    def processingInstruction(self, target, data):
+        self._out.write('<?%s %s?>' % (target, data))
