@@ -131,7 +131,7 @@ def testReplaceChildFragment():
             "replaceChild(<fragment>)")
     frag.unlink()
     dom.unlink()
-  
+
 def testLegalChildren():
     dom = Document()
     elem = dom.createElement('element')
@@ -396,7 +396,7 @@ def _testElementReprAndStrUnicode():
 def _testElementReprAndStrUnicodeNS():
     dom = Document()
     el = dom.appendChild(
-        dom.createElementNS( "http://www.slashdot.org",  "slash:abc"))
+        dom.createElementNS(u"http://www.slashdot.org", u"slash:abc"))
     string1 = repr(el)
     string2 = str(el)
     confirm(string1 == string2)
@@ -1329,24 +1329,40 @@ names.sort()
 
 failed = []
 
+try:
+    Node.allnodes
+except AttributeError:
+    # We don't actually have the minidom from the standard library,
+    # but are picking up the PyXML version from site-packages.
+    def check_allnodes():
+        pass
+else:
+    def check_allnodes():
+        confirm(len(Node.allnodes) == 0,
+                "assertion: len(Node.allnodes) == 0")
+        if len(Node.allnodes):
+            print "Garbage left over:"
+            if verbose:
+                print Node.allnodes.items()[0:10]
+            else:
+                # Don't print specific nodes if repeatable results
+                # are needed
+                print len(Node.allnodes)
+        Node.allnodes = {}
+
 for name in names:
     if name.startswith("test"):
         func = globals()[name]
         try:
             func()
+            check_allnodes()
         except:
             failed.append(name)
-            oldstdout = sys.stdout
-            sys.stdout = StringIO()
-            try:
-                print "Test Failed: " + name
-                sys.stdout.flush()
-                traceback.print_exc()
-                print sys.exc_info()[1]
-                oldstdout.write(sys.stdout.getvalue())
-            finally:
-                sys.stdout = oldstdout
-            raise
+            print "Test Failed: ", name
+            sys.stdout.flush()
+            traceback.print_exception(*sys.exc_info())
+            print `sys.exc_info()[1]`
+            Node.allnodes = {}
 
 if failed:
     print "\n\n\n**** Check for failures in these tests:"
