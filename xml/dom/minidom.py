@@ -287,11 +287,11 @@ def _append_child(self, node):
     childNodes = self.childNodes
     if childNodes:
         last = childNodes[-1]
-        node.previousSibling = last
-        last.nextSibling = node
+        node.__dict__["previousSibling"] = last
+        last.__dict__["nextSibling"] = node
     childNodes.append(node)
     if self._make_parent_nodes:
-        node.parentNode = self
+        node.__dict__["parentNode"] = self
 
 def _in_document(node):
     # return True iff node is part of a document tree
