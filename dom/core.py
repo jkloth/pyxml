@@ -26,8 +26,9 @@ title = doc.createElement('title')
 
 text = doc.createTextNode("Title goes here")
 title.appendChild(text)
-head.appendChild (title)                # added this
-doc.appendChild (head)                  # and this
+head.appendChild(title)                
+html.appendChild(head)
+doc.appendChild (html)                 
 
 print doc.toxml()
 """
