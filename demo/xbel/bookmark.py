@@ -40,6 +40,7 @@ class Bookmarks:
     def dump_xbel(self,out=sys.stdout):
         out.write('<?xml version="1.0"?>\n'
                   '<!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "xbel.dtd">\n'
+                  '<xbel>'
         )
         out.write("  <desc>%s</desc>\n" % (escape(self.desc),) )
 
