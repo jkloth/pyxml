@@ -35,7 +35,73 @@ has to be filled in later, or rewritten, or verified, or something.
 
 \tableofcontents
 
-%\section{\module{xml.dom}}
+\section{\module{xml.dom} Extensions}
+\sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
+
+\begin{notice}
+  The material in this section describes features of the
+  \module{xml.dom} module that does not appear in the version of the
+  module included with Python.  This is written as a supplement to the
+  \ulink{corresponding
+  section}{http://www.python.org/doc/2.2.1/lib/module-xml.dom.html} in
+  the Python 2.2.1 documentation.  We intend that all or most of these
+  additions be added to the Python standard library in a future
+  release.
+\end{notice}
+
+Starting with PyXML 0.8, some features of the DOM Level 3 working
+drafts are being added.  These features are based on working drafts
+and will be changed as the drafts are updated.  Use at your own risk.
+
+\begin{excdesc}{ValidationErr}
+  New exception.  The validation features of the Level 3 DOM can raise
+  this exception when validation constraints are not met.  The rest of
+  the validation features have not been implemented, but any Python
+  DOM implementation would use the same exception, so it is offered at
+  this point.
+\end{excdesc}
+
+% Written this way so I can copy the table line into the docs when
+% this gets integrated.
+The additional exception code defined in the Level 3 DOM specification
+map to the exception described above:
+
+\begin{tableii}{l|l}{constant}{Constant}{Exception}
+  \lineii{VALIDATION_ERR}{\exception{ValidationErr}}
+\end{tableii}
+
+The \class{Node} class has grown a number of additional constants
+useful for some of the new methods added in DOM Level 3.  These
+constants are:  \constant{TREE_POSITION_PRECEDING},
+\constant{TREE_POSITION_FOLLOWING}, \constant{TREE_POSITION_ANCESTOR},
+\constant{TREE_POSITION_DESCENDENT},
+\constant{TREE_POSITION_EQUIVALENT},
+\constant{TREE_POSITION_SAME_NODE},
+\constant{TREE_POSITION_DISCONNECTED}.
+
+Additional classes have been added to provide access to constants and
+serve as base classes for implementations:
+
+\begin{classdesc*}{UserDataHandler}
+  The DOM Level 3 ``Core'' feature adds a method
+  \method{setUserData()} which accepts an instance conforming to the
+  \class{UserDataHandler} interface.  This class provides the
+  constants used as arguments to the \method{handle()} of that
+  interface.  The constants provided are \constant{NODE_CLONED},
+  \constant{NODE_IMPORTED}, \constant{NODE_DELETED}, and
+  \constant{NODE_RENAMED}.
+\end{classdesc*}
+
+\begin{classdesc*}{DOMError}
+  The DOM Level 3 ``Core'' feature adds support for a user-settable
+  error handler.  This class provides the constants used to indicate
+  the severity of an error, and may be used as a base class by DOM
+  implementations.  These constants should be used to test the value
+  of the \member{severity} member of instances of this interface.  The
+  constants provided are \constant{SEVERITY_WARNING},
+  \constant{SEVERITY_ERROR}, and \constant{SEVERITY_FATA_ERROR}.
+\end{classdesc*}
+
 
 \section{\module{xml.dom.ext.c14n} ---
          Canonical XML generation}
