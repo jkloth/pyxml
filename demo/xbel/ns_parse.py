@@ -55,10 +55,5 @@ if __name__ == '__main__':
     p=saxexts.SGMLParserFactory.make_parser()
     p.setDocumentHandler(ns_handler)
     p.parseFile(open(r"/home/amk/.netscape/bookmarks.html"))
-#    p.parseFile(open(r"h:/internet/netscape/bookmark.htm"))
-
-    print ns_handler.bms.folders.__dict__
-    for f in ns_handler.bms.folders:
-        print f.__dict__
-#    ns_handler.bms.dump_netscape()
+    ns_handler.bms.dump_xbel()
 

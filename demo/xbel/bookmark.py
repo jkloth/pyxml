@@ -123,17 +123,17 @@ class Bookmark(Node):
         self.url=url
 
     def dump_xbel(self,out):
-        out.write("  <BOOKMARK>\n")
-        out.write("    <NAME>%s</NAME>\n" % self.name)
-        out.write("    <URL>%s</URL>\n" % self.url)
+        out.write("    <BOOKMARK>\n")
+        out.write("      <NAME>%s</NAME>\n" % self.name)
+        out.write("      <URL>%s</URL>\n" % self.url)
 
         if self.created!=None:
-            out.write("    <ADDED>%s</ADDED>\n" % self.created)
+            out.write("      <ADDED>%s</ADDED>\n" % self.created)
 
         if self.visited!=None:
-            out.write("    <VISITED>%s</VISITED>\n" % self.visited)
+            out.write("      <VISITED>%s</VISITED>\n" % self.visited)
             
-        out.write("  </BOOKMARK>\n")
+        out.write("    </BOOKMARK>\n")
 
     def dump_adr(self,out):
         out.write("#URL\n")
