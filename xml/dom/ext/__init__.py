@@ -242,19 +242,20 @@ def SplitQName(qname):
     #sName = g_splitNames.get(qname)
     sName = None
     if sName == None:
-        index = string.find(qname, ':')
-        if index == -1:
+        fields = string.splitfields(qname, ':')
+        if len(fields) == 1:
             #Note: we could gain a tad more performance by interning 'xmlns'
             if qname == 'xmlns':
                 sName = ('', 'xmlns')
             else:
                 sName = ('', qname)
-        else:
-            (part1, part2) = (qname[:index], qname[index+1:])
-            if part1 == 'xmlns':
-                sName = (part2, 'xmlns')
+        elif len(fields) == 2:
+            if fields[0] == 'xmlns':
+                sName = (fields[1], 'xmlns')
             else:
-                sName = (part1, part2)
+                sName = (fields[0], fields[1])
+        else:
+            sname = (None, None)
         #g_splitNames[qname] = sName
     return sName
 
