@@ -21,7 +21,7 @@ XXX example here
 
 '''
 
-import string
+import string, sys
 from xml.utils import escape
 
 # References inside square brackets, such as [1.5], are to a section in the
@@ -110,7 +110,6 @@ def createDocument():
     d.name = '#document'
     d.value = d.attributes = None
     d = Document(d, None, None)
-    d._document = d
     return d
 
 import UserList, UserDict
@@ -141,20 +140,35 @@ class NamedNodeMap(UserDict.UserDict):
 class _nodeData:
     """Class used for storing the data for a single node.  Instances of
     this class should never be returned to users of the DOM implementation."""
+    Node_counter = 0
     def __init__(self, type):
         self.type = type
         self.children = []
         self.name = self.value = self.attributes = None
-        
+        _nodeData.Node_counter = _nodeData.Node_counter + 1
+#        print '_nodeData\tinit\t%s\t%s' % (_nodeData.Node_counter, self.name)
+
+    def __del__(self):
+        _nodeData.Node_counter = _nodeData.Node_counter -1
+#        print '_nodeData\tdel\t%s\t%s' % (_nodeData.Node_counter, self.name)
+
+
 class Node:
     '''Base class for grove nodes in DOM model.  Proxies an instance
     of the _nodeData class.'''
 
     readonly = 0
+    Node_counter = 0
     def __init__(self, node, parent = None, document = None):
         self._node = node
         self.parentNode = parent
         self._document = document
+        Node.Node_counter = Node.Node_counter + 1
+#        print 'Node      \tinit\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
+
+    def __del__(self):
+        Node.Node_counter = Node.Node_counter -1
+#        print 'Node      \tdel\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
 
     def _index(self):
         "Return the index of this child in its parent's child list"
@@ -177,6 +191,18 @@ class Node:
                 raise HierarchyRequestException, \
                       "%s is an ancestor of %s" % (repr(child), repr(parent) )
             p = p.parentNode
+
+    def __getattr__(self, key):
+        if key[0:4] == 'get_' or key[0:4] == 'set_':
+            raise AttributeError, repr(key[4:])
+        func = getattr(self, 'get_'+key)
+        return func()
+
+    def __setattr__(self, key, value):
+        if hasattr(self, 'set_'+key):
+            func = getattr(self, 'set_'+key)
+            func( value )
+        self.__dict__[key] = value
         
     # get/set attributes
 
@@ -249,14 +275,15 @@ class Node:
 
         if newChild._document != self._document:
             raise WrongDocumentException("newChild %s created from a "
-                                         "different document" % (repr(s),) )
+                                         "different document" % (repr(newChild),) )
 
         # If newChild is already in the tree, remove it
         if newChild.parentNode != None:
             newChild.parentNode.removeChild( newChild )
 
         if refChild == None:
-            self.appendChild(newChild)
+            self._node.children.append( newChild._node )
+            newChild.parentNode = self
             return newChild
 
         L = self._node.children ; n = refChild._node
@@ -297,20 +324,8 @@ class Node:
             raise NotFoundException("oldChild is not a child of this node")
 
     def appendChild(self, newChild):
-        if self.readonly:
-            raise NoModificationAllowedException, "Read-only node "+repr(self)
-        self._checkChild(newChild, self)
-
-        if newChild._document != self._document:
-            raise WrongDocumentException("newChild created from a different document")
-
-        # If newChild is already in the tree, remove it
-        if newChild.parentNode != None:
-            newChild.parentNode.removeChild( newChild )
-
-        self._node.children.append( newChild._node )
-        newChild.parentNode = self
-        return newChild
+        self.insertBefore(newChild,None)
+        return
 
     def hasChildNodes(self):
         return len(self._node.children) > 0
@@ -617,9 +632,9 @@ class Document(Node):
     def __init__(self, node, parent = None, document = None):
         Node.__init__(self, node, parent = None, document = None)
         self.documentType = None
-        self.documentElement = None
         self.DOMImplementation = __import__(__name__)
-
+        self._document = None
+        
     def toxml(self):
         s = '<?xml version="1.0"?>\n'
         s = s + "<!DOCTYPE XXX>\n"
@@ -629,7 +644,7 @@ class Document(Node):
             s = s + n.toxml()
         return s
 
-    def createElement(self, tagName):
+    def createElement(self, tagName, **kwdict):
         d = _nodeData(ELEMENT_NODE)
         d.name = tagName
         d.value = None
@@ -679,8 +694,9 @@ class Document(Node):
         return EntityReference(d, None, self)
 
     def getElementsByTagName(self, tagname):
-        if self.documentElement == None: return []
-        return self.documentElement.getElementsByTagName(tagname)
+        elem = self.get_documentElement()
+        if elem == None: return []
+        return elem.getElementsByTagName(tagname)
 
     # Attributes
     def get_doctype(self):
@@ -688,64 +704,70 @@ class Document(Node):
     def get_implementation(self):
         return self.DOMImplementation
     def get_documentElement(self):
-        return self.documentElement
-
+        doc = None
+        for elem in self._node.children:
+            if elem.type == ELEMENT_NODE:
+                if doc is None:
+                    doc = Element(elem, self, self)
+                else:
+                    raise HierarchyRequestException, \
+                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+        return doc
+    def get_document(self):
+        return self
+    def get_ownerDocument(self):
+        return self
+    
     # Override the Node mutation methods in order to check that
     # there's at most a single Element child, and to update
     # self.documentElement.
 
     def insertBefore(self, newChild, refChild):
-        retval = Node.insertBefore(self, newChild, refChild)
-        doc = None
-        for elem in self._node.children:
-            if elem.type == ELEMENT_NODE:
-                if doc is None:
-                    doc = Element(elem, self, self)
-                else:
-                    raise HierarchyRequestException, \
-                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
-        self.documentElement = doc
-        
-        return retval
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
+        self._checkChild(newChild, self)
+
+        if newChild._document != self:
+            raise WrongDocumentException("newChild %s created from a "
+                                         "different document" % (repr(newChild),) )
+
+        # If newChild is already in the tree, remove it
+        if newChild.parentNode != None:
+            newChild.parentNode.removeChild( newChild )
+
+        if refChild == None:
+            self._node.children.append( newChild._node )
+            newChild.parentNode = self
+            return newChild
+
+        L = self._node.children ; n = refChild._node
+        for i in range(len(L)):
+            if L[i] == n:
+                L[i:i] = [newChild._node]
+                newChild.parentNode = self
+                return newChild
+        raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
-        retval = Node.replaceChild(self, newChild, oldChild)
-        doc = None
-        for elem in self._node.children:
-            if elem.type == ELEMENT_NODE:
-                if doc is None:
-                    doc = Element(elem, self, self)
-                else:
-                    raise HierarchyRequestException, \
-                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
-        self.documentElement = doc
-        return retval
+        if self.readonly:
+            raise NoModificationAllowedException, "Read-only node "+repr(self)
+        self._checkChild(newChild, self)
+        if newChild._document != self:
+            raise WrongDocumentException("newChild %s created from a "
+                                         "different document" % (repr(newChild),) )
 
-    def removeChild(self, oldChild):
-        retval = Node.removeChild(self, oldChild)
-        doc = None
-        for elem in self._node.children:
-            if elem.type == ELEMENT_NODE:
-                if doc is None:
-                    doc = Element(elem, self, self)
-                else:
-                    raise HierarchyRequestException, \
-                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
-        self.documentElement = doc
-        return retval
+        o = oldChild._node ; L = self._node.children
+        for i in range(len(L)):
+            if L[i] == o:
+                # If newChild is already in the tree, remove it
+                if newChild.parentNode != None:
+                    newChild.parentNode.removeChild( newChild )
 
-    def appendChild(self, newChild):
-        retval = Node.appendChild(self, newChild)
-        doc = None
-        for elem in self._node.children:
-            if elem.type == ELEMENT_NODE:
-                if doc is None:
-                    doc = Element(elem, self, self)
-                else:
-                    raise HierarchyRequestException, \
-                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
-        self.documentElement = doc
-        return retval
+                L[i] = newChild._node
+                newChild.parentNode = self
+                oldChild.parentNode = None
+                return oldChild
+        raise NotFoundException("oldChild not a child of this node")
     
 class DocumentFragment(Node):
     pass
