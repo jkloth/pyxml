@@ -24,9 +24,4 @@ def explode_node(node, condition):
 if __name__ == '__main__':
     from xml.dom.writer import HtmlWriter
 
-    tree = HTML(BODY(H1(A({'href':'blah'}, 'blah blah'))))
-    w = HtmlWriter()
-    w.write(tree)
-
-    explode_node(tree, 'this.GI == "A"')
-    w.write(tree)
+    pass
