@@ -131,6 +131,19 @@ used in that standard.
 \end{classdesc*}
 
 
+\begin{classdesc*}{XLINK}
+  The \citetitle[http://www.w3.org/TR/xlink/]{XML Linking Language}
+  defines document linking semantics and an attribute language that
+  allows these semantics to be expressed in XML documents.
+
+  \begin{memberdesc}{BASE}
+    The URI of the global attributes defined in the XLink
+    specification.  All attributes that define the presence and
+    behavior of links are in this namespace.
+  \end{memberdesc}
+\end{classdesc*}
+
+
 \begin{classdesc*}{SOAP}
   \citetitle[http://www.w3.org/TR/SOAP]{Simple Object Access Protocol}
   defines a means of communicating with objects on servers. It can be
@@ -218,16 +231,27 @@ used in that standard.
   \end{memberdesc}
 
   \begin{memberdesc}{ENC_BASE64}
-    URI used to denote the base64 encoding.
+    URI used to denote the base64 encoding and transform.
   \end{memberdesc}
 
-  % Why are these not in a separate class?
-  \begin{memberdesc}{C14N}
-    URI used to denote canonical XML, without comments.
+  \begin{memberdesc}{ENVELOPED}
+    URI used to specify the enveloped signature transform method
+    (\ulink{section
+    6.6.4}{http://www.w3.org/TR/xmldsig-core/#sec-EnvelopedSignature}
+    of the specification).
   \end{memberdesc}
 
-  \begin{memberdesc}{C14N_COMM}
-    URI used to denote canonical XML, with comments.
+  \begin{memberdesc}{XPATH}
+    URI used to specify the XPath filtering transform method
+    (\ulink{section
+    6.6.3}{http://www.w3.org/TR/xmldsig-core/#sec-XPath} of the
+    specification).
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSLT}
+    URI used to specify the XSLT transform method (\ulink{section
+    6.6.5}{http://www.w3.org/TR/xmldsig-core/#sec-XSLT} of the
+    specification).
   \end{memberdesc}
 \end{classdesc*}
 
