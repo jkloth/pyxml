@@ -65,6 +65,8 @@ typedef struct {
 	PyObject_HEAD
 
 	XML_Parser itself;
+        int returns_unicode; /* True if Unicode strings are returned;
+				if false, UTF-8 strings are returned */
 	PyObject **handlers;
 } xmlparseobject;
 
@@ -81,7 +83,9 @@ struct HandlerInfo {
 
 staticforward struct HandlerInfo handler_info[];
 
-static PyObject *conv_atts( XML_Char **atts){
+/* Convert an array of attributes and their values into a Python dict */
+
+static PyObject *conv_atts_using_string( XML_Char **atts){
 	PyObject *attrs_obj=NULL;
 	XML_Char **attrs_p, **attrs_k;
 	int attrs_len;
@@ -114,11 +118,96 @@ static PyObject *conv_atts( XML_Char **atts){
 	return attrs_obj;
 }
 
+static PyObject *conv_atts_using_unicode( XML_Char **atts){
+        PyObject *attrs_obj=NULL;
+        XML_Char **attrs_p, **attrs_k;
+        int attrs_len;
+
+        if( (attrs_obj = PyDict_New()) == NULL ) 
+                goto finally;
+        for(attrs_len=0, attrs_p = atts; 
+            *attrs_p;
+            attrs_p++, attrs_len++) {
+                if (attrs_len%2) {
+		        PyObject *attr_str, *value_str;
+		        const char *p = (const char *) (*attrs_k);
+                        attr_str=PyUnicode_DecodeUTF8(p, strlen(p), "strict"); 
+                        if (! attr_str) {
+                                Py_DECREF(attrs_obj);
+                                attrs_obj=NULL;
+                                goto finally;
+                        }
+			p = (const char *) *attrs_p;
+                        value_str=PyUnicode_DecodeUTF8(p, strlen(p), "strict");
+                        if (! value_str) {
+                                Py_DECREF(attrs_obj);
+                                Py_DECREF(attr_str);
+                                attrs_obj=NULL;
+                                goto finally;
+                        }
+                        if (PyDict_SetItem(attrs_obj, attr_str, value_str) < 0) {
+                                Py_DECREF(attrs_obj);
+                                attrs_obj=NULL;
+                                goto finally;
+                        }
+                        Py_DECREF(attr_str);
+                        Py_DECREF(value_str);
+                }
+                else attrs_k=attrs_p;
+        }
+        finally:
+        return attrs_obj;
+}
+
+/* Convert a string of XML_Chars into a Unicode string.
+   Returns None if str is a null pointer. */
+
+static PyObject *conv_string_to_unicode( XML_Char *str ) {
+  /* XXX currently this code assumes that XML_Char is 8-bit, 
+     and hence in UTF-8.  */
+  /* UTF-8 from Expat, Unicode desired */
+  if (str == NULL) {Py_INCREF(Py_None); return Py_None;}
+  return PyUnicode_DecodeUTF8( (const char *)str, 
+			       strlen( (const char *)str ), 
+			       "strict" );
+}
+
+static PyObject *conv_string_len_to_unicode( const XML_Char *str, int len ) {
+  /* XXX currently this code assumes that XML_Char is 8-bit, 
+     and hence in UTF-8.  */
+  /* UTF-8 from Expat, Unicode desired */
+  if (str == NULL) {Py_INCREF(Py_None); return Py_None;}
+  return PyUnicode_DecodeUTF8( (const char *)str, 
+			       len, 
+			       "strict" );
+}
+
+/* Convert a string of XML_Chars into an 8-bit Python string.
+   Returns None if str is a null pointer. */
+
+static PyObject *conv_string_to_utf8( XML_Char *str ) {
+  /* XXX currently this code assumes that XML_Char is 8-bit, 
+     and hence in UTF-8.  */
+  /* UTF-8 from Expat, UTF-8 desired */
+  if (str == NULL) {Py_INCREF(Py_None); return Py_None;}
+  return PyString_FromString( (const char *)str );
+}
+
+static PyObject *conv_string_len_to_utf8( const XML_Char *str, 
+					  int len ) 
+{
+  /* XXX currently this code assumes that XML_Char is 8-bit, 
+     and hence in UTF-8.  */
+  /* UTF-8 from Expat, UTF-8 desired */
+  if (str == NULL) {Py_INCREF(Py_None); return Py_None;}
+  return PyString_FromStringAndSize( (const char *)str, len );
+}
+
 /* Callback routines */
 
-void clear_handlers( xmlparseobject *self );
+static void clear_handlers( xmlparseobject *self );
 
-void flag_error( xmlparseobject *self ){
+static void flag_error( xmlparseobject *self ){
 	clear_handlers(self);
 }
 
@@ -147,6 +236,9 @@ static RC my_##NAME##Handler PARAMS {\
 	return RETURN; \
 }
 
+#define STRING_CONV_FUNC (self->returns_unicode \
+                          ? conv_string_to_unicode : conv_string_to_utf8)
+
 #define VOID_HANDLER( NAME, PARAMS, PARAM_FORMAT ) \
 	RC_HANDLER( void, NAME, PARAMS, ;, PARAM_FORMAT, ;, ;,\
 	(xmlparseobject *)userData )
@@ -158,21 +250,26 @@ static RC my_##NAME##Handler PARAMS {\
 
 VOID_HANDLER( StartElement, 
 		(void *userData, const XML_Char *name, const XML_Char **atts ), 
-		("(sO&)", name, conv_atts, atts ) )
+                ("(O&O&)", STRING_CONV_FUNC, name, 
+		 (self->returns_unicode  
+		  ? conv_atts_using_unicode 
+		  : conv_atts_using_string), atts ) )
 
 VOID_HANDLER( EndElement, 
 		(void *userData, const XML_Char *name ), 
-		("(s)", name) )
+                ("(O&)", STRING_CONV_FUNC, name) )
 
 VOID_HANDLER( ProcessingInstruction,
 		(void *userData, 
 		const XML_Char *target, 
 		const XML_Char *data),
-		("(ss)",target, data ))
+                ("(O&O&)",STRING_CONV_FUNC,target, STRING_CONV_FUNC,data ))
 
 VOID_HANDLER( CharacterData, 
 		(void *userData, const XML_Char *data, int len), 
-		("(s#)", data, len ) )
+                ("(O)", (self->returns_unicode 
+			 ? conv_string_len_to_unicode(data,len) 
+			 : conv_string_len_to_utf8(data,len) ) ) )
 
 VOID_HANDLER( UnparsedEntityDecl,
 		(void *userData, 
@@ -181,7 +278,10 @@ VOID_HANDLER( UnparsedEntityDecl,
 			const XML_Char *systemId,
 		        const XML_Char *publicId,
 		        const XML_Char *notationName),
-		("(sssss)", entityName, base, systemId, publicId, notationName))
+                ("(O&O&O&O&O&)", 
+		 STRING_CONV_FUNC,entityName, STRING_CONV_FUNC,base, 
+		 STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId, 
+		 STRING_CONV_FUNC,notationName))
 
 VOID_HANDLER( NotationDecl, 
 		(void *userData,
@@ -189,22 +289,24 @@ VOID_HANDLER( NotationDecl,
 			const XML_Char *base,
 			const XML_Char *systemId,
 			const XML_Char *publicId),
-		("(ssss)", notationName, base, systemId, publicId))
+                ("(O&O&O&O&)", 
+		 STRING_CONV_FUNC,notationName, STRING_CONV_FUNC,base, 
+		 STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId))
 
 VOID_HANDLER( StartNamespaceDecl,
 		(void *userData,
 		      const XML_Char *prefix,
 		      const XML_Char *uri),
-		("(ss)", prefix, uri ))
+                ("(O&O&)", STRING_CONV_FUNC,prefix, STRING_CONV_FUNC,uri ))
 
 VOID_HANDLER( EndNamespaceDecl,
 		(void *userData,
 		    const XML_Char *prefix),
-		("(s)", prefix ))
+                ("(O&)", STRING_CONV_FUNC,prefix ))
 
 VOID_HANDLER( Comment,
                (void *userData, const XML_Char *prefix),
-		("(s)", prefix))
+                ("(O&)", STRING_CONV_FUNC,prefix))
 
 VOID_HANDLER( StartCdataSection,
                (void *userData),
@@ -216,11 +318,15 @@ VOID_HANDLER( EndCdataSection,
 
 VOID_HANDLER( Default,
 		(void *userData,  const XML_Char *s, int len),
-		("(s#)",s,len))
+                ("(O)", (self->returns_unicode 
+			 ? conv_string_len_to_unicode(s,len) 
+			 : conv_string_len_to_utf8(s,len) ) ) )
 
 VOID_HANDLER( DefaultHandlerExpand,
 		(void *userData,  const XML_Char *s, int len),
-		("(s#)",s,len))
+                ("(O)", (self->returns_unicode 
+			 ? conv_string_len_to_unicode(s,len) 
+			 : conv_string_len_to_utf8(s,len) ) ) )
 
 INT_HANDLER( NotStandalone, 
 		(void *userData), 
@@ -233,7 +339,9 @@ RC_HANDLER( int, ExternalEntityRef,
 		    const XML_Char *systemId,
 		    const XML_Char *publicId),
 		int rc=0;,
-		("(ssss)", context, base, systemId, publicId ),
+                ("(O&O&O&O&)", 
+		 STRING_CONV_FUNC,context, STRING_CONV_FUNC,base, 
+		 STRING_CONV_FUNC,systemId, STRING_CONV_FUNC,publicId ),
 		rc = PyInt_AsLong( rv );, rc,
 		XML_GetUserData( parser ) )
 		
@@ -381,7 +489,7 @@ xmlparse_ParseFile( xmlparseobject *self, PyObject *args )
 		  int bytes_read;
 		  void *buf = XML_GetBuffer(self->itself, BUF_SIZE);
 		  if (buf == NULL) {
-			  /* FIXME: throw exception for no memory */
+		          PyErr_SetString(PyExc_MemoryError, "out of memory");
 			  return NULL;
 		  }
 
@@ -478,6 +586,7 @@ newxmlparseobject( char *encoding, char *namespace_separator){
 	if (self == NULL)
 		return NULL;
 
+	self->returns_unicode = 1;
 	if (namespace_separator) {
 		self->itself = XML_ParserCreateNS(encoding, 
 						*namespace_separator);
@@ -550,6 +659,8 @@ xmlparse_getattr(xmlparseobject *self, char *name)
 	if (strcmp(name, "ErrorByteIndex") == 0)
 		return Py_BuildValue("l",
 				XML_GetErrorByteIndex(self->itself));
+        if (strcmp(name, "returns_unicode") == 0)
+	        return Py_BuildValue("i", self->returns_unicode);
 
 	handlernum=handlername2int( name );
 
@@ -599,6 +710,14 @@ xmlparse_setattr( xmlparseobject *self, char *name, PyObject *v)
 		return -1;
 	}
 
+        if (strcmp(name, "returns_unicode") == 0) {
+		PyObject *intobj = PyNumber_Int(v);
+		if (intobj == NULL) return -1;
+		if (PyInt_AsLong(intobj)) self->returns_unicode = 1;
+		else                      self->returns_unicode = 0;
+		Py_DECREF(intobj);
+		return 0;
+	}
 	if( sethandler( self, name, v ) ){
 		return 0;
 	}
@@ -682,17 +801,18 @@ static struct PyMethodDef pyexpat_methods[] = {
 	{NULL,	 (PyCFunction)NULL, 0, NULL}		/* sentinel */
 };
 
-
-/* Initialization function for the module (*must* be called initpyexpat) */
+/* Module docstring */
 
 static char pyexpat_module_documentation[] = 
 "Python wrapper for Expat parser."
 ;
 
+/* Initialization function for the module */
+
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.7 $";
+        char *rev="$Revision: 1.8 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
@@ -714,6 +834,13 @@ initpyexpat(){
 	errors_module=PyModule_New( "errors" );
 	PyDict_SetItemString(d,"errors", errors_module );
 
+	/* XXX When Expat supports some way of figuring out how it was
+	   compiled, this should check and set native_encoding 
+	   appropriately. 
+	*/
+	PyDict_SetItemString(d, "native_encoding", 
+			     PyString_FromString("UTF-8") );
+			     
 	errors_dict=PyModule_GetDict( errors_module );
 
 #define MYCONST(name) \
