@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.24 2001/10/30 21:30:51 uche Exp $
+$Id: saxutils.py,v 1.25 2001/10/30 21:38:23 uche Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -155,9 +155,9 @@ except ImportError: # 1.5 compatibility: fall back to do-nothing
     def _outputwrapper(stream,encoding):
         return stream
 
-GENERATED_PREFIX = "genprefix%s"
 
 class XMLGenerator(handler.ContentHandler):
+    GENERATED_PREFIX = "xml.sax.saxutils.prefix%s"
 
     def __init__(self, out=None, encoding="iso-8859-1"):
         if out is None:
@@ -220,7 +220,7 @@ class XMLGenerator(handler.ContentHandler):
                 # default namespace
                 #If an attribute has a nsuri but not a prefix, we must
                 #create a prefix and add a nsdecl
-                prefix = GENERATED_PREFIX % self._generated_prefix_ctr
+                prefix = self.GENERATED_PREFIX % self._generated_prefix_ctr
                 self._generated_prefix_ctr = self._generated_prefix_ctr + 1
                 name = prefix + ':' + name[1]
                 self._out.write(' xmlns:%s=%s' % (prefix, quoteattr(name[0])))
