@@ -1,6 +1,6 @@
-# Test the dom.util module
+# Test the dom.utils module
 
-from xml.dom import core, util
+from xml.dom import core, utils
 
 # Build a test DOM tree
 from xml.dom.builder import Builder
@@ -22,7 +22,7 @@ t2 = t.cloneNode(1)
 
 print 'strip_whitespace test'
 print t.toxml()
-util.strip_whitespace(t, util.WS_LEFT)
+utils.strip_whitespace(t, utils.WS_LEFT)
 print '=========='
 print t.toxml()
 
@@ -30,14 +30,14 @@ print '======================'
 
 print 'collapse_whitespace test'
 print t2.toxml()
-util.collapse_whitespace(t2, util.WS_INTERNAL)
+utils.collapse_whitespace(t2, utils.WS_INTERNAL)
 
 print '=========='
 print t2.toxml()
 print
 
 t2.documentElement.normalize()
-util.collapse_whitespace(t2, util.WS_INTERNAL)
+utils.collapse_whitespace(t2, utils.WS_INTERNAL)
 print t2.toxml()
 
 
