@@ -1,9 +1,8 @@
-
 # Some experiments in adding character encoding conversions to xmlproc.
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.
 #
-# $Id: charconv.py,v 1.6 2001/03/27 13:39:06 loewis Exp $
+# $Id: charconv.py,v 1.7 2001/12/30 12:09:14 loewis Exp $
 
 import string
 
@@ -16,7 +15,7 @@ import string
 # 127-145 and 147-159 in the order they appear in CP 850. Since there are
 # more non-ISO chars than there is room for in these intervals, some of
 # the last chars are also mapped to 159.
-    
+
 cp850_iso=[199,252,233,226,228,224,229,231,234,235,232,239,238,236,196,197,
            201,230,198,244,246,242,251,249,255,246,220,248,163,127,215,128,
            225,237,243,250,241,209,170,186,191,174,172,189,188,161,171,187,
@@ -33,7 +32,7 @@ for chno in cp850_iso:
     cp850_iso_tbl=cp850_iso_tbl+chr(chno)
 
 # ISO 8859-1 to CP 850
-    
+
 iso_cp850=[0]*256
 for ix in range(256):
     iso_cp850[ord(cp850_iso_tbl[ix])]=ix
@@ -111,7 +110,7 @@ class ConverterDatabase:
     def add_alias(self,canonical,alias):
         "Adds an alias for a character set."
         self.__alias_map[string.lower(alias)]=string.lower(canonical)
-        
+
     def can_convert(self,from_encoding,to_encoding):
         """Returns true if converters to from from_encoding to to_encoding are
         known. Encoding names follow the syntax specified by the XML rec."""
@@ -120,7 +119,7 @@ class ConverterDatabase:
 
         if from_encoding==to_encoding:
             return 1
-        
+
         try:
             return self.__map[from_encoding].has_key(to_encoding)
         except KeyError:
@@ -141,7 +140,7 @@ class ConverterDatabase:
     def add_converter(self,from_encoding,to_encoding,converter):
         from_encoding=self._canonize_name(from_encoding)
         to_encoding=self._canonize_name(to_encoding)
-        
+
         if not self.__map.has_key(from_encoding):
             self.__map[from_encoding]={}
 
@@ -154,7 +153,7 @@ class ConverterDatabase:
             return self.__alias_map[name]
         else:
             return name
-        
+
 # --- Globals
 
 convdb=ConverterDatabase()

@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.13 2001/08/15 21:39:15 larsga Exp $
+$Id: catalog.py,v 1.14 2001/12/30 12:09:14 loewis Exp $
 """
 
 import string,sys
@@ -51,8 +51,8 @@ class CatalogApp:
         '''Called for SGMLDECL catalog entries. These are only used by
         SGML systems and tell the application where to find the SGML
         declaration file.'''
-    
-# --- Abstract catalog parser with common functionality 
+
+# --- Abstract catalog parser with common functionality
 
 class AbstrCatalogParser:
     "Abstract catalog parser with functionality needed in all such parsers."
@@ -61,13 +61,13 @@ class AbstrCatalogParser:
         self.app=CatalogApp()
         self.err=xmlapp.ErrorHandler(None)
         self.error_lang=error_lang
-    
+
     def set_application(self,app):
         self.app=app
 
     def set_error_handler(self,err):
         self.err=err
-        
+
 # --- The catalog file parser (SGML Open Catalogs)
 
 class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
@@ -82,18 +82,18 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
         # o=other
         self.entry_hash={ "PUBLIC": ("p","s"), "DELEGATE": ("p","s"),
                           "CATALOG": ("s"), "DOCUMENT": ("s"),
-                          "BASE": ("o"), "SYSTEM": ("o","s"), 
+                          "BASE": ("o"), "SYSTEM": ("o","s"),
                           "OVERRIDE": ("o"), "DOCTYPE" : ("o", "s"),
                           "SGMLDECL" : ("s")}
 
     def parseStart(self):
         if self.error_lang:
             self.set_error_language(self.error_lang)
-        
+
     def do_parse(self):
-	try:
-	    while self.pos+1<self.datasize:
-		prepos=self.pos
+        try:
+            while self.pos+1<self.datasize:
+                prepos=self.pos
 
                 self.skip_stuff()
                 if self.pos+1>=self.datasize:
@@ -105,11 +105,11 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                 else:
                     self.parse_entry(entryname,self.entry_hash[entryname])
 
-	except xmlutils.OutOfDataException:
-	    if self.final:
-	        raise
-	    else:
-		self.pos=prepos  # Didn't complete the construct
+        except xmlutils.OutOfDataException:
+            if self.final:
+                raise
+            else:
+                self.pos=prepos  # Didn't complete the construct
 
     def parse_arg(self):
         if self.now_at('"'):
@@ -128,8 +128,8 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
             if self.now_at("--"):
                 self.scan_to("--")
             else:
-                break            
-    
+                break
+
     def parse_entry(self,name,args):
         arglist=[]
         for arg in args:
@@ -154,7 +154,7 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
             self.app.handle_doctype(arglist[0], arglist[1])
         elif name == "SGMLDECL":
             self.app.handle_sgmldecl(arglist[0])
-                    
+
 # --- A catalog file manager
 
 class CatalogManager(CatalogApp):
@@ -169,7 +169,7 @@ class CatalogManager(CatalogApp):
         self.__sgmldecl = None
 
         # Keeps track of sysid base even if we recurse into other catalogs
-        self.__catalog_stack=[] 
+        self.__catalog_stack=[]
 
         self.err = error_handler or xmlapp.ErrorHandler(None)
         self.parser_fact = CatParserFactory()
@@ -186,7 +186,7 @@ class CatalogManager(CatalogApp):
     def parse_catalog(self,sysid):
         self.__catalog_stack.append((self.__base,))
         self.__base=sysid
-        
+
         self.parser=self.parser_fact.make_parser(sysid)
         old_locator = self.err.get_locator()
         self.err.set_locator(self.parser)
@@ -200,7 +200,7 @@ class CatalogManager(CatalogApp):
 
     def report(self,out=sys.stdout):
         out.write("Document sysid: %s\n" % self.__document)
-        
+
         out.write("FPI mappings:\n")
         for it in self.__public.items():
             out.write("  %s -> %s\n" % it)
@@ -208,13 +208,13 @@ class CatalogManager(CatalogApp):
         out.write("Sysid mappings:\n")
         for it in self.__system.items():
             out.write("  %s -> %s\n" % it)
-            
+
         out.write("Delegates:\n")
         for (prefix,cat_man) in self.__delegations:
             out.write("---PREFIX MAPPER: %s\n" % prefix)
             cat_man.report(out)
             out.write("---EOPM\n")
-        
+
     # --- parse events
 
     def handle_base(self,newbase):
@@ -222,7 +222,7 @@ class CatalogManager(CatalogApp):
 
     def handle_catalog(self,sysid):
         self.parse_catalog(self.__resolve_sysid(sysid))
-        
+
     def handle_public(self,pubid,sysid):
         self.__public[pubid]=self.__resolve_sysid(sysid)
 
@@ -241,7 +241,7 @@ class CatalogManager(CatalogApp):
 
     def handle_sgmldecl(self, sysid):
         self.__sgmldecl = self.__resolve_sysid(sysid)
-        
+
     def handle_doctype(self, docelem, sysid):
         self.__doctypes[docelem] = self.__resolve_sysid(sysid)
 
@@ -255,7 +255,7 @@ class CatalogManager(CatalogApp):
             list=list+delegate.get_public_ids()
 
         return list
-        
+
     def get_document_sysid(self):
         return self.__document
 
@@ -266,12 +266,12 @@ class CatalogManager(CatalogApp):
         try:
             return self.__system[sysid]
         except KeyError:
-            return sysid        
-    
+            return sysid
+
     def resolve_sysid(self,pubid,sysid):
         if pubid!=None:
             resolved=0
-            for (prefix,catalog) in self.__delegations: 
+            for (prefix,catalog) in self.__delegations:
                 if prefix==pubid[:len(prefix)]:
                     sysid=catalog.resolve_sysid(pubid,sysid)
                     resolved=1
@@ -291,28 +291,28 @@ class CatalogManager(CatalogApp):
         """Returns the system identifier of the DTD with the given document
         element. Raises KeyError if no such document element is known."""
         return self.remap_sysid(self.__doctypes[docelem])
-            
+
     # --- internal methods
 
     def __resolve_sysid(self,sysid):
         return xmlutils.join_sysids(self.__base,sysid)
-            
+
 # --- An xmlproc catalog client
 
 class xmlproc_catalog:
 
-    def __init__(self,sysid,pf,error_handler=None):        
+    def __init__(self,sysid,pf,error_handler=None):
         self.catalog=CatalogManager(error_handler)
         self.catalog.set_parser_factory(pf)
-        self.catalog.parse_catalog(sysid)        
+        self.catalog.parse_catalog(sysid)
 
     def get_document_sysid(self):
         return self.catalog.get_document_sysid()
 
     def get_sgmldecl(self):
         return self.catalog.get_sgmldecl()
-    
-    def resolve_pe_pubid(self,pubid,sysid): 
+
+    def resolve_pe_pubid(self,pubid,sysid):
         if pubid==None:
             return self.catalog.remap_sysid(sysid)
         else:
@@ -324,7 +324,7 @@ class xmlproc_catalog:
         else:
             return self.catalog.resolve_sysid(pubid,sysid)
 
-    def resolve_entity_pubid(self,pubid,sysid): 
+    def resolve_entity_pubid(self,pubid,sysid):
         if pubid==None:
             return self.catalog.remap_sysid(sysid)
         else:
@@ -334,10 +334,10 @@ class xmlproc_catalog:
 
 class SAX_catalog:
 
-    def __init__(self,sysid,pf):        
+    def __init__(self,sysid,pf):
         self.catalog=CatalogManager()
         self.catalog.set_parser_factory(pf)
         self.catalog.parse_catalog(sysid)
 
-    def resolveEntity(self,pubid,sysid): 
+    def resolveEntity(self,pubid,sysid):
         return self.catalog.resolve_sysid(pubid,sysid)

@@ -1,4 +1,3 @@
-
 # This module contains common functionality used by xvcmd.py and xpcmd.py
 
 from xml.parsers.xmlproc import xmlapp, utils
@@ -14,7 +13,7 @@ DocGenerator = utils.DocGenerator
 class MyErrorHandler(xmlapp.ErrorHandler):
 
     def __init__(self, locator, parser, warnings, entstack, rawxml):
-	xmlapp.ErrorHandler.__init__(self,locator)
+        xmlapp.ErrorHandler.__init__(self,locator)
         self.show_warnings=warnings
         self.show_entstack=entstack
         self.show_rawxml=rawxml
@@ -33,25 +32,24 @@ class MyErrorHandler(xmlapp.ErrorHandler):
                 print "  Raw construct too big, suppressed."
             else:
                 print "  '%s'" % raw
-        
+
     def get_location(self):
-	return "%s:%d:%d" % (self.locator.get_current_sysid(),\
+        return "%s:%d:%d" % (self.locator.get_current_sysid(),\
                                self.locator.get_line(),
                                self.locator.get_column())
-	
+
     def warning(self,msg):
         if self.show_warnings:
             self.__show_location("W",msg)
             self.warnings=self.warnings+1
 
     def error(self,msg):
-	self.fatal(msg)
-	
+        self.fatal(msg)
+
     def fatal(self,msg):
         self.__show_location("E",msg)
-	self.errors=self.errors+1
+        self.errors=self.errors+1
 
     def reset(self):
-	self.errors=0
-	self.warnings=0        
-
+        self.errors=0
+        self.warnings=0

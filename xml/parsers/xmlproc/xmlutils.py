@@ -1,9 +1,8 @@
-
 """
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.29 2001/12/14 15:26:40 loewis Exp $
+# $Id: xmlutils.py,v 1.30 2001/12/30 12:09:14 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -83,7 +82,7 @@ class EntityParser:
         self.charset_converter = None
         self.err_lang="en"
         self.errors=errors.get_error_list(self.err_lang)
-        
+
         self.reset()
 
     def set_error_language(self,language):
@@ -93,14 +92,14 @@ class EntityParser:
         self.err_lang=string.lower(language) # only set if supported
 
     def set_error_handler(self,err):
-	"Sets the object to send error events to."
+        "Sets the object to send error events to."
         self.err=err
 
     def set_pubid_resolver(self,pubres):
         self.pubres=pubres
-        
+
     def set_entity_handler(self,ent):
-	"Sets the object that resolves entity references."
+        "Sets the object that resolves entity references."
         self.ent=ent
 
     def set_inputsource_factory(self,isf):
@@ -124,21 +123,21 @@ class EntityParser:
         except (IOError, OSError):
             self.report_error(3000, sysID)
             return
-	
+
         self.read_from(infile,bufsize)
         infile.close()
         self.close()
 
     def parse_string(self, doc, sysid = None, pubid = None):
-	"""Parse an XML document from the doc string."""
+        """Parse an XML document from the doc string."""
 
         if sysid:
             self.current_sysID = sysid
         # FIXME: pubid!
 
         self.feed(doc)
-	self.close()
-        
+        self.close()
+
     def open_entity(self, sys_id, name = "None"):
         """Starts parsing a new entity, pushing the old onto the stack. This
         method must not be used to start parsing, use parse_resource for
@@ -187,7 +186,7 @@ class EntityParser:
         if self.ent_stack==[]: self.report_error(4000)
 
         self._pop_ent_stack()
-    
+
     def read_from(self,fileobj,bufsize=16384):
         """Reads data from a file-like object until EOF. Does not close it.
         **WARNING**: This method does not call the parseStart/parseEnd methods,
@@ -215,7 +214,7 @@ class EntityParser:
         self.final=0
         self.datasize=0
         self.start_point=-1
-    
+
         # Location tracking
         self.line=1
         self.last_break=0
@@ -277,7 +276,7 @@ class EntityParser:
             # stop feeding any more data
             self.charset_converter = lambda s: ""
             return ""
-            
+
     def feed(self, new_data, decoded = 0):
         """Accepts more data from the data source. This method must
         set self.datasize and correctly update self.pos and self.data.
@@ -287,7 +286,7 @@ class EntityParser:
         if not decoded and using_unicode and \
            type(new_data) == types.UnicodeType:
             decoded = 1
-        
+
         first_feed = 0
         if self.first_feed:
             self.first_feed = 0
@@ -304,7 +303,7 @@ class EntityParser:
             # set. However, the input encoding should be determined
             # after returning from do_parse, since parse_xml_decl
             # expects to see the entire xml decl at once.
-            
+
         self.update_pos() # Update line/col count
 
         if not decoded:
@@ -314,7 +313,7 @@ class EntityParser:
                     new_data = new_data[1:]
             except UnicodeError, e:
                 new_data = self._handle_decoding_error(new_data, e)
-        
+
         if self.start_point == -1:
             self.block_offset=self.block_offset+self.datasize
             self.data=self.data[self.pos:]
@@ -328,12 +327,12 @@ class EntityParser:
         self.datasize=len(self.data)
 
         self.do_parse()
-        
+
     def close(self):
         "Closes the parser, processing all remaining data. Calls parseEnd."
         self.flush()
-        self.parseEnd()        
-        
+        self.parseEnd()
+
     def parseStart(self):
         "Called before the parse starts to notify subclasses."
         pass
@@ -360,9 +359,9 @@ class EntityParser:
             except OutOfDataException:
                 if pos!=self.pos:
                     self.report_error(3001)
-                
+
     # --- GENERAL UTILITY
-    
+
     # --- LOW-LEVEL SCANNING METHODS
 
     def set_start_point(self):
@@ -381,7 +380,7 @@ class EntityParser:
         self.pos=self.start_point
         self.start_point=-1
         (self.last_upd_pos,self.line,self.last_break)=self.old_state
-        
+
     def get_region(self):
         """Returns the area from start_point to current position and remove
         start_point."""
@@ -396,15 +395,15 @@ class EntityParser:
         oldpos=self.pos
         mo=regexp.search(self.data,self.pos)
         if mo==None:
-            if self.final and not required:                
+            if self.final and not required:
                 self.pos=len(self.data)   # Just moved to the end
-                return self.data[oldpos:]            
-                
+                return self.data[oldpos:]
+
             raise OutOfDataException()
-                
+
         self.pos=mo.start(0)
         return self.data[oldpos:self.pos]
-    
+
     def scan_to(self,target):
         "Moves self.pos to beyond target and returns skipped text."
         new_pos=string.find(self.data,target,self.pos)
@@ -413,32 +412,32 @@ class EntityParser:
         res=self.data[self.pos:new_pos]
         self.pos=new_pos+len(target)
         return res
-    
+
     def get_index(self,target):
         "Finds the position where target starts and returns it."
         new_pos=string.find(self.data,target,self.pos)
         if new_pos==-1:
             raise OutOfDataException()
         return new_pos
-    
+
     def test_str(self,test_str):
         "See if text at current position matches test_str, without moving."
         if self.datasize-self.pos<len(test_str) and not self.final:
             raise OutOfDataException()
         return self.data[self.pos:self.pos+len(test_str)]==test_str
-    
+
     def now_at(self,test_str):
         "Checks if we are at this string now, and if so skips over it."
         pos=self.pos
         if self.datasize-pos<len(test_str) and not self.final:
             raise OutOfDataException()
-    
+
         if self.data[pos:pos+len(test_str)]==test_str:
             self.pos=self.pos+len(test_str)
             return 1
         else:
             return 0
-    
+
     def skip_ws(self,necessary=0):
         "Skips over any whitespace at this point."
         match = reg_ws.match(self.data,self.pos)
@@ -454,9 +453,9 @@ class EntityParser:
         "Checks if we match the regexp."
         if self.pos>self.datasize-5 and not self.final:
             raise OutOfDataException()
-    
+
         return regexp.match(self.data,self.pos)!=None
-        
+
     def get_match(self,regexp):
         "Returns the result of matching the regexp and advances self.pos."
         if self.pos>self.datasize-5 and not self.final:
@@ -473,7 +472,7 @@ class EntityParser:
 
         self.pos=end
         return ent.group(0)
-    
+
     def update_pos(self):
         "Updates (line,col)-pos by checking processed blocks."
         breaks=string.count(self.data,"\n",self.last_upd_pos,self.pos)
@@ -513,14 +512,14 @@ class EntityParser:
                 msg = msg % args
         except KeyError:
             msg = self.errors[4002] % number # Unknown err msg :-)
-        
+
         if number < 2000:
             self.err.warning(msg)
         elif number < 3000:
             self.err.error(msg)
         else:
             self.err.fatal(msg)
-    
+
     #--- USEFUL METHODS
 
     def get_current_sysid(self):
@@ -534,7 +533,7 @@ class EntityParser:
     def get_offset(self):
         "Returns the current offset from the start of the stream."
         return self.block_offset+self.pos
-    
+
     def get_line(self):
         "Returns the current line number."
         self.update_pos()
@@ -543,7 +542,7 @@ class EntityParser:
     def get_column(self):
         "Returns the current column position."
         self.update_pos()
-        return self.pos-self.last_break  
+        return self.pos-self.last_break
 
     def is_root_entity(self):
         "Returns true if the current entity is the root entity."
@@ -585,7 +584,7 @@ class XMLCommonParser(EntityParser):
 
         pub_id=None
         sys_id=None
-        
+
         if self.now_at("SYSTEM"):
             self.skip_ws(1)
             sys_id=self.get_wrapped_match([("\"",reg_sysid_quote),\
@@ -618,14 +617,14 @@ class XMLCommonParser(EntityParser):
             quo=self.data[self.pos]
         except IndexError:
             raise OutOfDataException()
-            
+
         if not (self.now_at('"') or self.now_at("'")):
             self.report_error(3004,("'\"'","'"))
             self.scan_to(">")
             return ""
 
         return self.scan_to(quo)
-    
+
     def parse_xml_decl(self,handler=None):
         "Parses the contents of the XML declaration from after the '<?xml'."
 
@@ -637,9 +636,9 @@ class XMLCommonParser(EntityParser):
            (self.ent_stack!=[] and not textdecl):
             if textdecl:
                 self.report_error(3007)
-            else:    
-                self.report_error(3008)                
-            
+            else:
+                self.report_error(3008)
+
         if self.seen_xmldecl: # Set in parse_pi, to avoid block problems
             if textdecl:
                 self.report_error(3009)
@@ -662,7 +661,7 @@ class XMLCommonParser(EntityParser):
             if m==None or m.end()!=len(ver):
                 self.report_error(3901,ver)
             elif ver!="1.0":
-                self.report_error(3046)                
+                self.report_error(3046)
 
             if self.test_str("encoding") or self.test_str("standalone"):
                 self.report_error(3002)
@@ -681,7 +680,7 @@ class XMLCommonParser(EntityParser):
             if self.input_encoding and self.input_encoding!=enc:
                 self.report_error(3047)
 
-            self.skip_ws()      
+            self.skip_ws()
 
         if self.now_at("standalone"):
             if textdecl:
@@ -711,7 +710,7 @@ class XMLCommonParser(EntityParser):
 
             # Setting up correct conversion
             self.charset_converter = mkconverter(self, enc1, self.data_charset)
-        
+
             # convert the rest of the data according to the encoding
             # so far, we should have only seen proper ASCII
             # characters, so the position should not have changed due
@@ -735,7 +734,7 @@ class XMLCommonParser(EntityParser):
                 self.parse_xml_decl(handler)
             else:
                 self.parse_xml_decl()
-                
+
             if not self.now_at("?>"):
                 self.report_error(3005,"?>")
             self.seen_xmldecl=1
@@ -751,8 +750,8 @@ class XMLCommonParser(EntityParser):
                     self.report_error(1003)
                 elif trgt!="xml-stylesheet":
                     self.report_error(3045)
-                
-            handler.handle_pi(trgt,rem)   
+
+            handler.handle_pi(trgt,rem)
 
     def parse_comment(self,handler):
         "Parses the comment from after '<!--' to beyond '-->'."
@@ -798,7 +797,7 @@ class XMLCommonParser(EntityParser):
         else:
             self.report_error(3900)
             return ""
-    
+
 # --- A collection of useful functions
 
 # Utility functions
@@ -810,7 +809,7 @@ def unhex(hex_value):
     for char in hex_value:
         sum=sum*16
         char=ord(char)
-    
+
         if char<58 and char>=48:
             sum=sum+(char-48)
         elif char>=97 and char<=102:
@@ -847,7 +846,7 @@ def join_sysids_win32(base, url):
         else:
             return url
     else:
-        return urlparse.urljoin(base,url)    
+        return urlparse.urljoin(base,url)
 
 # here join_sysids(base,url): is set to the correct function
 
@@ -855,7 +854,7 @@ if sys.platform == "win32":
     join_sysids = join_sysids_win32
 else:
     join_sysids = join_sysids_general
-    
+
 # --- Some useful regexps
 
 if using_unicode:
@@ -932,7 +931,7 @@ reg2code={
     reg_digits.pattern : 3906, reg_pe_ref.pattern : 3907,
     reg_attr_type.pattern : 3908, reg_attr_def.pattern : 3909,
     reg_nmtoken.pattern : 3910}
-    
+
 # Some useful variables
 
 predef_ents={"lt":"&#60;","gt":"&#62;","amp":"&#38;","apos":"&#39;",
@@ -959,5 +958,4 @@ else:
         return translate(data,_ws_trans)
 
 # XXX not used
-id_trans=string.maketrans("","")           # Identity transform 
-
+id_trans=string.maketrans("","")           # Identity transform

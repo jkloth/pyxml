@@ -1,6 +1,6 @@
 """
 Support for XCatalog catalog files.
-$Id: xcatalog.py,v 1.8 2001/03/27 19:29:11 larsga Exp $
+$Id: xcatalog.py,v 1.9 2001/12/30 12:09:14 loewis Exp $
 """
 
 import catalog,xmlapp,xmlproc
@@ -11,7 +11,7 @@ class XCatParserFactory:
 
     def __init__(self,error_lang=None):
         self.error_lang=error_lang
-    
+
     def make_parser(self,sysid):
         return XCatalogParser(self.error_lang)
 
@@ -19,7 +19,7 @@ class FancyParserFactory:
 
     def __init__(self,error_lang=None):
         self.error_lang=error_lang
-    
+
     def make_parser(self,sysid):
         if sysid[-4:]==".soc":
             return catalog.CatalogParser(self.error_lang)
@@ -27,7 +27,7 @@ class FancyParserFactory:
             return XCatalogParser(self.error_lang)
         else:
             return catalog.CatalogParser(self.error_lang)
-    
+
 # --- An XCatalog 0.1 parser
 
 class XCatalogParser(catalog.AbstrCatalogParser,xmlapp.Application):
@@ -50,7 +50,7 @@ class XCatalogParser(catalog.AbstrCatalogParser,xmlapp.Application):
     def handle_start_tag(self,name,attrs):
         try:
             if name=="Base":
-                self.app.handle_base(attrs["HRef"]) 
+                self.app.handle_base(attrs["HRef"])
             elif name=="Map":
                 self.app.handle_public(attrs["PublicID"],attrs["HRef"])
             elif name=="Delegate":

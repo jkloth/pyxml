@@ -1,4 +1,3 @@
-
 # This file contains the lists of error messages used by xmlproc
 
 import string
@@ -87,7 +86,7 @@ english={
     3012: "Standalone declaration on text declaration not allowed",
     3045: "Processing instruction target names beginning with 'xml' are reserved",
     3046: "Unsupported XML version",
-    
+
     # From xmlproc.XMLProcessor
     3013: "Illegal construct",
     3014: "Premature document end, element '%s' not closed",
@@ -123,7 +122,7 @@ english={
     3043: "Conditional section not closed",
     3044: "Token '%s' defined more than once",
     # next: 3049
-    
+
     # From regular expressions that were not matched
     3900: "Not a valid name",
     3901: "Not a valid version number (%s)",
@@ -136,7 +135,7 @@ english={
     3909: "Not a valid attribute default definition",
     3910: "Not a valid enumerated attribute value",
     3911: "Not a valid standalone declaration",
-    
+
     # --- Internal errors: 4000-4999
     4000: "Internal error: Entity stack broken",
     4001: "Internal error: Entity reference expected.",
@@ -146,7 +145,7 @@ english={
     # --- XCatalog errors: 5000-5099
     5000: "Uknown XCatalog element: %s.",
     5001: "Required XCatalog attribute %s on %s missing.",
-     
+
     # --- SOCatalog errors: 5100-5199
     5100: "Invalid or unsupported construct: %s.",
     }
@@ -169,7 +168,7 @@ norsk.update({
     1901: "Navnerommets URI kan ikke være tomt",
     1902: "Navnerommets prefiks er ikke deklarert",
     1903: "Attributt-navn ikke unike etter navneroms-prosessering",
-    
+
     # --- Validity errors: 2000-2999
     2000: "Faktisk verdi til attributtet '%s' er ikke lik #FIXED-verdien",
     2001: "Elementet '%s' er ikke tillatt her",
@@ -250,7 +249,7 @@ norsk.update({
     3041: "'Conditional sections' er ikke tillatt i det interne DTD-subsettet",
     3043: "'Conditional section' ikke lukket",
     3044: "Symbolet '%s' er definert mer enn en gang",
-    
+
     # From regular expressions that were not matched
     3900: "Ikke et gyldig navn",
     3901: "Ikke et gyldig versjonsnummer (%s)",
@@ -263,7 +262,7 @@ norsk.update({
     3909: "Ikke en gyldig attributt-standard-verdi",
     3910: "Ikke en gyldig verdi for opprams-attributter",
     3911: "Ikke en gyldig verdi for 'standalone'",
-    
+
     # --- Internal errors: 4000-4999
     4000: "Intern feil: Entitets-stakken korrupt.",
     4001: "Intern feil: Entitets-referanse forventet.",
@@ -272,7 +271,7 @@ norsk.update({
     # --- XCatalog errors: 5000-5099
     5000: "Ukjent XCatalog-element: %s.",
     5001: "Påkrevd XCatalog-attributt %s på %s mangler.",
-     
+
     # --- SOCatalog errors: 5100-5199
     5100: "Ugyldig eller ikke støttet konstruksjon: %s.",
     })
@@ -297,7 +296,7 @@ svenska.update({
     1901: "Namnrymdens URI får inte vara tom (måste deklareras)",
     1902: "Namnrymdsprefixet är inte deklarerat",
     1903: "Attribut-namn inte unika efter namnrymds-prosessering",
-    
+
     # --- Validity errors: 2000-2999
     2000: "Attributet '%s' faktiska värde är inte likt #FIXED-värdet",
     2001: "Elementet '%s' tillåts inte här",
@@ -391,7 +390,7 @@ svenska.update({
     3909: "Inge giltigt attributstandardvärde",
     3910: "Ikke en gyldig attributt-standard-verdi",
     3911: "Ikke en gyldig verdi for 'standalone'",
-    
+
     # --- Internal errors: 4000-4999
     4000: "Internt fel: Entitetsstacken korrupt.",
     4001: "Internt fel: Entitetsreferans förväntad.",
@@ -400,7 +399,7 @@ svenska.update({
     # --- XCatalog errors: 5000-5099
     5000: "Okänt XCatalog-element: %s.",
     5001: "Nödvändigt XCatalog-attribut %s på %s saknas.",
-     
+
     # --- SOCatalog errors: 5100-5199
     5100: "Konstruktionen: %s är ogiltig eller saknar stöd.",
     })
@@ -474,7 +473,7 @@ french.update({
     3012: "Une déclaration indépendante de texte sont interdites",
     3045: "Les noms de cibles d'instruction de traitement commençant par 'xml' sont réservés",
     3046: "Version de XML non supportée",
-    
+
     # From xmlproc.XMLProcessor
     3013: "Construction illégale",
     3014: "Fin de document prématurée, l'élément '%s' n'est pas fermé",
@@ -510,7 +509,7 @@ french.update({
     3043: "La section conditionnelle n'est pas fermée",
     3044: "Le marqueur '%s' est défini plusieurs fois",
     # next: 3047
-    
+
     # From regular expressions that were not matched
     3900: "Nom invalide",
     3901: "Numéro de version invalide (%s)",
@@ -523,7 +522,7 @@ french.update({
     3909: "Définitionde valeur par défaut d'attribut invalide",
     3910: "Valeur d'attribut énuméré invalide",
     3911: "Déclaration autonome invalide",
-    
+
     # --- Internal errors: 4000-4999
     4000: "Erreur interne : pile dentités cassée",
     4001: "Erreur interne : référence à une entité attendue.",
@@ -533,7 +532,7 @@ french.update({
     # --- XCatalog errors: 5000-5099
     5000: "L'élément de XCatalog est inconnu : %s.",
     5001: "L'attribut de XCatalog  %s requis sur %s est manquant.",
-     
+
     # --- SOCatalog errors: 5100-5199
     5100: "Construction invalide ou non supportée : %s.",
     })
@@ -575,6 +574,6 @@ def _test():
 
     print "en == fr"
     compare(en, fr)
-    
+
 if __name__ == "__main__":
     _test()

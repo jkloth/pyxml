@@ -2,7 +2,7 @@
 A parser filter for namespace support. Placed externally to the parser
 for efficiency reasons.
 
-$Id: namespace.py,v 1.4 2000/09/26 14:43:10 loewis Exp $
+$Id: namespace.py,v 1.5 2001/12/30 12:09:14 loewis Exp $
 """
 
 import string
@@ -20,19 +20,19 @@ class ParserFilter(xmlapp.Application):
     def set_application(self,app):
         "Sets the application to report events to."
         self.app=app
-        
+
     # --- Methods inherited from xmlapp.Application
-        
+
     def set_locator(self,locator):
         xmlapp.Application.set_locator(self,locator)
         self.app.set_locator(locator)
-    
+
     def doc_start(self):
         self.app.doc_start()
-        
+
     def doc_end(self):
         self.app.doc_end()
-	
+
     def handle_comment(self,data):
         self.app.handle_comment(data)
 
@@ -41,28 +41,28 @@ class ParserFilter(xmlapp.Application):
 
     def handle_end_tag(self,name):
         self.app.handle_end_tag(name)
-    
+
     def handle_data(self,data,start,end):
         self.app.handle_data(data,start,end)
 
     def handle_ignorable_data(self,data,start,end):
         self.app.handle_ignorable_data(data,start,end)
-    
+
     def handle_pi(self,target,data):
         self.app.handle_pi(target,data)
 
     def handle_doctype(self,root,pubID,sysID):
         self.app.handle_doctype(root,pubID,sysID)
-    
+
     def set_entity_info(self,xmlver,enc,sddecl):
         self.app.set_entity_info(xmlver,enc,sddecl)
 
 # --- NamespaceFilter
-        
+
 class NamespaceFilter(ParserFilter):
     """An xmlproc application that processes qualified names and reports them
     as 'URI local-part' names. It reports errors through the error reporting
-    mechanisms of the parser."""   
+    mechanisms of the parser."""
 
     def __init__(self,parser):
         ParserFilter.__init__(self)
@@ -74,9 +74,9 @@ class NamespaceFilter(ParserFilter):
     def set_report_ns_attributes(self,action):
         "Tells the filter whether to report or delete xmlns-attributes."
         self.rep_ns_attrs=action
-        
+
     # --- Overridden event methods
-        
+
     def handle_start_tag(self,name,attrs):
         old_ns={} # Reset ns_map to these values when we leave this element
         del_ns=[] # Delete these prefixes from ns_map when we leave element
@@ -111,7 +111,7 @@ class NamespaceFilter(ParserFilter):
                 del attrs[a]
 
         self.ns_stack.append((old_ns,del_ns))
-        
+
         # Process elem and attr names
         name=self.__process_name(name)
 
@@ -120,14 +120,14 @@ class NamespaceFilter(ParserFilter):
             ns=parts[0]
         else:
             ns=None
-            
+
         for (a,v) in attrs.items():
             del attrs[a]
             aname=self.__process_name(a,ns)
             if attrs.has_key(aname):
-                    self.parser.report_error(1903)                
+                self.parser.report_error(1903)
             attrs[aname]=v
-        
+
         # Report event
         self.app.handle_start_tag(name,attrs)
 
@@ -140,12 +140,12 @@ class NamespaceFilter(ParserFilter):
 
         self.ns_map.update(old_ns)
         for prefix in del_ns:
-            del self.ns_map[prefix]        
-            
+            del self.ns_map[prefix]
+
         self.app.handle_end_tag(name)
 
     # --- Internal methods
-        
+
     def __process_name(self,name,default_to=None):
         n=string.split(name,":")
         if len(n)>2:
@@ -153,8 +153,8 @@ class NamespaceFilter(ParserFilter):
             return name
         elif len(n)==2:
             if n[0]=="xmlns":
-                return name 
-                
+                return name
+
             try:
                 return "%s %s" % (self.ns_map[n[0]],n[1])
             except KeyError:
@@ -166,4 +166,3 @@ class NamespaceFilter(ParserFilter):
             return "%s %s" % (self.ns_map[""],name)
         else:
             return name
-        
