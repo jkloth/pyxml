@@ -156,6 +156,46 @@ class Tests(unittest.TestCase):
         self.failUnless(a1.isId)
         self.failIf(a2.isId)
 
+    def test_schemaType(self):
+        source = self.makeSource(
+            "<!DOCTYPE doc [\n"
+            "  <!ENTITY e1 SYSTEM 'http://xml.python.org/e1'>\n"
+            "  <!ENTITY e2 SYSTEM 'http://xml.python.org/e2'>\n"
+            "  <!ATTLIST doc id   ID       #IMPLIED \n"
+            "                ref  IDREF    #IMPLIED \n"
+            "                refs IDREFS   #IMPLIED \n"
+            "                enum (a|b)    #IMPLIED \n"
+            "                ent  ENTITY   #IMPLIED \n"
+            "                ents ENTITIES #IMPLIED \n"
+            "                nm   NMTOKEN  #IMPLIED \n"
+            "                nms  NMTOKENS #IMPLIED \n"
+            "                text CDATA    #IMPLIED \n"
+            "    >\n"
+            "]><doc id='name' notid='name' text='splat!' enum='b'"
+            "       ref='name' refs='name name' ent='e1' ents='e1 e2'"
+            "       nm='123' nms='123 abc' />")
+        document = self.builder.parse(source)
+        elem = document.documentElement
+        t = elem.schemaType
+        self.assert_(t.name is None)
+        self.assert_(t.namespace is None)
+
+        check_attr = self.check_attr_schemaType
+        check_attr(elem, "id",    "id")
+        check_attr(elem, "notid", None)
+        check_attr(elem, "enum",  "enumeration")
+        check_attr(elem, "ent",   "entity")
+        check_attr(elem, "ents",  "entities")
+        check_attr(elem, "ref",   "idref")
+        check_attr(elem, "refs",  "idrefs")
+        check_attr(elem, "text",  "cdata")
+
+    def check_attr_schemaType(self, elem, attrname, name):
+        a = elem.getAttributeNode(attrname)
+        t = a.schemaType
+        self.assert_(t.namespace is None)
+        self.assertEqual(t.name, name)
+
 
 DUMMY_URL = "http://xml.python.org/dummy.xml"
 

@@ -391,8 +391,23 @@ class Attr(Node):
         else:
             return info.isId(self.nodeName)
 
-defproperty(Attr, "isId",      doc="True if this attribute is an ID.")
-defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
+    def _get_schemaType(self):
+        doc = self.ownerDocument
+        elem = self.ownerElement
+        if doc is None or elem is None:
+            return _no_type
+
+        info = doc._get_elem_info(elem)
+        if info is None:
+            return _no_type
+        if self.namespaceURI:
+            return info.getAttributeTypeNS(self.namespaceURI, self.localName)
+        else:
+            return info.getAttributeType(self.nodeName)
+
+defproperty(Attr, "isId",       doc="True if this attribute is an ID.")
+defproperty(Attr, "localName",  doc="Namespace-local name of this attribute.")
+defproperty(Attr, "schemaType", doc="Schema type for this attribute.")
 
 
 class NamedNodeMap(NewStyle, GetattrMagic):
@@ -535,9 +550,32 @@ defproperty(NamedNodeMap, "length",
 AttributeList = NamedNodeMap
 
 
+class TypeInfo(NewStyle):
+    __slots__ = 'namespace', 'name'
+
+    def __init__(self, namespace, name):
+        self.namespace = namespace
+        self.name = name
+
+    def __repr__(self):
+        if self.namespace:
+            return "<TypeInfo %s (from %s)>" % (`self.name`, `self.namespace`)
+        else:
+            return "<TypeInfo %s>" % `self.name`
+
+    def _get_name(self):
+        return self.name
+
+    def _get_namespace(self):
+        return self.namespace
+
+_no_type = TypeInfo(None, None)
+
 class Element(Node):
     nodeType = Node.ELEMENT_NODE
     nodeValue = None
+    schemaType = _no_type
+
     _child_node_types = (Node.ELEMENT_NODE,
                          Node.PROCESSING_INSTRUCTION_NODE,
                          Node.COMMENT_NODE,
@@ -1238,6 +1276,12 @@ class ElementInfo(NewStyle):
 
     def __init__(self, name):
         self.tagName = name
+
+    def getAttributeType(self, aname):
+        return _no_type
+
+    def getAttributeTypeNS(self, namespaceURI, localName):
+        return _no_type
 
     def isEmpty(self):
         """Returns true iff this element is declared to have an EMPTY

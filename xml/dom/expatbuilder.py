@@ -46,6 +46,18 @@ FILTER_INTERRUPT = xmlbuilder.DOMBuilderFilter.FILTER_INTERRUPT
 
 theDOMImplementation = minidom.getDOMImplementation()
 
+# Expat typename -> TypeInfo
+_typeinfo_map = {
+    "CDATA":    minidom.TypeInfo(None, "cdata"),
+    "ENUM":     minidom.TypeInfo(None, "enumeration"),
+    "ENTITY":   minidom.TypeInfo(None, "entity"),
+    "ENTITIES": minidom.TypeInfo(None, "entities"),
+    "ID":       minidom.TypeInfo(None, "id"),
+    "IDREF":    minidom.TypeInfo(None, "idref"),
+    "IDREFS":   minidom.TypeInfo(None, "idrefs"),
+    "NMTOKEN":  minidom.TypeInfo(None, "nmtoken"),
+    "NMTOKENS": minidom.TypeInfo(None, "nmtokens"),
+    }
 
 class ElementInfo(NewStyle):
     __slots__ = '_attr_info', '_model', 'tagName'
@@ -60,6 +72,19 @@ class ElementInfo(NewStyle):
 
     def __setstate__(self, state):
         self._attr_info, self._model, self.tagName = state
+
+    def getAttributeType(self, aname):
+        for info in self._attr_info:
+            if info[1] == aname:
+                t = info[-2]
+                if t[0] == "(":
+                    return _typeinfo_map["ENUM"]
+                else:
+                    return _typeinfo_map[info[-2]]
+        return minidom._no_type
+
+    def getAttributeTypeNS(self, namespaceURI, localName):
+        return minidom._no_type
 
     def isEmpty(self):
         if self._model:
