@@ -137,6 +137,13 @@ class Tests(unittest.TestCase):
                          '<?pi foo?>'
                          '<doc/>')
 
+    def test_docelem_has_namespace(self):
+        source = self.makeSource(
+            "<doc xmlns='http://xml.python.org/namespace/x'>abc<e/>def</doc>")
+        document = self.builder.parse(source)
+        self.assertEqual(document.documentElement.namespaceURI,
+                         'http://xml.python.org/namespace/x')
+
 
 DUMMY_URL = "http://xml.python.org/dummy.xml"
 
