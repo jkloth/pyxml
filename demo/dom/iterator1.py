@@ -2,7 +2,7 @@
 
 from xml.dom.ext import ReleaseNode
 from xml.dom.ext.reader import Sax2
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 
 def iterate(xml_dom_object):

@@ -1,6 +1,6 @@
 """Demonstrates basic, pre-order DOM walking using the default, bare-bones visitor"""
 
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.ext import Visitor
 from xml.dom.ext.reader import Sax2
 from xml.dom.ext import ReleaseNode

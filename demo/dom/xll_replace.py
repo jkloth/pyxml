@@ -5,7 +5,7 @@ and replaces the node containing such links with the contents of the referenced
 document.
 """
 
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 from xml.dom import ext
 from xml.dom.ext.reader import Sax2

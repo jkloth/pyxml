@@ -16,7 +16,7 @@ Modified by Uche Ogbuji 18.Nov.99 to work with the emerging Python/DOM binding 4
 """
 
 import re,string,sys
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom import ext
 
 # Spec deviations:

@@ -5,7 +5,6 @@ the namespaces of all elements and attributes in document order
 
 from xml.dom.ext.reader import Sax2
 from xml.dom.ext import ReleaseNode
-from xml.dom.Node import Node
 from xml.dom.NodeFilter import NodeFilter
 
 def TraceNs(doc):
