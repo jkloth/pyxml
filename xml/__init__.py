@@ -1,2 +1,2 @@
 
-__all__ = ['arch', 'dom', 'marshal', 'parsers', 'sax', 'unicode', 'utils']
+__all__ = ['dom', 'marshal', 'parsers', 'sax', 'unicode', 'utils']

@@ -30,11 +30,12 @@ else:
            author_email = "xml-sig@python.org",
            url = "http://www.python.org/sigs/xml-sig/",
 
-           packages = ['xml', 'xml.arch', 'xml.dom', 'xml.marshal',
+           packages = ['xml', 'xml.dom', 'xml.marshal',
                        'xml.parsers', 'xml.parsers.xmlproc', 
                        'xml.sax', 'xml.sax.drivers',
                        'xml.unicode', 'xml.utils'
                        ],
+
            ext_modules = [('xml.parsers.sgmlop', { 'sources' : ['extensions/sgmlop.c']
                                        }),
                           ('xml.unicode.wstrop', { 'sources' : ['extensions/wstrop.c']

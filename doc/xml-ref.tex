@@ -31,68 +31,10 @@ has to be filled in later, or rewritten, or verified, or something.
 
 \tableofcontents
 
-\section{xml.arch.xmlarch}
-
-The xmlarch module contains an XML architectural forms processor
-   written in Python. It allows you to process XML architectural forms
-   using any parser that uses the SAX interfaces. The module allows
-   you to process several architectures in one parsing
-   pass. Architectural document events for an architecture can even be
-   broadcasted to multiple DocumentHandlers. (e.g. you can have 2
-   handlers for the RDF architecture, 3 for the XLink architecture and
-   perhaps one for the HyTime architecture.)
-   
-The architecture processor uses the SAX \class{DocumentHandler} interface
-   which means that you can register the architecture handler
-   (ArchDocHandler) with any SAX 1.0 compliant parser.
-   
-It currently does not process any meta document type definition
-documents (meta-DTDs). When a DTD parser module is available the code
-will be modified to use that in order to process meta-DTD information.
-   
-Please note that validating and well-formed parsers may report
-different SAX events when parsing documents.
-
-The \module{xmlarch} module contains six classes:
-\class{ArchDocHandler}, \class{Architecture}, \class{ArchParseState},
-\class{ArchException}, \class{AttributeParser} and \class{Normalizer}.
-
-\begin{itemize}
-     \item \class{ArchDocHandler} is a subclass of the \class{saxlib.DocumentHandler}
-       interface. This is the class used for processing an architectural
-       document.
-
-     \item \class{Architecture} contains information about an architecture.
-
-     \item \class{ArchParseState} holds information about an architecture's parse
-       state when parsing a document.
-
-     \item \class{AttributeParser} parses architecture use declaration PIs (attribute
-       strings).
-
-     \item \class{ArchException} holds information about an architectural exception
-       thrown by an \class{ArchDocHandler} instance.
-
-     \item \class{Normalizer} is a document handler that outputs "normalized" XML.
-\end{itemize}
-
-\subsection{\class{ArchDocHandler} methods}
-Still undocumented.
-\subsection{\class{Architecture} methods}
-Still undocumented.
-\subsection{\class{ArchParseState} methods}
-Still undocumented.
-\subsection{\class{ArchException} methods}
-Still undocumented.
-\subsection{\class{AttributeParser} methods}
-Still undocumented.
-\subsection{\class{Normalizer} methods}
-Still undocumented.
-       
 \section{xml.parsers.xmllib}
 
 This is a version of the \module{xmllib} module from Python 1.5,
-modified to use the \module{_sgmlop} C extension when it's available.
+modified to use the \module{sgmlop} C extension when it's available.
 This produces a significant speedup, amounting to about a factor of 5.
 The interface is unchanged from the original \module{xmllib} module;
 consult the Python Library Reference documentation for that module.
