@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.5 2001/01/14 10:43:55 loewis Exp $
+$Id: drv_xmlproc.py,v 1.6 2001/03/03 07:30:46 loewis Exp $
 """
 
 import types, string
@@ -86,7 +86,7 @@ class XmlprocDriver(saxlib.XMLReader):
             bufsize=16384
             self._parser = parser # make it available for callbacks
             #parser.parse_resource(source.getSystemId()) # FIXME: rest!
-            parser.current_sysID=source.getSystemId()
+            parser.set_sysid(source.getSystemId())
             parser.read_from(source.getByteStream(), bufsize)
             source.getByteStream().close()
             parser.flush()
