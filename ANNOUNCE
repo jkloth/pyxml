@@ -1,6 +1,6 @@
 To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
-	       freshmeat.net,
-	       other suggestions?
+               freshmeat.net, <editors at xmlhack.com>
+               other suggestions?
 
 ================== 
 Version 0.8 of the Python/XML distribution is now available.  It
@@ -15,48 +15,51 @@ http://prdownloads.sourceforge.net/pyxml/PyXML-0.8-2.2.i386.rpm
 
 Changes in this version, compared to 0.7.1:
 
-	* Python 1.5 is not supported anymore; Python 2.0 or higher
-	  is required.
+        * Python 1.5 is not supported anymore; Python 2.0 or higher
+          is required.
 
-	* Expat has been updated to 1.95.4.
+        * Expat has been updated to 1.95.4.
 
-	* pyexpat is now always built.
+        * pyexpat is now always built.
 
-	* pyexpat now reports skipped entities.
+        * pyexpat now reports skipped entities.
 
-	* pyexpat now combines subsequent character data events into
-	  a single callback invocation.
+        * pyexpat now can combine subsequent character data events
+          into a single callback invocation; set the parser's
+          buffer_text attribute to true to enable this feature.
 
-	* pyexpat can now report namespace prefixes.
+        * pyexpat can now report namespace prefixes.  Set the parser's
+          namespace_prefixes attribute to true to enable this feature.
 
-	* Various bugs in sgmlop have been fixed.
+        * Various bugs in sgmlop have been fixed.
 
-	* Various DOM Level 3 symbolic constants have been added;
+        * Various DOM Level 3 symbolic constants have been added;
           DOMStringSizeErr can now be spelled as DomstringSizeErr again.
 
-	* Various DOM L1, L2 and L3 features have been added to minidom:
-	userdata, isSupported, getInterface, wholeText, Entity, Notation
+        * Various DOM L1, L2 and L3 features have been added to
+          minidom: userdata, isSupported, getInterface, wholeText,
+          replaceWholeText, Entity, Notation
 
-	* minidom's .toxml now allows the caller to specify an encoding.
+        * minidom's .toxml now allows the caller to specify an encoding.
 
-	* The new module xml.dom.xmlbuilder implements the load part
-	  of the DOM L3 Load/Store spec.
+        * The new module xml.dom.xmlbuilder implements the load part
+          of the DOM L3 Load/Store spec.
 
-	* The new module xml.dom.expatbuilder allows to create minidom
-	  trees more efficiently, by using expat directly (rather than 
-	  using SAX).
+        * The new module xml.dom.expatbuilder allows to create minidom
+          trees more efficiently, by using expat directly (rather than 
+          using SAX).  This is normally used via xml.dom.xmlbuilder.
 
-	* Bugs in c14n namespace processing have been fixed.
+        * Bugs in c14n namespace processing have been fixed.
 
-	* Minor bugs in xmlproc have been fixed.
+        * Minor bugs in xmlproc have been fixed.
 
-	* xml.sax.expatreader now invokes resolveEntity properly.
+        * xml.sax.expatreader now invokes resolveEntity properly.
 
-	* The sgmlop SAX driver now invokes skippedEntity.
+        * The sgmlop SAX driver now invokes skippedEntity.
 
-	* The xml-howto has been updated.
+        * The xml-howto has been updated.
 
-	* Bugs in the MSIE, ADR, and NS XBEL parsers have been fixed.
+        * Bugs in the MSIE, ADR, and NS XBEL parsers have been fixed.
 
 
 The Python/XML distribution contains the basic tools required for
@@ -67,22 +70,21 @@ useful modules.
 
 The package currently contains:
 
-	* XML parsers: Pyexpat (Jack Jansen), xmlproc (Lars Marius
-Garshol), sgmlop (Fredrik Lundh).
-
-	* SAX interface (Lars Marius Garshol)
-	* minidom DOM implementation (Paul Prescod)
-	* 4DOM and 4XPath from Fourthought (Uche Ogbuji, Mike Olson)
-	* Schema implementations: TREX (James Tauber)
-	* Various utility modules and functions (various people)
-	* Documentation and example programs (various people)
+        * XML parsers: Pyexpat (Jack Jansen), xmlproc (Lars Marius
+          Garshol), sgmlop (Fredrik Lundh).
+        * SAX interface (Lars Marius Garshol)
+        * minidom DOM implementation (Paul Prescod, others)
+        * 4DOM and 4XPath from Fourthought (Uche Ogbuji, Mike Olson)
+        * Schema implementations: TREX (James Tauber)
+        * Various utility modules and functions (various people)
+        * Documentation and example programs (various people)
 
 The code is being developed bazaar-style by contributors from the
 Python XML Special Interest Group, so please send comments, questions,
 or bug reports to <xml-sig@python.org>.
 
 For more information about Python and XML, see:
-	http://www.python.org/topics/xml/
+        http://www.python.org/topics/xml/
 
 -- 
 Martin v. Löwis               http://www.informatik.hu-berlin.de/~loewis
