@@ -15,7 +15,7 @@ def test(tester):
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
-    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)b
+    doc = implementation.createDocument(EMPTY_NAMESPACE,'ROOT',dt)
 
     entr = doc.createEntityReference("TestEntity")
     tester.testDone()
