@@ -3,7 +3,11 @@
 # XXX TypeErrors on calling handlers, or on bad return values from a
 # handler, are obscure and unhelpful.
 
-import pyexpat
+try:
+    import xml.parsers.expat
+except ImportError:
+    import pyexpat
+
 from xml.parsers import expat
 
 class Outputter:
