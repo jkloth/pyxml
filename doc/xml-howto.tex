@@ -1,13 +1,12 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.13 2002/05/13 16:30:31 akuchling Exp $
+% $Id: xml-howto.tex,v 1.14 2002/05/14 19:49:14 akuchling Exp $
 
 % TODO:
-%   Read over and update DOM section
 %   Write outline of entire document
 %   Explain namespaces somewhere
 % XXX not covered: xml.marshal, scripts, namespaces, TREX/schemas,
-% XSLT, XPath
+% XSLT
 % XXX overview of parsers
 
 \newcommand{\element}[1]{\code{#1}}
@@ -65,7 +64,7 @@ standards, but it's far from being complete because making it complete
 would require a full-length book and not a short HOWTO. There's no
 better way to get a completely accurate (if rather dry) description
 than to read the original W3C Recommendations; you can find links to
-them in section~\ref{xml-links}, ``Related Links''.  If you already
+them in section~\ref{section-xml-links}, ``Related Links''.  If you already
 know what XML is, you can skip the rest of this section.
 
 Later sections of this HOWTO assume that you're familiar with XML
@@ -232,7 +231,7 @@ the DTD.  A document is valid if all the elements occur in the right
 order, and in the right number of repetitions.
 
 
-\subsection{Related Links}
+\subsection{Related Links\label{section-xml-links}}
 
 For the full details of XML's syntax, the definitive source is the XML
 1.0 specification, available on the Web at
@@ -540,7 +539,7 @@ implement those interfaces that are relevant to your application.
 
 The SAX interfaces are:
 
-\begin{tableii}{c|p{4in}}{code}{Interface}{Purpose}
+\begin{tableii}{|c|p{4in}|}{code}{Interface}{Purpose}
 
 \lineii{ContentHandler}{Called for general document events.  This
 interface is the heart of SAX; its methods are called for the start of
@@ -1020,7 +1019,7 @@ offers two alternative implementations of the DOM,
 included in Python 2. It is a minimal implementation, which means it
 does not provide all interfaces and operations required by the DOM
 standard.  \code{4DOM}, part of the 4Suite set of XML tools
-(\url{http://www.4suite.org), is a complete implementation of
+(\url{http://www.4suite.org}), is a complete implementation of
 DOM Level 2 Core, so we will use that in the examples.
 
 The \module{xml.dom.ext.reader} package contains a number of classes
@@ -1284,9 +1283,45 @@ DOM levels.
 
 
 %==========================================================================
-%\section{XPath and XPointer\label{section-XPath}}
+\section{XPath and XPointer\label{section-XPath}}
 
-% XXX write this
+XPath is a relatively simple language for writing expressions that
+select a subset of the nodes in a DOM tree.  Here are some example
+XPath expressions, and what nodes they match:
+
+\begin{tableii}{|l|l|}{code}{Expression}{Meaning}
+  \lineii{child::para}{Selects all children of the context node
+                       that are \element{para} elements.}
+  \lineii{child::para[5]}{Selects the fifth child of the context node
+                       that are \element{para} elements.}
+  \lineii{descendant::para}{Selects all descendants of the context node
+                       that are \element{para} elements.}
+  \lineii{ancestor::*}{Selects all ancestors of the context node}
+\end{tableii}
+
+Consult the XPath Recommendation (listed in
+section~\ref{section-xpath-links}, ``Related Links'') for the full
+syntax and grammar.
+
+The \module{xml.xpath} package contains a parser and evaluator for
+XPath expressions.  The \function{Evaluate(\var{expr},
+\var{contextNode})} function parses an expression and evalates it with
+respect to the given \class{Element} context node.  For example:
+
+\begin{verbatim}
+from xml import xpath
+
+nodes = xpath.Evaluate('quotation/note', doc.documentElement)
+\end{verbatim}
+
+If \code{doc} is an appropriate DOM tree, then this will return a list
+containing the subset of nodes denoted by the XPath expression.
+
+
+\subsection{Related Links\label{section-xpath-links}}
+
+The XPath 1.0 Recommendation is at
+\url{http://www.w3.org/TR/1999/REC-xpath-19991116}.
 
 
 %==========================================================================
