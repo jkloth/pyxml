@@ -9,7 +9,17 @@ TODO list:
 
 test/
 	* Add xmlarch tests to test suite
+	* Add iso8601 tests to test suite
 
 demo/xbel/	
 	* Implement dump_lynx method in bookmark.py
 
+dom/
+	* Implement the .cloneNode() method
+	* Problem: Take two Text nodes next to each other.  Hold a
+reference to the second one.  Call .normalize() on the parent.  The
+second Text node has now vanished, so calls using it will now crash.
+How to fix?  (Replace w/ empty Text node?)
+	* Add indentation & pretty-printing to .toxml()
+	* Document methods: createTextNode but createElement?  Weird
+inconsistency...
