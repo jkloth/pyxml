@@ -33,7 +33,7 @@ from xml.parsers import expat
 from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
 
-from xml.dom.minicompat import *   # True, False
+from xml.dom.minicompat import *   # True, False, NewStyle
 
 TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
@@ -46,6 +46,30 @@ FILTER_INTERRUPT = xmlbuilder.DOMBuilderFilter.FILTER_INTERRUPT
 
 theDOMImplementation = minidom.getDOMImplementation()
 
+
+class ElementInfo(NewStyle):
+    __slots__ = '_attr_info', '_model', 'tagName'
+
+    def __init__(self, tagName, model=None):
+        self.tagName = tagName
+        self._attr_info = []
+        self._model = model
+
+    def isEmpty(self):
+        if self._model:
+            return self._model[0] == expat.model.XML_CTYPE_EMPTY
+        else:
+            return False
+
+    def isId(self, aname):
+        for info in self._attr_info:
+            if info[1] == aname:
+                return info[-2] == "ID"
+        return False
+
+    def isIdNS(self, euri, ename, auri, aname):
+        # not sure this is meaningful
+        return self.isId((auri, aname))
 
 def _intern(builder, s):
     return builder._intern_setdefault(s, s)
@@ -111,7 +135,6 @@ class ExpatBuilder:
         self._entities = []
         self._notations = []
         self._pre_doc_events = []
-        self._attr_info = {}
         self._elem_info = {}
 
     def install(self, parser):
@@ -280,15 +303,7 @@ class ExpatBuilder:
     def start_element_handler(self, name, attributes):
         if self.document is None:
             doctype = self._create_doctype()
-            doc = theDOMImplementation.createDocument(
-                None, name, doctype)
-            if self._standalone >= 0:
-                doc.standalone = self._standalone and True or False
-            doc.encoding = self._encoding
-            doc.version = self._version
-            self.document = doc
-            self._include_early_events()
-            node = doc.documentElement
+            node = self._create_document(None, name, doctype).documentElement
         else:
             node = self.document.createElement(name)
             _append_child(self.curNode, node)
@@ -304,6 +319,18 @@ class ExpatBuilder:
                 _set_attribute_node(node, a)
 
         self._finish_start_element(node)
+
+    def _create_document(self, namespace, name, doctype):
+        doc = theDOMImplementation.createDocument(None, name, doctype)
+        doc._elem_info.update(self._elem_info)
+        self._elem_info = doc._elem_info
+        if self._standalone >= 0:
+            doc.standalone = self._standalone and True or False
+        doc.encoding = self._encoding
+        doc.version = self._version
+        self.document = doc
+        self._include_early_events()
+        return doc
 
     def _finish_start_element(self, node):
         if self._filter:
@@ -345,7 +372,7 @@ class ExpatBuilder:
                 curNode.unlink()
 
     def _handle_white_text_nodes(self, node, info):
-        type = info[0]
+        type = info._model and info._model[0]
         if type in (expat.model.XML_CTYPE_ANY,
                     expat.model.XML_CTYPE_MIXED):
             return
@@ -369,15 +396,19 @@ class ExpatBuilder:
                 node.removeChild(child)
 
     def element_decl_handler(self, name, model):
-        self._elem_info[name] = model
+        info = self._elem_info.get(name)
+        if info is None:
+            self._elem_info[name] = ElementInfo(name, model)
+        else:
+            info._model = model
 
     def attlist_decl_handler(self, elem, name, type, default, required):
-        if self._attr_info.has_key(elem):
-            L = self._attr_info[elem]
-        else:
-            L = []
-            self._attr_info[elem] = L
-        L.append([None, name, None, None, default, 0, type, required])
+        info = self._elem_info.get(elem)
+        if info is None:
+            info = ElementInfo(elem)
+            self._elem_info[elem] = info
+        info._attr_info.append(
+            [None, name, None, None, default, 0, type, required])
 
     def xml_decl_handler(self, version, encoding, standalone):
         self._version = version
@@ -387,8 +418,7 @@ class ExpatBuilder:
     def _create_doctype(self):
         if not self._doctype_args:
             return None
-        doctype = apply(theDOMImplementation.createDocumentType,
-                        self._doctype_args)
+        doctype = theDOMImplementation.createDocumentType(*self._doctype_args)
         # To modify the entities and notations NamedNodeMaps, we
         # simply need to work with the underlying sequences.
         doctype.entities._seq = self._entities
@@ -714,15 +744,7 @@ class Namespaces:
             prefix = EMPTY_PREFIX
         if self.document is None:
             doctype = self._create_doctype()
-            doc = theDOMImplementation.createDocument(
-                uri, qname, doctype)
-            if self._standalone >= 0:
-                doc.standalone = self._standalone
-            doc.encoding = self._encoding
-            doc.version = self._version
-            self.document = doc
-            self._include_early_events()
-            node = doc.documentElement
+            node = self._create_document(uri, qname, doctype).documentElement
         else:
             node = minidom.Element(qname, uri, prefix, localname)
             node.ownerDocument = self.document

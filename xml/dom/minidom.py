@@ -1134,6 +1134,33 @@ class DOMImplementation(DOMImplementationLS):
     def _create_document(self):
         return Document()
 
+class ElementInfo(NewStyle):
+    """Object that represents content-model information for an element.
+
+    This implementation is not expected to be used in practice; DOM
+    builders should provide implementations which do the right thing
+    using information available to it.
+
+    """
+
+    __slots__ = 'tagName',
+
+    def __init__(self, name):
+        self.tagName = name
+
+    def isEmpty(self):
+        """Returns true iff this element is declared to have an EMPTY
+        content model."""
+        return False
+
+    def isId(self, aname):
+        """Returns true iff the named attribte is a DTD-style ID."""
+        return False
+
+    def isIdNS(self, namespaceURI, localName):
+        """Returns true iff the identified attribute is a DTD-style ID."""
+        return False
+
 class Document(Node, DocumentLS):
     _child_node_types = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
                          Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
@@ -1160,6 +1187,8 @@ class Document(Node, DocumentLS):
 
     def __init__(self):
         self.childNodes = NodeList()
+        # mapping of (namespaceURI, tagName) -> ElementInfo
+        self._elem_info = {}
 
     def _get_actualEncoding(self):
         return self.actualEncoding
@@ -1277,6 +1306,34 @@ class Document(Node, DocumentLS):
         return a
 
     def getElementById(self, id):
+        if not self._elem_info:
+            return None
+        stack = [self.documentElement]
+        while stack:
+            node = stack.pop()
+            # check this node
+            if node.namespaceURI:
+                key = node.namespaceURI, node.localName
+            else:
+                key = node.tagName
+            info = self._elem_info.get(key)
+            if info:
+                for attr in node.attributes.values():
+                    if attr.namespaceURI:
+                        if info.isIdNS(attr.namespaceURI, attr.localName):
+                            if attr.value == id:
+                                return node
+                            else:
+                                break
+                    elif info.isId(attr.name):
+                        if attr.value == id:
+                            return node
+                        else:
+                            break
+            # didn't match; add child elements to stack
+            for child in node.childNodes:
+                if child.nodeType == Node.ELEMENT_NODE:
+                    stack.append(child)
         return None
 
     def getElementsByTagName(self, name):

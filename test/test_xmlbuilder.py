@@ -25,6 +25,11 @@ class Tests(unittest.TestCase):
     def setUp(self):
         self.builder = xmlbuilder.DOMBuilder()
 
+    def makeSource(self, text):
+        source = xmlbuilder.DOMInputSource()
+        source.byteStream = StringIO(text)
+        return source
+
     def check_attrs(self, atts, expected):
         self.assertEqual(atts.length, len(expected))
         info = atts.itemsNS()
@@ -33,9 +38,7 @@ class Tests(unittest.TestCase):
             raise AssertionError, "\n" + pprint.pformat(info)
 
     def run_checks(self, attributes):
-        source = xmlbuilder.DOMInputSource()
-        source.byteStream = StringIO(DOCUMENT_SOURCE)
-        document = self.builder.parse(source)
+        document = self.builder.parse(self.makeSource(DOCUMENT_SOURCE))
 
         if document.doctype.internalSubset != INTERNAL_SUBSET:
             raise ValueError, (
@@ -72,6 +75,26 @@ class Tests(unittest.TestCase):
                         [(("http://xml.python.org/a", "a"), "a"),
                          (("http://xml.python.org/b", "b"), "b"),
                          ])
+
+    def test_get_element_by_id(self):
+        ID_PREFIX = "<!DOCTYPE doc [ <!ATTLIST e id ID #IMPLIED> ]>"
+        doc = self.builder.parse(self.makeSource(
+            ID_PREFIX + "<doc id='foo'><e id='foo'/></doc>"))
+        self.assert_(doc.getElementById("bar") is None,
+                     "received unexpected node")
+        self.assertEqual(doc.getElementById("foo").nodeName, "e",
+                         "did not get expected node")
+
+        doc = self.builder.parse(self.makeSource(
+            ID_PREFIX + "<doc id='foo'><d id='foo'/><e id='foo'/></doc>"))
+        self.assertEqual(doc.getElementById("foo").nodeName, "e",
+                         "did not get expected node")
+
+        doc = self.builder.parse(self.makeSource(
+            ID_PREFIX + ("<doc id='foo'><e id='foo' name='a'/>"
+                         "<e id='bar' name='b'/></doc>")))
+        self.assertEqual(doc.getElementById("foo").getAttribute("name"), "a",
+                         "did not get expected node")
 
 
 def test_main():
