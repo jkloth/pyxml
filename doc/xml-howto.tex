@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.20 2002/08/28 03:52:04 fdrake Exp $
+% $Id: xml-howto.tex,v 1.21 2002/08/28 04:06:20 fdrake Exp $
 
 % TODO:
 %    XXX not covered: DOM extensions, scripts
@@ -407,35 +407,35 @@ one.
   the implementation for DOM trees built from XML documents.
   (This implementation is called 4DOM, and was written by Fourthought Inc.)
   
-\item[\module{dom.html}]
+\item[\module{xml.dom.html}]
   DOM trees built from HTML documents are also supported.
 
-\item[\module{dom.javadom}]
+\item[\module{xml.dom.javadom}]
   An adaptor for using Java DOM implementations with Jython.
 
-\item[\module{dom.minidom}]
+\item[\module{xml.dom.minidom}]
   A lightweight DOM implementation that's also included in the Python
   standard library.  
 
-\item[\module{dom.minitraversal}]
+\item[\module{xml.dom.minitraversal}]
   Offers traversal and ranges on top of
   \module{xml.dom.minidom}, using the 4DOM traversal implementation.
 
-\item[\module{dom.pulldom}]
+\item[\module{xml.dom.pulldom}]
   Provides a stream of DOM elements.  This module can make it easy 
   to write certain types of DTD-specific processing code.
 
-\item[\module{dom.ext}]
+\item[\module{xml.dom.ext}]
   Various DOM-related extensions for pretty-printing DOM trees as XML or XHTML.
 
-\item[\module{dom.ext.Dom2Sax}]
+\item[\module{xml.dom.ext.Dom2Sax}]
   A parser to generate SAX events from a DOM tree.
 
-\item[\module{dom.ext.c14n}]
+\item[\module{xml.dom.ext.c14n}]
   Takes a DOM tree and outputs a text stream containing the
   Canonical XML representation of the document.
 
-\item[\module{dom.ext.reader}]
+\item[\module{xml.dom.ext.reader}]
   Classes for building DOM trees from various input sources:
   SAX1 and SAX2 parsers, \module{htmllib}, and directly using Expat.
 
@@ -464,38 +464,37 @@ one.
 \item[\module{xml.sax}]
   SAX1 and SAX2 support for Python.
 
-\item[\module{sax.drivers}]
+\item[\module{xml.sax.drivers}]
   SAX1 drivers for various parsers: \module{htmllib}, 
   LT, Expat, \module{sgmllib}, \module{xmllib}, xmlproc, 
   and XML-Toolkit.
 
-\item[\module{sax.drivers2}]
+\item[\module{xml.sax.drivers2}]
   SAX2 drivers for various parsers: \module{htmllib}, Java SAX parsers
   (for Jython), Expat, \module{sgmllib}, xmlproc.
 
-\item[\module{sax.handler}] 
+\item[\module{xml.sax.handler}] 
   Contains the core SAX2 handler classes \class{ContentHandler},
   \class{DTDHandler}, \class{EntityResolver}, and
   \class{ErrorHandler}.  Also contains symbolic names for the various
   SAX2 features and properties.
 
-
-\item[\module{sax.sax2exts}]
+\item[\module{xml.sax.sax2exts}]
   SAX2 extensions.  This contains various factory classes that create
   parser objects, and is how SAX2 parsers are used.
 
-\item[\module{sax.saxlib}]
+\item[\module{xml.sax.saxlib}]
   Contains two SAX2 handler classes, \class{DeclHandler} and
   \class{LexicalHandler}, and the \class{XMLFilter} interface.  
   Also contains the deprecated SAX1 handler classes.
 
-\item[\module{sax.saxutils}]
+\item[\module{xml.sax.saxutils}]
   Various utility classes, such as \class{DefaultHandler}, a default
   base class for SAX2 handlers, \class{ErrorPrinter} and
   \class{ErrorRaiser}, two default error handlers, and
   \class{XMLGenerator}, which generates XML output from a SAX2 event stream.
   
-\item[\module{sax.xmlreader}]
+\item[\module{xml.sax.xmlreader}]
   Contains the \class{XMLReader}, the base interface for implementing 
   SAX2 parsers.
 
