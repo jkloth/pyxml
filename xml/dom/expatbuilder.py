@@ -172,8 +172,7 @@ class ExpatBuilder:
                     break
                 parser.Parse(buffer, 0)
                 if first_buffer and self.document:
-                    if self.document.doctype:
-                        self._setup_subset(buffer)
+                    self._setup_subset(buffer)
                 first_buffer = False
             parser.Parse("", True)
         except ParseEscape:
@@ -202,8 +201,7 @@ class ExpatBuilder:
             extractor = InternalSubsetExtractor()
             extractor.parseString(buffer)
             subset = extractor.getSubset()
-            if subset is not None:
-                self.document.doctype.internalSubset = subset
+            self.document.doctype.internalSubset = subset
 
     def start_doctype_decl_handler(self, doctypeName, systemId, publicId,
                                    has_internal_subset):
@@ -876,16 +874,7 @@ class InternalSubsetExtractor(ExpatBuilder):
 
     def getSubset(self):
         """Return the internal subset as a string."""
-        subset = self.subset
-        while subset and subset[0] != "[":
-            del subset[0]
-        if subset:
-            x = subset.index("]")
-            subset = ''.join(subset[1:x])
-            subset = subset.replace("\r\n", "\n").replace("\r", "\n")
-            return subset
-        else:
-            return None
+        return self.subset
 
     def parseFile(self, file):
         try:
@@ -901,15 +890,20 @@ class InternalSubsetExtractor(ExpatBuilder):
 
     def install(self, parser):
         parser.StartDoctypeDeclHandler = self.start_doctype_decl_handler
-        parser.EndDoctypeDeclHandler = self.end_doctype_decl_handler
         parser.StartElementHandler = self.start_element_handler
 
-    def start_doctype_decl_handler(self, *args):
-        self.subset = []
-        self.getParser().DefaultHandler = self.subset.append
+    def start_doctype_decl_handler(self, name, publicId, systemId,
+                                   has_internal_subset):
+        if has_internal_subset:
+            parser = self.getParser()
+            self.subset = []
+            parser.DefaultHandler = self.subset.append
+            parser.EndDoctypeDeclHandler = self.end_doctype_decl_handler
+        else:
+            raise ParseEscape()
 
     def end_doctype_decl_handler(self):
-        self.getParser().DefaultHandler = None
+        self.subset = ''.join(self.subset)
         raise ParseEscape()
 
     def start_element_handler(self, name, attrs):
