@@ -50,9 +50,10 @@ class ParserFactory:
         if drv_name==None:
             list=self.parsers
         else:
-            list=[drv_name]
+            list=[ drv_name ]
             
         for parser_name in list:
+            parser_name = 'xml.sax.drivers.drv_' + parser_name
             try:
                 info=rec_find_module(parser_name)
                 drv_module=apply(imp.load_module,info)
@@ -133,22 +134,15 @@ class NosliceDocumentHandler(saxlib.DocumentHandler):
 
 # --- Creating parser factories
 
-XMLParserFactory=ParserFactory(["xml.sax.drivers.drv_pyexpat",
-                                "xml.sax.drivers.drv_xmltok",
-                                "xml.sax.drivers.drv_xmlproc",
-                                "xml.sax.drivers.drv_xmltoolkit",
-                                "xml.sax.drivers.drv_xmllib",
-                                "xml.sax.drivers.drv_xmldc",
-                                "xml.sax.drivers.drv_sgmlop"])
+XMLParserFactory=ParserFactory(["pyexpat", "xmltok", "xmlproc",
+                                "xmltoolkit", "xmllib", "xmldc",
+                                "sgmlop"])
 
-XMLValParserFactory=ParserFactory(["xml.sax.drivers.drv_xmlproc_val"])
+XMLValParserFactory=ParserFactory(["xmlproc_val"])
 
-HTMLParserFactory=ParserFactory(["xml.sax.drivers.drv_htmllib",
-                                 "xml.sax.drivers.drv_sgmlop",
-                                 "xml.sax.drivers.drv_sgmllib"])
+HTMLParserFactory=ParserFactory(["htmllib", "sgmlop", "sgmllib"])
 
-SGMLParserFactory=ParserFactory(["xml.sax.drivers.drv_sgmlop",
-                                 "xml.sax.drivers.drv_sgmllib"])
+SGMLParserFactory=ParserFactory(["sgmlop", "sgmllib"])
 
 def make_parser(parser=None):
     if parser==None:
