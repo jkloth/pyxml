@@ -45,13 +45,19 @@ try:
     # ParseFile throws exception, not available up to 2.28.
     if pyexpat.__version__ <= '2.28':
         build_pyexpat = 1
+    if 'pyexpat' in sys.builtin_module_names:
+        print "Error: builtin expat library will conflict with ours"
+        print "Re-build python without builtin expat module"
+        raise SystemExit
 except ImportError:
     build_pyexpat = 1
 
 if build_pyexpat:
     ext_modules.append(
         Extension(xml('.parsers.pyexpat'),
-                  define_macros = [('XML_NS', None)],
+                  define_macros = [('XML_NS', None),
+                                   ('XML_DTD',None),
+                                   ('EXPAT_VERSION','0x010200')],
                   include_dirs = [ 'extensions/expat/xmltok',
                                    'extensions/expat/xmlparse' ], 
                   sources = [ 'extensions/pyexpat.c',
@@ -61,6 +67,7 @@ if build_pyexpat:
                               'extensions/expat/xmlwf/xmlwf.c',
                               'extensions/expat/xmlwf/codepage.c',
                               'extensions/expat/xmlparse/xmlparse.c',
+                              # Gone in 1.2
                               #'extensions/expat/xmlparse/hashtable.c',
                               FILEMAP_SRC,
                               ]
