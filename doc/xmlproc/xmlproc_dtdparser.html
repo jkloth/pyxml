@@ -1,21 +1,18 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>The xmlproc DTDParser API</TITLE>
-  <META NAME="Author"    CONTENT="Lars Marius Garshol">
-  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
-  <META NAME="Description" CONTENT="This page documents the API of the DTDParser used by xmlproc.">
-  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <TITLE>Documentation: the xmlproc DTDParser APIs</TITLE>
+  <META NAME="Author"      CONTENT="Lars Marius Garshol">
+  <META NAME="Generator"   CONTENT="Homemade">
+  <META NAME="Description" CONTENT="This page documents the APIs for parsing DTDs in
+	xmlproc.">
+  <META NAME="Keywords"    CONTENT="XML, Python, XML parser, DTD parser">
+  <LINK REL=stylesheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
 
-<DIV CLASS=partof>
-<A HREF="xmlproc.html">xmlproc: A Python XML parser</A>.
-</DIV>
-
-<H1>The xmlproc DTDParser API</H1>
-
+<H1>Documentation: the xmlproc DTDParser APIs</H1>
 
 <P>
 The DTD parser is the module xmlproc uses to read XML DTDs. It has
@@ -26,7 +23,7 @@ documents.
 
 <P>
 Applications that wish to use the DTD parser should implement the
-<A HREF="xmlproc-dtd-doco.html#DTDConsumer">DTDConsumer</A> interface
+<A HREF="dtd-api-doco.html#DTDConsumer">DTDConsumer</A> interface
 and use it to receive parse events.
 </P>
 
@@ -44,7 +41,7 @@ implements the following interface:
   <DT><CODE>def set_dtd_consumer(self,consumer):</CODE>
   <DD>Tells the DTD parser where to send DTD parse events. The
   consumer object must implement the <A
-  HREF="xmlproc-dtd-doco.html#DTDConsumer">DTDConsumer</A> interface.
+  HREF="dtd-api-doco.html#DTDConsumer">DTDConsumer</A> interface.
     
   <DT><CODE>def set_error_handler(self,err):</CODE>
   <DD>Tells the parser where to send error events.
@@ -103,10 +100,11 @@ implements the following interface:
 <HR>
 
 <ADDRESS>
-07.feb.99 04:13, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+Last update 2000-05-11 14:20, by 
+<a href="mailto:larsga@garshol.priv.no">Lars Marius Garshol</a>.
 </ADDRESS>
+
+</DIV>
 
 </BODY>
 </HTML>

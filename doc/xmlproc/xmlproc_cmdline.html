@@ -1,20 +1,18 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>Using the xmlproc command-line parsers</TITLE>
-  <META NAME="Author"    CONTENT="Lars Marius Garshol">
-  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
-  <META NAME="Description" CONTENT="This document explains the interfaces of the xmlproc command-line parsers.">
-  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <TITLE>Using xmlproc from the command-line</TITLE>
+  <META NAME="Author"      CONTENT="Lars Marius Garshol">
+  <META NAME="Generator"   CONTENT="Homemade">
+  <META NAME="Description" CONTENT="This page documents the command-line interface of
+	xmlproc.">
+  <META NAME="Keywords"    CONTENT="XML, Python, XML parser">
+  <LINK REL=stylesheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
 
-<DIV CLASS=partof>
-<A HREF="xmlproc.html">xmlproc: A Python XML parser</A>.
-</DIV>
-
-<H1>Using the xmlproc command-line parsers</H1>
+<H1>Using xmlproc from the command-line</H1>
 
 <P>
 The command-line parser is in xpcmd.py for well-formedness parsing and xvcmd.py
@@ -33,17 +31,20 @@ error (which would be in violation of the spec).
 <PRE>
 Usage:
 
-  xpcmd.py [-l language] [-o format] [-n] urltodoc
+  xpcmd.py [options] [urltodoc]
 
   ---Options:  
-  language: ISO 3166 language code for language to use in error messages
-            (no and en supported).
-  format:   Format to output parsed XML. 'e': ESIS, 'x': canonical XML
-            No data will be outputted if this option is not specified
-  urltodoc: URL to the document to parse. (You can use plain file names
-            as well.) Can be omitted if a catalog is specified and contains
-            a DOCUMENT entry.
-  -n:       Report qualified names as 'URI name'. (Namespace processing.)
+  -l language: ISO 3166 language code for language to use in error messages
+  -o format:   Format to output parsed XML. 'e': ESIS, 'x': canonical XML
+               and 'n': normalized XML. No data will be output if this
+               option is not specified.
+  urltodoc:    URL to the document to parse. (You can use plain file names
+               as well.) Can be omitted if a catalog is specified and contains
+               a DOCUMENT entry.
+  -n:          Report qualified names as 'URI name'. (Namespace processing.)
+  --nowarn:    Don't write warnings to console.
+  --entstck:   Show entity stack on errors.
+  --extsub:    Read the external subset of documents.
 </PRE>
   
 <h2>xvcmd.py</h2>
@@ -55,17 +56,21 @@ xvcmd.py validates and has more options:
 <PRE>
 Usage:
 
-  xvcmd.py [-c catalog] [-l language] [-o format] [-n] [urltodoc]
+  xvcmd.py [options] [urlstodocs]
 
   ---Options:  
-  catalog:  path to catalog file to use to resolve public identifiers
-  language: ISO 3166 language code for language to use in error messages
-  format:   Format to output parsed XML. 'e': ESIS, 'x': canonical XML
-            No data will be outputted if this option is not specified
-  urltodoc: URL to the document to parse. (You can use plain file names
-            as well.) Can be omitted if a catalog is specified and contains
-            a DOCUMENT entry.
-  -n:       Report qualified names as 'URI name'. (Namespace processing.)
+  -c catalog:   path to catalog file to use to resolve public identifiers
+  -l language:  ISO 3166 language code for language to use in error messages
+  -o format:    Format to output parsed XML. 'e': ESIS, 'x': canonical XML
+                and 'n': normalized XML. No data will be output if this
+                option is not specified.
+  urlstodocs:   URLs to the documents to parse. (You can use plain file names
+                as well.) Can be omitted if a catalog is specified and contains
+                a DOCUMENT entry.
+  -n:           Report qualified names as 'URI name'. (Namespace processing.)
+  --nowarn:     Suppress warnings.
+  --entstck:    Show entity stack on errors.
+  --rawxml:     Show raw XML string where error occurred.
             
   Catalog files with URLs that end in '.xml' are assumed to be XCatalogs,
   all others are assumed to be SGML Open Catalogs.
@@ -78,10 +83,11 @@ Usage:
 <HR>
 
 <ADDRESS>
-07.feb.99 04:11, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+Last update 2000-05-11 14:20, by 
+<a href="mailto:larsga@garshol.priv.no">Lars Marius Garshol</a>.
 </ADDRESS>
+
+</DIV>
 
 </BODY>
 </HTML>

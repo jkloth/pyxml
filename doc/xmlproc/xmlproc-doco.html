@@ -1,20 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>Documentation: The xmlproc APIs</TITLE>
-  <META NAME="Author"    CONTENT="Lars Marius Garshol">
-  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
-  <META NAME="Description" CONTENT="This is the detailed documentation of the APIs of the xmlproc XML parser.">
-  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <TITLE>Documentation: the xmlproc APIs</TITLE>
+  <META NAME="Author"      CONTENT="Lars Marius Garshol">
+  <META NAME="Generator"   CONTENT="Homemade">
+  <META NAME="Description" CONTENT="This page documents the APIs of xmlproc.">
+  <META NAME="Keywords"    CONTENT="XML, Python, XML parser">
+  <LINK REL=stylesheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
 
-<DIV CLASS=partof>
-<A HREF="xmlproc.html">xmlproc: A Python XML parser</A>.
-</DIV>
-
-<H1>Documentation: The xmlproc APIs</H1>
+<H1>Documentation: the xmlproc APIs</H1>
 
 <H2>Using the API</H2>
 
@@ -51,8 +48,8 @@ set_inputsource_factory method.
 <H3>Working with DTDs and catalog files</H3>
 
 <P>
-See the <A HREF="xmlproc-dtd-doco.html">DTD API documentation</A> and
-the <A HREF="xmlproc-catalog-doco.html">catalog file documentation</A>.
+See the <A HREF="dtd-api-doco.html">DTD API documentation</A> and
+the <A HREF="catalog-doco.html">catalog file documentation</A>.
 </P>
 
 <H2>List of interfaces</H2>
@@ -82,13 +79,6 @@ used to control parsing.
   <DT><CODE>def __init__(self):</CODE>
   <DD>Instantiates a parser.
 
-  <DT><CODE>def get_dtd(self):</CODE>
-  <DD>Returns the object holding information about the DTD of the
-  document. This object conforms to the <A HREF="xmlproc-dtd-doco.html#DTD">DTD
-  interface</A>. (This method only implemented by XMLValidator, not
-  XMLProcessor, since the latter will only have very limited DTD
-  information.)
-    
   <DT><CODE>def set_application(self,app):</CODE>
   <DD>Tells the parser where to send data events.
   
@@ -103,6 +93,11 @@ used to control parsing.
   <DD>Tells the parser which object to use to map public identifiers
   to system identifiers.
   
+  <DT><CODE>def set_dtd_listener(self, dtd_listener):</CODE>
+  <DD>Tells the parser where to send DTD parse events. The dtd_listener
+  object must implement the 
+  <a href="dtd-api-doco.html#DTDConsumer">DTDConsumer</a> interface.
+
   <DT><CODE>def parse_resource(self,sysID,bufsize=16384):</CODE>
   <DD>Makes the parser parse the XML document with the given system identifier.
   
@@ -131,19 +126,46 @@ used to control parsing.
   <DT><CODE>def get_column(self):</CODE>
   <DD>Returns the current column position. 
 
+  <DT><CODE>def get_dtd(self):</CODE>
+  <DD>Returns the object holding information about the DTD of the
+  document. This object conforms to the <A HREF="dtd-api-doco.html#DTD">DTD
+  interface</A>. (Note that the DTD object returned by XMLProcessor will have
+  much less information, since the XMLProcessor does not keep as much
+  DTD information.)
+    
   <DT><CODE>def set_error_language(self,language):</CODE>
-  <DD>Tells the parser which language to report errors in. 'language' must be an ISO 3166
-             language code (case does not matter). A KeyError will be thrown if the language is
-             not supported.
+  <DD>Tells the parser which language to report errors in. 'language'
+  must be an ISO 3166 language code (case does not matter). A KeyError
+  will be thrown if the language is not supported.
 
   <DT><CODE>def set_data_after_wf_error(self,stop_on_error):</CODE>
-  <DD>Tells the parser whether to report data events to the application after a well-formedness
-             error (0) or whether to stop reporting data (which is the default, 1).
+  <DD>Tells the parser whether to report data events to the
+  application after a well-formedness error (0) or whether to stop
+  reporting data (which is the default, 1).
+
+  <DT><CODE>def set_read_external_subset(self, read):</CODE>
+  <DD>Tells the parser whether to read the external DTD subset of
+  documents (including external parameter entities). Note that
+  XMLValidator will ignore this method and always read the external
+  subset.
 
   <DT><CODE>def deref(self):</CODE>
-  <DD>The parser creates circular data structures during parsing. When the parser object is
-             no longer to be used and you wish to free the memory it has allocated, call this method.
-             The parser object will be non-functional afterwards.
+  <DD>The parser creates circular data structures during parsing. When
+  the parser object is no longer to be used and you wish to free the
+  memory it has allocated, call this method.  The parser object will
+  be non-functional afterwards.
+
+  <DT><CODE>def get_elem_stack(self):</CODE>
+  <DD>This method returns the list that holds the stack of open elements.
+  Note that this list is live and must <strong>not</strong> be modified
+  by the application.
+  
+  <DT><CODE>def get_raw_construct(self):</CODE>
+  <DD>Returns the raw XML string that triggered the current callback event.
+
+  <DT><CODE>def get_current_ent_stack(self):</CODE>
+  <DD>Returns a snapshot of the current stack of open entities as a list
+  of (entity name, entity sysid) tuples.
 
 </DL>
 
@@ -283,10 +305,11 @@ The default implementation interprets system identifiers as URLs.
 <HR>
 
 <ADDRESS>
-07.feb.99 00:37, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+Last update 2000-05-11 14:20, by 
+<a href="mailto:larsga@garshol.priv.no">Lars Marius Garshol</a>.
 </ADDRESS>
+
+</DIV>
 
 </BODY>
 </HTML>

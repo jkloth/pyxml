@@ -2,17 +2,14 @@
 <HTML>
 <HEAD>
   <TITLE>An overview of xmlproc</TITLE>
-  <META NAME="Author"    CONTENT="Lars Marius Garshol">
-  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
-  <META NAME="Description" CONTENT="This document provides a tutorial introduction to the xmlproc parser.">
-  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <META NAME="Author"      CONTENT="Lars Marius Garshol">
+  <META NAME="Generator"   CONTENT="Homemade">
+  <META NAME="Description" CONTENT="This page documents the rough structure of xmlproc.">
+  <META NAME="Keywords"    CONTENT="XML, Python, XML parser">
+  <LINK REL=stylesheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
-
-<DIV CLASS=partof>
-<A HREF="xmlproc.html">xmlproc: A Python XML parser</A>.
-</DIV>
 
 <H1>An overview of xmlproc</H1>
 
@@ -28,10 +25,11 @@ together.
 <h2>The command-line parsers</h2>
 
 <P>
-xmlproc ships with two command-line parser applications. They are not useful for
-incorporating xmlproc in your own applications, but can be used to check that
-xmlproc is working, to verify documents and also to see how the parser interprets
-documents, by making them output canonical XML or ESIS.
+xmlproc ships with two command-line parser applications for XML
+parsing. They are not useful for incorporating xmlproc in your own
+applications, but can be used to check that xmlproc is working, to
+verify documents and also to see how the parser interprets documents,
+by making them output canonical XML or ESIS.
 </P>
 
 <P>
@@ -50,8 +48,41 @@ full validation on top of this.
 </P>
 
 <P>
-The command-line interfaces are documented <A HREF="xmlproc_cmdline.html">here</A>.
+The command-line interfaces are documented <A HREF="cmdline.html">here</A>.
 </P>
+
+<h3>The DTD parser</h3>
+
+<p>
+The xmlproc distribution also includes a command-line application
+dtdcmd.py, which only uses the DTD parsing APIs of xmlproc and can
+parse DTD files directly. The command-line interface is as follows:
+</p>
+
+<pre>
+  python dtdcmd.py [--list] <urltodtd>+
+</pre>
+
+<p>
+Here <tt>--list</tt> makes the parser list all declarations after
+parsing a DTD, and <tt>urltodtd</tt> is a list of one or more DTD file
+names or URLs.
+</p>
+
+<h3>The DTD to XML Schema converter</h3>
+
+<p>
+The command-line application dtd2schema.py converts DTDs into
+equivalent XML Schema documents. The application takes one mandatory
+argument (the system identifier of the DTD) and one optional argument
+(the file name of the output document). If no output file name is
+specified, one is inferred from the input file name.
+</p>
+
+<p>
+The converter tries to do some naive inference of attribute groups and
+will produce output with attribute groups inferred from the DTD structure.
+</p>
 
 <h2>The parsing API</h2>
 
@@ -78,7 +109,7 @@ only the latter validates and the former is faster). When it is
 created the Parser creates the four objects shown in the diagram. It
 also provides methods that can be used to make it use objects that you
 provide instead of these objects. (See the <A
-HREF="xmlproc-doco.html">documentation</A> for details</A>.)
+HREF="api-doco.html">documentation</A> for details</A>.)
 </P>
 
 <P>
@@ -124,13 +155,25 @@ p.set_application(MyApplication())
 p.parse_resource("foo.xml")
 </CODE></PRE>
 
+<h2>The GUI parser frontend</h2>
+
+<p>
+xmlproc includes a GUI application that can be used to parse XML
+documents in the wxValidator.py application. This application uses <a
+href="http://alldunn.com/wxPython/">wxPython</a> to create a more
+user-friendly interface, as shown below:
+</p>
+
+<img src="wxval.gif" alt="[Screenshot of wxValidator]">
+
 <HR>
 
 <ADDRESS>
-11.feb.99 05:34, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+Last update 2000-05-11 14:20, by 
+<a href="mailto:larsga@garshol.priv.no">Lars Marius Garshol</a>.
 </ADDRESS>
+
+</DIV>
 
 </BODY>
 </HTML>

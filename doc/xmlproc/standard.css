@@ -1,37 +1,41 @@
-  /* --- Felles for alle sider --- */
-    
-H1	  { text-align: center; padding-bottom: 1.5ex; color: #FFFFFF;
-            background: #000000 none }
-H2	  { padding-top: 1ex }
-ADDRESS   { font-size: small }
 
-SPAN.skip { display: none }
-DIV.skip   { display: none }
+/*
 
-A:link    { background: #000000 none; color: #CCCCCC }
-A:visited { background: #000000 none; color: #999999 }
-A:active  { background: #000000 none; color: #FF0000 }
+   CSS style sheet for my web pages.
 
-HR	  { padding-top: 2ex }
+*/
 
-UL.padded      { line-height: 120% }
-LI.Overskrift  { margin-top: 2ex; font-weight: bold }
-LI             { margin-top: 0.2ex; font-weight: normal }
+BODY {
+  margin-left: 10%; margin-right: 10%; margin-top: 24pt; margin-bottom: 12pt;
+}
 
-DIV.partof     { font-size: small; text-align: right }
+H1 {
+  background: navy; color: white; padding: 3pt;
+  padding-left: 7pt;
+  font-family: Tahoma, Helvetica, sans-serif; margin-bottom: 24pt
+}
 
-TABLE.programinfo { background: #444444 }
+H2, H3, H4, H5, H6 {
+  font-family: Tahoma, Helvetica, sans-serif  
+}
 
-/* --- Netscape bug workaround --- */
+ADDRESS {
+  background: navy; color: white; padding: 3pt; 
+  font-size: small; font-style: italic;
+}
 
-TH,TD  { background: #000000 none; color: #FFFFFF }
+.warning {
+  font-weight: bold; color: red
+}
 
-/* --- Felles for alle sider unntatt startsiden --- */
+.warning:before {
+  content: "Warning: "; font-weight: bold; color: red
+}
 
-BODY	  { margin-top: 2ex; margin-right: 10%; margin-left: 10%;
-	    background: #000000 none; color: #FFFFFF;
-	    font-family: Arial, Helvetica, Sans-Serif }
+ADDRESS A:link {
+  color: white;
+}
 
-IMG.kant  { border-style: solid; border-color: red }
-
- 
+ADDRESS A:visited {
+  color: #DDD;
+}

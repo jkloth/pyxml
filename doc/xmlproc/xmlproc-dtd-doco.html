@@ -1,36 +1,35 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>Documentation: xmlproc DTD APIs</TITLE>
-  <META NAME="Author"    CONTENT="Lars Marius Garshol">
-  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
-  <META NAME="Description" CONTENT="This is the detailed documentation of the APIs used in the xmlproc XML parser to access DTD information.">
-  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
+  <TITLE>Documentation: the xmlproc DTD APIs</TITLE>
+  <META NAME="Author"      CONTENT="Lars Marius Garshol">
+  <META NAME="Generator"   CONTENT="Homemade">
+  <META NAME="Description" CONTENT="This page documents the APIs for working with DTDs in
+	xmlproc.">
+  <META NAME="Keywords"    CONTENT="XML, Python, XML parser, DTD">
+  <LINK REL=stylesheet HREF="standard.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
 
-<DIV CLASS=partof>
-<A HREF="xmlproc-doco.html">Documentation: The xmlproc APIs</A>.
-</DIV>
-
-<H1>Documentation: xmlproc DTD APIs</H1>
+<H1>Documentation: the xmlproc DTD APIs</H1>
 
 <H2>Working with DTDs</H2>
 
 <H3>Accessing DTD information</H3>
 
 <P>
-DTD information is only available from the validating parser, which
-implements a get_dtd method, which can be used to get an object
-conforming to the <A HREF="#DTD">DTD interface</A>, containing all
-information about the DTD.
+The complete DTD information is only available from the validating
+parser, although both parsers implement a get_dtd method, which can be
+used to get an object conforming to the <A HREF="#DTD">DTD
+interface</A>, containing information about the DTD.
 </P>
 
 <H3>Parsing a DTD without parsing a document</H3>
 
 <P>
-This is now supported through the <A HREF="xmlproc_dtdparser.html">dtdparser module</A>.
+This is now supported through the <A
+HREF="dtd-parser-doco.html">dtdparser module</A>.
 </P>
 
 <H2>List of interfaces</H2>
@@ -57,6 +56,31 @@ information about the DTD.
 </P>
 
 <DL>
+  <DT><CODE>def get_root_elem(self):</CODE>
+  <DD>Returns the name of the element declared as the root element (as
+  a string), or None if none were declared.
+  
+  <DT><CODE>def get_elem(self,name):</CODE>
+  <DD>Returns the <A HREF="#ElementType">element object</A> of the
+  element with the given
+  name.  Throws a KeyError if no such element has been declared.
+  
+  <DT><CODE>def get_elements(self):</CODE>
+  <DD>Returns a list of all declared element names.
+
+  <DT><CODE>def get_notation(self,name):</CODE>
+  <DD>Returns a (pubid, sysid) tuple representing the named notation. If no 
+  such notation has been declared a KeyError is thrown. 
+
+  <DT><CODE>def get_notations(self):</CODE>
+  <DD>Returns a list of the names of all declared notations.
+
+  <DT><CODE>def get_general_entities(self):</CODE>
+  <DD>Returns a list of all declared general entity names.
+
+  <DT><CODE>def get_parameter_entities(self):</CODE>
+  <DD>Returns a list of all declared parameter entity names.
+
   <DT><CODE>def resolve_pe(self,name):</CODE>
   <DD>Returns the entity object (either InternalEntity or
   ExternalEntity) of the parameter entity with the given name. If no
@@ -68,22 +92,6 @@ information about the DTD.
   ExternalEntity) of the general entity with the given name. If no
   general entity with this name has been declared a KeyError is
   thrown.
-
-  <DT><CODE>def get_elem(self,name):</CODE>
-  <DD>Returns the <A HREF="#ElementType">element object</A> of the
-  element with the given
-  name.  Throws a KeyError if no such element has been declared.
-  
-  <DT><CODE>def get_root_elem(self):</CODE>
-  <DD>Returns the name of the element declared as the root element (as
-  a string), or None if none were declared.
-  
-  <DT><CODE>def get_notation(self,name):</CODE>
-  <DD>Returns the notation object of the given notation. If no such
-  notation has been declared a KeyError is thrown. 
-
-  <DT><CODE>def get_elements(self):</CODE>
-  <DD>Returns a list of all declared element names.
 </DL>
 
 <H2><A NAME="ElementType">The ElementType interface</A></H2>
@@ -136,11 +144,6 @@ This class encapsulates information about an attribute.
 </P>
 
 <DL>
-  <DT><CODE>def validate(self,value,err):</CODE>
-  <DD>Takes an attribute value ('value') and an ErrorHandler ('err')
-  and validates the attribute value for correctness, reporting errors
-  to 'err'.
-  
   <DT><CODE>def get_name(self):</CODE>
   <DD>Returns the name of the attribute.
   
@@ -154,6 +157,11 @@ This class encapsulates information about an attribute.
   <DT><CODE>def get_default(self):</CODE>
   <DD>Return the default value of the attribute, or None if none has
   been declared.  
+
+  <DT><CODE>def validate(self,value,err):</CODE>
+  <DD>Takes an attribute value ('value') and an ErrorHandler ('err')
+  and validates the attribute value for correctness, reporting errors
+  to 'err'.  
 </DL>
 
 <H2><A NAME="Entity">The Entity interface</A></H2>
@@ -207,12 +215,6 @@ This interface is used to receive parse events from the DTD parser.
   once for the internal DTD subset (if any) and once for the external
   DTD subset (if parsed).)
   
-  <DT><CODE>def new_comment(self,contents):</CODE>
-  <DD>Called when a comment is encountered in the DTD.
-  
-  <DT><CODE>def new_pi(self,target,rem):</CODE>
-  <DD>Called when a processing instruction is encountered in the DTD.
-  
   <DT><CODE>def new_general_entity(self,name,val):</CODE>
   <DD>Called when an internal general entity declaration is
   encountered. 'val' contains the entity replacement text.
@@ -256,10 +258,11 @@ This interface is used to receive parse events from the DTD parser.
 <HR>
 
 <ADDRESS>
-20.apr.99 06:05, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
-<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
+Last update 2000-05-11 14:20, by 
+<a href="mailto:larsga@garshol.priv.no">Lars Marius Garshol</a>.
 </ADDRESS>
+
+</DIV>
 
 </BODY>
 </HTML>
