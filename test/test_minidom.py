@@ -689,6 +689,46 @@ def testRenameOther():
     else:
         print "expected NotSupportedErr when renaming comment node"
 
+def testWholeText():
+    doc = parseString("<doc>a</doc>")
+    elem = doc.documentElement
+    text = elem.childNodes[0]
+    assert text.nodeType == Node.TEXT_NODE
+
+    def checkText(node, s):
+        t = node.wholeText
+        confirm(t == s, "looking for %s, found %s" % (repr(s), repr(t)))
+
+    checkText(text, "a")
+    elem.appendChild(doc.createTextNode("b"))
+    checkText(text, "ab")
+    elem.insertBefore(doc.createCDATASection("c"), text)
+    checkText(text, "cab")
+
+    # make sure we don't cross other nodes
+    splitter = doc.createComment("comment")
+    elem.appendChild(splitter)
+    text2 = doc.createTextNode("d")
+    elem.appendChild(text2)
+    checkText(text, "cab")
+    checkText(text2, "d")
+
+    x = doc.createElement("x")
+    elem.replaceChild(x, splitter)
+    splitter = x
+    checkText(text, "cab")
+    checkText(text2, "d")
+
+    x = doc.createProcessingInstruction("y", "z")
+    elem.replaceChild(x, splitter)
+    splitter = x
+    checkText(text, "cab")
+    checkText(text2, "d")
+
+    elem.removeChild(splitter)
+    checkText(text, "cabd")
+    checkText(text2, "cabd")
+
 
 # --- MAIN PROGRAM
 
