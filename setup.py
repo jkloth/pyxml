@@ -45,11 +45,11 @@ def should_build_pyexpat():
         # Memory leak fixes, merged into 2.33
         # Wrong array boundaries fixed in 2.35
         if pyexpat.__version__ <= '2.39':
+            if 'pyexpat' in sys.builtin_module_names:
+                print "Error: builtin expat library will conflict with ours"
+                print "Re-build python without builtin expat module"
+                raise SystemExit
             return 1
-        if 'pyexpat' in sys.builtin_module_names:
-            print "Error: builtin expat library will conflict with ours"
-            print "Re-build python without builtin expat module"
-            raise SystemExit
     except ImportError:
         return 1
     else:
@@ -80,7 +80,8 @@ if build_pyexpat:
             library_dirs = [os.path.join(expat_prefix, "lib")]
         else:
             define_macros = [('XML_NS', None),
-                             ('XML_DTD', None)]
+                             ('XML_DTD', None),
+                             ('EXPAT_VERSION','0x010200')]
             include_dirs = ['extensions/expat/xmltok',
                             'extensions/expat/xmlparse']
             sources.extend(['extensions/expat/xmltok/xmltok.c',
