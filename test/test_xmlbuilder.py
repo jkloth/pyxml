@@ -115,7 +115,27 @@ class Tests(unittest.TestCase):
             "]><doc/>"
             ))
         s = document.toxml()
-        self.assertEqual(s, '<?xml version="1.0" ?>\n<doc/>')
+        self.assertEqual(s,
+                         '<?xml version="1.0" ?>\n'
+                         '<!DOCTYPE doc ['
+                         '<!-- comment --> <?pi foo?>'
+                         ']>\n'
+                         '<doc/>')
+
+    def test_document_prolog_in_order(self):
+        source = self.makeSource(
+            "<!-- comment -->\n"
+            "<!DOCTYPE doc []>\n"
+            "<?pi foo?>\n"
+            "<doc/>")
+        document = self.builder.parse(source)
+        s = document.toxml()
+        self.assertEqual(s,
+                         '<?xml version="1.0" ?>\n'
+                         '<!-- comment -->'
+                         '<!DOCTYPE doc []>\n'
+                         '<?pi foo?>'
+                         '<doc/>')
 
 
 DUMMY_URL = "http://xml.python.org/dummy.xml"
