@@ -2,6 +2,8 @@ The various subdirectories here contain demo programs that show how to
 use various XML processing interfaces.  The subdirectories are:
 
 arch		Sample code that demonstrates using architectural forms.
+genxml		Demonstration of generating XML from non-XML data, using
+		DOM, SAX, and simply writing to a file.
 dom		Sample code that uses the DOM interface.
 quotes		A simple application which processes an XML markup for
 		maintaining a list of quotations.
