@@ -13,7 +13,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
 import sys, re, string, urllib
-from xml.dom import Node
+from xml.dom import Node, EMPTY_NAMESPACE
 from xml.dom.Text import Text
 from xml.utils import boolean
 from xml.xpath import CoreFunctions, Conversions, FT_EXT_NAMESPACE, FT_OLD_EXT_NAMESPACE
@@ -67,11 +67,11 @@ def SearchRe(context, pattern, arg=None):
     matches_nodeset = []
     for groups in matches:
         proc.pushResult()
-        proc.writers[-1].startElement('Match', '')
+        proc.writers[-1].startElement('Match', EMPTY_NAMESPACE)
         if type(groups) != type(()):
             groups = (groups,)
         for group in groups:
-            proc.writers[-1].startElement('Group', '')
+            proc.writers[-1].startElement('Group', EMPTY_NAMESPACE)
             proc.writers[-1].text(group)
             proc.writers[-1].endElement('Group')
         proc.writers[-1].endElement('Match')
@@ -95,12 +95,12 @@ def SearchRePy20(context, pattern, arg=None):
     _match =_re.search(arg)
     while _match:
         proc.pushResult()
-        proc.writers[-1].startElement('Match', '')
+        proc.writers[-1].startElement('Match', EMPTY_NAMESPACE)
         _groups =_match.groups()
         # .groups() return empty tuple when the pattern did not do grouping
         if not _groups: _groups =tuple(_match.group())
         for group in _groups:
-            proc.writers[-1].startElement('Group', '')
+            proc.writers[-1].startElement('Group', EMPTY_NAMESPACE)
             # MatchObject groups return None if unmatched
             # unlike .findall() returning empty strings
             proc.writers[-1].text(group or '')
