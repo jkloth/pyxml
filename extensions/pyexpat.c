@@ -10,7 +10,7 @@
 #include "expat.h"
 
 #ifndef PyDoc_STRVAR
-#define PyDoc_STR(str)         (str)
+#define PyDoc_STR(str)         str
 #define PyDoc_VAR(name)        static char name[]
 #define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
 #endif
@@ -1666,7 +1666,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.63 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.64 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
