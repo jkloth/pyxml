@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.13 2002/07/24 18:55:30 fdrake Exp $
+ * $Id: sgmlop.c,v 1.14 2002/07/31 06:04:31 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1261,7 +1261,7 @@ fastfeed(FastSGMLParserObject* self)
 		{
 		    char nch;
 		    if (ch >= 128) {
-			/* XXX: should utf-8 encode here. */
+			/* XXX: should utf-8 encode here for XML; can't do anything for SGML. */
 		     PyErr_Format(PyExc_ValueError, 
 				     "character reference &#x%x; exceeds ASCII range", ch);
 		     return -1;
