@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.23 2001/09/27 21:42:28 jhermann Exp $
+$Id: saxutils.py,v 1.24 2001/10/30 21:30:51 uche Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -155,6 +155,8 @@ except ImportError: # 1.5 compatibility: fall back to do-nothing
     def _outputwrapper(stream,encoding):
         return stream
 
+GENERATED_PREFIX = "genprefix%s"
+
 class XMLGenerator(handler.ContentHandler):
 
     def __init__(self, out=None, encoding="iso-8859-1"):
@@ -167,6 +169,8 @@ class XMLGenerator(handler.ContentHandler):
         self._current_context = self._ns_contexts[-1]
         self._undeclared_ns_maps = []
         self._encoding = encoding
+        self._generated_prefix_ctr = 0
+        return
 
     # ContentHandler methods
 
@@ -214,7 +218,13 @@ class XMLGenerator(handler.ContentHandler):
                 name = name[1]
             elif self._current_context[name[0]] is None:
                 # default namespace
-                name = name[1]
+                #If an attribute has a nsuri but not a prefix, we must
+                #create a prefix and add a nsdecl
+                prefix = GENERATED_PREFIX % self._generated_prefix_ctr
+                self._generated_prefix_ctr = self._generated_prefix_ctr + 1
+                name = prefix + ':' + name[1]
+                self._out.write(' xmlns:%s=%s' % (prefix, quoteattr(name[0])))
+                self._current_context[name[0]] = prefix
             else:
                 name = self._current_context[name[0]] + ":" + name[1]
             self._out.write(' %s=%s' % (name, quoteattr(value)))
