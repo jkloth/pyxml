@@ -55,6 +55,12 @@ class ElementInfo(NewStyle):
         self._attr_info = []
         self._model = model
 
+    def __getstate__(self):
+        return self._attr_info, self._model, self.tagName
+
+    def __setstate__(self, state):
+        self._attr_info, self._model, self.tagName = state
+
     def isEmpty(self):
         if self._model:
             return self._model[0] == expat.model.XML_CTYPE_EMPTY
@@ -126,16 +132,11 @@ class ExpatBuilder:
 
     def reset(self):
         """Free all data structures used during DOM construction."""
-        self.document = None
+        self.document = theDOMImplementation.createDocument(
+            EMPTY_NAMESPACE, None, None)
+        self.curNode = self.document
+        self._elem_info = self.document._elem_info
         self._cdata = False
-        self._standalone = -1
-        self._version = None
-        self._encoding = None
-        self._doctype_args = None
-        self._entities = []
-        self._notations = []
-        self._pre_doc_events = []
-        self._elem_info = {}
 
     def install(self, parser):
         """Install the callbacks needed to build the DOM into the parser."""
@@ -171,7 +172,7 @@ class ExpatBuilder:
                 if not buffer:
                     break
                 parser.Parse(buffer, 0)
-                if first_buffer and self.document:
+                if first_buffer and self.document.documentElement:
                     self._setup_subset(buffer)
                 first_buffer = False
             parser.Parse("", True)
@@ -205,9 +206,21 @@ class ExpatBuilder:
 
     def start_doctype_decl_handler(self, doctypeName, systemId, publicId,
                                    has_internal_subset):
-        self._pre_doc_events.append(("doctype",))
-        self._doctype_args = (doctypeName, publicId, systemId)
+        doctype = self.document.implementation.createDocumentType(
+            doctypeName, publicId, systemId)
+        doctype.ownerDocument = self.document
+        self.document.childNodes.append(doctype)
+        self.document.doctype = doctype
+        if self._filter and self._filter.acceptNode(doctype) == FILTER_REJECT:
+            self.document.doctype = None
+            del self.document.childNodes[-1]
+            doctype = None
+            self._parser.EntityDeclHandler = None
+            self._parser.NotationDeclHandler = None
         if has_internal_subset:
+            if doctype is not None:
+                doctype.entities._seq = []
+                doctype.notations._seq = []
             self._parser.CommentHandler = None
             self._parser.ProcessingInstructionHandler = None
             self._parser.EndDoctypeDeclHandler = self.end_doctype_decl_handler
@@ -218,14 +231,10 @@ class ExpatBuilder:
         self._parser.ProcessingInstructionHandler = self.pi_handler
 
     def pi_handler(self, target, data):
-        if self.document is None:
-            self._pre_doc_events.append(("pi", target, data))
-        else:
-            node = self.document.createProcessingInstruction(target, data)
-            _append_child(self.curNode, node)
-            if (  self._filter and
-                  self._filter.acceptNode(node) == FILTER_REJECT):
-                curNode.removeChild(node)
+        node = self.document.createProcessingInstruction(target, data)
+        _append_child(self.curNode, node)
+        if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
+            curNode.removeChild(node)
 
     def character_data_handler_cdata(self, data):
         childNodes = self.curNode.childNodes
@@ -264,37 +273,28 @@ class ExpatBuilder:
             return
         if not self._options.entities:
             return
-        node = minidom.Entity(entityName, publicId, systemId, notationName)
+        node = self.document._create_entity(entityName, publicId,
+                                            systemId, notationName)
         if value is not None:
             # internal entity
-            child = minidom.Text()
-            child.data = value
-            child.ownerDocument = self.document
+            child = self.document.createTextNode(value)
             node.__dict__['childNodes'] = minidom.NodeList()
             node.childNodes.append(child)
-        if self._filter:
-            if self._filter.acceptNode(node) != FILTER_REJECT:
-                self._entities.append(node)
-        else:
-            self._entities.append(node)
+        self.document.doctype.entities._seq.append(node)
+        if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
+            del self.document.doctype.entities._seq[-1]
 
     def notation_decl_handler(self, notationName, base, systemId, publicId):
-        node = minidom.Notation(notationName, publicId, systemId)
-        if self._filter:
-            if self._filter.acceptNode(node) == FILTER_ACCEPT:
-                self._notations.append(node)
-        else:
-            self._notations.append(node)
+        node = self.document._create_notation(notationName, publicId, systemId)
+        self.document.doctype.notations._seq.append(node)
+        if self._filter and self._filter.acceptNode(node) == FILTER_ACCEPT:
+            del self.document.doctype.notations._seq[-1]
 
     def comment_handler(self, data):
-        if self.document is None:
-            self._pre_doc_events.append(("comment", data))
-        else:
-            node = self.document.createComment(data)
-            _append_child(self.curNode, node)
-            if (  self._filter and
-                  self._filter.acceptNode(node) == FILTER_REJECT):
-                curNode.removeChild(node)
+        node = self.document.createComment(data)
+        _append_child(self.curNode, node)
+        if self._filter and self._filter.acceptNode(node) == FILTER_REJECT:
+            curNode.removeChild(node)
 
     def start_cdata_section_handler(self):
         self._cdata = True
@@ -308,12 +308,8 @@ class ExpatBuilder:
         return 1
 
     def start_element_handler(self, name, attributes):
-        if self.document is None:
-            doctype = self._create_doctype()
-            node = self._create_document(None, name, doctype).documentElement
-        else:
-            node = self.document.createElement(name)
-            _append_child(self.curNode, node)
+        node = self.document.createElement(name)
+        _append_child(self.curNode, node)
         self.curNode = node
 
         if attributes:
@@ -325,19 +321,8 @@ class ExpatBuilder:
                 d['ownerDocument'] = self.document
                 _set_attribute_node(node, a)
 
-        self._finish_start_element(node)
-
-    def _create_document(self, namespace, name, doctype):
-        doc = theDOMImplementation.createDocument(namespace, name, doctype)
-        doc._elem_info.update(self._elem_info)
-        self._elem_info = doc._elem_info
-        if self._standalone >= 0:
-            doc.standalone = self._standalone and True or False
-        doc.encoding = self._encoding
-        doc.version = self._version
-        self.document = doc
-        self._include_early_events()
-        return doc
+        if node is not self.document.documentElement:
+            self._finish_start_element(node)
 
     def _finish_start_element(self, node):
         if self._filter:
@@ -389,8 +374,7 @@ class ExpatBuilder:
         #
         L = []
         for child in node.childNodes:
-            if (  child.nodeType == TEXT_NODE
-                  and not child.data.strip()):
+            if child.nodeType == TEXT_NODE and not child.data.strip():
                 L.append(child)
         #
         # Depending on the options, either mark the nodes as ignorable
@@ -407,6 +391,7 @@ class ExpatBuilder:
         if info is None:
             self._elem_info[name] = ElementInfo(name, model)
         else:
+            assert info._model is None
             info._model = model
 
     def attlist_decl_handler(self, elem, name, type, default, required):
@@ -418,47 +403,14 @@ class ExpatBuilder:
             [None, name, None, None, default, 0, type, required])
 
     def xml_decl_handler(self, version, encoding, standalone):
-        self._version = version
-        self._encoding = encoding
-        self._standalone = standalone
-
-    def _create_doctype(self):
-        if not self._doctype_args:
-            return None
-        doctype = theDOMImplementation.createDocumentType(*self._doctype_args)
-        # To modify the entities and notations NamedNodeMaps, we
-        # simply need to work with the underlying sequences.
-        doctype.entities._seq = self._entities
-        doctype.notations._seq = self._notations
-        if (  self._filter
-              and self._filter.acceptNode(doctype) != FILTER_ACCEPT):
-            return None
-        return doctype
-
-    def _include_early_events(self):
-        doc = self.document
-        if doc.doctype:
-            assert ("doctype",) in self._pre_doc_events
-            refnode = doc.doctype
-        else:
-            assert ("doctype",) not in self._pre_doc_events
-            refnode = doc.documentElement
-        for event in self._pre_doc_events:
-            t = event[0]
-            if t == "comment":
-                node = doc.createComment(event[1])
-            elif t == "doctype":
-                # marker; switch to before document element
-                refnode = doc.documentElement
-                continue
-            elif t == "pi":
-                node = doc.createProcessingInstruction(event[1], event[2])
+        self.document.version = version
+        self.document.encoding = encoding
+        # This is still a little ugly, thanks to the pyexpat API. ;-(
+        if standalone >= 0:
+            if standalone:
+                self.document.standalone = True
             else:
-                raise RuntimeError, "unexpected early event type: " + `t`
-            doc.insertBefore(node, refnode)
-            if (  self._filter and
-                  self._filter.acceptNode(node) != FILTER_ACCEPT):
-                doc.removeChild(node)
+                self.document.standalone = False
 
 
 # Don't include FILTER_INTERRUPT, since that's checked separately
@@ -751,13 +703,9 @@ class Namespaces:
             qname = name
             localname = None
             prefix = EMPTY_PREFIX
-        if self.document is None:
-            doctype = self._create_doctype()
-            node = self._create_document(uri, qname, doctype).documentElement
-        else:
-            node = minidom.Element(qname, uri, prefix, localname)
-            node.ownerDocument = self.document
-            _append_child(self.curNode, node)
+        node = minidom.Element(qname, uri, prefix, localname)
+        node.ownerDocument = self.document
+        _append_child(self.curNode, node)
         self.curNode = node
 
         if self._ns_ordered_prefixes and self._options.namespace_declarations:
