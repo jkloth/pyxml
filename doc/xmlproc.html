@@ -18,10 +18,10 @@ This page is a part of <A HREF="index.html">Tools for parsing XML with Python</A
 <H1>xmlproc: A Python XML parser</H1>
 
 <TABLE>
-<TR><TH ALIGN=left>Version:   <TD>0.50
+<TR><TH ALIGN=left>Version:   <TD>0.51
 <TR><TH ALIGN=left>Author:    <TD>Lars Marius Garshol
 <TR><TH ALIGN=left>Email:     <TD>larsga@ifi.uio.no
-<TR><TH ALIGN=left>Released:  <TD>18.Jul.98
+<TR><TH ALIGN=left>Released:  <TD>24.Aug.98
 </TABLE>
 
 <H2>What is xmlproc?</H2>
@@ -47,6 +47,9 @@ xmlproc does not follow the XML specification in these respects:
           only between them.
   <LI>No attempt is made to deal with different character sets or encodings.
   <LI>The parser does not check for the illegal characters below &amp;#x20;.
+  <LI>Some internal consistency checks on the DTD (such as that the values of default
+          attribute values are valid) are not performed.
+  <LI>NOTATION attributes are not fully supported.
 </UL>
 
 <P>
@@ -94,7 +97,10 @@ p.parse_resource("foo.xml")
 <H3>More detailed information</H3>
 
 <P>
-The xmlproc APIs are now <A HREF="xmlproc-doco.html">documented</A>.
+The xmlproc APIs are now <A HREF="xmlproc-doco.html">documented</A>. Note however,
+that if possible, you should use the <A HREF="saxlib.html">SAX API</A> instead of xmlprocs native API.
+This is because the SAX API will allow you to switch parsers without changing your application
+code.
 </P>
 
 <H2>Licence?</H2>
@@ -141,7 +147,7 @@ since new releases will also be announced there.)
 <HR>
 
 <ADDRESS>
-18.Jul.98 18:33, 
+23.Aug.98 12:29, 
 <A HREF="../../../lmg.html">Lars Marius Garshol</A>,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>. A part of 
 <A HREF="index.html">Tools for parsing XML with Python</A>.
