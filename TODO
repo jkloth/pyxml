@@ -3,6 +3,7 @@ TODO list:
 (SAX namespace support can wait and see what the current effort to revise
 SAX will produce in a few months; SAX2 may add a standard filter for
 namespaces or something similar.) 
+	* Switch to /F's Unicode module, probably
         * Integrate widestring support with the PyExpat module (major thing)
 	* Make more passes over the documentation
 	* More demo programs 
@@ -15,6 +16,7 @@ namespaces or something similar.)
 
 demo/xbel/	
 	* Update all the software to match the current XBEL DTD
+	* Add a test suite for the basic parser
 
 dom/
 	* Implement reading of SGML documents for FileReader
