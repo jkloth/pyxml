@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.2 1998/09/16 01:04:37 amk Exp $
+ * $Id: sgmlop.c,v 1.3 1998/10/09 02:02:39 amk Exp $
  *
  * The sgmlop accelerator module
  *
@@ -18,6 +18,7 @@
  * 98-05-19 fl  Fixed xmllib compatibility: handle_proc, handle_special
  * 98-05-22 fl  Added attribute parser
  * 98-05-23 fl  Added saxlib callback mode
+ * 98-10-08 fl  Generate end tag events for empty tags
  *
  * Copyright (c) 1998 by Secret Labs AB.
  *
@@ -179,14 +180,17 @@ _sgmlop_register(FastSGMLParserObject* self, PyObject* args)
 
         self->saxlib = 1;
 
+        /* note: attrs is a Python dictionary! */
         GETCB(finish_starttag, "startElement");
         GETCB(finish_endtag, "endElement");
         GETCB(handle_proc, "processingInstruction");
-        GETCB(handle_special, "handle_special"); /* FIXME: ??? */
-        Py_XDECREF(self->handle_charref); self->handle_charref = NULL;
-        GETCB(handle_entityref, "handle_entityref"); /* FIXME: ??? */
         GETCB(handle_data, "characters");
         GETCB(handle_cdata, "characters");
+
+        /* the following are not used */
+        Py_XDECREF(self->handle_special); self->handle_special = NULL;
+        Py_XDECREF(self->handle_charref); self->handle_charref = NULL;
+        Py_XDECREF(self->handle_entityref); self->handle_entityref = NULL;
         Py_XDECREF(self->handle_comment); self->handle_comment = NULL;
 
     } else {
@@ -677,6 +681,14 @@ fastfeed(FastSGMLParserObject* self)
                 if (!res)
                     return -1;
                 Py_DECREF(res);
+                if (token == TAG_EMPTY && self->finish_endtag) {
+                    PyObject* res;
+                    res = PyObject_CallFunction(self->finish_endtag,
+                                                "s#", b, len);
+                    if (!res)
+                        return -1;
+                    Py_DECREF(res);
+                }
             }
         } else if (token == ENTITYREF && self->handle_entityref) {
             PyObject* res;
