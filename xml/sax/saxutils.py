@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.29 2001/12/16 09:35:08 loewis Exp $
+$Id: saxutils.py,v 1.30 2002/05/15 14:20:02 akuchling Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -303,7 +303,7 @@ class ContentGenerator(XMLGenerator):
         return XMLGenerator.characters(self, str[start:start+end])
 
 # --- XMLFilterImpl
-class XMLFilterBase(xmlreader.XMLReader):
+class XMLFilterBase(saxlib.XMLFilter):
     """This class is designed to sit between an XMLReader and the
     client application's event handlers.  By default, it does nothing
     but pass requests up to the reader and events on to the handlers
