@@ -40,7 +40,7 @@ class EsisBuilder(Builder):
 			text = line[1:]
 
 			if event == '(':
-				element = self.dom_factory.createElement(text, self.attr_store)
+				element = self.document.createElement(text, self.attr_store)
 				self.attr_store = {}
 				self.push(element)
 
@@ -54,7 +54,7 @@ class EsisBuilder(Builder):
 				self.attr_store[name] = value
 
 			elif event == '-':
-				text = self.dom_factory.createTextNode(ESISDecode(text))
+				text = self.document.createText(ESISDecode(text))
 				self.push(text)
 
 			elif event == 'C':
