@@ -33,6 +33,8 @@ args = sys.argv[:]
 extra_packages = []
 with_xpath = 1
 with_xslt = 1
+with_pyexpat = "<auto>"
+
 for arg in args:
     if string.find(arg, '--with-libexpat=') == 0:
         LIBEXPAT = string.split(arg, '=')[1]
@@ -52,6 +54,12 @@ for arg in args:
     elif arg == '--without-xslt':
         with_xslt = 0
 	sys.argv.remove(arg)
+    elif arg == '--with-pyexpat':
+        with_pyexpat = 1
+	sys.argv.remove(arg)
+    elif arg == '--without-pyexpat':
+        with_pyexpat = 0
+        sys.argv.remove(arg)
 
 if sys.platform[:6] == "darwin": # Mac OS X
     LDFLAGS.append('-flat_namespace')
@@ -109,62 +117,63 @@ def get_expat_prefix():
 
 # Don't build pyexpat if the Python installation provides one.
 # FIXME: It should be built for binary distributions even if the core has it.
-build_pyexpat = should_build_pyexpat()
-if build_pyexpat:
+if with_pyexpat == "<auto>":
+    with_pyexpat = should_build_pyexpat()
+
+if with_pyexpat:
     expat_prefix = get_expat_prefix()
 
-    if build_pyexpat:
-        sources = ['extensions/pyexpat.c']
-        if expat_prefix:
-            define_macros = [('HAVE_EXPAT_H', None)]
-            include_dirs = [os.path.join(expat_prefix, "include")]
-            libraries = ['expat']
-            library_dirs = [os.path.join(expat_prefix, "lib")]
-        else:
-            # To build expat 1.95.2, we need to find out the byteorder
-            # Python 1.x doesn't provide sys.byteorder
+    sources = ['extensions/pyexpat.c']
+    if expat_prefix:
+        define_macros = [('HAVE_EXPAT_H', None)]
+        include_dirs = [os.path.join(expat_prefix, "include")]
+        libraries = ['expat']
+        library_dirs = [os.path.join(expat_prefix, "lib")]
+    else:
+        # To build expat 1.95.2, we need to find out the byteorder
+        # Python 1.x doesn't provide sys.byteorder
+        try:
+            byteorder = sys.byteorder
+        except AttributeError:
             try:
-                byteorder = sys.byteorder
-            except AttributeError:
-                try:
-                    import struct
-                except ImportError:
-                    print "Need struct module to determine byteorder"
-                    raise SystemExit
-                if struct.pack("i",1) == '\x01\x00\x00\x00':
-                    byteorder = "little"
-                else:
-                    byteorder = "big"
-            if byteorder == "little":
-                xmlbo = "12"
+                import struct
+            except ImportError:
+                print "Need struct module to determine byteorder"
+                raise SystemExit
+            if struct.pack("i",1) == '\x01\x00\x00\x00':
+                byteorder = "little"
             else:
-                xmlbo = "21"
-            define_macros = [
-                ('HAVE_EXPAT_H',None),
-                ('VERSION', '"1.95.2"'),
-                ('XML_NS', '1'),
-                ('XML_DTD', '1'),
-                ('XML_BYTE_ORDER', xmlbo),
-                ('XML_CONTEXT_BYTES','1024'),
-                ]
-            include_dirs = ['extensions/expat/lib']
-            sources.extend([
-                'extensions/expat/lib/xmlparse.c',
-                'extensions/expat/lib/xmlrole.c',
-                'extensions/expat/lib/xmltok.c',
-                ])
-            libraries = []
-            library_dirs = []
+                byteorder = "big"
+        if byteorder == "little":
+            xmlbo = "12"
+        else:
+            xmlbo = "21"
+        define_macros = [
+            ('HAVE_EXPAT_H',None),
+            ('VERSION', '"1.95.2"'),
+            ('XML_NS', '1'),
+            ('XML_DTD', '1'),
+            ('XML_BYTE_ORDER', xmlbo),
+            ('XML_CONTEXT_BYTES','1024'),
+            ]
+        include_dirs = ['extensions/expat/lib']
+        sources.extend([
+            'extensions/expat/lib/xmlparse.c',
+            'extensions/expat/lib/xmlrole.c',
+            'extensions/expat/lib/xmltok.c',
+            ])
+        libraries = []
+        library_dirs = []
 
-        ext_modules.append(
-            Extension(xml('.parsers.pyexpat'),
-                      define_macros=define_macros,
-                      include_dirs=include_dirs,
-                      library_dirs=library_dirs,
-                      libraries=libraries,
-                      extra_link_args=LDFLAGS,
-                      sources=sources
-                      ))
+    ext_modules.append(
+        Extension(xml('.parsers.pyexpat'),
+                  define_macros=define_macros,
+                  include_dirs=include_dirs,
+                  library_dirs=library_dirs,
+                  libraries=libraries,
+                  extra_link_args=LDFLAGS,
+                  sources=sources
+                  ))
 
 # Build sgmlop
 ext_modules.append(
