@@ -42,7 +42,6 @@ class CompiletimeException(FtException):
 
     def __init__(self, errorCode, *args):
         FtException.__init__(self, errorCode, MessageSource.COMPILETIME, args)
-        return
 
 class RuntimeException(FtException):
     INTERNAL = 1
@@ -53,16 +52,15 @@ class RuntimeException(FtException):
 
     def __init__(self, errorCode, *args):
         FtException.__init__(self, errorCode, MessageSource.RUNTIME, args)
-        return
 
 from XPathParserBase import SyntaxException
 
 import MessageSource
 
 def Evaluate(expr, contextNode=None, context=None):
-    import os, string
+    import os
     if os.environ.has_key('EXTMODULES'):
-        RegisterExtensionModules(string.split(os.environ["EXTMODULES"], ':'))
+        RegisterExtensionModules(os.environ["EXTMODULES"].split(':'))
 
     if context:
         con = context
@@ -109,13 +107,14 @@ import Context
 
 try:
     import XPathParserc
-    parser = XPathParserc
-except:
+except ImportError:
     #import XPathParser
     #parser = XPathParser
     from pyxpath import ExprParserFactory
     parser = ExprParserFactory
-    
+else:
+    parser = XPathParserc
+
 
 def Init():
     from xml.xpath import BuiltInExtFunctions
@@ -123,4 +122,3 @@ def Init():
 
 
 Init()
-
