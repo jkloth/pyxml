@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2002/05/24 15:57:56 $ by $Author: rsalz $
+$Date: 2002/09/25 18:17:06 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -266,10 +266,11 @@ class _implementation:
                 if n == "xmlns:": n = "xmlns"        # DOM bug workaround
                 ns_local[n] = a.nodeValue
             elif a.namespaceURI == XMLNS.XML:
-                if _inclusive(self) or in_subset:
+                if _inclusive(self) or (in_subset and  _in_subset(self.subset, a)): #020925 Test to see if attribute node in subset
                     xml_attrs_local[a.nodeName] = a #0426
             else:
-                other_attrs.append(a)
+                if  _in_subset(self.subset, a):     #020925 Test to see if attribute node in subset
+                    other_attrs.append(a)
             #add local xml:foo attributes to ancestor's xml:foo attributes
             xml_attrs.update(xml_attrs_local)
 
