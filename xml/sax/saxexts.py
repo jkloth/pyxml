@@ -1,10 +1,10 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.11 2000/10/07 18:30:11 loewis Exp $
+$Id: saxexts.py,v 1.12 2000/12/22 06:47:03 uche Exp $
 """
 
-import _exceptions,handler,sys,string,os,types
+import _exceptions, handler, sys, string, os, types
 
 # --- Parser factory
 
@@ -67,14 +67,14 @@ class ParserFactory:
                     # The parser module was found, but importing it
                     # failed unexpectedly, pass this exception through
                     raise
-            except SAXReaderNotAvailable:
+            except _exceptions.SAXReaderNotAvailable:
                 # The parser module detected that it won't work properly,
                 # so mark it as unusable, and try the next one
                 def _create_parser():
-                    raise SAXReaderNotAvailable
+                    raise _exceptions.SAXReaderNotAvailable
                 sys.modules[parser_name].create_parser = _create_parser
 
-        raise SAXReaderNotAvailable("No parsers found", None)  
+        raise _exceptions.SAXReaderNotAvailable("No parsers found", None)  
 
 # --- Experimental extension to Parser interface
 import saxlib

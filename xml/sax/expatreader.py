@@ -27,6 +27,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._source = xmlreader.InputSource()
         self._parser = None
         self._namespaces = namespaceHandling
+        self._lex_handler_prop = None
         self._parsing = 0
         self._entity_stack = []
 
@@ -60,10 +61,15 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
                                             name)
 
     def getProperty(self, name):
+        if name == handler.property_lexical_handler:
+            return self._lex_handler_prop
         raise SAXNotRecognizedException("Property '%s' not recognized" % name)
 
     def setProperty(self, name, value):
-        raise SAXNotRecognizedException("Property '%s' not recognized" % name)
+        if name == handler.property_lexical_handler:
+            self._lex_handler_prop = value
+        else:
+            raise SAXNotRecognizedException("Property '%s' not recognized" % name)
 
     # IncrementalParser methods
 
@@ -110,9 +116,12 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._parser.NotationDeclHandler = self.notation_decl
         self._parser.StartNamespaceDeclHandler = self.start_namespace_decl
         self._parser.EndNamespaceDeclHandler = self.end_namespace_decl
-#         self._parser.CommentHandler = 
-#         self._parser.StartCdataSectionHandler = 
-#         self._parser.EndCdataSectionHandler = 
+        
+        self._decl_handler_prop = None
+        if self._lex_handler_prop:
+            self._parser.CommentHandler = self._lex_handler_prop.comment
+            self._parser.StartCdataSectionHandler = self._lex_handler_prop.startCDATA
+            self._parser.EndCdataSectionHandler = self._lex_handler_prop.endCDATA
 #         self._parser.DefaultHandler = 
 #         self._parser.DefaultHandlerExpand = 
 #         self._parser.NotStandaloneHandler = 

@@ -61,7 +61,7 @@ if build_pyexpat:
                               'extensions/expat/xmlwf/xmlwf.c',
                               'extensions/expat/xmlwf/codepage.c',
                               'extensions/expat/xmlparse/xmlparse.c',
-                              'extensions/expat/xmlparse/hashtable.c',
+                              #'extensions/expat/xmlparse/hashtable.c',
                               FILEMAP_SRC,
                               ]
                   ))
