@@ -68,13 +68,36 @@ class NamedNodeMap(UserDict.UserDict):
         return None
 
     def getNamedItem(self, name):
-        return self.getNamedItemNS(EMPTY_NAMESPACE,name)
+        try:
+            return self[name]
+        except KeyError:
+            # fall-back to namespace API
+            return self.get((EMPTY_NAMESPACE, name))
 
     def removeNamedItem(self, name):
-        return self.removeNamedItemNS(EMPTY_NAMESPACE,name)
+        old = self.get(name)
+        if not old:
+            # fall-back to namespace API
+            return self.removeNamedItemNS(EMPTY_NAMESPACE, name)
+        del self[name]
+        self._positions.remove(name)
+        return old
 
     def setNamedItem(self, arg):
-        return self.setNamedItemNS(arg)
+        if self._ownerDocument != arg.ownerDocument:
+            raise WrongDocumentErr()
+        if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
+            raise InuseAttributeErr()
+        name = arg.nodeName
+        retval = self.get(name)
+        UserDict.UserDict.__setitem__(self, name, arg)
+        if not retval:
+            retval = self.get((EMPTY_NAMESPACE, name))
+            if retval:
+                self._positions.remove((EMPTY_NAMESPACE, name))
+                del self[(EMPTY_NAMESPACE, name)]
+            self._positions.append(name)
+        return retval
 
     def getNamedItemNS(self, namespaceURI, localName):
         if namespaceURI == '':

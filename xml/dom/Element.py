@@ -55,22 +55,39 @@ class Element(FtNode):
     ### Methods ###
 
     def getAttribute(self, name):
-        return self.getAttributeNS(EMPTY_NAMESPACE,name)
+        att = self.attributes.getNamedItem(name)
+        return att and att.value or ''
 
     def getAttributeNode(self, name):
-        return self.getAttributeNodeNS(EMPTY_NAMESPACE,name)
+        return self.attributes.getNamedItem(name)
 
     def getElementsByTagName(self, tagName):
-        return self.getElementsByTagNameNS(EMPTY_NAMESPACE,tagName)
-    
+        nodeList = implementation._4dom_createNodeList()
+        elements = filter(lambda node, type=Node.ELEMENT_NODE:
+                          node.nodeType == type,
+                          self.childNodes)
+        for element in elements:
+            if tagName == '*' or element.tagName == tagName:
+                nodeList.append(element)
+            nodeList.extend(list(element.getElementsByTagName(tagName)))
+        return nodeList
+
     def hasAttribute(self, name):
-        return self.hasAttributeNS(EMPTY_NAMESPACE,name)
+        return self.attributes.getNamedItem(name) is not None
 
     def removeAttribute(self, name):
-        self.removeAttributeNS(EMPTY_NAMESPACE,name)
+        # Return silently if no node
+        node = self.attributes.getNamedItem(name)
+        if node:
+            self.removeAttributeNode(node)
 
     def removeAttributeNode(self, node):
-        self.attributes.removeNamedItemNS(node.namespaceURI, node.localName)
+        # NamedNodeMap will raise exception if needed
+        try:
+            self.attributes.removeNamedItemNS(node.namespaceURI, node.localName)
+        except NotFoundErr:
+            self.attributes.removeNamedItem(node.name)
+
         node._4dom_setOwnerElement(None)
         self._4dom_fireMutationEvent('DOMAttrModified',
                                      relatedNode=node,
@@ -80,10 +97,41 @@ class Element(FtNode):
         return node
 
     def setAttribute(self, name, value):
-        self.setAttributeNS(EMPTY_NAMESPACE,name,value)
+        if not IsDOMString(value):
+            raise SyntaxErr()
+        if not g_namePattern.match(name):
+            raise InvalidCharacterErr()
+        attr = self.attributes.getNamedItem(name)
+        if attr:
+            attr.value = value
+        else:
+            attr = self.ownerDocument.createAttribute(name)
+            attr.value = value
+            self.setAttributeNode(attr)
+            # the mutation event is fired in Attr.py
 
     def setAttributeNode(self, node):
-        return self.setAttributeNodeNS(node)
+        if node.ownerDocument != self.ownerDocument:
+            raise WrongDocumentErr()
+        if node.ownerElement != None:
+            raise InuseAttributeErr()
+
+        old = self.attributes.getNamedItem(node.name)
+        if old:
+            self._4dom_fireMutationEvent('DOMAttrModified',
+                                         relatedNode=old,
+                                         prevValue=old.value,
+                                         attrName=old.name,
+                                         attrChange=Event.MutationEvent.REMOVAL)
+        self.attributes.setNamedItem(node)
+        node._4dom_setOwnerElement(self)
+        self._4dom_fireMutationEvent('DOMAttrModified',
+                                     relatedNode=node,
+                                     newValue=node.value,
+                                     attrName=node.name,
+                                     attrChange=Event.MutationEvent.ADDITION)
+        self._4dom_fireMutationEvent('DOMSubtreeModified')
+        return old
 
     ### DOM Level 2 Methods ###
 

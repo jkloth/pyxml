@@ -70,7 +70,10 @@ class Document(FtNode):
     ### Methods ###
 
     def createAttribute(self, name):
-        return self.createAttributeNS(EMPTY_NAMESPACE,name)
+        if not g_namePattern.match(name):
+            raise InvalidCharacterErr()
+        import Attr
+        return Attr.Attr(self, name, EMPTY_NAMESPACE, None, None)
 
     def createCDATASection(self, data):
         from CDATASection import CDATASection
@@ -85,8 +88,11 @@ class Document(FtNode):
         return DocumentFragment(self)
 
     def createElement(self, tagname):
-        return self.createElementNS(EMPTY_NAMESPACE,tagname)
-    
+        if not g_namePattern.match(tagname):
+            raise InvalidCharacterErr()
+        from Element import Element
+        return Element(self, tagname, EMPTY_NAMESPACE, None, None)
+
     def createEntityReference(self, name):
         if not g_namePattern.match(name):
             raise InvalidCharacterErr()
@@ -115,7 +121,13 @@ class Document(FtNode):
         return None
 
     def getElementsByTagName(self, tagName):
-        return self.getElementsByTagNameNS(EMPTY_NAMESPACE, tagName)
+        nodeList = implementation._4dom_createNodeList([])
+        root = self.documentElement
+        if root:
+            if tagName == '*' or root.tagName == tagName:
+                nodeList.append(root)
+            nodeList.extend(list(root.getElementsByTagName(tagName)))
+        return nodeList
 
     ### DOM Level 2 Methods ###
 
