@@ -208,7 +208,6 @@ class WDDXUnmarshaller(Unmarshaller):
         }
 
     def um_start_char(self, name, attrs):
-        print self.data_stack[-1]
         self.data_stack[-1].append(str(chr(string.atoi(attrs['code'], 16))))
 
     def um_start_boolean(self, name, attrs):
