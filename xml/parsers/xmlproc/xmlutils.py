@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.16 2001/03/30 15:45:38 loewis Exp $
+# $Id: xmlutils.py,v 1.17 2001/05/05 10:58:44 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -230,7 +230,7 @@ class EntityParser:
             enc = "ucs-4-be"
         elif new_data[:4] == '\x3c\0\0\0':
             enc = "ucs-4-le"
-        # ignore unusal byte orders 2143 and 3412
+        # ignore unusual byte orders 2143 and 3412
         elif new_data[:2] == '\xfe\xff':
             enc = "utf-16-be" # with BOM
         elif new_data[:2] == '\xff\xfe':
@@ -249,7 +249,7 @@ class EntityParser:
             # Does not start with <?xml, so it must be UTF-8
             enc = "utf-8"
         self.input_encoding = enc
-        self.charset_converter = mkconverter(self,enc,self.data_charset)
+        self.charset_converter = mkconverter(self, enc, self.data_charset)
 
     def _handle_decoding_error(self, new_data, exc):
         """If there was an error decoding input data, there could be
@@ -280,11 +280,16 @@ class EntityParser:
         the data are assumed to have been decoded into the data_charset
         already."""
         if self.first_feed:
-            self.first_feed=0                    
+            self.first_feed = 0                    
             self.parseStart()
 
-        new_data = new_data+self.encoded_data
+        new_data = new_data + self.encoded_data
         self.encoded_data = ""
+
+        if not decoded and using_unicode and \
+           type(new_data) == types.UnicodeType:
+            decoded = 1
+        
         if not decoded and not self.charset_converter:
             self.autodetect_encoding(new_data)
             # If this returns with no auto-detected encoding, i.e.  if
@@ -297,11 +302,11 @@ class EntityParser:
 
         if not decoded:
             try:
-                new_data=self.charset_converter(new_data)
+                new_data = self.charset_converter(new_data)
             except UnicodeError, e:
                 new_data = self._handle_decoding_error(new_data, e)
         
-        if self.start_point==-1:
+        if self.start_point == -1:
             self.block_offset=self.block_offset+self.datasize
             self.data=self.data[self.pos:]
             self.last_break=self.last_break-self.pos  # Keep track of column
