@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.20 2001/07/19 16:15:44 fdrake Exp $
+$Id: saxutils.py,v 1.21 2001/08/07 19:31:56 fdrake Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -181,7 +181,7 @@ class XMLGenerator(handler.ContentHandler):
     def startElement(self, name, attrs):
         self._out.write('<' + name)
         for (name, value) in attrs.items():
-            self._out.write(' %s="%s"' % (name, escape(value)))
+            self._out.write(' %s=%s' % (name, quoteattr(value)))
         self._out.write('>')
 
     def endElement(self, name):
@@ -206,7 +206,7 @@ class XMLGenerator(handler.ContentHandler):
 
         for (name, value) in attrs.items():
             name = self._current_context[name[0]] + ":" + name[1]
-            self._out.write(' %s="%s"' % (name, escape(value)))
+            self._out.write(' %s=%s' % (name, quoteattr(value)))
         self._out.write('>')
 
     def endElementNS(self, name, qname):
