@@ -122,12 +122,8 @@ class DocumentTypeReadTestCase(NodeReadTestCaseBase):
 
     def checkImportNode(self):
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
-        try:
-            foreignDoc.importNode(self.doctype, 0)
-        except xml.dom.NotSupportedErr:
-            pass
-        else:
-            assert 0, "Was allowed to import a Document Type Node."
+        self.assertRaises(xml.dom.NotSupportedErr,
+                          foreignDoc.importNode, self.doctype, 0)
 
 
 class DocumentTypeWriteTestCase(NodeWriteTestCaseBase):
@@ -152,8 +148,10 @@ class ProcessingInstructionReadTestCase(NodeReadTestCaseBase):
         clone = foreignDoc.importNode(self.pi, 0)
         deepClone = foreignDoc.importNode(self.pi, 1)
 
-        assert not isSameNode(self.pi, clone), "Clone is same as original."
-        assert not isSameNode(self.pi, deepClone), "Clone is same as original."
+        self.failIf(isSameNode(self.pi, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.pi, deepClone),
+                    "Clone is same as original.")
 
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
