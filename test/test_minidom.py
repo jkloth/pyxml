@@ -55,7 +55,9 @@ def confirm(test, testname = "Test"):
 def testParseFromFile():
     dom = parse(StringIO(open(tstfile).read()))
     dom.unlink()
-    confirm(isinstance(dom,Document))
+    confirm(isinstance(dom, Document)
+            and dom.attributes is None
+            and not dom.hasAttributes())
 
 def testGetElementsByTagName():
     dom = parse(tstfile)
@@ -274,9 +276,11 @@ def testRemoveAttr():
     child = dom.appendChild(dom.createElement("abc"))
 
     child.setAttribute("def", "ghi")
-    confirm(len(child.attributes) == 1)
+    confirm(len(child.attributes) == 1
+            and child.hasAttributes())
     child.removeAttribute("def")
-    confirm(len(child.attributes) == 0)
+    confirm(len(child.attributes) == 0
+            and not child.hasAttributes())
 
     dom.unlink()
 
@@ -287,9 +291,11 @@ def testRemoveAttrNS():
     child.setAttributeNS("http://www.w3.org", "xmlns:python",
                                             "http://www.python.org")
     child.setAttributeNS("http://www.python.org", "python:abcattr", "foo")
-    confirm(len(child.attributes) == 2)
+    confirm(len(child.attributes) == 2
+            and child.hasAttributes())
     child.removeAttributeNS("http://www.python.org", "abcattr")
-    confirm(len(child.attributes) == 1)
+    confirm(len(child.attributes) == 1
+            and child.hasAttributes())
 
     dom.unlink()
 
@@ -297,11 +303,13 @@ def testRemoveAttributeNode():
     dom = Document()
     child = dom.appendChild(dom.createElement("foo"))
     child.setAttribute("spam", "jam")
-    confirm(len(child.attributes) == 1)
+    confirm(len(child.attributes) == 1
+            and child.hasAttributes())
     node = child.getAttributeNode("spam")
     child.removeAttributeNode(node)
     confirm(len(child.attributes) == 0
-            and child.getAttributeNode("spam") is None)
+            and child.getAttributeNode("spam") is None
+            and not child.hasAttributes())
 
     dom.unlink()
 
@@ -318,12 +326,14 @@ def testChangeAttr():
             and el.attributes["spam"].value == "bam"
             and el.attributes["spam"].nodeValue == "bam"
             and el.getAttribute("spam") == "bam"
-            and el.getAttributeNode("spam").isId)
+            and el.getAttributeNode("spam").isId
+            and el.hasAttributes())
     el.attributes["spam"] = "ham"
     confirm(len(el.attributes) == 1
             and el.attributes["spam"].value == "ham"
             and el.attributes["spam"].nodeValue == "ham"
             and el.getAttribute("spam") == "ham"
+            and el.hasAttributes()
             and el.attributes["spam"].isId)
     el.setAttribute("spam2", "bam")
     confirm(len(el.attributes) == 2
@@ -332,7 +342,8 @@ def testChangeAttr():
             and el.getAttribute("spam") == "ham"
             and el.attributes["spam2"].value == "bam"
             and el.attributes["spam2"].nodeValue == "bam"
-            and el.getAttribute("spam2") == "bam")
+            and el.getAttribute("spam2") == "bam"
+            and el.hasAttributes())
     el.attributes["spam2"] = "bam2"
     confirm(len(el.attributes) == 2
             and el.attributes["spam"].value == "ham"
@@ -340,7 +351,8 @@ def testChangeAttr():
             and el.getAttribute("spam") == "ham"
             and el.attributes["spam2"].value == "bam2"
             and el.attributes["spam2"].nodeValue == "bam2"
-            and el.getAttribute("spam2") == "bam2")
+            and el.getAttribute("spam2") == "bam2"
+            and el.hasAttributes())
     dom.unlink()
 
 def testGetAttrList():
@@ -443,6 +455,7 @@ def testProcessingInstruction():
             and pi.nodeName == "mypi"
             and pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE
             and pi.attributes is None
+            and not pi.hasAttributes()
             and not pi.hasChildNodes()
             and len(pi.childNodes) == 0
             and pi.firstChild is None
@@ -762,6 +775,7 @@ def check_clone_attribute(deep, testName):
     clone = attr.cloneNode(deep)
     confirm(not clone.isSameNode(attr))
     confirm(not attr.isSameNode(clone))
+    confirm(not clone.hasAttributes())
     confirm(clone.ownerElement is None,
             testName + ": ownerElement should be None")
     confirm(clone.ownerDocument.isSameNode(attr.ownerDocument),
@@ -781,7 +795,8 @@ def check_clone_pi(deep, testName):
     assert pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE
     clone = pi.cloneNode(deep)
     confirm(clone.target == pi.target
-            and clone.data == pi.data)
+            and clone.data == pi.data
+            and not clone.hasAttributes())
 
 def testClonePIShallow():
     check_clone_pi(0, "testClonePIShallow")
@@ -944,7 +959,9 @@ def testRenameAttribute():
             and elem.getAttributeNode("b").isSameNode(attr)
             and attrmap["b"].isSameNode(attr)
             and attr.ownerDocument.isSameNode(doc)
-            and attr.ownerElement.isSameNode(elem))
+            and attr.ownerElement.isSameNode(elem)
+            and attr.attributes is None
+            and not attr.hasAttributes())
 
     # Rename to have a namespace, no prefix
     attr = doc.renameNode(attr, "http://xml.python.org/ns", "c")
@@ -960,7 +977,9 @@ def testRenameAttribute():
             and elem.getAttributeNodeNS(
                 "http://xml.python.org/ns", "c").isSameNode(attr)
             and attrmap["c"].isSameNode(attr)
-            and attrmap[("http://xml.python.org/ns", "c")].isSameNode(attr))
+            and attrmap[("http://xml.python.org/ns", "c")].isSameNode(attr)
+            and attr.attributes is None
+            and not attr.hasAttributes())
 
     # Rename to have a namespace, with prefix
     attr = doc.renameNode(attr, "http://xml.python.org/ns2", "p:d")
@@ -979,7 +998,9 @@ def testRenameAttribute():
             and elem.getAttributeNodeNS(
                 "http://xml.python.org/ns2", "d").isSameNode(attr)
             and attrmap["p:d"].isSameNode(attr)
-            and attrmap[("http://xml.python.org/ns2", "d")].isSameNode(attr))
+            and attrmap[("http://xml.python.org/ns2", "d")].isSameNode(attr)
+            and attr.attributes is None
+            and not attr.hasAttributes())
 
     # Rename back to a simple non-NS node
     attr = doc.renameNode(attr, xml.dom.EMPTY_NAMESPACE, "e")
@@ -996,7 +1017,9 @@ def testRenameAttribute():
             and elem.getAttributeNodeNS(
                 "http://xml.python.org/ns", "c") is None
             and elem.getAttributeNode("e").isSameNode(attr)
-            and attrmap["e"].isSameNode(attr))
+            and attrmap["e"].isSameNode(attr)
+            and attr.attributes is None
+            and not attr.hasAttributes())
 
     try:
         doc.renameNode(attr, "http://xml.python.org/ns", "xmlns")
