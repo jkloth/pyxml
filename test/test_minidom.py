@@ -689,45 +689,74 @@ def testRenameOther():
     else:
         print "expected NotSupportedErr when renaming comment node"
 
+def checkWholeText(node, s):
+    t = node.wholeText
+    confirm(t == s, "looking for %s, found %s" % (repr(s), repr(t)))
+
 def testWholeText():
     doc = parseString("<doc>a</doc>")
     elem = doc.documentElement
     text = elem.childNodes[0]
     assert text.nodeType == Node.TEXT_NODE
 
-    def checkText(node, s):
-        t = node.wholeText
-        confirm(t == s, "looking for %s, found %s" % (repr(s), repr(t)))
-
-    checkText(text, "a")
+    checkWholeText(text, "a")
     elem.appendChild(doc.createTextNode("b"))
-    checkText(text, "ab")
+    checkWholeText(text, "ab")
     elem.insertBefore(doc.createCDATASection("c"), text)
-    checkText(text, "cab")
+    checkWholeText(text, "cab")
 
     # make sure we don't cross other nodes
     splitter = doc.createComment("comment")
     elem.appendChild(splitter)
     text2 = doc.createTextNode("d")
     elem.appendChild(text2)
-    checkText(text, "cab")
-    checkText(text2, "d")
+    checkWholeText(text, "cab")
+    checkWholeText(text2, "d")
 
     x = doc.createElement("x")
     elem.replaceChild(x, splitter)
     splitter = x
-    checkText(text, "cab")
-    checkText(text2, "d")
+    checkWholeText(text, "cab")
+    checkWholeText(text2, "d")
 
     x = doc.createProcessingInstruction("y", "z")
     elem.replaceChild(x, splitter)
     splitter = x
-    checkText(text, "cab")
-    checkText(text2, "d")
+    checkWholeText(text, "cab")
+    checkWholeText(text2, "d")
 
     elem.removeChild(splitter)
-    checkText(text, "cabd")
-    checkText(text2, "cabd")
+    checkWholeText(text, "cabd")
+    checkWholeText(text2, "cabd")
+
+def testReplaceWholeText():
+    def setup():
+        doc = parseString("<doc>a<e/>d</doc>")
+        elem = doc.documentElement
+        text1 = elem.firstChild
+        text2 = elem.lastChild
+        splitter = text1.nextSibling
+        elem.insertBefore(doc.createTextNode("b"), splitter)
+        elem.insertBefore(doc.createCDATASection("c"), text1)
+        return doc, elem, text1, splitter, text2
+
+    doc, elem, text1, splitter, text2 = setup()
+    text = text1.replaceWholeText("new content")
+    checkWholeText(text, "new content")
+    checkWholeText(text2, "d")
+    confirm(len(elem.childNodes) == 3)
+
+    doc, elem, text1, splitter, text2 = setup()
+    text = text2.replaceWholeText("new content")
+    checkWholeText(text, "new content")
+    checkWholeText(text1, "cab")
+    confirm(len(elem.childNodes) == 5)
+
+    doc, elem, text1, splitter, text2 = setup()
+    text = text1.replaceWholeText("")
+    checkWholeText(text2, "d")
+    confirm(text is None
+            and len(elem.childNodes) == 2)
 
 
 # --- MAIN PROGRAM
