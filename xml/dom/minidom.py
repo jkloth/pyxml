@@ -31,8 +31,6 @@ del types
 
 import xml.dom
 _Node = xml.dom.Node
-del xml
-
 
 class Node(_Node):
     allnodes = {}
@@ -453,7 +451,7 @@ class Element(Node):
 
     def setAttributeNode(self, attr):
         if attr.ownerElement not in (None, self):
-            raise ValueError, "attribute node already owned"
+            raise xml.dom.InuseAttributeErr("attribute node already owned")
         old = self._attrs.get(attr.name, None)
         if old:
             old.unlink()
@@ -565,7 +563,7 @@ class Text(Node):
 
     def splitText(self, offset):
         if offset < 0 or offset > len(self.data):
-            raise ValueError, "illegal offset value for splitText()"
+            raise xml.dom.IndexSizeErr("illegal offset value")
         newText = Text(self.data[offset:])
         next = self.nextSibling
         if self.parentNode and self in self.parentNode.childNodes:
@@ -614,7 +612,7 @@ class DOMImplementation:
 
     def createDocument(self, namespaceURI, qualifiedName, doctype):
         if doctype and doctype.parentNode is not None:
-            raise ValueError, "doctype object owned by another DOM tree"
+            raise xml.dom.WrongDocumentErr("doctype object owned by another DOM tree")
         doc = Document()
         if doctype is None:
             doctype = self.createDocumentType(qualifiedName, None, None)
@@ -622,9 +620,9 @@ class DOMImplementation:
             prefix, localname = _nssplit(qualifiedName)
             if prefix == "xml" \
                and namespaceURI != "http://www.w3.org/XML/1998/namespace":
-                raise ValueError, "illegal use of 'xml' prefix"
+                raise xml.dom.NamespaceErr("illegal use of 'xml' prefix")
             if prefix and not namespaceURI:
-                raise ValueError, "illegal use of prefix without namespaces"
+                raise xml.dom.NamespaceErr("illegal use of prefix without namespaces")
         doctype.parentNode = doc
         doc.doctype = doctype
         doc.implementation = self
@@ -658,7 +656,7 @@ class Document(Node):
 
         if node.nodeType == Node.ELEMENT_NODE \
            and self._get_documentElement():
-            raise TypeError, "two document elements disallowed"
+            raise xml.dom.HierarchyRequestErr("two document elements disallowed")
         return Node.appendChild(self, node)
 
     def removeChild(self, oldChild):
