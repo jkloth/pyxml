@@ -276,7 +276,7 @@ class DOMEventStream:
         return rc
 
     def clear(self):
-        "clear(): Explicitly release parsing objects"
+        """clear(): Explicitly release parsing objects"""
         self.pulldom.clear()
         del self.pulldom
         self.parser = None
