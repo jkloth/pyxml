@@ -1,7 +1,6 @@
 """
 An SGML Open catalog file parser.
 """
-
 import string,sys
 
 import xmlutils,xmlapp

@@ -1,4 +1,3 @@
-
 import catalog,xmlapp,xmlval
 
 # --- An XCatalog parser factory

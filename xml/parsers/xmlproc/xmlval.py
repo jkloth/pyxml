@@ -1,4 +1,3 @@
-
 """This is the parts of xmlproc that are specific to validation. They
 are an application class that receive data from the parser and a
 subclass of the parser object that sets this up."""

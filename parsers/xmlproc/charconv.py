@@ -1,4 +1,3 @@
-
 # Some experiments in adding character encoding conversions to xmlproc.
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.

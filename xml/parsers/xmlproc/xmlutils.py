@@ -171,6 +171,7 @@ class EntityParser:
             self.first_feed=0                    
             self.parseStart()
 
+
 	self.update_pos() # Update line/col count
         
 	if self.start_point==-1:

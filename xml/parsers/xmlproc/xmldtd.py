@@ -1,4 +1,3 @@
-
 """These are the DTD-aware classes of xmlproc. They provide both the
 DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
