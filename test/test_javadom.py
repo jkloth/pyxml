@@ -8,8 +8,6 @@ import unittest
 
 from xml.dom import javadom
 
-from Ft.Dom.Document import Document
-
 # --- Document
 
 class DocumentTestCase(unittest.TestCase):
