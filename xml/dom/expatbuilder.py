@@ -760,7 +760,7 @@ class Namespaces:
                 if ' ' in aname:
                     uri, localname, prefix, qname = _parse_ns_name(self, aname)
                     a = minidom.Attr(qname, uri, localname, prefix)
-                    _attrs[localname] = a
+                    _attrs[qname] = a
                     _attrsNS[(uri, localname)] = a
                 else:
                     a = minidom.Attr(aname, EMPTY_NAMESPACE,
