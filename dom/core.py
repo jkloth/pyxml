@@ -5,8 +5,6 @@ Reference: http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/
 
 Deviations from the Level 1 spec:
    * The list returned by .getElementsByTagName() isn't live
-   * Parent pointers of nodes returned by NodeList and NamedNodeMap are
-     always Node.
 
 Useful classes in this module are Node (abstract) and its
 (concrete) subclasses -- Document, Element, Text, Comment,
@@ -130,7 +128,7 @@ def createDocument():
     d = _nodeData(DOCUMENT_NODE)
     d.name = '#document'
     d.value = d.attributes = None
-    d = Document(d, None, None)
+    d = Document(d, None)
     return d
 
 import UserList, UserDict
@@ -139,64 +137,77 @@ class NodeList(UserList.UserList):
     """An ordered collection of nodes, equivalent to a Python list.  The only
     difference is that an .item() method and a .length attribute are added.
     """
-    def __init__(self, list, document, parent):
+
+    def __init__(self, list, document):
         # We don't make a copy of the list; instead, we take a reference
         # to it, so that the NodeList is always up-to-date.
         self.data = list
         self._document = document
-        self._parent = parent
-        if type(parent) != type( [] ):
-            self.__class__ = SingleParentNodeList
-
-    def __getslice__(self, i, j):
-        userlist = NodeList([], self._document, self._parent)
-        userlist.data[:] = self.data[i:j]
-        return userlist
 
     def __repr__(self):
         s = '<NodeList [ '
         for i in range(len(self.data)):
-            n = self.data[i] ; parent = self._parent[i]
-            n = NODE_CLASS[ n.type ](n, parent, self._document)
+            n = self.data[i] 
+            n = NODE_CLASS[ n.type ](n, self._document)
             s = s + repr(n) + ','
         return s[:-1] + ']>'
     
     def __getitem__(self, i):
         n = self.data[i]
-        return NODE_CLASS[ n.type ](n, self._parent[i], self._document)
-    
+        return NODE_CLASS[ n.type ](n, self._document)
+
+    def __setitem__(self, i, item):
+    	raise TypeError, "NodeList instances don't support item assignment"
+    def __delitem__(self, i, item):
+    	raise TypeError, "NodeList instances don't support item deletion"
+
+    def __getslice__(self, i, j):
+        userlist = NodeList([], self._document)
+        userlist.data[:] = self.data[i:j]
+        return userlist
+
+    def __setslice__(self, i, j, list):
+	raise TypeError, "NodeList instances don't support slice assignment"
+    def __delslice__(self, i, j):
+	raise TypeError, "NodeList instances don't support slice deletion"
+
+    def __add__(self, list):
+	if type(list) == type(self.data):
+  	    return self.__class__(self.data + list, self._document)
+	else:
+	    return self.__class__(self.data + list.data, 
+			          self._document)
+    def __radd__(self, list):
+	if type(list) == type(self.data):
+	    return self.__class__(list + self.data, self._document)
+	else:
+	    return self.__class__(list.data + self.data, 
+					      self._document)
+    def __mul__(self, n):
+	return self.__class__(self.data*n, self._document)
+    __rmul__ = __mul__
+
+    def append(self, item): 
+        raise TypeError, "NodeList instances don't support .append()"
+    def insert(self, i, item):
+	raise TypeError, "NodeList instances don't support .insert()"
+    def pop(self, i=-1): 
+	raise TypeError, "NodeList instances don't support .pop()"
+    def remove(self, item): 
+	raise TypeError, "NodeList instances don't support .remove()"
+    def count(self, item): return self.data.count(item._node)
+    def index(self, item): return self.data.index(item._node)
+    def reverse(self): 
+        raise TypeError, "NodeList instances don't support .reverse()"
+    def sort(self, *args): 
+        raise TypeError, "NodeList instances don't support .sort()"
+
+    # Aliases required by the DOM Recommendation
     item = __getitem__
     get_length = UserList.UserList.__len__
 
 
-class SingleParentNodeList(NodeList):
-    """A NodeList for which all nodes share the same parent.  This allows
-    a node to be changed using multiple proxies.
-    """
-    # Using only the basic NodeList, changing the length of one proxy would
-    # cause another to have a _parent member with the incorrect number of
-    # parents.  This solves the problem for the common case, where the node
-    # list is simply the list of children for a single node.  It does not
-    # solve the general case, including node lists returned by
-    # getElementsByTagName().
-
-    def __repr__(self):
-        s = '<NodeList ['
-        parent = self._parent
-        for i in range(len(self.data)):
-            n = self.data[i]
-            n = NODE_CLASS[ n.type ](n, parent, self._document)
-            s = s + repr(n) + ','
-        return s[:-2] + ']>'
-    
-    def __getitem__(self, i):
-        n = self.data[i]
-        return NODE_CLASS[ n.type ](n, self._parent, self._document)
-
-    item = __getitem__
-
-
-class NamedNodeMap:
+class NamedNodeMap(UserDict.UserDict):
     """Used to represent a collection of nodes that can be accessed by name.
     Equivalent to a Python dictionary, with various aliases added such as
     getNamedItem and removeNamedItem.
@@ -205,37 +216,23 @@ class NamedNodeMap:
     def __init__(self, dict, document):
         self.data = dict
         self._document = document
-        
+
     def __getitem__(self, key):
         n = self.data[key]
         assert n.type == ATTRIBUTE_NODE
-        n = NODE_CLASS[ n.type ](n, None, self._document )
+        n = NODE_CLASS[ n.type ](n, self._document )
         return n
 
     def __setitem__(self, key, item):
+	if item.type != ATTRIBUTE_NODE:
+	    raise TypeError, "NamedNodeMap instances only accept Attr nodes as values"
         self.data[key] = item._node
-    def setNamedItem(self, arg):
-        key = arg.nodeName
-        self[key] = arg
-
-    def get(self, key, default=None):
-        if self.data.has_key(key):
-            return self[key]
-        else:
-            return default
-
-    def item(self, index):
-        return self.data.values[ index ]
-
-    getNamedItem = UserDict.UserDict.__getitem__
-    removeNamedItem = UserDict.UserDict.__delitem__
-    get_length = UserDict.UserDict.__len__
 
     def items(self):
         L = []
         for key, value in self.data.items():
             L.append( (key,
-                       NODE_CLASS[ value.type ](value, None, self._document )
+                       NODE_CLASS[ value.type ](value, self._document )
                        )
                      )
         return L
@@ -244,73 +241,88 @@ class NamedNodeMap:
         L = self.data.values()
         for i in range(len(L)):
             n = L[i]
-            L[i] = NODE_CLASS[ n.type ](n, None, self._document )
+            L[i] = NODE_CLASS[ n.type ](n, self._document )
         return L
 
-    def has_key(self, key): return self.data.has_key(key)
+    def update(self, other):
+        if not isinstance(other, NamedNodeMap):
+             raise TypeError, "Can only use .update() with another NamedNodeMap"
+	for k, v in other.data.items():
+            self.data[k] = v
 
     def get(self, key, default=None):
         if self.data.has_key(key):
             return self[key]
-        return default
+        else:
+            return default
+
+    # Additional methods specified in the DOM Recommendation
+    def item(self, index):
+        return self.data.values[ index ]
+
+    getNamedItem = UserDict.UserDict.__getitem__
+    removeNamedItem = UserDict.UserDict.__delitem__
+    get_length = UserDict.UserDict.__len__
+
+    def setNamedItem(self, arg):
+        key = arg.nodeName
+        self[key] = arg
+
     
     
 class _nodeData:
     """Class used for storing the data for a single node.  Instances of
     this class should never be returned to users of the DOM implementation."""
-    Node_counter = 0
+    ##Node_counter = 0
     def __init__(self, type):
         self.type = type
         self.children = []
         self.name = self.value = self.attributes = None
-        _nodeData.Node_counter = _nodeData.Node_counter + 1
-#        print '_nodeData\tinit\t%s\t%s' % (_nodeData.Node_counter, self.name)
+        ##_nodeData.Node_counter = _nodeData.Node_counter + 1
+
+	if self.type == DOCUMENT_NODE:
+  	    # Dictionary mapping id(_nodeData instance) to parent
+	    # _nodeData instance 
+	    self._parent_relation = {}
 
     def __getinitargs__(self):
         return (self.type,)
     
-    def __del__(self):
-        _nodeData.Node_counter = _nodeData.Node_counter -1
-#        print '_nodeData\tdel\t%s\t%s' % (_nodeData.Node_counter, self.name)
+##    def __del__(self):
+##        _nodeData.Node_counter = _nodeData.Node_counter -1
 
+    def __repr__(self):
+	return ("<_nodeData: type=%i name=%s value=%s att=%s>" %
+	        (self.type, self.name, self.value, self.attributes) )
 
 class Node:
     """Base class for grove nodes in DOM model.  Proxies an instance
     of the _nodeData class."""
 
     readonly = 0
-    Node_counter = 0
-    def __init__(self, node, parent = None, document = None):
+    ##Node_counter = 0
+
+    def __init__(self, node, document = None):
         self._node = node
-        self.parentNode = parent
-        self._document = document
-        Node.Node_counter = Node.Node_counter + 1
-#        print 'Node      \tinit\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
+#	print 'print',  node.type, document and document.__dict__
+	assert isinstance(node, _nodeData)
+	assert isinstance(document, _nodeData) or (document is None)
 
+	if document is not None: self._document = document
+	else: self._document = None
+##        Node.Node_counter = Node.Node_counter + 1
+
+##    def __del__(self):
+##        Node.Node_counter = Node.Node_counter - 1
+
+    # For the sake of pickling, don't pickle the Node instance, since it's
+    # just a proxy, and doesn't have any interesting info in itself.
     def __getinitargs__(self):
-        return self._node, self.parentNode, self._document
-    
-    def __del__(self):
-        Node.Node_counter = Node.Node_counter - 1
-#        print 'Node      \tdel\t%s\t%s' % (Node.Node_counter, self.get_nodeName())
+        return self._node, self._document
 
-    def _index(self):
-        "Return the index of this child in its parent's child list"
-        if self.parentNode:
-            return self.parentNode._node.children.index(self._node)
-        else:
-            return -1
-
-    def _checkChild(self, child, parent):
-        "Raise HierarchyRequestException if the child can't be added"
-
-        cn = child._node ; p=self
-        while p is not None:
-            if p._node is cn: 
-                raise HierarchyRequestException, \
-                      "%s is an ancestor of %s" % (repr(child), repr(parent) )
-            p = p.parentNode
-
+    # The following two methods implement handling of properties; references
+    # to attributes such as .parentNode are redirected into calls to 
+    # get_parentNode or set_parentNode.
     def __getattr__(self, key):
         if key[0:4] == 'get_' or key[0:4] == 'set_':
             raise AttributeError, repr(key[4:])
@@ -323,7 +335,8 @@ class Node:
             func( value )
         self.__dict__[key] = value
         
-    # get/set attributes
+    # Methods to get/set the DOM-specified attributes of a node: name, value,
+    # attributes.
 
     def get_nodeName(self):
         "Returns the name of this node."
@@ -340,60 +353,53 @@ class Node:
         "Returns the type of this node."
         return self._node.type
 
-    def get_parentNode(self):
-        """Return the parent of this node. All nodes, except Document,
-        DocumentFragment, and Attr may have a parent. However, if a
-        node has just been created and not yet added to the tree, or
-        if it has been removed from the tree, this is null."""
-        return self.parentNode
-
     def get_childNodes(self):
         """Return a NodeList containing all children of this node. If there
         are no children, this is a NodeList containing no nodes."""
-        return NodeList(self._node.children, self.get_ownerDocument(), self )
+        return NodeList(self._node.children, self._document )
 
     def get_firstChild(self):
         """Return the first child of this node. If there is no such node, this
-        returns null."""
+        returns None."""
 
         if self._node.children:
             n = self._node.children[0]
-            return NODE_CLASS[ n.type ] (n, self, self.get_ownerDocument() )
+            return NODE_CLASS[ n.type ] (n, self._document )
         else:
             return None
 
     def get_lastChild(self):
         """Return the last child of this node. If there is no such node, this
-        returns null."""
+        returns None."""
         if self._node.children:
             n = self._node.children[-1]
-            return NODE_CLASS[ n.type ] (n, self, self._document)
+            return NODE_CLASS[ n.type ] (n, self._document)
         else:
             return None
 
     def get_previousSibling(self):
         """Return the node immediately preceding this node. If there is no such
-        node, this returns null."""
+        node, this returns None."""
 
-        if self.parentNode is None: return None
+        if self.get_parentNode() is None: return None
         i = self._index()
         if i <= 0:
             return None
         else:
-            n = self.parentNode._node.children[i - 1]
-            return NODE_CLASS[ n.type ] (n, self.parentNode, self._document)
+            n = self.get_parentNode()._node.children[i - 1]
+            return NODE_CLASS[ n.type ] (n, self._document)
 
     def get_nextSibling(self):
         """Return the node immediately following this node. If there is no such
-        node, this returns null."""
-        if self.parentNode is None: return None
-        L = self.parentNode._node.children
+        node, this returns None."""
+        if self.get_parentNode() is None: return None
+        L = self.get_parentNode()._node.children
         i = self._index()
         if i == -1 or i == len(L) - 1:
             return None
         else:
             n = L[i+1]
-            return NODE_CLASS[ n.type ] (n, self.parentNode, self._document)
+            return NODE_CLASS[ n.type ] (n, self._document)
 
     def get_attributes(self):
         return None
@@ -401,16 +407,16 @@ class Node:
     def get_ownerDocument(self):
         """The Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
-        is a Document this is null."""
-        return self._document
+        is a Document this is None."""
+	return Document(self._document, None)
 
     # Methods
 
     def insertBefore(self, newChild, refChild):
         """Inserts the node newChild before the existing child node
-        refChild. If refChild is null, insert newChild at the end of
+        refChild. If refChild is None, insert newChild at the end of
         the list of children.
-        
+
         If newChild is a DocumentFragment object, all of its children
         are inserted, in the same order, before refChild. If the
         newChild is already in the tree, it is first removed."""
@@ -423,10 +429,6 @@ class Node:
             raise WrongDocumentException("newChild %s created from a "
                                          "different document" % (repr(newChild),) )
 
-        # If newChild is already in the tree, remove it
-        if newChild.parentNode != None:
-            newChild.parentNode.removeChild( newChild )
-
         if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
             nodelist = newChild._node.children
         else:
@@ -434,26 +436,35 @@ class Node:
 
         for node in nodelist:
             if node.type not in self.childNodeTypes:
-                node = NODE_CLASS[ node.type ] (node, self, self._document)
+                node = NODE_CLASS[ node.type ] (node, self._document)
                 raise HierarchyRequestException, \
                       "%s cannot be child of %s" % (repr(node), repr(self) )
 
-        if refChild == None:
+        if refChild is None:
+            # If newChild is already in the tree, remove it
+            if newChild.get_parentNode() != None:
+                newChild.get_parentNode().removeChild( newChild )
+
             for node in nodelist:
                 self._node.children.append( node )
+	        self._set_parentdict( id(node), self._node)
                 
             if newChild._node.type != DOCUMENT_FRAGMENT_NODE:
-                newChild.parentNode = self
+                self._set_parentdict(id(newChild._node), self._node)
             return newChild
 
         L = self._node.children ; n = refChild._node
         for i in range(len(L)):
             if L[i] == n:
+                # If newChild is already in the tree, remove it
+                if newChild.get_parentNode() != None:
+                    newChild.get_parentNode().removeChild( newChild )
+
                 L[i:i] = nodelist
                 if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
                     newChild._node.children = []
                 else:
-                    newChild.parentNode = self
+	            self._set_parentdict(id(newChild._node), self._node)
                 return newChild
 
         raise NotFoundException("refChild not a child in insertBefore()")
@@ -470,7 +481,7 @@ class Node:
         if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
             for node in newChild._node.children:
                 if node.type not in self.childNodeTypes:
-                    node = NODE_CLASS[ node.type ] (node, self, self._document)
+                    node = NODE_CLASS[ node.type ] (node, self._document)
                     raise HierarchyRequestException, \
                           "%s cannot be child of %s" % (repr(node), repr(self) )
 
@@ -478,17 +489,18 @@ class Node:
         for i in range(len(L)):
             if L[i] == o:
                 # If newChild is already in the tree, remove it
-                if newChild.parentNode != None:
-                    newChild.parentNode.removeChild( newChild )
+                if newChild.get_parentNode() != None:
+                    newChild.get_parentNode().removeChild( newChild )
 
                 if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
                     L[i:i+1] = newChild._node.children
+	            for child in newchild._node.children:
+	                self._set_parentdict(id(newChild._node), self._node)
                     newChild._node.children = []
                 else:
                     L[i] = newChild._node
-                    newChild.parentNode = self
-                    
-                oldChild.parentNode = None
+	            self._set_parentdict(id(newChild._node), self._node)
+                self._del_parentdict( id(oldChild._node) )
                 return oldChild
 
         raise NotFoundException("oldChild not a child of this node")
@@ -502,7 +514,7 @@ class Node:
 
         try:
             self._node.children.remove(oldChild._node)
-            oldChild.parentNode = None
+	    self._del_parentdict( id(oldChild._node) )
             return oldChild
         except ValueError:
             raise NotFoundException("oldChild is not a child of this node")
@@ -524,7 +536,7 @@ class Node:
     def cloneNode(self, deep):
         """Returns a duplicate of this node, i.e., serves as a generic
         copy constructor for nodes. The duplicate node has no parent
-        (parentNode returns null.)."""
+        (parentNode returns None.)."""
         
         import copy
         d = _nodeData( self._node.type )
@@ -534,7 +546,9 @@ class Node:
             else:
                 setattr(d, key, copy.deepcopy(value) )
 
-        node = NODE_CLASS[ d.type ] (d, None, self.get_ownerDocument())
+	if self._node.type == DOCUMENT_NODE: document = d
+	else: document = self._document
+        node = NODE_CLASS[ d.type ] ( d, document )
         if deep:
             d.children = copy.deepcopy(self._node.children)
         return node
@@ -544,8 +558,54 @@ class Node:
         see the structure of the tree."""
         stream.write( indent*' ' + repr(self) + '\n')
         for c in self._node.children:
-            c = NODE_CLASS[ c.type ](c, self, self.get_ownerDocument() )
+            c = NODE_CLASS[ c.type ](c, self._document)
             c.dump(stream, indent + 1)
+
+    # Private methods        
+
+    def get_parentNode(self):
+	if self._document is None: return None
+        if self._node in self._document.children:
+            return Document(self._document, None)
+	pr = self._get_parentdict()
+        parent = pr.get( id(self._node), None)
+        if parent is None: return None
+        else: return NODE_CLASS[ parent.type ] (parent, self._document)
+
+    def _get_parentdict(self):
+        if self._node.type == DOCUMENT_NODE:
+	    return self._node._parent_relation
+	else:
+	    return self._document._parent_relation
+
+    def _set_parentdict(self, key, node):
+        # Don't insert the document node, in order to avoid a cycle
+        if node == self._document: return
+	d = self._get_parentdict()
+        d[key] = node
+
+    def _del_parentdict(self, key):
+	d = self._get_parentdict()
+        if d.has_key(key): del d[key]
+
+    def _index(self):
+        "Return the index of this child in its parent's child list"
+        parent = self.get_parentNode()
+        if parent:
+            return parent._node.children.index(self._node)
+        else:
+            return -1
+
+    def _checkChild(self, child, parent):
+        "Raise HierarchyRequestException if the child can't be added"
+
+        cn = child._node ; p=self
+        while p is not None:
+            if p._node is cn: 
+                raise HierarchyRequestException, \
+                      "%s is an ancestor of %s" % (repr(child), repr(parent) )
+            p = p.get_parentNode()
+
         
 class CharacterData(Node):
     # Attributes
@@ -638,14 +698,16 @@ class CharacterData(Node):
 
     def __getslice__(self, i,j):
         value = self._node.value[i:j]
-        return self._document.createTextNode( value )
-
+        d = _nodeData(TEXT_NODE)
+        d.name = "#text"
+        d.value = value
+        return Text(d, self._document)
     
 class Attr(Node):
     childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
     
-    def __init__(self, node, parent = None, document = None):
-        Node.__init__(self, node, None, document)
+    def __init__(self, node, document = None):
+        Node.__init__(self, node, document)
 
     def __repr__(self):
         return '<Attribute node %s>' % (repr(self._node.name),)
@@ -698,8 +760,8 @@ class Element(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
                       TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
     
-    def __init__(self, node, parent = None, document = None):
-        Node.__init__(self, node, parent, document)
+    def __init__(self, node, document = None):
+        Node.__init__(self, node, document)
         
     def __repr__(self):
         return "<Element '%s'>" % (self._node.name)
@@ -712,15 +774,15 @@ class Element(Node):
                 if value.type == TEXT_NODE:
                     s = s + escape(value.value) 
                 else:
-                    n = NODE_CLASS[ value.type ] (value, None, self._document)
+                    n = NODE_CLASS[ value.type ] (value, self._document)
                     s = s + value.toxml()
             s = s + "'"
             
         if len(self._node.children) == 0:
-            return s + "/>"
+            return s + " />"
         s = s + '>'
         for child in self._node.children:
-            n = NODE_CLASS[ child.type ] (child, self, self._document)
+            n = NODE_CLASS[ child.type ] (child, self._document)
             s = s + n.toxml()
         s = s + "</" + self._node.name + '>'
         return s
@@ -734,7 +796,7 @@ class Element(Node):
 
     def get_attributes(self):
         "Return a NamedNodeMap containing all the attributes of this element."
-        d = NamedNodeMap( self._node.attributes, self.get_ownerDocument() )
+        d = NamedNodeMap( self._node.attributes, self._document )
         return d
         
     def getAttribute(self, name):
@@ -743,7 +805,7 @@ class Element(Node):
         if self._node.attributes.has_key(name):
             n = self._node.attributes[name]
             assert n.type == ATTRIBUTE_NODE
-            n = Attr(n, None, self._document)
+            n = Attr(n, self._document)
             return n.toxml()
         else:
             return ""
@@ -754,7 +816,7 @@ class Element(Node):
         that of the value parameter. This value is a simple string."""
         
         if isinstance(value, Node):
-            raise ValueError, "setAttribute() method expects a string value"
+            raise TypeError, "setAttribute() method expects a string value"
         t = _nodeData(TEXT_NODE)
         t.name = "#text"
         t.value = value
@@ -776,7 +838,7 @@ class Element(Node):
             return None
         d = self._node.attributes[name]
         assert d.type == ATTRIBUTE_NODE
-        return Attr(d, None, self._document)
+        return Attr(d, self._document)
 
     def setAttributeNode(self, newAttr):
         """Adds a new attribute. If an attribute with that name is
@@ -784,12 +846,12 @@ class Element(Node):
         one."""
         
         if not isinstance(newAttr, Attr):
-            raise ValueError, "setAttributeNode() requires an Attr node as argument"
+            raise TypeError, "setAttributeNode() requires an Attr node as argument"
         name = newAttr._node.name
         if self._node.attributes.has_key( name ):
             attr = self._node.attributes[ name ]
             assert attr.type == ATTRIBUTE_NODE
-            retval = Attr(attr, None, self._document )
+            retval = Attr(attr, self._document )
         else: retval = None
 
         self._node.attributes[ name ] = newAttr._node
@@ -800,8 +862,7 @@ class Element(Node):
         # XXX this needs to know about DTDs to restore a default value
         name = oldAttr._node.name
         if self._node.attributes.has_key( name ):
-            retval = Attr(self._node.attributes[name], None,
-                          self._document )
+            retval = Attr(self._node.attributes[name], self._document )
             del self._node.attributes[ name ]
             return retval
         else: return None
@@ -814,14 +875,13 @@ class Element(Node):
         nodes = [] ; parents = []
         for child in self._node.children:
             if child.type == ELEMENT:
-                d = Element(child, self, self._document)
+                d = Element(child, self._document)
                 if tagname == '*' or child.name == tagname:
                     nodes.append( child )
                     parents.append( self )
                 nl = d.getElementsByTagName(tagname)
                 nodes = nodes + nl.data
-                parents = parents + nl._parent
-        return NodeList(nodes, self.get_ownerDocument(), parents )
+        return NodeList(nodes, self._document )
 
     def normalize(self):
         """Puts all Text nodes in the full depth of the sub-tree
@@ -834,16 +894,17 @@ class Element(Node):
         L = self._node.children
         for i in range(len(L)-1, 0, -1):
             if L[i].type == TEXT_NODE and L[i-1].type == TEXT_NODE:
-                # Two text nodes together, so merge them
-                # XXX any Text instances proxying the deleted
+                # Two text nodes together, so merge them.
+                # Any Text instances proxying the deleted
                 # _nodeData instance will find themselves
-                # disconnected from the tree.  
+                # disconnected from the tree; this is not a bug, I think.
                 L[i-1].value = L[i-1].value + L[i].value
+	        self._del_parentdict( id(L[i]) ) # Mark the node as parentless
                 del L[i:i+1]
                 
         for i in range(len(L)):
             if L[i].type == ELEMENT_NODE:
-                n = NODE_CLASS[ L[i].type ] (L[i], self, self._document)
+                n = NODE_CLASS[ L[i].type ] (L[i], self._document)
                 n.normalize()
     
 class Text(CharacterData):
@@ -865,9 +926,9 @@ class Text(CharacterData):
         n1.name = "#text" ; n2.name = "#text"
         n1.value = self.substringData(0, offset)
         n2.value = self.substringData(offset, len(self) - offset)
-        parent = self.parentNode
-        n1 = Text(n1, None, self._document)
-        n2 = Text(n2, None, self._document)
+        n1 = Text(n1, self._document)
+        n2 = Text(n2, self._document)
+	parent = self.get_parentNode()
 
         # Insert n1 and n2, and delete this node
         parent.insertBefore(n1, self)
@@ -894,7 +955,7 @@ class CDATASection(Text):
         return '<CDATASection node %s>' % (repr(s),)
 
     def toxml(self):
-        return self._node.value
+        return '<![CDATA[' + self._node.value + ']]>'
 
 class DocumentType(Node):
     readonly = 1    # This is a read-only class
@@ -984,17 +1045,18 @@ class Document(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, DOCUMENT_TYPE_NODE]
     
-    def __init__(self, node, parent = None, document = None):
-        Node.__init__(self, node, parent = None, document = None)
+    def __init__(self, node, document = None):
+        Node.__init__(self, node, None)
         self.documentType = None
         self.DOMImplementation = __import__(__name__)
-        
+	self._document = node
+
     def toxml(self):
         s = '<?xml version="1.0"?>\n'
         if self.documentType:
-            s = s + self.documentType
+            s = s + self.documentType.toxml()
         for n in self._node.children:
-            n = NODE_CLASS[ n.type ] (n, self, self)
+            n = NODE_CLASS[ n.type ] (n, self._document)
             s = s + n.toxml()
         return s
 
@@ -1008,7 +1070,7 @@ class Document(Node):
         d.name = tagName
         d.value = None
         d.attributes = {}
-        elem = Element(d, None, self)
+        elem = Element(d, self._node)
         kwdict.update( dict )
         for name, value in kwdict.items():
             elem.setAttribute(name, value)
@@ -1019,14 +1081,14 @@ class Document(Node):
         
         d = _nodeData(DOCUMENT_FRAGMENT_NODE)
         d.name = "#document-fragment"
-        return DocumentFragment(d, None, self)
+        return DocumentFragment(d, self._node)
 
     def createTextNode(self, data):
         "Return a new Text object."
         d = _nodeData(TEXT_NODE)
         d.name = "#text"
         d.value = data
-        return Text(d, None, self)
+        return Text(d, self._node)
     createText = createTextNode
     
     def createComment(self, data):
@@ -1034,51 +1096,36 @@ class Document(Node):
         d = _nodeData(COMMENT_NODE)
         d.name = "#comment"
         d.value = data
-        return Comment(d, None, self)
+        return Comment(d, self._node)
 
     def createCDATAsection(self, data):
         "Return a new CDATASection object."
         d = _nodeData(CDATA_SECTION_NODE)
         d.name = "#cdata-section"
         d.value = data
-        return CDATASection(d, None, self)
+        return CDATASection(d, self._node)
 
     def createProcessingInstruction(self, target, data):
         "Return a new ProcessingInstruction object."
         d = _nodeData(PROCESSING_INSTRUCTION_NODE)
         d.name = target
         d.value = data
-        return ProcessingInstruction(d, None, self)
+        return ProcessingInstruction(d, self._node)
         
     def createAttribute(self, name):
         "Return a new Attribute object."
         d = _nodeData(ATTRIBUTE_NODE)
         d.name = name
         d.value = ""
-        return Attribute(d, None, self)
+        return Attr(d, self._node)
 
     def createEntityReference(self, name):
         "Return a new EntityRefernce object."
         d = _nodeData(ENTITY_REFERENCE_NODE)
         d.name = name
         d.value = None
-        return EntityReference(d, None, self)
+        return EntityReference(d, self._node)
 
-    def getElementsByTagName(self, tagname):
-        """Returns a NodeList of all the Elements with a given tag name
-        in the order in which they would be encountered in a preorder
-        traversal of the Document tree."""
-        
-        elem = self.get_documentElement()
-        if elem == None: return NodeList([], self, None)
-        nodes = [] ; parents = []
-        if tagname == '*' or tagname == elem._node.name:
-            nodes.append( elem._node ) ; parents.append( self )
-        nl = elem.getElementsByTagName(tagname)
-        nodes = nodes + nl.data
-        parents = parents + nl._parent
-        return NodeList( nodes, self, parents )
-        
     # Extended methods for creating entity and notation nodes
     def createNotation(self, name, publicId = None, systemId = None):
         "Return a new Notation object."
@@ -1086,7 +1133,7 @@ class Document(Node):
         d.name = name
         d.value = None
         d.publicId, d.systemId = publicId, systemId
-        return Notation(d, None, self)
+        return Notation(d, self._node)
 
     def createEntity(self, name, publicId, systemId, notationName = None):
         "Return a new Entity object."
@@ -1095,8 +1142,28 @@ class Document(Node):
         d.value = None
         d.publicId, d.systemId = publicId, systemId
         d.notationName = notationName
-        return Entity(d, None, self)
+        return Entity(d, self._node)
 
+    def getElementsByTagName(self, tagname):
+        """Returns a NodeList of all the Elements with a given tag name
+        in the order in which they would be encountered in a preorder
+        traversal of the Document tree."""
+        
+	# This function could be optimized by doing it in a private function
+        # and dealing with _nodeData instances directly.  This would save 
+	# the overhead of creating Node instances only to take their ._node
+	# attribute and append it to a list.  Haven't bothered to code that
+	# yet...
+
+        elem = self.get_documentElement()
+        if elem is None: return NodeList([], self._node)
+        nodes = [] 
+        if tagname == '*' or tagname == elem._node.name:
+            nodes.append( elem._node ) 
+        nl = elem.getElementsByTagName(tagname)
+        nodes = nodes + nl.data
+        return NodeList( nodes, self._node )
+        
     # Attributes
     def get_doctype(self):
         return self.documentType
@@ -1104,7 +1171,7 @@ class Document(Node):
         return self.DOMImplementation
 
     def get_childNodes(self):
-        return NodeList(self._node.children, self, self)
+        return NodeList(self._node.children, self._node)
 
     def get_documentElement(self):
         """Return the root element of the Document object, or None
@@ -1114,7 +1181,7 @@ class Document(Node):
         for elem in self._node.children:
             if elem.type == ELEMENT_NODE:
                 if doc is None:
-                    doc = Element(elem, self, self)
+                    doc = Element(elem, self._node)
                 else:
                     raise HierarchyRequestException, \
                           "Too many Element children of Document" 
@@ -1123,16 +1190,17 @@ class Document(Node):
     def get_ownerDocument(self):
         """Return the Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
-        is a Document this is null."""
+        is a Document this is None."""
         return None
-    
+
     # Override the Node mutation methods in order to check that
     # there's at most a single Element child, and to update
-    # self.documentElement.
+    # self.documentElement.  XXX this code requires copying too
+    # darned much code from the Node class: is there a simpler way?
 
     def insertBefore(self, newChild, refChild):
         """Inserts the node newChild before the existing child node
-        refChild. If refChild is null, insert newChild at the end of
+        refChild. If refChild is None, insert newChild at the end of
         the list of children.
         
         If newChild is a DocumentFragment object, all of its children
@@ -1143,24 +1211,22 @@ class Document(Node):
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
 
-        if newChild._document != self:
+        if newChild._document != self._node:
             raise WrongDocumentException("newChild %s created from a "
                                          "different document" % (repr(newChild),) )
 
         # If newChild is already in the tree, remove it
-        if newChild.parentNode != None:
-            newChild.parentNode.removeChild( newChild )
+        if newChild.get_parentNode() != None:
+            newChild.get_parentNode().removeChild( newChild )
 
-        if refChild == None:
+        if refChild is None:
             self._node.children.append( newChild._node )
-            newChild.parentNode = self
             return newChild
 
         L = self._node.children ; n = refChild._node
         for i in range(len(L)):
             if L[i] == n:
                 L[i:i] = [newChild._node]
-                newChild.parentNode = self
                 return newChild
         raise NotFoundException("refChild not a child in insertBefore()")
 
@@ -1172,7 +1238,7 @@ class Document(Node):
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
-        if newChild._document != self:
+        if newChild._document != self._node:
             raise WrongDocumentException("newChild %s created from a "
                                          "different document" % (repr(newChild),) )
 
@@ -1180,12 +1246,11 @@ class Document(Node):
         for i in range(len(L)):
             if L[i] == o:
                 # If newChild is already in the tree, remove it
-                if newChild.parentNode != None:
-                    newChild.parentNode.removeChild( newChild )
+                if newChild.get_parentNode() != None:
+                    newChild.get_parentNode().removeChild( newChild )
 
                 L[i] = newChild._node
-                newChild.parentNode = self
-                oldChild.parentNode = None
+	        self._del_parentdict( id(oldChild._node) )
                 return oldChild
         raise NotFoundException("oldChild not a child of this node")
 
@@ -1193,11 +1258,16 @@ class DocumentFragment(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
                       ENTITY_REFERENCE_NODE]
-    
+
+    def get_parentNode(self): 
+        # DocumentFragments can never be part of a tree themselves; when added,
+        # their children are added instead.
+	return None    
+
     def toxml(self):
         s = ""
         for child in self._node.children:
-            n = NODE_CLASS[ child.type ] (child, self, self._document)
+            n = NODE_CLASS[ child.type ] (child, self._document)
             s = s + n.toxml()
         return s
     
@@ -1219,3 +1289,4 @@ NOTATION_NODE               : Notation
 }
 
 # vim:ts=2:ai
+
