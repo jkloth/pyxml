@@ -882,7 +882,6 @@ class Document(Node):
         return a
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        # XXX test case
         rc = []
         _getElementsByTagNameNSHelper(self, namespaceURI, localName, rc)
         return rc
