@@ -1,11 +1,17 @@
 
 # regression test for SAX 2.0
-# $Id: test_sax.py,v 1.2 2000/09/30 19:15:04 loewis Exp $
+# $Id: test_sax.py,v 1.3 2000/10/07 18:30:11 loewis Exp $
 
+from xml.sax import make_parser, ContentHandler, \
+                    SAXException, SAXReaderNotAvailable, SAXParseException
+try:
+    make_parser()
+except SAXReaderNotAvailable:
+    # don't try to test this module if we cannot create a parser
+    raise ImportError("no XML parsers available")
 from xml.sax.saxutils import XMLGenerator, escape, XMLFilterBase
 from xml.sax.expatreader import create_parser
 from xml.sax.xmlreader import InputSource, AttributesImpl, AttributesNSImpl
-from xml.sax.handler import ContentHandler
 from cStringIO import StringIO
 from test.test_support import verbose, TestFailed, findfile
 
@@ -40,6 +46,17 @@ def test_escape_all():
 
 def test_escape_extra():
     return escape("Hei på deg", {"å" : "&aring;"}) == "Hei p&aring; deg"
+
+def test_make_parser():
+    try:
+        # Creating a parser should succeed - it should fall back
+        # to the expatreader
+        p = make_parser(['xml.parsers.no_such_parser'])
+    except:
+        return 0
+    else:
+        return p
+
 
 # ===== XMLGenerator
 
@@ -112,11 +129,15 @@ def test_xmlgen_ns():
     gen.startDocument()
     gen.startPrefixMapping("ns1", ns_uri)
     gen.startElementNS((ns_uri, "doc"), "ns1:doc", {})
+    # add an unqualified name
+    gen.startElementNS((None, "udoc"), None, {})
+    gen.endElementNS((None, "udoc"), None)
     gen.endElementNS((ns_uri, "doc"), "ns1:doc")
     gen.endPrefixMapping("ns1")
     gen.endDocument()
 
-    return result.getvalue() == start + ('<ns1:doc xmlns:ns1="%s"></ns1:doc>' %
+    return result.getvalue() == start + \
+           ('<ns1:doc xmlns:ns1="%s"><udoc></udoc></ns1:doc>' %
                                          ns_uri)
 
 # ===== XMLFilterBase
@@ -292,6 +313,36 @@ def test_expat_inpsource_stream():
     parser.parse(inpsrc)
 
     return result.getvalue() == xml_test_out
+
+
+# ===========================================================================
+#
+#   error reporting
+#
+# ===========================================================================
+
+def test_expat_inpsource_location():
+    parser = create_parser()
+    parser.setContentHandler(ContentHandler()) # do nothing
+    source = InputSource()
+    source.setByteStream(StringIO("<foo bar foobar>"))   #ill-formed
+    name = "a file name"
+    source.setSystemId(name)
+    try:
+        parser.parse(source)
+    except SAXException, e:
+        return e.getSystemId() == name
+
+def test_expat_incomplete():
+    parser = create_parser()
+    parser.setContentHandler(ContentHandler()) # do nothing
+    try:
+        parser.parse(StringIO("<foo>"))
+    except SAXParseException:
+        return 1 # ok, error found
+    else:
+        return 0
+
 
 # ===========================================================================
 #

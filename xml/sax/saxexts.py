@@ -1,7 +1,7 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.10 2000/09/29 20:57:48 loewis Exp $
+$Id: saxexts.py,v 1.11 2000/10/07 18:30:11 loewis Exp $
 """
 
 import _exceptions,handler,sys,string,os,types
@@ -50,6 +50,7 @@ class ParserFactory:
 
         Accepts a list of driver package names as an optional argument."""
 
+        import sys
         # SAX1 expected a single package name as optional argument
         # Python 2 changed this to be a list of parser names
         # We now support both, as well as None (which was the default)
@@ -62,9 +63,18 @@ class ParserFactory:
             try:
                 return self._create_parser(parser_name)
             except ImportError,e:
-                pass
+                if sys.modules.has_key(parser_name):
+                    # The parser module was found, but importing it
+                    # failed unexpectedly, pass this exception through
+                    raise
+            except SAXReaderNotAvailable:
+                # The parser module detected that it won't work properly,
+                # so mark it as unusable, and try the next one
+                def _create_parser():
+                    raise SAXReaderNotAvailable
+                sys.modules[parser_name].create_parser = _create_parser
 
-        raise _exceptions.SAXException("No parsers found",None)  
+        raise SAXReaderNotAvailable("No parsers found", None)  
 
 # --- Experimental extension to Parser interface
 import saxlib

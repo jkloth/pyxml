@@ -250,7 +250,7 @@ class AttributeList:
         del self._attrs[node.name]
         del self._attrsNS[(node.namespaceURI, node.localName)]
 
-class Element( Node ):
+class Element(Node):
     nodeType = Node.ELEMENT_NODE
 
     def __init__(self, tagName, namespaceURI="", prefix="",
@@ -287,6 +287,7 @@ class Element( Node ):
         attr = Attr(qualifiedName, namespaceURI, localname, prefix)
         attr.__dict__["value"] = attr.__dict__["nodeValue"] = value
         self.setAttributeNode(attr)
+        # FIXME: return original node if something changed.
 
     def getAttributeNode(self, attrname):
         return self._attrs.get(attrname)
@@ -300,6 +301,7 @@ class Element( Node ):
             old.unlink()
         self._attrs[attr.name] = attr
         self._attrsNS[(attr.namespaceURI, attr.localName)] = attr
+        # FIXME: return old value if something changed
 
     def removeAttribute(self, name):
         attr = self._attrs[name]
@@ -323,6 +325,7 @@ class Element( Node ):
     def __repr__(self):
         return "<DOM Element: %s at %s>" % (self.tagName, id(self))
 
+    # undocumented
     def writexml(self, writer):
         writer.write("<" + self.tagName)
             
@@ -331,7 +334,7 @@ class Element( Node ):
 
         for a_name in a_names:
             writer.write(" %s=\"" % a_name)
-            _write_data(writer, self._get_attributes()[a_name])
+            _write_data(writer, self._get_attributes()[a_name].value)
             writer.write("\"")
         if self.childNodes:
             writer.write(">")
@@ -430,7 +433,7 @@ class Document(Node):
 
     def createAttributeNS(self, namespaceURI, qualifiedName):
         prefix,localName = _nssplit(qualifiedName)
-        return Attr(namespaceURI, qualifiedName, localName, prefix)
+        return Attr(qualifiedName, namespaceURI, localName, prefix)
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
         _getElementsByTagNameNSHelper(self, namespaceURI, localName)
