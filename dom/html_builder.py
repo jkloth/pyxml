@@ -57,8 +57,8 @@ class HtmlBuilder(SGMLParser, Builder):
 					break
 			else:
 				break
-		#print self.stack
-
+#		print self.stack, tag, attributes
+                
 		Builder.startElement(self, tag, attributes)
 		if not tag in self.empties:
 			self.stack.append(tag)
