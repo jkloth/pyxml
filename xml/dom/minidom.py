@@ -252,9 +252,10 @@ class Node(xml.dom.Node, GetattrMagic):
 
     def unlink(self):
         self.parentNode = self.ownerDocument = None
-        for child in self.childNodes:
-            child.unlink()
-        self.childNodes = None
+        if self.childNodes:
+            for child in self.childNodes:
+                child.unlink()
+            self.childNodes = NodeList()
         self.previousSibling = None
         self.nextSibling = None
 
@@ -563,6 +564,9 @@ class Element(Node):
         node.unlink()
         del self._attrs[node.name]
         del self._attrsNS[(node.namespaceURI, node.localName)]
+        # Restore this since the node is still useful and otherwise
+        # unlinked
+        node.ownerDocument = self.ownerDocument
 
     removeAttributeNodeNS = removeAttributeNode
 
@@ -953,6 +957,14 @@ class DOMImplementation(DOMImplementationLS):
         doctype.systemId = systemId
         return doctype
 
+    # DOM Level 3 (WD 9 April 2002)
+
+    def getInterface(self, feature):
+        if self.hasFeature(feature, None):
+            return self
+        else:
+            return None
+
     # internal
     def _createDocument(self):
         return Document()
@@ -970,13 +982,12 @@ class Document(Node, DocumentLS):
     childNodeTypes = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
                       Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
 
-    # DocumentLS attributes from Level 3 (WD 9 April 2002)
+    # Document attributes from Level 3 (WD 9 April 2002)
 
     actualEncoding = None
     encoding = None
-    standalone = False
+    standalone = None
     version = None
-
     strictErrorChecking = False
     errorHandler = None
     documentURI = None
@@ -1090,6 +1101,55 @@ class Document(Node, DocumentLS):
             writer.write('<?xml version="1.0" encoding="%s"?>\n' % encoding)
         for node in self.childNodes:
             node.writexml(writer, indent, addindent, newl)
+
+    # DOM Level 3 (WD 9 April 2002)
+
+    def renameNode(self, n, namespaceURI, name):
+        if n.ownerDocument is not self:
+            raise xml.dom.WrongDocumentErr(
+                "cannot rename nodes from other documents;\n"
+                "expected %s,\nfound %s" % (self, n.ownerDocument))
+        if n.nodeType not in (Node.ELEMENT_NODE, Node.ATTRIBUTE_NODE):
+            raise xml.dom.NotSupportedErr(
+                "renameNode() only applies to element and attribute nodes")
+        if namespaceURI != EMPTY_NAMESPACE:
+            if ':' in name:
+                prefix, localName = name.split(':', 1)
+                if (  prefix == "xmlns"
+                      and namespaceURI != xml.dom.XMLNS_NAMESPACE):
+                    raise xml.dom.NamespaceErr(
+                        "illegal use of 'xmlns' prefix")
+            else:
+                if (  name == "xmlns"
+                      and namespaceURI != xml.dom.XMLNS_NAMESPACE
+                      and n.nodeType == Node.ATTRIBUTE_NODE):
+                    raise xml.dom.NamespaceErr(
+                        "illegal use of the 'xmlns' attribute")
+                prefix = None
+                localName = name
+        else:
+            prefix = None
+            localName = None
+        if n.nodeType == Node.ATTRIBUTE_NODE:
+            element = n.ownerElement
+            if element is not None:
+                element.removeAttributeNode(n)
+        else:
+            element = None
+        # avoid __setattr__
+        d = n.__dict__
+        d['prefix'] = prefix
+        d['localName'] = localName
+        d['namespaceURI'] = namespaceURI
+        d['nodeName'] = name
+        if n.nodeType == Node.ELEMENT_NODE:
+            d['tagName'] = name
+        else:
+            # attribute node
+            d['name'] = name
+            if element is not None:
+                element.setAttributeNode(n)
+        return n
 
 defproperty(Document, "documentElement",
             doc="Top-level element of this document.")

@@ -536,6 +536,160 @@ def testUserData():
             and n.getUserData("bar") is None
             and c.getUserData("bar") == 13)
 
+def testRenameAttribute():
+    doc = parseString("<doc a='v'/>")
+    elem = doc.documentElement
+    attrmap = elem.attributes
+    attr = elem.attributes['a']
+
+    # Simple renaming
+    attr = doc.renameNode(attr, xml.dom.EMPTY_NAMESPACE, "b")
+    confirm(attr.name == "b"
+            and attr.nodeName == "b"
+            and attr.localName is None
+            and attr.namespaceURI == xml.dom.EMPTY_NAMESPACE
+            and attr.prefix is None
+            and attr.value == "v"
+            and elem.getAttributeNode("a") is None
+            and elem.getAttributeNode("b").isSameNode(attr)
+            and attrmap["b"].isSameNode(attr)
+            and attr.ownerDocument.isSameNode(doc)
+            and attr.ownerElement.isSameNode(elem))
+
+    # Rename to have a namespace, no prefix
+    attr = doc.renameNode(attr, "http://xml.python.org/ns", "c")
+    confirm(attr.name == "c"
+            and attr.nodeName == "c"
+            and attr.localName == "c"
+            and attr.namespaceURI == "http://xml.python.org/ns"
+            and attr.prefix is None
+            and attr.value == "v"
+            and elem.getAttributeNode("a") is None
+            and elem.getAttributeNode("b") is None
+            and elem.getAttributeNode("c").isSameNode(attr)
+            and elem.getAttributeNodeNS(
+                "http://xml.python.org/ns", "c").isSameNode(attr)
+            and attrmap["c"].isSameNode(attr)
+            and attrmap[("http://xml.python.org/ns", "c")].isSameNode(attr))
+
+    # Rename to have a namespace, with prefix
+    attr = doc.renameNode(attr, "http://xml.python.org/ns2", "p:d")
+    confirm(attr.name == "p:d"
+            and attr.nodeName == "p:d"
+            and attr.localName == "d"
+            and attr.namespaceURI == "http://xml.python.org/ns2"
+            and attr.prefix == "p"
+            and attr.value == "v"
+            and elem.getAttributeNode("a") is None
+            and elem.getAttributeNode("b") is None
+            and elem.getAttributeNode("c") is None
+            and elem.getAttributeNodeNS(
+                "http://xml.python.org/ns", "c") is None
+            and elem.getAttributeNode("p:d").isSameNode(attr)
+            and elem.getAttributeNodeNS(
+                "http://xml.python.org/ns2", "d").isSameNode(attr)
+            and attrmap["p:d"].isSameNode(attr)
+            and attrmap[("http://xml.python.org/ns2", "d")].isSameNode(attr))
+
+    # Rename back to a simple non-NS node
+    attr = doc.renameNode(attr, xml.dom.EMPTY_NAMESPACE, "e")
+    confirm(attr.name == "e"
+            and attr.nodeName == "e"
+            and attr.localName is None
+            and attr.namespaceURI == xml.dom.EMPTY_NAMESPACE
+            and attr.prefix is None
+            and attr.value == "v"
+            and elem.getAttributeNode("a") is None
+            and elem.getAttributeNode("b") is None
+            and elem.getAttributeNode("c") is None
+            and elem.getAttributeNode("p:d") is None
+            and elem.getAttributeNodeNS(
+                "http://xml.python.org/ns", "c") is None
+            and elem.getAttributeNode("e").isSameNode(attr)
+            and attrmap["e"].isSameNode(attr))
+
+    try:
+        doc.renameNode(attr, "http://xml.python.org/ns", "xmlns")
+    except xml.dom.NamespaceErr:
+        pass
+    else:
+        print "expected NamespaceErr"
+
+    checkRenameNodeSharedConstraints(doc, attr)
+
+def testRenameElement():
+    doc = parseString("<doc/>")
+    elem = doc.documentElement
+
+    # Simple renaming
+    elem = doc.renameNode(elem, xml.dom.EMPTY_NAMESPACE, "a")
+    confirm(elem.tagName == "a"
+            and elem.nodeName == "a"
+            and elem.localName is None
+            and elem.namespaceURI == xml.dom.EMPTY_NAMESPACE
+            and elem.prefix is None
+            and elem.ownerDocument.isSameNode(doc))
+
+    # Rename to have a namespace, no prefix
+    elem = doc.renameNode(elem, "http://xml.python.org/ns", "b")
+    confirm(elem.tagName == "b"
+            and elem.nodeName == "b"
+            and elem.localName == "b"
+            and elem.namespaceURI == "http://xml.python.org/ns"
+            and elem.prefix is None
+            and elem.ownerDocument.isSameNode(doc))
+
+    # Rename to have a namespace, with prefix
+    elem = doc.renameNode(elem, "http://xml.python.org/ns2", "p:c")
+    confirm(elem.tagName == "p:c"
+            and elem.nodeName == "p:c"
+            and elem.localName == "c"
+            and elem.namespaceURI == "http://xml.python.org/ns2"
+            and elem.prefix == "p"
+            and elem.ownerDocument.isSameNode(doc))
+
+    # Rename back to a simple non-NS node
+    elem = doc.renameNode(elem, xml.dom.EMPTY_NAMESPACE, "d")
+    confirm(elem.tagName == "d"
+            and elem.nodeName == "d"
+            and elem.localName is None
+            and elem.namespaceURI == xml.dom.EMPTY_NAMESPACE
+            and elem.prefix is None
+            and elem.ownerDocument.isSameNode(doc))
+
+    checkRenameNodeSharedConstraints(doc, elem)
+
+def checkRenameNodeSharedConstraints(doc, node):
+    # Make sure illegal NS usage is detected:
+    try:
+        doc.renameNode(node, "http://xml.python.org/ns", "xmlns:foo")
+    except xml.dom.NamespaceErr:
+        pass
+    else:
+        print "expected NamespaceErr"
+
+    doc2 = parseString("<doc/>")
+    try:
+        doc2.renameNode(node, xml.dom.EMPTY_NAMESPACE, "foo")
+    except xml.dom.WrongDocumentErr:
+        pass
+    else:
+        print "expected WrongDocumentErr"
+
+def testRenameOther():
+    # We have to create a comment node explicitly since not all DOM
+    # builders used with minidom add comments to the DOM.
+    doc = xml.dom.minidom.getDOMImplementation().createDocument(
+        xml.dom.EMPTY_NAMESPACE, "e", None)
+    node = doc.createComment("comment")
+    try:
+        doc.renameNode(node, xml.dom.EMPTY_NAMESPACE, "foo")
+    except xml.dom.NotSupportedErr:
+        pass
+    else:
+        print "expected NotSupportedErr when renaming comment node"
+
+
 # --- MAIN PROGRAM
 
 names = globals().keys()
@@ -556,7 +710,7 @@ for name in names:
                 print "Test Failed: " + name
                 sys.stdout.flush()
                 traceback.print_exc()
-                print `sys.exc_info()[1]`
+                print sys.exc_info()[1]
                 oldstdout.write(sys.stdout.getvalue())
             finally:
                 sys.stdout = oldstdout
