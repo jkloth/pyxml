@@ -1,91 +1,41 @@
 
-# This is just a common library of xmlproc applications that can output
-# parsed XML in various formats, included so that you can actually see
-# the parsed data outputted by xmlproc.
-
-# This file is not useful in itself, it's imported by xvcmd.py and
-# xpcmd.py
+# This module contains common functionality used by xvcmd.py and xpcmd.py
 
 import sys,string
 
-from xml.parsers.xmlproc import xmlapp
+from xml.parsers.xmlproc import xmlapp, utils
 
-# ESIS document handler
+# Backwards compatibility declarations
 
-class ESISDocHandler(xmlapp.Application):
-
-    def __init__(self,writer=sys.stdout):
-	self.writer=writer
-    
-    def handle_pi(self,target,data):
-	self.writer.write("?"+target+" "+data+"\n")
-
-    def handle_start_tag(self,name,amap):
-	self.writer.write("("+name+"\n")
-	for a_name in amap.keys():
-	    self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
-
-    def handle_end_tag(self,name):
-	self.writer.write(")"+name+"\n")
-
-    def handle_data(self,data,start_ix,end_ix):
-	self.writer.write("-"+data[start_ix:end_ix]+"\n")
-        
-# XML canonizer
-
-class Canonizer(xmlapp.Application):
-
-    def __init__(self,writer=sys.stdout):
-	self.elem_level=0
-	self.writer=writer
-    
-    def handle_pi(self,target, remainder):
-	if not target=="xml":
-	    self.writer.write("<?"+target+" "+remainder+"?>")
-
-    def handle_start_tag(self,name,amap):
-	self.writer.write("<"+name)
-	
-	a_names=amap.keys()
-	a_names.sort()
-
-	for a_name in a_names:
-	    self.writer.write(" "+a_name+"=\"")
-	    self.write_data(amap[a_name])
-	    self.writer.write("\"")
-	self.writer.write(">")
-	self.elem_level=self.elem_level+1
-
-    def handle_end_tag(self,name):
-	self.writer.write("</"+name+">")
-	self.elem_level=self.elem_level-1
-
-    def handle_ignorable_data(self,data,start_ix,end_ix):
-        self.write_data(data[start_ix:end_ix])
-	
-    def handle_data(self,data,start_ix,end_ix):
-	if self.elem_level>0:
-            self.write_data(data[start_ix:end_ix])
-	    
-    def write_data(self,data):
-	data=string.replace(data,"&","&amp;")
-	data=string.replace(data,"<","&lt;")
-	data=string.replace(data,"\"","&quot;")
-	data=string.replace(data,">","&gt;")
-        data=string.replace(data,chr(9),"&#9;")
-        data=string.replace(data,chr(10),"&#10;")
-        data=string.replace(data,chr(13),"&#13;")
-	self.writer.write(data)
+ESISDocHandler = utils.ESISDocHandler
+Canonizer = utils.Canonizer
+DocGenerator = utils.DocGenerator
 
 # Error handler
 
 class MyErrorHandler(xmlapp.ErrorHandler):
 
-    def __init__(self,locator,warnings):
+    def __init__(self, locator, parser, warnings, entstack, rawxml):
 	xmlapp.ErrorHandler.__init__(self,locator)
         self.show_warnings=warnings
+        self.show_entstack=entstack
+        self.show_rawxml=rawxml
+        self.parser=parser
         self.reset()
 
+    def __show_location(self,prefix,msg):
+        print "%s:%s: %s" % (prefix,self.get_location(),msg)
+        if self.show_entstack:
+            print "  Document entity"
+            for item in self.parser.get_current_ent_stack():
+                print "  %s: %s" % item
+        if self.show_rawxml:
+            raw=self.parser.get_raw_construct()
+            if len(raw)>50:
+                print "  Raw construct too big, suppressed."
+            else:
+                print "  '%s'" % raw
+        
     def get_location(self):
 	return "%s:%d:%d" % (self.locator.get_current_sysid(),\
                                self.locator.get_line(),
@@ -93,14 +43,14 @@ class MyErrorHandler(xmlapp.ErrorHandler):
 	
     def warning(self,msg):
         if self.show_warnings:
-            print "W:%s: %s" % (self.get_location(),msg)
+            self.__show_location("W",msg)
             self.warnings=self.warnings+1
 
     def error(self,msg):
 	self.fatal(msg)
 	
     def fatal(self,msg):
-	print "E:%s: %s" % (self.get_location(),msg)
+        self.__show_location("E",msg)
 	self.errors=self.errors+1
 
     def reset(self):
