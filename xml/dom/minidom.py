@@ -590,6 +590,7 @@ class NamedNodeMap(NewStyle, GetattrMagic):
         old = self._attrs.get(node.name)
         if old:
             old.unlink()
+            old.ownerDocument = self._ownerElement.ownerDocument
         self._attrs[node.name] = node
         self._attrsNS[(node.namespaceURI, node.localName)] = node
         node.ownerElement = self._ownerElement
