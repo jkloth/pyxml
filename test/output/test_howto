@@ -8,7 +8,8 @@ Shade, the Changing Man 7
 DOM tests:
 
 <?xml version='1.0' encoding='UTF-8'?>
-<xbel>  
+<!DOCTYPE xbel>
+<xbel>
   <?processing instruction?>
   <desc>No description</desc>
   <folder>
@@ -20,7 +21,6 @@ DOM tests:
 </xbel>
 DOM creation tests
 <?xml version='1.0' encoding='UTF-8'?>
-
 <html>
   <head/>
   <body background='#ffffff'>The body text goes here.</body>
