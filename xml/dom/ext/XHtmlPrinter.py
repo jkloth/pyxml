@@ -2,7 +2,6 @@ import string
 from xml.dom import ext, XMLNS_NAMESPACE
 
 from xml.dom.ext import Printer
-from xml.dom.Node import Node
 
 class XHtmlPrintVisitor(Printer.PrintVisitor):
 

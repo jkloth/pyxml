@@ -17,7 +17,7 @@ import sys, string, cStringIO
 import xml.dom.ext
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import DocumentType, Document
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom import implementation
 
 

@@ -17,10 +17,9 @@ implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
 Text = implementation._4dom_fileImport('Text').Text
-Node = implementation._4dom_fileImport('Node').Node
 
 class CDATASection(Text):
-    nodeType = Node.CDATA_SECTION_NODE
+    nodeType = dom.Node.CDATA_SECTION_NODE
 
     def __init__(self, ownerDocument, data):
         Text.__init__(self, ownerDocument, data)

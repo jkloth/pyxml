@@ -15,7 +15,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
-Node = implementation._4dom_fileImport('Node').Node
+Node = implementation._4dom_fileImport('FtNode').Node
 MutationEvent = implementation._4dom_fileImport('Event').MutationEvent
 
 class Attr(Node):

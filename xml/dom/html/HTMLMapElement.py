@@ -12,7 +12,6 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom.html.HTMLElement import HTMLElement
-from xml.dom.Node import Node
 from xml.dom import implementation
 
 class HTMLMapElement(HTMLElement):

@@ -16,7 +16,7 @@ import sys, string, cStringIO
 from xml.sax import saxlib, saxexts, drivers
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import DocumentType, Document
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom import implementation
 from xml.dom.ext import SplitQName, ReleaseNode
 

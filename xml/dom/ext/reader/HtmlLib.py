@@ -14,7 +14,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string
 from sgmllib import SGMLParser
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.html import HTML_FORBIDDEN_END, HTML_OPT_END
 from xml.dom import implementation
 

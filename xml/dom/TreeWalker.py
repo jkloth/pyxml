@@ -16,7 +16,6 @@ import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
-Node = implementation._4dom_fileImport('Node').Node
 NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
 
 DOMException = dom.DOMException

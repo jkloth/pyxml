@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import string, sys
 from xml.dom.ext.reader import Sax
-from xml.dom.Node import Node
+from xml.dom import Node
 
 def GenFiles(fileName, program_name, display_class):
     dom = Sax.FromXmlFile(fileName, validate=0)
@@ -138,7 +138,7 @@ def GenClassFile(klass, header):
 
     # Import statements
     file.write('import string\n')
-    file.write('from xml.dom.Node import Node\n')
+    file.write('from xml.dom import Node\n')
     baseclass = klass.getElementsByTagName('baseclass')[0].getAttribute('name')
     base_name = string.split(baseclass, '.')[-1]
     file.write('from %s import %s\n' % (baseclass, base_name))

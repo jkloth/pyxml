@@ -16,7 +16,6 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string
-from xml.dom.Node import Node
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLTableCaptionElement(HTMLElement):

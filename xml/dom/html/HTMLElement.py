@@ -12,7 +12,6 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom.Element import Element
-from xml.dom.Node import Node
 
 import string
 

@@ -14,7 +14,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import sys, string, cStringIO
 from xml.dom import Entity, DocumentType, Document
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom import implementation
 from xml.dom.ext import SplitQName, ReleaseNode
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE

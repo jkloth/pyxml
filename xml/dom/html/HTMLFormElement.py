@@ -12,7 +12,6 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string
 from xml.dom import ext
-from xml.dom.Node import Node
 from xml.dom import implementation
 from xml.dom.html.HTMLElement import HTMLElement
 from xml.dom.html.HTMLCollection import HTMLCollection

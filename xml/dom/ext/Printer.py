@@ -13,7 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string, re
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.ext.Visitor import Visitor, WalkerInterface
 from xml.dom import ext, XMLNS_NAMESPACE
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE, HTML_FORBIDDEN_END

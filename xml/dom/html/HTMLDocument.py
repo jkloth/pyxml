@@ -12,9 +12,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom.Document import Document
-from xml.dom.Node import Node
-from xml.dom import implementation
-from xml.dom import ext
+from xml.dom import implementation, Node, ext
 import string
 
 class HTMLDocument(Document):

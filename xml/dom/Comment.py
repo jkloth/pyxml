@@ -17,10 +17,9 @@ implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
 CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
-Node = implementation._4dom_fileImport('Node').Node
 
 class Comment(CharacterData):
-    nodeType = Node.COMMENT_NODE
+    nodeType = dom.Node.COMMENT_NODE
 
     def __init__(self,ownerDocument,data):
         CharacterData.__init__(self, ownerDocument, data)

@@ -15,14 +15,13 @@ import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
-Node = implementation._4dom_fileImport('Node').Node
 CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
 DOMException = dom.DOMException
 IndexSizeErr = dom.IndexSizeErr
 
 
 class Text(CharacterData):
-    nodeType = Node.TEXT_NODE
+    nodeType = dom.Node.TEXT_NODE
 
     def __init__(self, ownerDocument, data):
         CharacterData.__init__(self, ownerDocument, data)

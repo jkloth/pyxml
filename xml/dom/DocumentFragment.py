@@ -15,7 +15,7 @@ import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
-Node = implementation._4dom_fileImport('Node').Node
+Node = implementation._4dom_fileImport('FtNode').Node
 
 class DocumentFragment(Node):
     nodeType = Node.DOCUMENT_FRAGMENT_NODE

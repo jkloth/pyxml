@@ -19,7 +19,7 @@ import DOMImplementation
 implementation = DOMImplementation.implementation
 dom = implementation._4dom_fileImport('')
 
-Node = implementation._4dom_fileImport('Node').Node
+Node = implementation._4dom_fileImport('FtNode').Node
 Text = implementation._4dom_fileImport('Text')
 Event = implementation._4dom_fileImport('Event')
 SplitQName = implementation._4dom_fileImport('ext').SplitQName

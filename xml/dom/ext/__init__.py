@@ -16,7 +16,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 import sys,string
 
 import xml.dom
-from xml.dom.Node import Node
+from xml.dom import Node
 from xml.dom.NodeIterator import NodeIterator
 from xml.dom.NodeFilter import NodeFilter
 from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
