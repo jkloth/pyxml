@@ -5,7 +5,7 @@
   <META NAME="Author"    CONTENT="Lars Marius Garshol">
   <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
   <META NAME="Description" CONTENT="This is the detailed documentation of the APIs of the xmlproc XML parser.">
-  <LINK REL=StyleSheet HREF="../../artikler/artikler.css" TYPE="text/css" MEDIA=screen>
+  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
@@ -135,6 +135,16 @@ used to control parsing.
   <DD>Tells the parser which language to report errors in. 'language' must be an ISO 3166
              language code (case does not matter). A KeyError will be thrown if the language is
              not supported.
+
+  <DT><CODE>def set_data_after_wf_error(self,stop_on_error):</CODE>
+  <DD>Tells the parser whether to report data events to the application after a well-formedness
+             error (0) or whether to stop reporting data (which is the default, 1).
+
+  <DT><CODE>def deref(self):</CODE>
+  <DD>The parser creates circular data structures during parsing. When the parser object is
+             no longer to be used and you wish to free the memory it has allocated, call this method.
+             The parser object will be non-functional afterwards.
+
 </DL>
 
 <H2><A NAME="Application">Application</A></H2>
@@ -273,8 +283,8 @@ The default implementation interprets system identifiers as URLs.
 <HR>
 
 <ADDRESS>
-11.Sep.98 19:26, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
+07.feb.99 00:37, 
+Lars Marius Garshol,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>
 

@@ -1,3 +1,4 @@
+
 # Some experiments in adding character encoding conversions to xmlproc.
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.
@@ -8,7 +9,7 @@ import string
 
 # CP 850 to ISO 8859-1
 
-# First element is no 128, second 129 ...
+# First element is no. 128, second 129 ...
 # The non-ISO characters, such as <empty set>, are mapped to non-ISO chars
 # 127-145 and 147-159 in the order they appear in CP 850. Since there are
 # more non-ISO chars than there is room for in these intervals, some of

@@ -1,0 +1,37 @@
+  /* --- Felles for alle sider --- */
+    
+H1	  { text-align: center; padding-bottom: 1.5ex; color: #FFFFFF;
+            background: #000000 none }
+H2	  { padding-top: 1ex }
+ADDRESS   { font-size: small }
+
+SPAN.skip { display: none }
+DIV.skip   { display: none }
+
+A:link    { background: #000000 none; color: #CCCCCC }
+A:visited { background: #000000 none; color: #999999 }
+A:active  { background: #000000 none; color: #FF0000 }
+
+HR	  { padding-top: 2ex }
+
+UL.padded      { line-height: 120% }
+LI.Overskrift  { margin-top: 2ex; font-weight: bold }
+LI             { margin-top: 0.2ex; font-weight: normal }
+
+DIV.partof     { font-size: small; text-align: right }
+
+TABLE.programinfo { background: #444444 }
+
+/* --- Netscape bug workaround --- */
+
+TH,TD  { background: #000000 none; color: #FFFFFF }
+
+/* --- Felles for alle sider unntatt startsiden --- */
+
+BODY	  { margin-top: 2ex; margin-right: 10%; margin-left: 10%;
+	    background: #000000 none; color: #FFFFFF;
+	    font-family: Arial, Helvetica, Sans-Serif }
+
+IMG.kant  { border-style: solid; border-color: red }
+
+ 

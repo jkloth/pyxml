@@ -5,7 +5,7 @@
   <META NAME="Author"    CONTENT="Lars Marius Garshol">
   <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
   <META NAME="Description" CONTENT="This is the detailed documentation of the APIs used in the xmlproc XML parser to access DTD information.">
-  <LINK REL=StyleSheet HREF="../../artikler/artikler.css" TYPE="text/css" MEDIA=screen>
+  <LINK REL=StyleSheet HREF="artikler.css" TYPE="text/css" MEDIA=screen>
 </HEAD>
 
 <BODY>
@@ -79,7 +79,7 @@ information about the DTD.
   
   <DT><CODE>def get_root_elem(self):</CODE>
   <DD>Returns the name of the element declared as the root element (as
-  a string).
+  a string), or None if none were declared.
   
   <DT><CODE>def get_notation(self,name):</CODE>
   <DD>Returns the notation object of the given notation. If no such
@@ -120,6 +120,10 @@ This class encapsulates information about an element type.
   <DD>Returns the next state of the element when the an element with
   the given name is encountered in the given state. Character data is
   represented as the element name '#PCDATA'.  
+
+  <DT><CODE>def get_content_model(self):</CODE>
+  <DD>Returns the element content model in (sep,cont,mod) format, where cont is a list of (name,mod) and (sep,cont,mod) tuples. ANY content models are represented as None, 
+and EMPTYs as ("",[],"").
 </DL>
 
 <H2><A NAME="Attribute">The Attribute interface</A></H2>
@@ -172,6 +176,10 @@ implements a subset of the interface.
   <DT><CODE>def get_sysid(self):</CODE>
   <DD>Returns the system identifier of the entity. (Not implemented
   by InternalEntity.) 
+
+  <DT><CODE>def get_notation(self):</CODE>
+  <DD>Return the name of the notation associated with the entity or 
+             None if there is None. (Not  implemened by InternalEntity.)
 </DL>
 
 <H2><A NAME="DTDConsumer">The DTDConsumer interface</A></H2>
@@ -224,9 +232,9 @@ This interface is used to receive parse events from the DTD parser.
   
   <DT><CODE>def new_element_type(self,elem_name,elem_cont):</CODE>
   <DD>Called when an element type declaration is encountered.
-  'elem_cont' is a ContentModel object. (Email me if you want more
-  information about how to deal with content models.)
-  
+  'elem_cont' is a tuple, as returned by the get_content_model method of the
+   <A HREF="#ElementType">ElementType</A> interface.
+
   <DT><CODE>def new_attribute(self,elem,attr,a_type,a_decl,a_def):</CODE>
   <DD>Called when an attribute declaration is encountered. 'elem' is
   the name of the element, 'attr' the name of the attribute, 'a_type'
@@ -245,8 +253,8 @@ This interface is used to receive parse events from the DTD parser.
 <HR>
 
 <ADDRESS>
-11.Sep.98 19:23, 
-<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
+07.feb.99 00:46, 
+Lars Marius Garshol,
 <A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>.
 </ADDRESS>
 

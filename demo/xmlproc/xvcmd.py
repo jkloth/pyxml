@@ -1,10 +1,13 @@
 """
 A command-line interface to the validating xmlproc parser. Prints error
 messages and can output the parsed data in various formats.
+"""
 
+usage=\
+"""
 Usage:
 
-  xvcmd.py [-c catalog] [-l language] {-o format] [urltodoc]
+  xvcmd.py [-c catalog] [-l language] [-o format] [-n] [urltodoc]
 
   ---Options:  
   catalog:  path to catalog file to use to resolve public identifiers
@@ -13,7 +16,8 @@ Usage:
             No data will be outputted if this option is not specified
   urltodoc: URL to the document to parse. (You can use plain file names
             as well.) Can be omitted if a catalog is specified and contains
-            a DOCUMENT entry.  
+            a DOCUMENT entry.
+  -n:       Report qualified names as 'URI name'. (Namespace processing.)
             
   Catalog files with URLs that end in '.xml' are assumed to be XCatalogs,
   all others are assumed to be SGML Open Catalogs.
@@ -22,55 +26,31 @@ Usage:
   and XMLSOCATALOG will be used (in that order).
 """
 
-# --- INITIALIZATION
-
 from xml.parsers.xmlproc import xmlval,catalog,xcatalog,xmlproc
 import sys,getopt,os,outputters
-
-# --- ERROR HANDLING
-
-class MyErrorHandler(xmlval.ErrorHandler):
-
-    def __init__(self,locator):
-        xmlval.ErrorHandler.__init__(self,locator)
-        self.reset()
-
-    def get_location(self):
-        return "%s:%d:%d" % (self.locator.get_current_sysid(),\
-                             self.locator.get_line(),
-                             self.locator.get_column())
-        
-    def warning(self,msg):
-        print "WARNING ON %s: %s" % (self.get_location(),msg)
-        self.warnings=self.warnings+1
-
-    def error(self,msg):
-        self.fatal(msg)
-        
-    def fatal(self,msg):
-        print "%s: %s" % (self.get_location(),msg)
-        self.errors=self.errors+1
-
-    def reset(self):
-        self.errors=0
-        self.warnings=0        
-
-# --- MAIN PROGRAM
 
 # --- Initialization
 
 print "xmlproc version %s" % xmlval.version
 
 p=xmlval.XMLValidator()
-err=MyErrorHandler(p)
+err=outputters.MyErrorHandler(p)
 
 p.set_error_handler(err)
 
 # --- Interpreting options
 
-(options,sysids)=getopt.getopt(sys.argv[1:],"c:l:o:")
+try:
+    (options,sysids)=getopt.getopt(sys.argv[1:],"c:l:o:n")
+except getopt.error,e:
+    print "Usage error: "+e
+    print usage
+    sys.exit(1)
+    
 cat=None
 pf=None
+namespaces=0
+app=xmlproc.Application()
 
 for option in options:
     if option[0]=="-c":
@@ -83,12 +63,26 @@ for option in options:
             print "Error language '%s' not available" % option[1]
     elif option[0]=="-o":
         if option[1]=="e" or option[1]=="E":
-            p.set_application(outputters.ESISDocHandler())
+            app=outputters.ESISDocHandler()            
         elif option[1]=="x" or option[1]=="X":
-            p.set_application(outputters.Canonizer())
+            app=outputters.Canonizer()
         else:
             print "Error: Unknown output format "+option[1]
-            
+            print usage
+    elif option[0]=="-n":
+        namespaces=1
+
+# Acting on option settings
+        
+if namespaces:
+    from xml.parsers.xmlproc import namespace
+
+    nsf=namespace.NamespaceFilter(p)
+    nsf.set_application(app)
+    p.set_application(nsf)
+else:
+    p.set_application(app)
+        
 if cat==None and os.environ.has_key("XMLXCATALOG"):
     cat=os.environ["XMLXCATALOG"]
     pf=xcatalog.XCatParserFactory()
@@ -104,10 +98,12 @@ if cat!=None:
 if len(sysids)==0:
     if cat==None:
         print "You must specify a system identifier if no catalog is used"
+        print usage
         sys.exit(1)
     elif cat.get_document_sysid()==None:
         print "You must specify a system identifier if the catalog has no "+\
               "DOCUMENT entry"
+        print usage
         sys.exit(1)
 
     sysids=[cat.get_document_sysid()]

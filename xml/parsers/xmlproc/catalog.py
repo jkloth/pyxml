@@ -1,6 +1,7 @@
 """
 An SGML Open catalog file parser.
 """
+
 import string,sys
 
 import xmlutils,xmlapp
@@ -35,6 +36,9 @@ class CatalogApp:
 
     def handle_catalog(self,sysid):
         pass
+
+    def handle_override(self,yesno):
+        pass
     
 # --- Abstract catalog parser with common functionality 
 
@@ -65,12 +69,13 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
         # o=other
         self.entry_hash={ "PUBLIC": ("p","s"), "DELEGATE": ("p","s"),
                           "CATALOG": ("s"), "DOCUMENT": ("s"),
-                          "BASE": ("o"), "SYSTEM": ("o","s") }
+                          "BASE": ("o"), "SYSTEM": ("o","s"), 
+                          "OVERRIDE": ("o") }
     
     def do_parse(self):
-        try:
-            while self.pos+1<self.datasize:
-                prepos=self.pos
+	try:
+	    while self.pos+1<self.datasize:
+		prepos=self.pos
 
                 self.skip_stuff()
                 if self.pos+1>=self.datasize:
@@ -82,12 +87,12 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
                 
                 self.parse_entry(entryname,self.entry_hash[entryname])
 
-        except xmlutils.OutOfDataException,e:
-            if self.final:
-                raise sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
-                #raise e
-            else:
-                self.pos=prepos  # Didn't complete the construct
+	except xmlutils.OutOfDataException,e:
+	    if self.final:
+		raise sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2]
+	        #raise e
+	    else:
+		self.pos=prepos  # Didn't complete the construct
 
     def parse_arg(self):
         if self.now_at('"'):
@@ -126,6 +131,8 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
             self.app.handle_document(arglist[0])
         elif name=="SYSTEM":
             self.app.handle_system(arglist[0],arglist[1])
+        elif name=="OVERRIDE":
+            self.app.handle_override(arglist[0])
                     
 # --- A catalog file manager
 

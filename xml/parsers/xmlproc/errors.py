@@ -28,6 +28,11 @@ english={
     1007: "Attribute '%s' defined more than once",
     1008: "Ambiguous content model",
 
+    # --- Namespace warnings
+    1900: "Namespace prefix names cannot contain ':'s.",
+    1901: "Namespace URI cannot be empty",
+    1902: "Namespace prefix not declared",
+
     # --- Validity errors: 2000-2999
     2000: "Actual value of attribute '%s' does not match fixed value",
     2001: "Element '%s' not allowed here",
@@ -51,6 +56,7 @@ english={
     2019: "Value of '%s' attribute not a valid name token",
     2020: "Value of '%s' attribute not a valid name token sequence",
     2021: "Token '%s' in the value of the '%s' attribute is not a valid name",
+    2022: "Notation attribute '%s' uses undeclared notation '%s'",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -93,6 +99,7 @@ english={
     3032: "Multiple document type declarations",
     3033: "Document type declaration not allowed inside root element",
     3034: "Premature end of internal DTD subset",
+    3042: "Element crossed entity boundary",
 
     # From xmlproc.DTDParser
     3035: "Parameter entities cannot be unparsed",
@@ -102,6 +109,7 @@ english={
     3039: "Expected type or alternative list",
     3040: "Choice and sequence lists cannot be mixed",
     3041: "Conditional sections not allowed in internal subset",
+    3043: "Conditional section not closed",
     
     # From regular expressions that were not matched
     3900: "Not a valid name",
@@ -119,7 +127,9 @@ english={
     # --- Internal errors: 4000-4999
     4000: "Internal error: Entity stack broken",
     4001: "Internal error: Entity reference expected.",
-    4002: "Internal error: Unknown error number."
+    4002: "Internal error: Unknown error number.",
+    4003: "Internal error: External PE references not allowed in declarations"
+
     }
 
 # Errors in Norwegian
@@ -137,6 +147,11 @@ norsk={
     1007: "Attributt '%s' deklarert flere ganger",
     1008: "Tvetydig innholds-modell",
 
+    # --- Namespace warnings: 1900-1999
+    1900: "Navnerommets prefiks-navn kan ikke inneholde kolon",
+    1901: "Navnerommets URI kan ikke være tomt",
+    1902: "Navnerommets prefiks er ikke deklarert",
+    
     # --- Validity errors: 2000-2999
     2000: "Faktisk verdi til attributtet '%s' er ikke lik #FIXED-verdien",
     2001: "Elementet '%s' er ikke tillatt her",
@@ -160,6 +175,7 @@ norsk={
     2019: "Verdien til '%s'-attributtet er ikke et gyldig NMTOKEN",
     2020: "Verdien til '%s'-attributtet er ikke et gyldig NMTOKENS",
     2021: "Symbolet '%s' i verdien til '%s'-attributtet er ikke et gyldig navn",
+    2022: "Notasjons-attributtet '%s' bruker en notasjon '%s' som ikke er deklarert",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -202,6 +218,7 @@ norsk={
     3032: "Mer enn en dokument-type-deklarasjon",
     3033: "Dokument-type-deklarasjon kun tillatt før rot-elementet",
     3034: "Det interne DTD-subsettet slutter for tidlig",
+    3042: "Element krysset entitets-grense",
 
     # From xmlproc.DTDParser
     3035: "Parameter-entiteter kan ikke være uparserte",
@@ -211,6 +228,7 @@ norsk={
     3039: "Forventet attributt-type eller liste av alternativer",
     3040: "Valg- og sekvens-lister kan ikke blandes",
     3041: "'Conditional sections' er ikke tillatt i det interne DTD-subsettet",
+    3043: "'Conditional section' ikke lukket",
 
     # From regular expressions that were not matched
     3900: "Ikke et gyldig navn",
@@ -228,7 +246,8 @@ norsk={
     # --- Internal errors: 4000-4999
     4000: "Intern feil: Entitets-stakken korrupt.",
     4001: "Intern feil: Entitets-referanse forventet.",
-    4002: "Intern feil: Ukjent feilmelding."
+    4002: "Intern feil: Ukjent feilmelding.",
+    4003: "Intern feil: Eksterne parameter-entiteter ikke tillatt i deklarasjoner"
     }
 
 # Updating the error hash

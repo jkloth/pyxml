@@ -1,5 +1,7 @@
 """
 A SAX driver for xmlproc
+
+$Id: drv_xmlproc.py,v 1.7 1999/02/10 01:46:03 amk Exp $
 """
 
 version="0.93"
@@ -14,10 +16,7 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
 
     def __init__(self):
 	saxlib.Parser.__init__(self)
-        self.parser=self._create_parser()
-        self.parser.set_application(self)
-        self.parser.set_dtd_listener(self)
-	self.parser.set_error_handler(self)
+        self.parser=None
         self.reset()
     
     def parse(self,sysID):
@@ -35,7 +34,7 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
 
     def setLocale(self, locale):
         try:
-            self.parser.set_error_language[locale]
+            self.parser.set_error_language(locale)
         except KeyError:
             raise SAXException("Locale '%s' not supported" % locale)
         
@@ -67,7 +66,10 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
         
     def resolve_entity_pubid(self,pubid,sysid):
         return self.ent_handler.resolveEntity(pubid,sysid)
-        
+
+    def resolve_doctype_pubid(self,pubid,sysid):
+        return self.ent_handler.resolveEntity(pubid,sysid)
+    
     # --- error handling
 
     def warning(self,msg):
@@ -126,6 +128,14 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
         return 1
 
     def reset(self):
+        if self.parser!=None:
+            self.parser.deref()
+            
+        self.parser=self._create_parser()
+        self.parser.set_application(self)
+        self.parser.set_dtd_listener(self)
+	self.parser.set_error_handler(self)
+        self.parser.set_pubid_resolver(self)
 	self.parser.reset()
     
     def feed(self,data):
@@ -133,9 +143,12 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
 
     def close(self):
         self.parser.close()
-        self.err_handler = self.dtd_handler = self.doc_handler = None
-        self.parser = self.locator = self.ent_handler = None
-
+        self.parser.deref()
+        
+        # Dereferencing to avoid circular references (grrrr)
+ 	self.err_handler = self.dtd_handler = self.doc_handler = None
+ 	self.parser = self.locator = self.ent_handler = None
+	
 # --- Global functions
 
 def create_parser():
