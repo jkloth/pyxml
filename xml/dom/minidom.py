@@ -1022,6 +1022,20 @@ class DocumentType(Identified, Childless, Node):
     def _get_internalSubset(self):
         return self.internalSubset
 
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        writer.write("<!DOCTYPE ")
+        writer.write(self.name)
+        if self.publicId:
+            writer.write("\n  PUBLIC '%s'\n  '%s'"
+                         % (self.publicId, self.systemId))
+        elif self.systemId:
+            writer.write("\n  SYSTEM '%s'" % self.systemId)
+        if self.internalSubset is not None:
+            writer.write(" [")
+            writer.write(self.internalSubset)
+            writer.write("]")
+        writer.write(">\n")
+
 class Entity(Identified, Node):
     attributes = None
     nodeType = Node.ENTITY_NODE
@@ -1082,7 +1096,7 @@ class DOMImplementation(DOMImplementationLS):
         add_root_element = not (namespaceURI is None
                                 and qualifiedName is None
                                 and doctype is None)
-        
+
         if not qualifiedName and add_root_element:
             # The spec is unclear what to raise here; SyntaxErr
             # would be the other obvious candidate. Since Xerces raises
@@ -1107,6 +1121,8 @@ class DOMImplementation(DOMImplementationLS):
                 raise xml.dom.NamespaceErr(
                     "illegal use of prefix without namespaces")
             element = doc.createElementNS(namespaceURI, qualifiedName)
+            if doctype:
+                doc.appendChild(doctype)
             doc.appendChild(element)
 
         if doctype:
