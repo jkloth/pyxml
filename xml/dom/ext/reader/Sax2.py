@@ -8,7 +8,7 @@
 Components for reading XML files from a SAX2 producer.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000, 2001 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -148,6 +148,10 @@ class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
                     self._ownerDoc.appendChild(comment)
             elif o_node[0] == 'doctype':
                 before_doctype = 0
+            elif o_node[0] == 'unparsedentitydecl':
+                apply(self.unparsedEntityDecl, o_node[1:])
+            else:
+                raise "Unknown orphaned node:"+o_node[0]
         self._rootNode = self._ownerDoc
         self._nodeStack.append(self._rootNode)
         return
@@ -222,7 +226,7 @@ class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
     def startDTD(self, doctype, publicID, systemID):
         if not self._rootNode:
             self._dt = implementation.createDocumentType(doctype, publicID, systemID)
-            self._orphanedNodes.append(('doctype'))
+            self._orphanedNodes.append(('doctype',))
         else:
             raise 'Illegal DocType declaration'
         return
@@ -255,9 +259,12 @@ class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
         self._ownerDoc.getDocumentType().getNotations().setNamedItem(new_notation)
         return
 
-    def unparsedEntityDecl (self, publicId, systemId, notationName):
-        new_notation = self._ownerDoc.getFactory().createEntity(self._ownerDoc,  publicId, systemId, notationName)
-        self._ownerDoc.getDocumentType().getEntities().setNamedItem(new_notation)
+    def unparsedEntityDecl (self, name, publicId, systemId, ndata):
+        if self._ownerDoc:
+            new_notation = self._ownerDoc.getFactory().createEntity(self._ownerDoc,  publicId, systemId, name)
+            self._ownerDoc.getDocumentType().getEntities().setNamedItem(new_notation)
+        else:
+            self._orphanedNodes.append(('unparsedentitydecl', name, publicId, systemId, ndata))
         return
 
     #Overridden ErrorHandler methods
