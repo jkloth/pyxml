@@ -15,8 +15,17 @@ class Builder:
 
     def __init__(self):
         self.document = createDocument()
+        self.fragment = None
+        self.target = self.document
         self.current_element = None
 
+    def buildFragment(self):
+        if self.fragment or len(self.document.childNodes):
+            raise RuntimeError, \
+                  "cannot build fragment once document has been started"
+        self.fragment = self.document.createDocumentFragment()
+        self.target = self.fragment
+        return self.fragment
 
     def push(self, node):
         "Add node to current node and move to new node."
@@ -24,12 +33,12 @@ class Builder:
         nodetype = node.get_nodeType()
         if self.current_element:
             self.current_element.insertBefore(node, None)
-        elif nodetype in _LEGAL_DOCUMENT_CHILDREN:
+        elif self.fragment or nodetype in _LEGAL_DOCUMENT_CHILDREN:
             if nodetype == TEXT_NODE:
                 if string.strip(node.get_nodeValue()) != "":
-                    self.document.appendChild(node)
+                    self.target.appendChild(node)
             else:
-                self.document.appendChild(node)
+                self.target.appendChild(node)
 
         if nodetype == ELEMENT_NODE:
             self.current_element = node
