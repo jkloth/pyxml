@@ -2,4 +2,4 @@
 pyexpat pyexpat.o expat/libexpat.a -Iexpat/xmlparse
 sgmlop sgmlop.c
 wstrop wstrop.c
-intl intl.c
+#intl intl.c

@@ -213,7 +213,9 @@ $(TARGET):	$(ADDOBJS) lib.a $(PYTHONLIBS) Makefile $(BASELIB)
 install:	sharedmods libinstall
 		$(INSTALL_SHARED) sgmlop$(SO) $(LIBXML)/parsers/sgmlop$(SO)
 		$(INSTALL_SHARED) wstrop$(SO) $(LIBXML)/unicode/wstrop$(SO)
-		$(INSTALL_SHARED) intl$(SO) $(LIBXML)/unicode/intl$(SO)
+		if test -f intl$(SO) ; then \
+		  $(INSTALL_SHARED) intl$(SO) $(LIBXML)/unicode/intl$(SO) ; \
+		else true ; fi
 		$(INSTALL_SHARED) pyexpat$(SO) $(LIBXML)/parsers/pyexpat$(SO); 
 
 # Build the library containing our extension modules
