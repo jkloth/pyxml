@@ -107,6 +107,11 @@ class Tests(unittest.TestCase):
         self.assert_(doc.getElementById("new") is None)
         self.assert_(e.isSameNode(doc.getElementById("no-longer-new")))
 
+        # make sure removing the attribute makes the ID lookup return None:
+        e.removeAttributeNode(a)
+        self.assertEqual(e.getAttribute("id"), "")
+        self.assert_(doc.getElementById("no-longer-new") is None)
+
         # make sure nodes with an ID in a fragment are not located.
         f = doc.createDocumentFragment()
         e = doc.createElement("e")
