@@ -234,7 +234,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
                 try:
                     attr_qname = attribs.getQNameByName((attr_ns,lname))
                 except KeyError:# pyexpat doesn't report qnames...
-                    attr_prefix = self._nsuri2pref[namespace][-1]
+                    attr_prefix = self._nsuri2pref[attr_ns][-1]
                     if attr_prefix is None: # I'm not sure that this is possible
                         attr_qname = lname
                     else:
