@@ -877,6 +877,17 @@ class Notation(Node):
         
     def get_systemId(self):
         return self._node.systemId
+
+    def toxml(self):
+        if self._node.systemId is None:
+            return '<!NOTATION %s PUBLIC %s>' % (self._node.name, self._node.publicId)
+        elif self._node.publicId is None:
+            return '<!NOTATION %s SYSTEM %s>' % (self._node.name, self._node.systemId)
+        else:
+            return '<!NOTATION %s PUBLIC %s %s>' % (self._node.name,
+                                                    self._node.publicId,
+                                                    self._node.systemId)
+        
         
 class Entity(Node):
     readonly = 1    # This is a read-only class
@@ -1015,7 +1026,7 @@ class Document(Node):
         return NodeList( nodes, self, parents )
         
     # Extended methods for creating entity and notation nodes
-    def createNotation(self, name, publicId, systemId):
+    def createNotation(self, name, publicId = None, systemId = None):
         "Return a new Notation object."
         d = _nodeData(NOTATION_NODE)
         d.name = name
