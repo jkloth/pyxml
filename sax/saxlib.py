@@ -103,7 +103,7 @@ class SAXParseException(SAXException):
     def __str__(self):
         "Create a string representation of the exception."
         return "%s at %s:%d:%d" % (self.msg,self.getSystemId(),
-                                   self.getColumnNumber(),self.getLineNumber())
+                                   self.getLineNumber(),self.getColumnNumber())
     
 # --- EntityResolver
 
