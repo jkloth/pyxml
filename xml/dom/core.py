@@ -796,6 +796,7 @@ class Element(Node):
     
     def __init__(self, node, document = None):
         Node.__init__(self, node, document)
+        self.nodeName = node.name
         self.ns_prefix = {}         # Dictionary for namespaces
         
     def __repr__(self):
@@ -974,12 +975,16 @@ class Element(Node):
     
 class Text(CharacterData):
     childNodeTypes = []
+    nodeName = "#text"
     # Methods
 
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
         return '<Text node %s>' % (repr(s),)
+
+    def get_nodeName(self):
+        return "#text"
         
     def splitText(self, offset):
         """Breaks this Text node into two Text nodes at the specified
@@ -1001,11 +1006,16 @@ class Text(CharacterData):
     
 class Comment(CharacterData):
     childNodeTypes = []
+    nodeName = "#comment"
+
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
         return '<Comment node %s>' % (repr(s),)
     
+    def get_nodeName(self):
+        return "#comment"
+
     def toxml(self):
         return '<!--%s-->' % self._node.value
 
@@ -1013,11 +1023,15 @@ class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would
     otherwise be regarded as markup."""
     childNodeTypes = []
+    nodeName = "#cdata-section"
     
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
         return '<CDATASection node %s>' % (repr(s),)
+
+    def get_nodeName(self):
+        return "#cdata-section"
 
     def toxml(self):
         return '<![CDATA[' + self._node.value + ']]>'
@@ -1110,12 +1124,16 @@ class ProcessingInstruction(Node):
 class Document(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, DOCUMENT_TYPE_NODE]
-    
+    nodeName = "#document"
+
     def __init__(self, node, document = None):
         Node.__init__(self, node, None)
         self.documentType = None
         self.DOMImplementation = __import__(__name__)
         self._document = node
+
+    def get_nodeName(self):
+        return "#document"
 
     def toxml(self):
         L = ['<?xml version="1.0"?>\n']
@@ -1329,11 +1347,15 @@ class DocumentFragment(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
                       COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
                       ENTITY_REFERENCE_NODE]
+    nodeName = "#document-fragment"
 
     def get_parentNode(self): 
         # DocumentFragments can never be part of a tree themselves; when added,
         # their children are added instead.
         return None    
+
+    def get_nodeName(self):
+        return "#document-fragment"
 
     def toxml(self):
         L = []
