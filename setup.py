@@ -4,6 +4,7 @@
 # Targets: build test install help
     
 import sys, os
+import shutil, compileall
 
 if (len(sys.argv) == 1 or sys.argv[1] == 'help' or
     sys.argv[1] not in ['build', 'test', 'install']):
@@ -16,7 +17,6 @@ if action == 'build': actions = ['build']
 elif action == 'test': actions = ['build', 'test']
 elif action == 'install': actions = ['build', 'install']
 
-import shutil
 # copytree() function copied from shutil, and modified to allow
 # copying to an already existing directory.
 
@@ -101,13 +101,14 @@ def test_unix():
     sys.path = old_path
 test_win32 = test_mac = test_unix
 
-# XXX is this correct
+# XXX is this correct?
 dest_dir = (sys.prefix + '/lib/python' + sys.version[:3] +
             '/site-packages/xml/' )
 
 def install_unix():
     copytree('build/xml', dest_dir)
-
+    compileall.compile_dir( dest_dir)
+    
 install_win32 = install_mac = install_unix
 
 platform = sys.platform
