@@ -98,6 +98,8 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self.feed("", isFinal = 1)
         self._cont_handler.endDocument()
         self._parsing = 0
+        # break cycle created by expat handlers pointing to our methods
+        self._parser = None
 
     def reset(self):
         if self._namespaces:
@@ -133,9 +135,13 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
     # Locator methods
 
     def getColumnNumber(self):
+        if self._parser is None:
+            return None
         return self._parser.ErrorColumnNumber
 
     def getLineNumber(self):
+        if self._parser is None:
+            return 1
         return self._parser.ErrorLineNumber
 
     def getPublicId(self):
