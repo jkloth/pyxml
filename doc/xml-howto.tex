@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.21 2002/08/28 04:06:20 fdrake Exp $
+% $Id: xml-howto.tex,v 1.22 2002/08/28 04:09:17 fdrake Exp $
 
 % TODO:
 %    XXX not covered: DOM extensions, scripts
@@ -424,6 +424,12 @@ one.
 \item[\module{xml.dom.pulldom}]
   Provides a stream of DOM elements.  This module can make it easy 
   to write certain types of DTD-specific processing code.
+
+\item[\module{xml.dom.xmlbuilder}]
+  General support for the experimental
+  \citetitle[http://www.w3.org/TR/DOM-Level-3-LS]{Document Object
+  Model (DOM) Level 3 Load and Save Specification}.  This currently
+  only supports the \module{xml.dom.minidom} DOM implementation.
 
 \item[\module{xml.dom.ext}]
   Various DOM-related extensions for pretty-printing DOM trees as XML or XHTML.
