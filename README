@@ -1,5 +1,5 @@
 
-XML package v0.6.0
+XML package v0.6.1
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -10,11 +10,10 @@ xmllib.py by a factor of 5.  There's even documentation!
 For information on the licensing conditions for each component,
 consult the LICENCE file.
 
-The only requirements for installing the package are Python 1.6 or
+The only requirements for installing the package are Python 1.5 or
 later, and a C compiler (unless the pyexpat module is already part of
-your Python installation). This release has been tested only with
-Python 2.0b1; it won't work with Python 1.5 - use older releases of
-this package if you have only Python 1.5.
+your Python installation). This release has been tested with Python
+2.0b2 and Python 1.5.2.
 
 To compile everything, simply perform the following steps.
 
@@ -29,11 +28,9 @@ If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
-	DOM 	 		4DOM, courtesy Fourthought, Inc.
+	4DOM 0.10.1		Fourthought, Inc. (Uche Ogbuji, Mike Olson)
 	PyExpat 		Jack Jansen
 	saxlib-1.0		Lars Marius Garshol
-	sgmlop-981008		Fredrik Lundh
+	sgmlop-000705		Fredrik Lundh
 	xmlarch 0.25		Geir Ove Gronmo
-	xmlproc 0.62		Lars Marius Garshol
-
-
+	xmlproc 0.70		Lars Marius Garshol
