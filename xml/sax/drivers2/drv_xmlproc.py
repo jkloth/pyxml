@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.4 2001/01/12 06:45:11 uche Exp $
+$Id: drv_xmlproc.py,v 1.5 2001/01/14 10:43:55 loewis Exp $
 """
 
 import types, string
@@ -9,7 +9,7 @@ import types, string
 from xml.parsers.xmlproc import xmlproc, xmlval, xmlapp
 from xml.sax import saxlib
 from xml.sax.xmlreader import AttributesImpl, AttributesNSImpl
-from xml.sax.saxutils import ContentGenerator
+from xml.sax.saxutils import ContentGenerator, prepare_input_source
 
 # Todo
 # - EntityResolver
@@ -51,8 +51,7 @@ class XmlprocDriver(saxlib.XMLReader):
 
             # interpret source
             
-            if type(source) == types.StringType:
-                source = saxlib.InputSource(source)
+            source = prepare_input_source(source)
 
             # create parser
                 
