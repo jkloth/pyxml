@@ -92,7 +92,6 @@ recommendation.
 import xml.dom
 
 import Base
-#from Products.ParsedXML.DOM import LoadSave
 
 # select the right StringIO
 try:
@@ -109,7 +108,8 @@ else:
 
 class BuilderTestCaseBase(Base.TestCaseBase):
     def createBuilder(self):
-        return self.implementation.createDOMBuilder()
+        return self.implementation.createDOMBuilder(
+            self.implementation.MODE_SYNCHRONOUS, None)
 
 
 class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
@@ -127,11 +127,11 @@ class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
         "validation": (0, 0, 1),
         "external-general-entities": (1, 1, 0),
         "external-parameter-entities": (1, 1, 0),
-        "validate-if-cm": (0, 0, 1),
+        "validate-if-schema": (0, 0, 1),
         "create-entity-ref-nodes": (1, 1, 0),
-        "entity-nodes": (1, 1, 0),
-        "white-space-in-element-content": (1, 1, 0),
-        "cdata-nodes": (1, 1, 0),
+        "entities": (1, 1, 0),
+        "whitespace-in-element-content": (1, 1, 0),
+        "cdata-sections": (1, 1, 0),
         "comments": (1, 1, 1),
         "charset-overrides-xml-encoding": (1, 1, 1),
         }
@@ -169,9 +169,9 @@ class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
 
     def checkEntityNodesFeatureSideEffect(self):
         b = self.createBuilder()
-        b.setFeature("entity-nodes", 0)
+        b.setFeature("entities", 0)
         self.assert_(not b.getFeature("create-entity-ref-nodes"),
-                     "setting entity-nodes to false should turn off"
+                     "setting entities to false should turn off"
                      " create-entity-ref-nodes")
 
     def checkUnknownFeature(self):
@@ -197,10 +197,10 @@ class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
         <doc>
           <foo/>
         </doc>"""
-        doc = self._parse(TEXT, {"white-space-in-element-content": 0})
+        doc = self._parse(TEXT, {"whitespace-in-element-content": 0})
         for node in doc.documentElement.childNodes:
             if node.nodeType == xml.dom.Node.TEXT_NODE:
-                self.fail("founc whitespace-in-element-content node which"
+                self.fail("found whitespace-in-element-content node which"
                           " should bave been excluded")
 
     def checkCommentsOmitted(self):
@@ -211,7 +211,7 @@ class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
 
     def checkCDATAAsText(self):
         doc = self._parse("<doc><![CDATA[<<!--stuff-->>]]></doc>",
-                          {"cdata-nodes": 0})
+                          {"cdata-sections": 0})
         self.assert_(doc.documentElement.childNodes[0].data
                      == "<<!--stuff-->>")
         self.assert_(doc.documentElement.childNodes.length == 1)
@@ -250,9 +250,9 @@ class BuilderFeatureConformanceTestCase(BuilderTestCaseBase):
         for feature, value in flags.items():
             b.setFeature(feature, value)
         fp = StringIO(source)
-        inpsrc = LoadSave.DOMInputSource()
+        inpsrc = self.implementation.createDOMInputSource()
         inpsrc.byteStream = fp
-        return b.parseDOMInputSource(inpsrc)
+        return b.parse(inpsrc)
 
 
-cases = Base.buildCases(__name__, "Load", "3.0")
+cases = Base.buildCases(__name__, "LS-Load", "3.0")
