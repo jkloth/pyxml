@@ -57,11 +57,11 @@ endtagopen = re.compile('</[<>a-zA-Z]')
 endbracket = re.compile('[<>]')
 special = re.compile('<![^<>]*>')
 commentopen = re.compile('<!--')
-commentclose = re.compile('--[ \t\n]*>')
+commentclose = re.compile('--[ \t\r\n]*>')
 tagfind = re.compile('[a-zA-Z][a-zA-Z0-9]*')
 attrfind = re.compile(
-    '[ \t\n]*([a-zA-Z_][-.a-zA-Z_0-9]*)'
-    '([ \t\n]*=[ \t\n]*'
+    '[ \t\r\n]*([a-zA-Z_][-.a-zA-Z_0-9]*)'
+    '([ \t\r\n]*=[ \t\r\n]*'
     r'(\'[^\']*\'|"[^"]*"|[-a-zA-Z0-9./:+*%?!\(\)_#=~]*))?')
 
 
