@@ -38,9 +38,11 @@ else:
 build_pyexpat = 0
 try:
     import pyexpat
-    # We need ExternalEntityParserCreate, which is available only from
-    # 2.25 on.
-    if pyexpat.__version__ < '2.25':
+    # The following features of are required by PyXML from pyexpat,
+    # which are not available in older versions:
+    # ExternalEntityParserCreate, available only from 2.25 on.
+    # ParseFile throws exception, not available up to 2.28.
+    if pyexpat.__version__ <= '2.28':
         build_pyexpat = 1
 except ImportError:
     build_pyexpat = 1
@@ -69,7 +71,7 @@ ext_modules.append(
                                   
 
 setup (name = "PyXML",
-       version = "0.6.1", # Needs to match xml/__init__.version_info
+       version = "0.6.2", # Needs to match xml/__init__.version_info
        description = "Python/XML package",
        author = "XML-SIG",
        author_email = "xml-sig@python.org",

@@ -503,6 +503,13 @@ xmlparse_ParseFile(xmlparseobject *self, PyObject *args)
         if (!rv || bytes_read == 0)
             break;
     }
+    if (rv == 0) {
+        PyErr_Format(ErrorObject, "%.200s: line %i, column %i",
+                     XML_ErrorString(XML_GetErrorCode(self->itself)),
+                     XML_GetErrorLineNumber(self->itself),
+                     XML_GetErrorColumnNumber(self->itself));
+        return NULL;
+    }
     return Py_BuildValue("i", rv);
 }
 
