@@ -1665,6 +1665,9 @@ MODULE_INITFUNC(void)
     */
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
+    /* THIS IS FOR USE IN PyXML ONLY.  */
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.63 $");
+
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
     errors_module = PyDict_GetItem(d, errmod_name);
