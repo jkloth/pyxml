@@ -10,7 +10,7 @@ from xmlutils import *
 from xmlapp import *
 from xmldtd import *
 
-version="0.51"
+version="0.52"
 
 # ==============================
 # Common code for the parsers
@@ -47,8 +47,7 @@ class XMLCommonParser(EntityParser):
                     sys_id=self.get_wrapped_match([("\"",reg_sysid_quote),\
                                                    ("'",reg_sysid_apo)])
 	else:
-            if required:
-                self.err.fatal("SYSTEM or PUBLIC expected")
+            if required: self.report_error(3006)
 
         return (pub_id,sys_id)
 
@@ -64,12 +63,26 @@ class XMLCommonParser(EntityParser):
             try:
                 name=self.namespaces[prefix]+" "+name[pos+1:]
             except KeyError:
-                self.err.warning("Undeclared namespace prefix '%s'" % prefix)
+                self.report_error(1000,prefix)
 
         return name
 
     # --- EONamespaces
 
+    def __get_quoted_string(self):
+        "Returns the contents of a quoted string at current position."
+        try:
+            quo=self.data[self.pos]
+        except IndexError:
+            raise OutOfDataException()
+            
+        if not (self.now_at('"') or self.now_at("'")):
+            self.report_error(3004,("'\"'","'"))
+            self.scan_to(">")
+            return ""
+
+        return self.scan_to(quo)
+    
     def parse_xml_decl(self):
 	"Parses the contents of the XML declaration from after the '<?xml'."
 
@@ -79,15 +92,15 @@ class XMLCommonParser(EntityParser):
 	self.update_pos()
 	if self.get_column()!=5 or self.get_line()!=1:
             if textdecl:
-                self.err.fatal("Text declaration must appear first in entity")
-            else:
-                self.err.fatal("XML declaration must appear first in document")
+                self.report_error(3007)
+            else:    
+                self.report_error(3008)
             
 	if self.seen_xmldecl: # Set in parse_pi, to avoid block problems
             if textdecl:
-                self.err.fatal("Multiple text declarations in a single entity")
+                self.report_error(3009)
             else:
-                self.err.fatal("Multiple XML declarations")
+                self.report_error(3010)
 
 	enc=None
 	sddecl=None
@@ -96,50 +109,45 @@ class XMLCommonParser(EntityParser):
         
 	if self.now_at("version"):
 	    self.skip_ws()
-	    if not self.now_at("="): self.err.fatal("'=' expected")
+	    if not self.now_at("="): self.report_error(3005,"=")
 	    self.skip_ws()
-	    ver=self.get_match(reg_ver)[1:-1]
+            ver=self.__get_quoted_string()
+            if reg_ver.match(ver)==None:
+                self.report_error(3901)
+            
 	    if ver!="1.0":
-		self.err.fatal("Unsupported XML version")
+		self.report_error(1001)
 
 	    self.skip_ws()
-	else:
-            if not textdecl:
-                self.err.fatal("XML version info missing on XML declaration")
+	elif not textdecl:
+            self.report_error(3011)
 
-	try:
-	    tst=self.now_at("encoding")
-            # Weird. Why do I bother to catch this? Look into this later...
-	except OutOfDataException,e:
-	    tst=0 # It's OK
-
-	if tst:
+	if self.now_at("encoding"):
 	    self.skip_ws()
-	    if not self.now_at("="): self.err.fatal("'=' expected")
+	    if not self.now_at("="): self.report_error(3005,"=")
 	    self.skip_ws()
-	    enc=self.get_match(reg_enc_name)[1:-1]
+            enc=self.__get_quoted_string()
+            if reg_enc_name.match(enc)==None:
+                self.report_error(3902)
 
             # Setting up correct conversion
             if string.lower(enc)!="iso-8859-1":
-                self.err.fatal("Encoding not supported")
+                self.report_error(1002,enc)
             
 	    self.skip_ws()	    
 
-	try:
-	    tst=self.now_at("standalone")
-	except OutOfDataException,e:
-	    tst=0
-
-	if tst:
+	if self.now_at("standalone"):
             if textdecl:
-                self.err.fatal("Standalone declaration on text declaration not"
-                               " allowed")
+                self.report_error(3012)
                 sddecl="yes"
             else:
                 self.skip_ws()
-                if not self.now_at("="): self.err.fatal("'=' expected")
+                if not self.now_at("="): self.report_error(3005,"=")
                 self.skip_ws()
-                sddecl=self.get_match(reg_std_alone)[1:-1]
+                sddecl=self.__get_quoted_string()
+                if reg_std_alone.match(sddecl)==None:
+                    self.report_error(3911)
+                    
                 self.standalone= sddecl=="yes"
 
                 self.skip_ws()
@@ -157,20 +165,66 @@ class XMLCommonParser(EntityParser):
 	if trgt=="xml":
 	    self.parse_xml_decl()
 	    if not self.now_at("?>"):
-		self.err.fatal("'?>' expected")
+		self.report_error(3005,"?>")
 	    self.seen_xmldecl=1
 	else:
 	    if reg_res_pi.match(trgt)!=None:
 		if trgt=="xml:namespace":
-		    self.err.warning("This XML namespace syntax is obsolete")
+		    self.report_error(1003)
 		else:
-		    self.err.warning("Processing instruction target names "
-                                     "beginning with 'xml' are reserved")
+		    self.report_error(1004)
 
             self.skip_ws()
             rem=self.scan_to("?>") # OutOfDataException if not found
             handler.handle_pi(trgt,rem)   
-            
+
+    def parse_comment(self,handler):
+	"Parses the comment from after '<!--' to beyond '-->'."
+	handler.handle_comment(self.get_match(reg_comment_content))
+	if not self.now_at("-->"):
+	    self.report_error(3005,"-->")
+
+    def _read_char_ref(self):
+        "Parses a character reference and returns the character."
+        if self.now_at("x"):
+            digs=unhex(self.get_match(reg_hex_digits))
+        else:
+            digs=string.atoi(self.get_match(reg_digits))
+
+        if not (digs==9 or digs==10 or digs==13 or \
+                (digs>=32 and digs<=255)):
+            if digs>255:
+                self.report_error(1005,digs)
+            else:
+                self.report_error(3018,digs)
+            return ""
+        else:
+            return chr(digs)
+
+    def _get_name(self):
+        """Parses the name at the current position and returns it. An error
+        is reported if no name is present."""
+	if self.pos>self.datasize-5 and not self.final:
+	    raise OutOfDataException()
+
+        if self.data[self.pos] in namestart:
+            start=self.pos
+            self.pos=self.pos+1
+
+            try:
+                while self.data[self.pos] in namechars:
+                    self.pos=self.pos+1
+
+                return self.data[start:self.pos]
+            except IndexError:
+                if self.final:
+                    return self.data[start:]
+                else:
+                    raise OutOfDataException()
+        else:
+            self.report_error(3900)
+            return ""            
+        
 # ==============================
 # A full well-formedness parser
 # ==============================
@@ -213,13 +267,13 @@ class XMLProcessor(XMLCommonParser):
 	    while self.pos+1<self.datasize:
 		prepos=self.pos
 
-		if self.test_str("<"):
+		if self.data[self.pos]=="<":
                     if self.now_at("</"):
                         self.parse_end_tag()
                     elif not (self.test_str("<!") or self.test_str("<?")):
                         self.parse_start_tag()
                     elif self.now_at("<!--"):
-                        self.parse_comment()
+                        self.parse_comment(self.app)
                     elif self.now_at("<?"):
                         self.parse_pi(self.app)
                     elif self.now_at("<![CDATA["):
@@ -227,9 +281,9 @@ class XMLProcessor(XMLCommonParser):
                     elif self.now_at("<!DOCTYPE"):
                         self.parse_doctype()
                     else:
-                        self.err.fatal("Illegal construct")
+                        self.report_error(3013)
                         self.scan_to(">") # Avoid endless loops
-                elif self.test_str("&"):
+                elif self.data[self.pos]=="&":
                     if self.now_at("&#"):
                         self.parse_charref()
                     else:
@@ -238,7 +292,16 @@ class XMLProcessor(XMLCommonParser):
                 else:
                     self.parse_data()
 
-	except OutOfDataException,e:
+        except IndexError:
+            # Means self.pos was outside the buffer when we did a raw compare.
+            # This is both a little ugly and risky, but this loop is rather
+            # time-critical, so we do it anyway.
+            
+	    if self.final:
+		raise
+	    else:
+		self.pos=prepos  # Didn't complete the construct            
+	except OutOfDataException:
 	    if self.final:
 		raise
 	    else:
@@ -252,17 +315,17 @@ class XMLProcessor(XMLCommonParser):
 	"""Must be called when parsing is finished. (Does some checks and "
 	"notifies the application.)"""	    
 	if self.stack!=[] and self.ent_stack==[]:
-	    self.err.fatal("Premature document end, element '%s' not "
-			   "closed" % (self.stack[-1]))
+	    self.report_error(3014,self.stack[-1])
 	elif not self.seen_root:
-	    self.err.fatal("Premature document end, no root element")
+	    self.report_error(3015)
 
 	self.app.doc_end()
 	    
     def parse_start_tag(self):
 	"Parses the start tag."
 	self.pos=self.pos+1 # Skips the '<'
-	name=self.get_match(reg_name)
+	#name=self.get_match(reg_name)
+        name=self._get_name()
 	self.skip_ws()
 
         try:
@@ -276,29 +339,31 @@ class XMLProcessor(XMLCommonParser):
                                        self.data[self.pos]=="/")):
             seen={}
             while not self.test_str(">") and not self.test_str("/>"):
-                a_name=self.get_match(reg_name)
+                a_name=self._get_name()
                 self.skip_ws()
                 if not self.now_at("="):
-                    self.err.fatal("'=' expected")
+                    self.report_error(3005,"=")
+                    self.scan_to(">") ## Panic! Get out of the tag!
+                    a_val=""
+                    break
                 self.skip_ws()
 
                 a_val=self.parse_att_val()
 
                 if seen.has_key(a_name):
-                    self.err.fatal("Attribute '%s' occurs twice" % a_name)
+                    self.report_error(3016,a_name)
                 else:
                     seen[a_name]=1
 
                 attrs[a_name]=a_val
                 if fixeds.has_key(a_name) and fixeds[a_name]!=a_val:
-                    self.err.error("Actual value of attribute '%s' does not"
-                                   "match fixed value" % a_name)
+                    self.report_error(2000,a_name)
                 self.skip_ws()
 
 	# --- Take care of the tag
 	    
 	if self.stack==[] and self.seen_root:
-	    self.err.fatal("Elements not allowed outside root element")
+	    self.report_error(3017)
 	    
 	self.seen_root=1
 	    
@@ -309,7 +374,7 @@ class XMLProcessor(XMLCommonParser):
 	    self.app.handle_start_tag(name,attrs)
 	    self.app.handle_end_tag(name)
         else:
-            self.err.fatal("Start tag not terminated correctly")
+            self.report_error(3004,("'>'","/>"))
 
     def parse_att_val(self):
 	"Parses an attribute value and resolves all entity references in it."
@@ -322,7 +387,7 @@ class XMLProcessor(XMLCommonParser):
             delim="'"
             reg_attval_stop=reg_attval_stop_sing
         else:
-            self.err.fatal("Expected \" or '")
+            self.report_error(3004,("'","\""))
             self.scan_to(">")
             return        
 	        
@@ -334,27 +399,13 @@ class XMLProcessor(XMLCommonParser):
                 break
 
 	    if self.now_at("&#"):
-		if self.now_at("x"):
-		    digs=unhex(self.get_match(reg_hex_digits))
-		else:
-		    digs=string.atoi(self.get_match(reg_digits))
-		    
-		if not (digs==9 or digs==10 or digs==13 or \
-			(digs>=32 and digs<=255)):
-		    if digs>255:
-			self.err.fatal("Unsupported character in character "
-				       "reference")
-		    else:
-			self.err.fatal("Illegal character in character "
-				       "reference")
-		else:
-		    val=val+chr(digs)
-		
+                val=val+self._read_char_ref()
 	    elif self.now_at("&"):
-		name=self.get_match(reg_name)
+		#name=self.get_match(reg_name)
+                name=self._get_name()
 
                 if name in self.open_ents:
-                    self.err.fatal("Entity recursion detected")
+                    self.report_error(3019)
                     return
                 else:
                     self.open_ents.append(name)
@@ -370,25 +421,23 @@ class XMLProcessor(XMLCommonParser):
 
                         val=val+self.parse_literal_entval()
                         if not self.pos==self.datasize:
-                            self.err.fatal("Construct started, but never "
-                                           "completed")
+                            self.report_error(3001) # Thing started, not compl
 
                         self.pop_entity()
                     else:
-                        self.err.fatal("External entity references not "
-                                       "allowed here")
+                        self.report_error(3020)
                 except KeyError,e:
-                    self.err.fatal("Unknown entity '%s'" % name)
+                    self.report_error(3021,name) ## FIXME: Check standalone dcl
 
                 del self.open_ents[-1]
 
             elif self.now_at("<"):
-                self.err.fatal("'<' not allowed in attribute values")
+                self.report_error(3022)
 	    else:
-		self.err.fatal("Entity reference expected. (Internal error.)")
+		self.report_error(4001)
 		
 	    if not self.now_at(";"):
-		self.err.fatal("';' expected")
+		self.report_error(3005,";")
 		self.scan_to(">")
                             
 	return val
@@ -397,7 +446,7 @@ class XMLProcessor(XMLCommonParser):
 	"Parses a literal entity value for insertion in an attribute value."
 
 	val=""
-        reg_stop=re.compile("<|&")
+        reg_stop=re.compile("&")
 	        
         while 1:
             try:
@@ -411,27 +460,13 @@ class XMLProcessor(XMLCommonParser):
             val=val+string.translate(piece,ws_trans)
 
 	    if self.now_at("&#"):
-		if self.now_at("x"):
-		    digs=unhex(self.get_match(reg_hex_digits))
-		else:
-		    digs=string.atoi(self.get_match(reg_digits))
-		    
-		if not (digs==9 or digs==10 or digs==13 or \
-			(digs>=32 and digs<=255)):
-		    if digs>255:
-			self.err.fatal("Unsupported character in character "
-				       "reference")
-		    else:
-			self.err.fatal("Illegal character in character "
-				       "reference")
-		else:
-		    val=val+chr(digs)
-		
+                val=val+self._read_char_ref()		
 	    elif self.now_at("&"):
-		name=self.get_match(reg_name)
+		#name=self.get_match(reg_name)
+                name=self._get_name()
 
                 if name in self.open_ents:
-                    self.err.fatal("Entity recursion detected")
+                    self.report_error(3019)
                     return ""
                 else:
                     self.open_ents.append(name)
@@ -447,41 +482,37 @@ class XMLProcessor(XMLCommonParser):
 
                         val=val+self.parse_literal_entval()
                         if not self.pos==self.datasize:
-                            self.err.fatal("Construct started, but never "
-                                           "completed")
+                            self.report_error(3001)
 
                         self.pop_entity()
                     else:
-                        self.err.fatal("External entity references not "
-                                       "allowed here")
+                        self.report_error(3020)
                 except KeyError,e:
-                    self.err.fatal("Unknown entity '%s'" % name)	       
+                    self.report_error(3021,name)	       
 
                 del self.open_ents[-1]
                     
-            elif self.now_at("<"):
-                self.err.fatal("'<' not allowed in attribute values")
 	    else:
-		self.err.fatal("Entity reference expected. (Internal error.)")
+		self.report_error(4001)
 		
 	    if not self.now_at(";"):
-		self.err.fatal("';' expected")
+		self.report_error(3005,";")
 		self.scan_to(">")
                             
 	return val
     
     def parse_end_tag(self):
 	"Parses the end tag from after the '</' and beyond '>'."
-	name=self.get_match(reg_name)
+	#name=self.get_match(reg_name)
+        name=self._get_name()
         
 	if not self.now_at(">"):
             self.skip_ws() # Probably rare to find whitespace here
-            if not self.now_at(">"): self.err.fatal("'>' expected")
+            if not self.now_at(">"): self.report_error(3005,">")
 
 	try:
 	    if not name==self.stack[-1]:
-		self.err.fatal("End tag for '%s' seen, but '%s' expected" \
-			       % (name,self.stack[-1]))
+		self.report_error(3023,(name,self.stack[-1]))
 
 		# Let's do some guessing in case we continue
 		if len(self.stack)>1 and self.stack[-2]==name:
@@ -490,39 +521,43 @@ class XMLProcessor(XMLCommonParser):
 	    else:
 		del self.stack[-1]
 	except IndexError,e:
-	    self.err.fatal("Element '%s' not open" % name)
+	    self.report_error(3024,name)
 
 	self.app.handle_end_tag(name)
 
     def parse_data(self):
 	"Parses character data."
-	mo=reg_c_data.search(self.data,self.pos)
-	if mo==None:
-	    if not self.final:
-		raise OutOfDataException()
 
-	    start=self.pos
-	    end=self.datasize
-	    self.pos=self.datasize
-	else:
-	    start=self.pos
-	    end=mo.end(0)-1
-	    self.pos=mo.end(0)-1
+        start=self.pos
+        end=string.find(self.data,"<",self.pos)
+        if end==-1:
+            end=string.find(self.data,"&",self.pos)
+            
+            if end==-1:
+                if not self.final:
+                    raise OutOfDataException()
 
+                end=self.datasize
+        else:
+            ampend=string.find(self.data,"&",self.pos,end)
+            if ampend!=-1:
+                end=ampend
+
+        self.pos=end
+        
 	if string.find(self.data,"]]>",start,end)!=-1:
 	    self.pos=string.find(self.data,"]]>",start,end)
-	    self.err.fatal("']]>' must not occur in character data")
+	    self.report_error(3025)
             self.pos=self.pos+3 # Skipping over it
 
 	if self.stack==[]:
 	    res=reg_ws.match(self.data,start)                
 	    if res==None or res.end(0)!=end:
-		self.err.fatal("Character data not allowed outside root "
-			       "element")
+		self.report_error(3026)
             self.app.handle_ignorable_data(self.data,start,end)
         else:
             self.app.handle_data(self.data,start,end)
-	
+
     def parse_charref(self):
 	"Parses a character reference."
 	if self.now_at("x"):
@@ -531,52 +566,51 @@ class XMLProcessor(XMLCommonParser):
             try:
                 digs=string.atoi(self.get_match(reg_digits))
             except ValueError,e:
-                self.err.fatal("Not a valid character number")
+                self.report_error(3027)
                 digs=None
 
-	if not self.now_at(";"): self.err.fatal("';' expected")
+	if not self.now_at(";"): self.report_error(3005,";")
         if digs==None: return
 	    
 	if not (digs==9 or digs==10 or digs==13 or \
 		(digs>=32 and digs<=255)):
 	    if digs>255:
-		self.err.fatal("Unsupported character")
+		self.report_error(1005,digs)
 	    else:
-		self.err.fatal("Illegal character")
+		self.report_error(3018,digs)
 	else:
 	    if self.stack==[]:
-		self.err.fatal("Character references not allowed outside root "
-			       "element")
+		self.report_error(3028)
 	    self.app.handle_data(chr(digs),0,1)
 
     def parse_cdata(self):
 	"Parses a CDATA marked section from after the '<![CDATA['."
 	new_pos=self.get_index("]]>")
 	if self.stack==[]:
-	    self.err.fatal("Character data not allowed outside root element")
+	    self.report_error(3029)
 	self.app.handle_data(self.data,self.pos,new_pos)
 	self.pos=new_pos+3
 
     def parse_ent_ref(self):
 	"Parses a general entity reference from after the '&'."
-	name=self.get_match(reg_name)
-	if not self.now_at(";"): self.err.fatal("';' expected")
+	#name=self.get_match(reg_name)
+        name=self._get_name()
+	if not self.now_at(";"): self.report_error(3005,";")
 
         try:
             ent=self.ent.resolve_ge(name)
 	except KeyError,e:
-	    self.err.fatal("Unknown entity '%s'" % name)
+	    self.report_error(3021,name)
             return
 
 	if ent.name in self.open_ents:
-	    self.err.fatal("Entity recursion detected")
+	    self.report_error(3019)
 	    return
 	else:
 	    self.open_ents.append(ent.name)
 
 	if self.stack==[]:
-	    self.err.fatal("Entity references not allowed outside root "
-			   "element")
+	    self.report_error(3030)
 	    
 	if ent.is_internal():
 	    self.push_entity(self.get_current_sysid(),ent.value)
@@ -585,8 +619,7 @@ class XMLProcessor(XMLCommonParser):
 	    self.pop_entity()
 	else:
 	    if ent.notation!="":
-		self.err.fatal("Unparsed entities not allowed as general "
-			       "entity references in element content")
+		self.report_error(3031)
 
             tmp=self.seen_xmldecl
             self.seen_xmldecl=0 # Avoid complaints
@@ -602,13 +635,13 @@ class XMLProcessor(XMLCommonParser):
 	"Parses the document type declaration."
 
 	if self.seen_doctype:
-	    self.err.fatal("Multiple document type declarations")
+	    self.report_error(3032)
 	if self.seen_root:
-	    self.err.fatal("Document type declaration not allowed "
-			   "inside root element")
+	    self.report_error(3033)
 	
 	self.skip_ws(1)
-	rootname=self.get_match(reg_name)
+	#rootname=self.get_match(reg_name)
+        rootname=self._get_name()
 	self.skip_ws(1)
 
         (pub_id,sys_id)=self.parse_external_id()
@@ -620,7 +653,7 @@ class XMLProcessor(XMLCommonParser):
 	if self.now_at("["):
 	    self.parse_internal_dtd()    
 	elif not self.now_at(">"):
-	    self.err.fatal("'>' expected")
+            self.report_error(3005,">")
 
         self.dtd.prepare_for_parsing()
 	self.seen_doctype=1 # Has to be at the end to avoid block trouble
@@ -665,16 +698,10 @@ class XMLProcessor(XMLCommonParser):
                 p.final=1
 		p.feed(int_dtd)
 	    except OutOfDataException,e:
-		self.err.fatal("Premature end of internal DTD subset")
+		self.report_error(3034)
 	finally:
 	    self.err.set_locator(self)
 	    self.dtd.dtd_end()
-
-    def parse_comment(self):
-	"Parses the comment from after '<!--' to beyond '-->'."
-	self.app.handle_comment(self.get_match(reg_comment_content))
-	if not self.now_at("-->"):
-	    self.err.fatal("Comment incorrectly terminated")
                 
 # ==============================
 # A DTD parser
@@ -727,14 +754,14 @@ class DTDParser(XMLCommonParser):
 		elif self.now_at("<?"):
 		    self.parse_pi(self.dtd)
 		elif self.now_at("<!--"):
-		    self.parse_comment()
+		    self.parse_comment(self.dtd)
 		elif self.now_at("<!["):
 		    self.parse_conditional()
 		elif self.now_at("]]>") and self.section_stack!=[]:
 		    self.ignore=self.section_stack[-1]
 		    del self.section_stack[-1]
 		else:
-		    self.err.fatal("Illegal construct")
+		    self.report_error(3013)
 		    self.pos=self.pos+1
 
 		self.skip_ws()
@@ -755,7 +782,8 @@ class DTDParser(XMLCommonParser):
 	else:
 	    pedecl=0
 	
-	ent_name=self.get_match(reg_name)
+	#ent_name=self.get_match(reg_name)
+        ent_name=self._get_name()
 	self.skip_ws(1)
 
         (pub_id,sys_id)=self.parse_external_id(0)
@@ -767,23 +795,23 @@ class DTDParser(XMLCommonParser):
             internal=0
 
         if self.now_at("NDATA"):
-            self.err.fatal("Expected whitespace here")
+            self.report_error(3002)
         else:
             self.skip_ws()
         
 	if not internal and self.now_at("NDATA"):
 	    # Parsing the optional NDataDecl
 	    if pedecl:
-		self.err.fatal("Parameter entities cannot be unparsed")
+		self.report_error(3035)
 	    self.skip_ws()
 
-	    ndata=self.get_match(reg_name)
+	    #ndata=self.get_match(reg_name)
+            ndata=self._get_name()
 	else:
 	    ndata=""
 
 	if not self.now_at(">"):
-	    self.err.fatal("Entity declaration incorrectly terminated, '>' "
-			   "expected")
+	    self.report_error(3005,">")
 
         if pedecl:
             if internal:
@@ -806,7 +834,7 @@ class DTDParser(XMLCommonParser):
         elif self.now_at("'"):
             delim="'"
         else:
-            self.err.fatal("Expected \" or '")
+            self.report_error(3004,("'","\""))
             self.scan_to(">")
             return
 
@@ -819,28 +847,13 @@ class DTDParser(XMLCommonParser):
                 break
 
 	    if self.now_at("&#"):
-		if self.now_at("x"):
-		    digs=unhex(self.get_match(reg_hex_digits))
-		else:
-		    digs=string.atoi(self.get_match(reg_digits))
-		    
-		if not (digs==9 or digs==10 or digs==13 or \
-			(digs>=32 and digs<=255)):
-		    if digs>255:
-			self.err.fatal("Unsupported character in character "
-				       "reference")
-		    else:
-			self.err.fatal("Illegal character in character "
-				       "reference")
-		else:
-		    val=val+chr(digs)
-		
+		val=val+self._read_char_ref()
 	    elif self.now_at("%"):
-		name=self.get_match(reg_name)
+		#name=self.get_match(reg_name)
+                name=self._get_name()
 
 		if self.internal:
-		    self.err.fatal("Parameter entity references not "
-                                   "allowed in internal subset")
+		    self.report_error(3036)
 		    val=val+"%"+name+";"
 		else:
                     try:
@@ -848,29 +861,29 @@ class DTDParser(XMLCommonParser):
 			if ent.is_internal():
 			    val=val+ent.value
 			else:
-			    self.err.fatal("External entity references not "
-                                           "allowed here")
+			    self.report_error(3037)
                     except KeyError,e:
-                        self.err.fatal("Unknown parameter entity '%s'" % name)
+                        self.report_error(3038,name)
 	    else:
-		self.err.fatal("Entity reference expected. (Internal error.)")
+		self.report_error(4001)
 		
 	    if not self.now_at(";"):
-		self.err.fatal("';' expected")
+		self.report_error(3005,";")
 		self.scan_to(">")
                             
 	return val
-                
+        
     def parse_notation(self):
 	"Parses a notation declaration."
 	self.skip_ws(1)
-	name=self.get_match(reg_name)
+	#name=self.get_match(reg_name)
+        name=self._get_name()
 	self.skip_ws(1)
 
         (pubid,sysid)=self.parse_external_id(1,0)
 	self.skip_ws()
 	if not self.now_at(">"):
-	    self.err.fatal("'>' expected")
+	    self.report_error(3005,">")
 
 	self.dtd.new_notation(name,pubid,sysid)
 
@@ -881,7 +894,7 @@ class DTDParser(XMLCommonParser):
         try:
             ent=self.dtd.resolve_pe(pe_name)
 	except KeyError,e:
-	    self.err.fatal("Unknown parameter entity '%s'" % name)
+	    self.report_error(3038,name)
             return 
 
 	if ent.is_internal():
@@ -897,11 +910,13 @@ class DTDParser(XMLCommonParser):
 	"Parses an attribute list declaration."
 
 	self.skip_ws(1)
-	elem=self.get_match(reg_name)
+	#elem=self.get_match(reg_name)
+        elem=self._get_name()
 	self.skip_ws(1)
 
 	while not self.test_str(">"):
-	    attr=self.get_match(reg_name)
+	    #attr=self.get_match(reg_name)
+            attr=self._get_name()
 	    self.skip_ws(1)
 
 	    if self.test_reg(reg_attr_type):
@@ -913,7 +928,7 @@ class DTDParser(XMLCommonParser):
 		self.pos=self.pos-1 # Does not expect '(' to be skipped
 		a_type=self.__parse_list(reg_nmtoken,"|")
 	    else:
-		self.err.fatal("Expected type or alternative list")
+		self.report_error(3039)
 		self.scan_to(">")
 		return
 	    
@@ -940,7 +955,8 @@ class DTDParser(XMLCommonParser):
 	"Parses an element type declaration."
 
 	self.skip_ws(1)
-	elem_name=self.get_match(reg_name)
+	#elem_name=self.get_match(reg_name)
+        elem_name=self._get_name()
 	self.skip_ws(1)
 
 	# content-spec
@@ -951,19 +967,20 @@ class DTDParser(XMLCommonParser):
 	elif self.now_at("("):
 	    elem_cont=self.parse_content_model()
 	else:
-	    self.err.fatal("Invalid content declaration")
+	    self.report_error(3004,("EMPTY, ANY","("))
 	    elem_cont=None
 
 	self.skip_ws()
 	if not self.now_at(">"):
-	    self.err.fatal("Element declaration incorrectly terminated,"+\
-			   "'>' expected.")
+	    self.report_error(3005,">")
 
 	self.dtd.new_element_type(elem_name,elem_cont)
 
     def parse_content_model(self,level=0):
 	"""Parses the content model of an element type declaration. Level
 	tells the function if we are on the top level (=0) or not (=1)."""
+
+        self.skip_ws()
 
 	# Creates a content list with separator first
 	cont_list=[]
@@ -977,7 +994,8 @@ class DTDParser(XMLCommonParser):
 	    if self.now_at("("):
 		cp=self.parse_content_model(1)
 	    else:
-		cp=self.get_match(reg_name)
+		#cp=self.get_match(reg_name)
+                cp=self._get_name()
 
 	    if self.test_str("?") or self.test_str("*") or self.test_str("+"):
 		mod=self.data[self.pos]
@@ -994,11 +1012,11 @@ class DTDParser(XMLCommonParser):
 		if self.test_str("|") or self.test_str(","):
 		    sep=self.data[self.pos]
 		else:
-		    self.err.fatal("Unknown separator")
+		    self.report_error(3004,("'|'",","))
                 self.pos=self.pos+1
 	    else:
 		if not self.now_at(sep):
-		    self.err.fatal("Mixing of choice and sequence lists!")
+		    self.report_error(3040)
                     self.scan_to(")")
 		    
 	if self.test_str("+") or self.test_str("?") or self.test_str("*"):
@@ -1020,8 +1038,7 @@ class DTDParser(XMLCommonParser):
     def parse_conditional(self):
 	"Parses a conditional section."	
 	if self.internal:
-	    self.err.fatal("Conditional sections not allowed in internal "
-			   "subset")
+	    self.report_error(3041)
 	    ignore=1
 	    self.scan_to("[")
 	else:
@@ -1032,13 +1049,13 @@ class DTDParser(XMLCommonParser):
 	    elif self.now_at("INCLUDE"):
 		ignore=0
 	    else:
-		self.err.fatal("'IGNORE' or 'INCLUDE' expected")
+		self.report_error(3004,("'IGNORE'","INCLUDE"))
 		self.scan_to("[")
 		ignore=1
 
 	    self.skip_ws()
 	    if not self.now_at("["):
-		self.err.fatal("'[' expected")
+		self.report_error(3005,"[")
 
 	self.section_stack.append(self.ignore)
 	self.ignore=ignore or self.ignore		    
@@ -1056,14 +1073,14 @@ class DTDParser(XMLCommonParser):
 	    elif self.now_at(")"):
 		break
 	    else:
-		self.err.fatal("'|' expected")
+		self.report_error(3005,"|")
                 self.scan_to(">")
 
 	    self.skip_ws()
 	    cont_list.append(ContentModel([self.get_match(reg_name)],""))
 
 	if sep=="|" and not self.now_at("*"):
-	    self.err.fatal("'*' expected.")
+	    self.report_error(3005,"*")
 
 	return ChoiceContentModel(cont_list,"*") 
 	
@@ -1073,7 +1090,7 @@ class DTDParser(XMLCommonParser):
 	list=[]
 	self.skip_ws()
 	if not self.now_at("("):
-	    self.err.fatal("'(' expected")
+	    self.report_error(3005,"(")
 
 	while 1:
 	    self.skip_ws()
@@ -1082,16 +1099,10 @@ class DTDParser(XMLCommonParser):
 	    if self.now_at(")"):
 		break
 	    elif not self.now_at(separator):
-		self.err.fatal("Expected ')' or '%s'" % separator)
+		self.report_error(3004,("')'",separator))
 		break
 
 	return list
-
-    def parse_comment(self):
-	"Parses the comment from after '<!--' to beyond '-->'."
-	self.dtd.handle_comment(self.get_match(reg_comment_content))
-	if not self.now_at("-->"):
-	    self.err.fatal("Comment incorrectly terminated")
                 
     def is_external(self):
         return not self.internal

@@ -209,6 +209,15 @@ class CatalogManager(CatalogApp):
 
     # --- client services
 
+    def get_public_ids(self):
+        """Returns a list of all declared public indentifiers in this catalog
+        and delegates."""
+        list=self.__public.keys()
+        for delegate in self.__delegations:
+            list=list+delegate.get_public_ids()
+
+        return list
+        
     def get_document_sysid(self):
         return self.__document
 

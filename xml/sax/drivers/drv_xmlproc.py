@@ -2,7 +2,7 @@
 A SAX driver for xmlproc
 """
 
-version="0.92"
+version="0.93"
 
 from xml.sax import saxlib,saxutils
 from xml.parsers.xmlproc import xmlproc
@@ -32,6 +32,14 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
         
     def _create_parser(self):
 	return xmlproc.XMLProcessor()
+
+    def setLocale(self, locale):
+        try:
+            self.parser.set_error_language[locale]
+        except KeyError:
+            raise SAXException("Locale '%s' not supported" % locale)
+        
+    # --- data event methods
     
     def doc_start(self):
         self.doc_handler.setDocumentLocator(self)

@@ -5,6 +5,7 @@ Some common declarations for the xmlproc system gathered in one file.
 import string,re,urlparse,os
 
 from xmlapp import *
+import errors
 
 # Standard exceptions
 
@@ -28,13 +29,18 @@ class EntityParser:
         self.isf=InputSourceFactory()
         self.pubres=PubIdResolver()
         self.data_charset="iso-8859-1"
+        self.errors=errors.get_error_list("en")
         
         self.reset()
+
+    def set_error_language(self,language):
+        """Sets the language in which errors are reported. (ISO 3166 codes.)
+        Throws a KeyError if the language is not supported."""
+        self.errors=errors.get_error_list(string.lower(language))
 
     def set_error_handler(self,err):
 	"Sets the object to send error events to."
 	self.err=err
-	self.ent.set_error_handler(err)
 
     def set_pubid_resolver(self,pubres):
         self.pubres=pubres
@@ -42,7 +48,6 @@ class EntityParser:
     def set_entity_handler(self,ent):
 	"Sets the object that resolves entity references."
 	self.ent=ent
-	self.ent.set_error_handler(self.err)
 
     def set_inputsource_factory(self,isf):
         "Sets the object factory used to create input sources from sysids."
@@ -53,7 +58,7 @@ class EntityParser:
         to applications."""
         self.data_charset=charset
         
-    def parse_resource(self,sysID):
+    def parse_resource(self,sysID,bufsize=16384):
 	"""Begin parsing an XML entity with the specified public and
 	system identifiers (the system identifier, a URI, is required).
 	Only used for the document entity, not to handle subentities, which
@@ -63,10 +68,10 @@ class EntityParser:
 	try:
 	    infile=self.isf.create_input_source(sysID)
 	except IOError,e:
-	    self.err.fatal("Couldn't open resource '%s'" % sysID)
+	    self.report_error(3000,sysID)
 	    return
 	
-	self.read_from(infile)
+	self.read_from(infile,bufsize)
 	infile.close()
 	self.flush()
 	self.parseEnd()
@@ -81,7 +86,7 @@ class EntityParser:
 	try:
 	    inf=self.isf.create_input_source(sysID)
 	except IOError,e:
-	    self.err.fatal("Couldn't open entity '%s'" % sysID)
+	    self.report_error(3000,sysID)
 	    return
 
 	self.ent_stack.append(self.get_current_sysid(),self.data,self.pos,\
@@ -117,8 +122,7 @@ class EntityParser:
     def pop_entity(self):
 	"Skips out of the current entity and back to the previous one."
 
-	if self.ent_stack==[]:
-	    self.err.fatal("Internal error: Entity stack broken")
+	if self.ent_stack==[]: self.report_error(4000)
 
 	(self.current_sysID,self.data,self.pos,self.line,self.last_break,\
 	 self.datasize,self.last_upd_pos,self.block_offset)=self.ent_stack[-1]
@@ -168,22 +172,21 @@ class EntityParser:
             self.parseStart()
 
 	self.update_pos() # Update line/col count
-
-        # Doing line end translation
-        new_data=string.replace(new_data,"\015\012","\012")
         
-	if self.start_point!=-1:
+	if self.start_point==-1:
 	    self.block_offset=self.block_offset+self.datasize
-	    self.data=self.data[self.pos:]+new_data
+	    self.data=self.data[self.pos:]
 	    self.last_break=self.last_break-self.pos  # Keep track of column
 	    self.pos=0
 	    self.last_upd_pos=0
-	else:
-	    self.data=self.data+new_data
-	self.datasize=len(self.data)
+
+        # Adding new data and doing line end normalization
+        self.data=string.replace(self.data+new_data,
+                                 "\015\012","\012")
+        self.datasize=len(self.data)
 
 	self.do_parse()
-
+        
     def close(self):
         "Closes the parser, processing all remaining data. Calls parseEnd."
 	self.flush()
@@ -204,7 +207,7 @@ class EntityParser:
  	    try:
 		self.do_parse()
 	    except OutOfDataException,e:
-		self.err.fatal("Construct started, but never completed")
+		self.report_error(3001)
                 
     # --- GENERAL UTILITY
     
@@ -285,13 +288,17 @@ class EntityParser:
     
     def skip_ws(self,necessary=0):
 	"Skips over any whitespace at this point."
-	ws=reg_ws.match(self.data,self.pos)
-	if ws==None:
-	    if necessary:
-		self.err.fatal("Whitespace expected here")
-	    return
-	self.pos=ws.end(0)
-	ws=ws.group(0)
+        start=self.pos
+        
+        try:
+            while self.data[self.pos] in whitespace:
+                self.pos=self.pos+1
+        except IndexError:
+	    if necessary and start==self.pos:
+                if self.final:
+                    self.report_error(3002)
+                else:
+                    raise OutOfDataException()
 
     def test_reg(self,regexp):
 	"Checks if we match the regexp."
@@ -304,10 +311,10 @@ class EntityParser:
 	"Returns the result of matching the regexp and advances self.pos."
 	if self.pos>self.datasize-5 and not self.final:
 	    raise OutOfDataException()
-	
+
 	ent=regexp.match(self.data,self.pos)
 	if ent==None:
-	    self.err.fatal("Didn't match "+regexp.pattern)
+	    self.report_error(reg2code[regexp.pattern])
 	    return ""
 
         end=ent.end(0) # Speeds us up slightly
@@ -319,7 +326,7 @@ class EntityParser:
 
     def update_pos(self):
 	"Updates (line,col)-pos by checking processed blocks."
-	breaks=string.count(self.data[self.last_upd_pos:self.pos],"\n")
+	breaks=string.count(self.data,"\n",self.last_upd_pos,self.pos)
 	self.last_upd_pos=self.pos
 
 	if breaks>0:
@@ -336,17 +343,35 @@ class EntityParser:
 		break
 
 	if not found:
-	    msg="One of "
+	    msg=""
 	    for (wrap,regexp) in wraps[:-1]:
 		msg="%s'%s', " % (msg,wrap)
-	    self.err.fatal("%s or '%s' expected" % (msg[:-2],wraps[-1][0]))
+            self.report_error(3004,(msg[:-2],wraps[-1][0]))
 
 	data=self.get_match(regexp)
 	if not self.now_at(wrap):
-	    self.err.fatal("'%s' expected" % (wrap))
+	    self.report_error(3005,wrap)
 
 	return data
-	    
+
+    #--- ERROR HANDLING
+
+    def report_error(self,number,args=None):
+        try:
+            msg=self.errors[number]
+            if args!=None:
+                msg=msg % args
+        except KeyError:
+            msg=self.errors[4002] # Unknown err msg :-)
+        
+        if number<2000:
+            self.err.warning(msg)
+        elif number<3000:
+            self.err.error(msg)
+        else:
+            # Make parser stop reporting data events!
+            self.err.fatal(msg)
+    
     #--- USEFUL METHODS
 
     def get_current_sysid(self):
@@ -415,11 +440,14 @@ def join_sysids(base,url):
 
 # --- Some useful regexps
 
+namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"
+namechars=namestart+"0123456789.-"
+whitespace="\n\t \r"
+
 reg_ws=re.compile("[\n\t \r]+")
-reg_ver=re.compile("\"[-a-zA-Z0-9_.:]+\"|'[-a-zA-Z0-9_.:]+'")
-reg_enc_name=re.compile("\"[A-Za-z][-A-Za-z0-9._]*\"|"+\
-			"'[A-Za-z][-A-Za-z0-9._]*'")
-reg_std_alone=re.compile("\"(yes|no)\"|'(yes|no)'")
+reg_ver=re.compile("[-a-zA-Z0-9_.:]+")
+reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
+reg_std_alone=re.compile("yes|no")
 reg_comment_content=re.compile("([^-]|-[^-])*")
 reg_name=re.compile("[A-Za-z_:][\-A-Za-z_:.0-9]*")
 reg_names=re.compile("[A-Za-z_:][\-A-Za-z_:.0-9]*"
@@ -460,6 +488,17 @@ reg_subst_pe_search=re.compile(">|%")
 
 reg_lang_code=re.compile("([a-zA-Z][a-zA-Z]|[iIxX]-([a-zA-Z])+)(-[a-zA-Z])*")
 
+# Mapping regexps to error codes
+# NB: 3900 is reported directly from _get_name
+
+reg2code={
+    reg_name.pattern : 3900, reg_ver.pattern : 3901,
+    reg_enc_name.pattern : 3902, reg_std_alone.pattern : 3903,
+    reg_comment_content.pattern : 3904, reg_hex_digits.pattern : 3905,
+    reg_digits.pattern : 3906, reg_pe_ref.pattern : 3907,
+    reg_attr_type.pattern : 3908, reg_attr_def.pattern : 3909,
+    reg_nmtoken.pattern : 3910}
+    
 # Some useful variables
 
 predef_ents={"lt":"&#60;","gt":"&#62;","amp":"&#38;","apos":"&#39;",

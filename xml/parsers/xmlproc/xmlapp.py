@@ -140,12 +140,8 @@ class ErrorHandler:
 class EntityHandler:
     "An entity handler for the parser."
 
-    def __init__(self,err):
-	self.err=err
-    
-    def set_error_handler(self,err):
-	"Set the object to send error events to."
-	self.err=err
+    def __init__(self,parser):
+	self.parser=parser
     
     def resolve_ent_ref(self,entname):
 	"""Resolves a general entity reference and returns its contents. The
@@ -156,7 +152,7 @@ class EntityHandler:
 	try:
 	    return (1,predef_ents[entname])
 	except KeyError,e:
-	    self.err.fatal("Unknown entity '%s'" % entname)
+	    self.parser.report_error(3021,entname)
 	    return (1,"")
 
 # ==============================
@@ -167,13 +163,9 @@ class DTDConsumer:
     """Represents an XML DTD. This class can be subclassed by applications
     which want to handle the DTD information themselves."""
 
-    def __init__(self,err):
-	self.err=err
+    def __init__(self,parser):
+	self.parser=parser
 	
-    def set_error_handler(self,err):
-	"Sets the error handler."
-	self.err=err
-
     def dtd_start(self):
 	"Called when DTD parsing starts."
 	pass

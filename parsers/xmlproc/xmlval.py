@@ -53,8 +53,8 @@ class XMLValidator:
     def __init__(self):
 	self.parser=XMLProcessor()
         self.app=Application()
-        self.dtd=CompleteDTD(ErrorHandler(self.parser))
-        self.val=ValidatingApp(self.dtd)
+        self.dtd=CompleteDTD(self.parser)
+        self.val=ValidatingApp(self.dtd,self.parser)
         self.reset()
 
     def parse_resource(self,sysid):
@@ -80,10 +80,11 @@ class XMLValidator:
 	self.val.set_real_app(self.app)
 	app.set_locator(self.parser)
 	
+    def set_error_language(self,language):
+        self.parser.set_error_language(language)
+        
     def set_error_handler(self,err):
 	self.parser.set_error_handler(err)
-	self.dtd.set_error_handler(err)
-	self.val.set_error_handler(err)
 
     def set_dtd_listener(self,dtd_listener):
 	self.parser.set_dtd_listener(dtd_listener)
@@ -129,11 +130,11 @@ class XMLValidator:
 class ValidatingApp(Application):
     "The object that uses the DTD to actually validate XML documents."
 
-    def __init__(self,dtd):
+    def __init__(self,dtd,parser):
 	self.dtd=dtd
+        self.parser=parser
 	self.realapp=Application()
         self.pubres=PubIdResolver()
-	self.err=ErrorHandler(None)
         self.reset()
 
     def reset(self):
@@ -153,9 +154,6 @@ class ValidatingApp(Application):
 	Application.set_locator(self,locator)
 	self.realapp.set_locator(locator)
 
-    def set_error_handler(self,err):
-	self.err=err
-
     def handle_start_tag(self,name,attrs):
 	decl_root=self.dtd.get_root_elem()
 	
@@ -163,28 +161,20 @@ class ValidatingApp(Application):
             if self.cur_state!=-1:
                 next=self.cur_elem.next_state(self.cur_state,name)
                 if next==0:
-                    self.err.error("Element '%s' not allowed here" % name)
+                    self.parser.report_error(2001,name)
                 else:
                     self.cur_state=next
 
 	    self.stack.append(self.cur_elem,self.cur_state)
 	elif decl_root!=None and name!=decl_root:
-	    self.err.error("Document root element '%s' does not match "
-			   "declared root element" % name)
+	    self.parser.report_error(2002,name)
 
 	try:
 	    self.cur_elem=self.dtd.get_elem(name)
-	    try:
-		self.cur_state=self.cur_elem.get_start_state()
-	    except KeyError,e:
-		self.err.error("Bad content model: '%s'. (Internal error.)" %\
-			       e)
-		self.cur_state=1
-
+            self.cur_state=self.cur_elem.get_start_state()
 	    self.validate_attributes(self.dtd.get_elem(name),attrs)
-		
 	except KeyError,e:
-	    self.err.error("Element '%s' not declared" % name)
+	    self.parser.report_error(2003,name)
 	    self.cur_state=-1
 
 	self.realapp.handle_start_tag(name,attrs)
@@ -193,7 +183,7 @@ class ValidatingApp(Application):
 	"Notifies the application of end tags (and empty element tags)."
 	if self.cur_elem!=None and \
 	   not self.cur_elem.final_state(self.cur_state):
-	    self.err.error("Element '%s' ended, but not finished" % name)
+	    self.parser.report_error(2004,name)
 	
 	if self.stack!=[]:
 	    (self.cur_elem,self.cur_state)=self.stack[-1]
@@ -212,7 +202,7 @@ class ValidatingApp(Application):
 		    self.realapp.handle_ignorable_data(data,start,end)
 		    return
 		else:
-		    self.err.error("Character data not allowed here")
+		    self.parser.report_error(2005)
 	    else:
 		self.cur_state=next
 
@@ -227,7 +217,7 @@ class ValidatingApp(Application):
 	    try:
 		decl=element.get_attr(attr)
 	    except KeyError,e:
-		self.err.error("Unknown attribute '%s'" % attr)
+		self.parser.report_error(2006,attr)
                 return
         
             if decl.type!="CDATA":
@@ -238,12 +228,11 @@ class ValidatingApp(Application):
                         
                 attrs[attr]=res[:-1]
             
-            decl.validate(attrs[attr],self.err)
+            decl.validate(attrs[attr],self.parser)
                 
 	    if decl.type=="ID":
 		if self.ids.has_key(attrs[attr]):
-		    self.err.error("ID '%s' appears more than once in "
-				   "document" % attrs[attr])
+		    self.parser.report_error(2007,attrs[attr])
 		self.ids[attrs[attr]]=""
 	    elif decl.type=="IDREF":
 		self.idrefs.append((self.locator.get_line(),
@@ -255,73 +244,52 @@ class ValidatingApp(Application):
 					self.locator.get_column(),
 					idref))
 	    elif decl.type=="ENTITY":
-                try:
-                    ent=self.dtd.resolve_ge(attrs[attr])
-		    if ent.notation=="":
-			self.err.error("Only unparsed entities allowed here")
-		    else:
-                        try:
-                            self.dtd.get_notation(ent.notation)
-                        except KeyError,e:
-                            self.err.error("Notation '%s' not declared" %\
-                                           ent.notation)
-                except KeyError,e:
-                    self.err.fatal("Unknown entity '%s'" % name)
-
+                self.__validate_attr_entref(attrs[attr])
 	    elif decl.type=="ENTITIES":
 		for ent_ref in string.split(attrs[attr]):
-                    try:
-                        ent=self.dtd.resolve_ge(attrs[ent_ref])
-
-			if ent.notation=="":
-			    self.err.error("Only unparsed entities allowed "
-					   "here")
-			else:
-                            try:
-                                self.dtd.get_notation(ent.notation)
-                            except KeyError,e:
-                                self.err.error("Notation '%s' not declared" %\
-                                               ent.notation)
-                    except KeyError,e:
-                        self.err.fatal("Unknown entity '%s'" % name)
+                    self.__validate_attr_entref(ent_ref)
 
         # Check for missing required attributes
 	for attr in element.get_attr_list():
 	    decl=element.get_attr(attr)
 	    if decl.decl=="#REQUIRED" and not attrs.has_key(attr):
-		self.err.error("Required attribute %s not present" % attr)
+		self.parser.report_error(2010,attr)
 
+    def __validate_attr_entref(self,name):
+        try:
+            ent=self.dtd.resolve_ge(name)
+            if ent.notation=="":
+                self.parser.report_error(2008)
+            else:
+                try:
+                    self.dtd.get_notation(ent.notation)
+                except KeyError,e:
+                    self.parser.report_error(2009,ent.notation)
+        except KeyError,e:
+            self.parser.report_error(3021,name)        
+                
     def doc_end(self):
 	for (line,col,id) in self.idrefs:
 	    if not self.ids.has_key(id):
-		self.err.error("IDREF referred to non-existent ID '%s'" % id)
+		self.parser.report_error(2011,id)
 
 	self.realapp.doc_end()
 
     def handle_doctype(self,rootname,pub_id,sys_id):
 	self.dtd.root_elem=rootname
 
-	prev_loc=self.err.get_locator()
 	p=DTDParser()
-	p.set_error_handler(self.err)
+        p.errors=self.parser.errors # OK, ugly, but effective
 	p.set_dtd_consumer(self.dtd)
-
-        # === UGLY: SHOULD REALLY ACCESS THE PARSER IN SOME OTHER WAY HERE!
-        if self.locator.dtd_listener!=None:
-            self.dtd.set_dtd_listener(self.locator.dtd_listener)
-	self.err.set_locator(p)
 
         if pub_id!=None:
             sys_id=self.pubres.resolve_doctype_pubid(pub_id,sys_id)
 
-        try:
-            sys_id=urlparse.urljoin(p.get_current_sysid(),sys_id)
-            p.parse_resource(sys_id)
-        finally:
-            self.err.set_locator(prev_loc)
+        sys_id=urlparse.urljoin(p.get_current_sysid(),sys_id)
+        p.parse_resource(sys_id)
 
 	self.realapp.handle_doctype(rootname,pub_id,sys_id)
-	    
+
     # --- These methods added only to make this hanger-on application
     #     invisible to external users.
 		

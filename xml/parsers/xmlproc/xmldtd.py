@@ -16,9 +16,9 @@ from xmlapp import *
 class WFCDTD(DTDConsumer):
     "DTD-representing class for the WFC parser."
 
-    def __init__(self,err):
-	DTDConsumer.__init__(self,err)
-        self.dtd_listener=DTDConsumer(err)        
+    def __init__(self,parser):
+	DTDConsumer.__init__(self,parser)
+        self.dtd_listener=DTDConsumer(parser)        
         self.reset()
 
     def reset(self):
@@ -57,6 +57,10 @@ class WFCDTD(DTDConsumer):
         if the prefix is not declared."""
         return self.namespaces[prefix]
 
+    def get_elements(self):
+        "Returns a list of all declared element names."
+        return self.elems.keys()
+
     # --- Shortcut information for validation
 
     def prepare_for_parsing(self):
@@ -78,13 +82,7 @@ class WFCDTD(DTDConsumer):
         if not self.elems.has_key(elem):
 	    self.elems[elem]=ElementTypeAny(elem) # Adding dummy
 
-        self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.err)
-
-    def new_namespace(self,prefix,name,schema_url):
-        if self.namespaces.has_key(prefix):
-            self.err.warning("Namespace with prefix '%s' redeclared" % prefix)
-            
-        self.namespaces[prefix]=Namespace(prefix,name,schema_url)
+        self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
         
     # --- Echoing DTD parse events
     
@@ -130,8 +128,8 @@ class WFCDTD(DTDConsumer):
 class CompleteDTD(WFCDTD):
     "Complete DTD handler for the validating parser."
 
-    def __init__(self,err):
-	WFCDTD.__init__(self,err)
+    def __init__(self,parser):
+	WFCDTD.__init__(self,parser)
 
     def reset(self):
         "Clears all DTD information."
@@ -153,8 +151,7 @@ class CompleteDTD(WFCDTD):
 
     def dtd_end(self):
 	for elem in self.attlists.keys():
-	    self.err.warning("Element '%s' has attribute list, but no element "
-			     "declaration" % elem)
+	    self.parser.report_error(1006,elem)
 
 	self.attlists={}  # Not needed any more, can free this memory
         self.dtd_listener.dtd_end()
@@ -165,12 +162,12 @@ class CompleteDTD(WFCDTD):
 
     def new_element_type(self,elem_name,elem_cont):       
 	if self.elems.has_key(elem_name):
-	    self.err.fatal("Element '%s' declared twice" % elem_name)
+	    self.parser.report_error(2012,elem_name)
 
 	if elem_cont==None:
 	    model=make_empty_model()
 	elif elem_cont!=1:
-            model=make_model(elem_cont,self.err)
+            model=make_model(elem_cont,self.parser)
 
 	if elem_cont==1:
 	    self.elems[elem_name]=ElementTypeAny(elem_name)
@@ -180,7 +177,7 @@ class CompleteDTD(WFCDTD):
 	if self.attlists.has_key(elem_name):
 	    for (attr,a_type,a_decl,a_def) in self.attlists[elem_name]:
 		self.elems[elem_name].add_attr(attr,a_type,a_decl,a_def,\
-					       self.err)
+					       self.parser)
 	    del self.attlists[elem_name]
             
         self.dtd_listener.new_element_type(elem_name,elem_cont)
@@ -189,7 +186,7 @@ class CompleteDTD(WFCDTD):
 	"Receives the declaration of a new attribute."
         self.dtd_listener.new_attribute(elem,attr,a_type,a_decl,a_def)
 	try:
-	    self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.err)
+	    self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
 	except KeyError,e:
 	    try:
 		self.attlists[elem].append((attr,a_type,a_decl,a_def))
@@ -220,19 +217,18 @@ class ElementType:
 	"Returns the attribute or throws a KeyError if it's not declared."
 	return self.attrhash[name]
 	
-    def add_attr(self,attr,a_type,a_decl,a_def,err):
+    def add_attr(self,attr,a_type,a_decl,a_def,parser):
 	"Adds a new attribute to the element."
 	if self.attrhash.has_key(attr):
-	    err.warning("Attribute '%s' defined more than once" % attr)
+	    parser.report_error(1007,attr)
 	
 	if a_type=="ID":
 	    for attr_name in self.attrhash.keys():
 		if self.attrhash[attr_name].type=="ID":
-		    err.error("Only one ID attribute allowed on each element "
-			      "type")
+		    parser.report_error(2013)
 
 	    if a_decl!="#REQUIRED" and a_decl!="#IMPLIED":
-		err.error("ID attributes cannot be #FIXED")
+		parser.report_error(2014)
 	
 	self.attrhash[attr]=Attribute(attr,a_type,a_decl,a_def)
 	
@@ -296,9 +292,9 @@ class ElementTypeAny(ElementType):
 class Attribute:
     "Represents a declared attribute."
 
-    def __init__(self,name,type,decl,default):
+    def __init__(self,name,attrtype,decl,default):
 	self.name=name
-	self.type=type
+	self.type=attrtype
 	self.decl=decl
 	self.default=default
 
@@ -306,7 +302,7 @@ class Attribute:
         
         if name=="xml:space":
             if type(self.type)==types.StringType:
-                err.error("xml:space must be declared an enumeration type")
+                parser.report_error(2015)
                 return
 
             if len(self.type)!=2:
@@ -318,37 +314,30 @@ class Attribute:
                 else:
                     error=1
 
-            if error:
-                err.error("xml:space must have exactly the values 'default'"
-                          " and 'preserve'")                            
+            if error: parser.report_error(2016)                            
                 
-    def validate(self,value,err):
+    def validate(self,value,parser):
 	"Validates given value for correctness."
 
 	if type(self.type)!=types.StringType:
 	    for val in self.type:
 		if val==value: return
-	    err.error("'%s' is not an allowed value for the '%s' attribute"\
-		      % (value,self.name))
+	    parser.report_error(2017,(value,self.name))
 	elif self.type=="CDATA":
 	    return
 	elif self.type=="ID" or self.type=="IDREF" or self.type=="ENTITIY":
 	    if not matches(reg_name,value):
-		err.error("Value of '%s' attribute must be a valid name" %\
-			  self.name)
+		parser.report_error(2018,self.name)
 	elif self.type=="NMTOKEN":
 	    if not matches(reg_nmtoken,value):
-		err.error("Value of '%s' attribute not a valid name token" %\
-			  self.name)
+		parser.report_error(2019,self.name)
 	elif self.type=="NMTOKENS":
 	    if not matches(reg_nmtokens,value):
-		err.error("Value of '%s' attribute not a valid name token" \
-			  " sequence" % self.name)
+		parser.report_error(2020,self.name)
         elif self.type=="IDREFS" or self.type=="ENTITIES":
             for token in string.split(value):
                 if not matches(reg_name,token):
-                    err.error("Element '%s' of the value of the '%s' "\
-                              "attribute is not a valid name")
+                    parser.report_error(2021,(token,self.name))
 
     def get_name(self):
         "Returns the attribute name."
@@ -595,7 +584,7 @@ def hash(included):
 
     return no
 
-def fnda2fda(transitions,final_state,err):
+def fnda2fda(transitions,final_state,parser):
     """Converts a finite-state non-deterministic automaton into a deterministic
     one."""
 
@@ -615,7 +604,7 @@ def fnda2fda(transitions,final_state,err):
     closure_hash[0]=state_key
 
     # Add transitions and the other states
-    add_transitions(0,transitions,new_states,start_state,state_key,err,
+    add_transitions(0,transitions,new_states,start_state,state_key,parser,
                     closure_hash)
     
     states=new_states.keys()
@@ -631,7 +620,7 @@ def fnda2fda(transitions,final_state,err):
     new_states["final"]=pow(2L,final_state)
     return new_states
     
-def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err,
+def add_transitions(ix,transitions,new_states,cur_state_list,state_key,parser,
                     closure_hash):
     "Set up transitions and create new states."
 
@@ -659,8 +648,9 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err,
     for (over,destlist) in new_trans.items():
         # creating new state                    
 
-        # if len(destlist)>1:
-        # err.warning("Ambiguous content model")
+        # Reports ambiguity, but rather crudely. Will improve this later.
+#         if len(destlist)>1:
+#             parser.report_error(1008)
 
         if len(destlist)==1 and closure_hash.has_key(destlist[0]):
             # The closure of this state has been computed before, don't repeat
@@ -678,7 +668,7 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,err,
         new_states[state_key].append(new_state,over)
         if not new_states.has_key(new_state):
             add_transitions(to,transitions,new_states,new_inc,\
-                            new_state,err,closure_hash)
+                            new_state,parser,closure_hash)
         
 def compute_closure(ix,included,transitions):
     "Computes the e-closure of this state."
