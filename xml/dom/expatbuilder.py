@@ -438,8 +438,10 @@ class ExpatBuilder:
     def _include_early_events(self):
         doc = self.document
         if doc.doctype:
+            assert ("doctype",) in self._pre_doc_events
             refnode = doc.doctype
         else:
+            assert ("doctype",) not in self._pre_doc_events
             refnode = doc.documentElement
         for event in self._pre_doc_events:
             t = event[0]
