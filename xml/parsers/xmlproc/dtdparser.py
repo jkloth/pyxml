@@ -2,7 +2,7 @@
 This module contains a DTD parser that reports DTD parse events to a listener.
 Used by xmlproc to parse DTDs, but can be used for other purposes as well.
 
-$Id: dtdparser.py,v 1.12 2001/12/30 12:09:14 loewis Exp $
+$Id: dtdparser.py,v 1.13 2002/04/13 19:10:40 larsga Exp $
 """
 
 import string
@@ -348,9 +348,9 @@ class DTDParser(XMLCommonParser):
         entity and parameter entity references in it."""
 
         if self.now_at('"'):
-            delim='"'
+            delim = '"'
         elif self.now_at("'"):
-            delim="'"
+            delim = "'"
         else:
             self.report_error(3004,("'","\""))
             self.scan_to(">")
@@ -497,14 +497,14 @@ class DTDParser(XMLCommonParser):
             elif self.now_at("#REQUIRED"):
                 a_decl="#REQUIRED"
                 a_def=None
-            elif self.now_at("#FIXED"):
-                self.skip_ws(1)
-                a_decl="#FIXED"
-                a_def=self.parse_ent_repltext()
-            else:
+	    elif self.now_at("#FIXED"):
+		self.skip_ws(1)
+		a_decl = "#FIXED"
+		a_def = self.parse_ent_repltext()
+	    else:
                 self.report_error(3909)
-                a_decl=None
-                a_def=None
+                a_decl = None
+                a_def = None
 
             self.skip_ws()
             self.dtd_consumer.new_attribute(elem,attr,a_type,a_decl,a_def)
