@@ -3,7 +3,7 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.7 of the Python/XML distribution is now available.  It
+Version 0.7.1 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
@@ -18,6 +18,37 @@ http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1-2.1.i386.rpm
 Changes in this version, compared to 0.7:
 
 	* sgmlop offers the XMLUnicodeParser (contributed by Walter Dörwald).
+
+	* setup.py now supports the option --with(out)-pyexpat.
+
+	* On Mac OS X, -flat_namespace is used to build extensions.
+
+	* XBEL support for parsing Opera, MSIE, and Netscape bookmarks
+	  was improved.
+
+	* c14n is now documented in the reference manual.
+
+	* Support for older expat versions is dropped from pyexpat.
+
+	* pyexpat can intern strings found during parsing in a dictionary.
+
+	* xml.ns now provides XLINK and RNG namespaces.
+
+	* 4DOM supports now arbitrary Unicode element and attribute names.
+
+	* pulldom supports the iterator protocol.
+
+	* Spanish xmlproc messages have been added.
+
+	* xml.sax.expatreader has a feature to intern strings, and a
+	  property to access the interning dictionary.
+
+	* Construction of Unicode regular expressions in
+	  xml.utils.characters happens lazily through accessor functions.
+
+	* Various bugs have been fixed (4DOM, minidom, c14n,
+	  marshal.generic, xmlproc, sax.expatreader, sax.writer,
+	  xml.utils.iso8601)
 
 
 The Python/XML distribution contains the basic tools required for

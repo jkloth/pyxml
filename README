@@ -13,7 +13,7 @@ consult the LICENCE file.
 The only requirements for installing the package are Python 1.5 or
 later, and a C compiler (unless the pyexpat module is already part of
 your Python installation). This release has been tested with Python
-2.1 and Python 1.5.2.
+2.x and Python 1.5.2.
 
 To compile everything, simply perform the following steps.
 
