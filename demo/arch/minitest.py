@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 from xml.sax import saxexts, saxlib, saxutils
 from xml.arch import xmlarch
@@ -32,9 +32,11 @@ pf=saxexts.ParserFactory([
     "xml.sax.drivers.drv_xmllib", 
     "xml.sax.drivers.drv_xmltok",
     "xml.sax.drivers.drv_xmltoolkit",
-    "xml.sax.drivers.drv_xmldc"])
+    "drv_xmldc.py"])
 
 parser = pf.make_parser()
+#parser = xml.sax.drivers.drv_xmlproc_val.create_parser()
+#print parser.get_parser_name()
 
 # Create architectures handler
 arch_handler = xmlarch.ArchDocHandler()

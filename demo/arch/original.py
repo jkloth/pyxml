@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # Import needed modules
 from xml.sax import saxexts, saxlib, saxutils
@@ -18,12 +18,12 @@ class ElementComparer(saxlib.HandlerBase):
 
         "Initialize a new instance."
 
-        self.writer = writer
+	self.writer = writer
         self.event_tracker = event_tracker
         
     def startElement(self, name, amap):
 
-        "Handle an event for the beginning of an element."
+	"Handle an event for the beginning of an element."
 
         print "<%s> was derived from the <%s> element." % (self.event_tracker.get_event("startElement")[0], name)
         

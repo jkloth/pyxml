@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<?test where="before"?>
+<?IS10744:arch name ="html" renamer-att="hren"?>
+<doc>
+<title html="h1">My first architectual document</title>
+<author html="address" hren="#GI gi">Geir Ove Gronmo, grove@infotek.no</author>
+<para>This is the first paragraph in this document</para>
+<para html="p">This is the second paragraph</para>
+</doc>
+

@@ -1,9 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 from xml.sax import saxexts, saxlib, saxutils
 from xml.arch import xmlarch
 
 import sys, getopt
+
+# TODO:
+#
+# - add command line options for all pi attributes
+# - use factory methods from saxutils instead of hard coded parser list
 
 # =============================================================================
 # Functions
@@ -23,7 +28,7 @@ def create_hash(optlist):
     # Create hash table out of an item list
     opthash = {}
     for a in optlist:
-        opthash[a[0]] = a[1]
+	opthash[a[0]] = a[1]
     return opthash
 
 # =============================================================================
@@ -37,17 +42,17 @@ try:
     opts = create_hash(optlist)
 
     if len(args) != 2:
-        usage("Please give me two arguments.")
-        
+	usage("Please give me two arguments.")
+	
 # Catch getopt errors and display usage information
 except getopt.error, e:
-        usage(e)
+	usage(e)
 
 # Create Parser factory
 
 if opts.has_key("--validate"):
     pf=saxexts.ParserFactory([
-        "xmlproc_val"])
+        "xml.sax.drivers.drv_xmlproc_val"])
 
 else:
     pf=saxexts.ParserFactory([
@@ -57,7 +62,7 @@ else:
         "xml.sax.drivers.drv_xmllib", 
         "xml.sax.drivers.drv_xmltok",
         "xml.sax.drivers.drv_xmltoolkit",
-        "xml.sax.drivers.drv_xmldc"])
+        "drv_xmldc.py"])
 
 # Create parser
 parser = pf.make_parser()
@@ -66,7 +71,7 @@ parser = pf.make_parser()
 arch_handler = xmlarch.ArchDocHandler()
 
 parser.setDocumentHandler(arch_handler)
-#parser.setErrorHandler(saxutils.ErrorPrinter())
+parser.setErrorHandler(saxutils.ErrorPrinter())
 # parser.setLocale("no")
 
 # Set the debug flag
