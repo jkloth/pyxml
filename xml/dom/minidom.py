@@ -1010,11 +1010,6 @@ defproperty(CharacterData, "length", doc="Length of the string data.")
 
 
 class Text(CharacterData):
-    # Make sure we don't add an instance __dict__ if we don't already
-    # have one, at least when that's possible:
-    # XXX this does not work, CharacterData is an old-style class
-    # __slots__ = ()
-
     nodeType = Node.TEXT_NODE
     nodeName = "#text"
     attributes = None
@@ -1135,11 +1130,6 @@ class Comment(Childless, CharacterData):
 
 
 class CDATASection(Text):
-    # Make sure we don't add an instance __dict__ if we don't already
-    # have one, at least when that's possible:
-    # XXX this does not work, Text is an old-style class
-    # __slots__ = ()
-
     nodeType = Node.CDATA_SECTION_NODE
     nodeName = "#cdata-section"
 
@@ -1209,6 +1199,7 @@ class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
         return [self._seq]
 
     def __setstate__(self, state):
+        assert len(state) == 1
         self._seq = state[0]
 
 defproperty(ReadOnlySequentialNamedNodeMap, "length",
@@ -1217,9 +1208,6 @@ defproperty(ReadOnlySequentialNamedNodeMap, "length",
 
 class Identified:
     """Mix-in class that supports the publicId and systemId attributes."""
-
-    # XXX this does not work, this is an old-style class
-    # __slots__ = 'publicId', 'systemId'
 
     def _identified_mixin_init(self, publicId, systemId):
         self.publicId = publicId
