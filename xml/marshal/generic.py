@@ -176,6 +176,10 @@ class Marshaller(saxlib.HandlerBase):
     def m_None(self, value, dict):
         return ['<' + self.tag_none + '/>']
 
+    # Python 2.2 renamed the type of None to NoneTye
+    def m_NoneType(self, value, dict):
+        return self.m_None(value, dict)
+
     def m_complex(self, value, dict):
         name = self.tag_complex ; L = []
         return [ '<' + name + '>' + str(value.real) + ' ' + str(value.imag)

@@ -75,7 +75,7 @@ def main( tests = None, testdir = None ):
         if args[i][-3:] == '.py':
             args[i] = args[i][:-3]
     if exclude:
-        nottests[:0] = args
+        NOTTESTS[:0] = args
         args = []
     tests = tests or args or findtests()    
     test_support.verbose = verbose      # Tell tests to be moderately quiet
