@@ -38,7 +38,7 @@ try:
     (options,sysids)=getopt.getopt(sys.argv[1:],"l:o:n",
                                    ["nowarn","entstck","rawxml","extsub"])
 except getopt.error,e:
-    print "Usage error: "+e
+    print "Usage error: "+e.msg
     print usage
     sys.exit(1)
     

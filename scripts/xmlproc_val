@@ -54,7 +54,7 @@ try:
     (options,sysids)=getopt.getopt(sys.argv[1:],"c:l:o:n",
                                    ["nowarn","entstck","rawxml"])
 except getopt.error,e:
-    print_usage("Usage error: "+e)
+    print_usage("Usage error: "+e.msg)
     
 warnings=1
 entstack=0
