@@ -89,30 +89,14 @@ if expat_prefix:
     libraries = ['expat']
     library_dirs = [os.path.join(expat_prefix, "lib")]
 else:
-    # To build expat 1.95.2, we need to find out the byteorder
-    # Python 1.x doesn't provide sys.byteorder
-    try:
-        byteorder = sys.byteorder
-    except AttributeError:
-        try:
-            import struct
-        except ImportError:
-            print "Need struct module to determine byteorder"
-            raise SystemExit
-        if struct.pack("i",1) == '\x01\x00\x00\x00':
-            byteorder = "little"
-        else:
-            byteorder = "big"
-    if byteorder == "little":
+    # To build expat 1.95.x, we need to find out the byteorder
+    if sys.byteorder == "little":
         xmlbo = "12"
     else:
         xmlbo = "21"
     define_macros = [
         ('HAVE_EXPAT_H',None),
-        ('XML_NS', '1'),
-        ('XML_DTD', '1'),
         ('XML_BYTE_ORDER', xmlbo),
-        ('XML_CONTEXT_BYTES','1024'),
         ]
     include_dirs = ['extensions/expat/lib']
     sources.extend([
