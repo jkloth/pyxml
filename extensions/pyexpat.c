@@ -342,7 +342,11 @@ trace_frame_exc(PyThreadState *tstate, PyFrameObject *f)
 	value = Py_None;
 	Py_INCREF(value);
     }
+#if PY_VERSION_HEX < 0x02040000
+    arg = Py_BuildValue("(OOO)", type, value, traceback);
+#else
     arg = PyTuple_Pack(3, type, value, traceback);
+#endif
     if (arg == NULL) {
 	PyErr_Restore(type, value, traceback);
 	return 0;
@@ -1880,7 +1884,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.78 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.79 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
