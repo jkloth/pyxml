@@ -128,22 +128,21 @@ class DocumentTraversalReadTestCase(TestCaseBase):
         whatToShow = NodeFilter.SHOW_ALL
         filter = NodeFilter()
 
-        iterator = self.document.createNodeIterator(root, whatToShow, filter, 1)
+        iterator = self.document.createNodeIterator(
+            root, whatToShow, filter, 1)
 
         checkAttributeSameNode(iterator, 'root', root)
         checkAttribute(iterator, 'whatToShow', whatToShow)
-        assert iterator.filter is filter, (
-            "Created iterator has got a different filter object. Expected %s, "
-            "found %s." % (repr(filter), repr(iterator.filter)))
+        self.assert_(
+            iterator.filter is filter,
+            "Created iterator has got a different filter object. Expected %s,"
+            " found %s." % (repr(filter), repr(iterator.filter)))
         checkAttribute(iterator, 'expandEntityReferences', 1)
 
     def checkCreateNodeIteratorNoRoot(self):
-        try:
-            self.document.createNodeIterator(None, NodeFilter.SHOW_ALL, None, 0)
-        except xml.dom.NotSupportedErr:
-            pass
-        else:
-            assert 0, "Was allowed to create a NodeIterator without a root."
+        self.assertRaises(xml.dom.NotSupportedErr,
+                          self.document.createNodeIterator,
+                          None, NodeFilter.SHOW_ALL, None, 0)
 
     def checkCreateTreeWalker(self):
         root = self.document
@@ -154,18 +153,16 @@ class DocumentTraversalReadTestCase(TestCaseBase):
 
         checkAttributeSameNode(walker, 'root', root)
         checkAttribute(walker, 'whatToShow', whatToShow)
-        assert walker.filter is filter, (
-            "Created walker has got a different filter object. Expected %s, "
-            "found %s." % (repr(filter), repr(walker.filter)))
+        self.assert_(
+            walker.filter is filter,
+            "Created walker has got a different filter object. Expected %s,"
+            " found %s." % (repr(filter), repr(walker.filter)))
         checkAttribute(walker, 'expandEntityReferences', 1)
 
     def checkCreateTreeWalkerNoRoot(self):
-        try:
-            self.document.createTreeWalker(None, NodeFilter.SHOW_ALL, None, 0)
-        except xml.dom.NotSupportedErr:
-            pass
-        else:
-            assert 0, "Was allowed to create a TreeWalker without a root."
+        self.assertRaises(xml.dom.NotSupportedErr,
+                          self.document.createTreeWalker,
+                          None, NodeFilter.SHOW_ALL, None, 0)
 
 # --- NodeIterator
 
@@ -174,8 +171,8 @@ class NodeIteratorTestCase(TestCaseBase):
     def setUp(self):
         # Create a tree of elements. Alphabetic order denotes document order.
         docType = self.implementation.createDocumentType('A', None, None)
-        self.document = doc = self.implementation.createDocument(None, 'A',
-            docType)
+        self.document = doc = self.implementation.createDocument(
+            None, 'A', docType)
 
         self.A = a = doc.documentElement
         self.B = a.appendChild(doc.createTextNode('B'))
@@ -193,17 +190,16 @@ class NodeIteratorTestCase(TestCaseBase):
             nextNode = iterator.nextNode()
 
             if nextNode is None:
-                assert not all, (
-                    "nextNode returned None before end, still expected to "
-                    "see %s." % `all`)
-                break
+                self.failIf(all,
+                            "nextNode returned None before end, still expected"
+                            " to see %s." % `all`)
 
-            assert all, (
-                "nextNode returned %s when we should've gotten None." %
-                `nextNode`)
+            self.assert_(all,
+                         "nextNode returned %s; expected None." % `nextNode`)
 
             expect = all.pop(0)
-            assert isSameNode(expect, nextNode), (
+            self.assert_(
+                isSameNode(expect, nextNode),
                 "nextNode returned %s, expected %s." % (`nextNode`, `expect`))
 
         all = expectedNodes[:]
@@ -211,23 +207,22 @@ class NodeIteratorTestCase(TestCaseBase):
             previousNode = iterator.previousNode()
 
             if previousNode is None:
-                assert not all, (
-                    "previousNode returned None before end, still expected to "
-                    "see %s." % `all`)
-                break
+                self.failIf(all,
+                            "previousNode returned None before end, still"
+                            " expected to see %s." % `all`)
 
-            assert all, (
-                "previousNode returned %s when we should've gotten None." %
-                `previousNode`)
+            self.assert_(all,
+                         "previousNode returned %s; expected None." %
+                         `previousNode`)
 
             expect = all.pop()
-            assert isSameNode(expect, previousNode), (
-                "previousNode returned %s, expected %s." % (`previousNode`,
-                    `expect`))
+            self.assert_(isSameNode(expect, previousNode),
+                         "previousNode returned %s, expected %s."
+                         % (repr(previousNode), repr(expect)))
 
     def checkIteratorNoFilter(self):
-        iterator = self.document.createNodeIterator(self.document,
-            NodeFilter.SHOW_ALL, None, 0)
+        iterator = self.document.createNodeIterator(
+            self.document, NodeFilter.SHOW_ALL, None, 0)
 
         self.iterate(iterator, list(self.all))
 
@@ -286,35 +281,22 @@ class NodeIteratorTestCase(TestCaseBase):
         iterator = self.document.createNodeIterator(self.document,
             NodeFilter.SHOW_ALL, None, 0)
 
-        assert iterator.previousNode() is None, (
-            "previousNode on a fresh iterator did not return None.")
+        self.assert_(iterator.previousNode() is None,
+                     "previousNode on a fresh iterator did not return None.")
 
     def checkIteratorNextNodeInvalidState(self):
         iterator = self.document.createNodeIterator(self.document,
             NodeFilter.SHOW_ALL, None, 0)
         iterator.detach()
 
-        try:
-            iterator.nextNode()
-        except xml.dom.InvalidStateErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to call nextNode() on a detached NodeIterator.")
+        self.assertRaises(xml.dom.InvalidStateErr, iterator.nextNode)
 
     def checkIteratorPreviousNodeInvalidState(self):
         iterator = self.document.createNodeIterator(self.document,
             NodeFilter.SHOW_ALL, None, 0)
         iterator.detach()
 
-        try:
-            iterator.previousNode()
-        except xml.dom.InvalidStateErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to call previousNode() on a detached "
-                "NodeIterator.")
+        self.assertRaises(xml.dom.InvalidStateErr, iterator.previousNode)
 
     def checkIteratorFilterException(self):
         class ExceptionFilter(NodeFilter):
@@ -325,12 +307,7 @@ class NodeIteratorTestCase(TestCaseBase):
         iterator = self.document.createNodeIterator(self.document,
             NodeFilter.SHOW_ALL, ExceptionFilter(), 0)
 
-        try:
-            iterator.nextNode()
-        except KeyError:
-            pass
-        else:
-            assert 0, "NodeIterator caught exception raised in filter."
+        self.assertRaises(KeyError, iterator.nextNode)
 
 
 # -- TreeWalker
@@ -362,22 +339,21 @@ class TreeWalkerTestCase(TestCaseBase):
         current = walker.currentNode
         while 1:
             if current is None:
-                assert not all, (
-                    "%s returned None before end, still expected to "
-                    "see %s. TreeWalker.currentNode is %s." % (
-                    advanceMethod, `all`, `walker.currentNode`))
-                break
+                self.failIf(all,
+                            "%s returned None before end, still expected to "
+                            "see %s. TreeWalker.currentNode is %s." % (
+                                advanceMethod, `all`, `walker.currentNode`))
 
-            assert all, (
-                "%s returned %s when we should've gotten None. "
-                "TreeWalker.currentNode is %s." % (
-                advanceMethod, `current`, `walker.currentNode`))
+            self.assert_(all,
+                         "%s returned %s when we should've gotten None. "
+                         "TreeWalker.currentNode is %s." % (
+                             advanceMethod, `current`, `walker.currentNode`))
 
             expect = all.pop(0)
-            assert isSameNode(expect, current), (
-                "%s returned %s, expected %s. TreeWalker.currentNode is "
-                "%s." % (advanceMethod, `current`, `expect`,
-                         `walker.currentNode`))
+            self.assert_(
+                isSameNode(expect, current),
+                "%s returned %s, expected %s. TreeWalker.currentNode is %s."
+                % (advanceMethod, `current`, `expect`, `walker.currentNode`))
 
             current = getattr(walker, advanceMethod)()
 
@@ -385,22 +361,21 @@ class TreeWalkerTestCase(TestCaseBase):
         current = walker.currentNode
         while 1:
             if current is None:
-                assert not all, (
-                    "%s returned None before end, still expected to "
-                    "see %s. TreeWalker.currentNode is %s." % (
-                    retreatMethod, `all`, `walker.currentNode`))
-                break
+                self.failIf(all,
+                            "%s returned None before end, still expected to "
+                            "see %s. TreeWalker.currentNode is %s." % (
+                                retreatMethod, `all`, `walker.currentNode`))
 
-            assert all, (
-                "%s returned %s when we should've gotten None. "
-                "TreeWalker.currentNode is %s." % (
-                retreatMethod, `current`, `walker.currentNode`))
+            self.assert_(all,
+                         "%s returned %s when we should've gotten None. "
+                         "TreeWalker.currentNode is %s." % (
+                             retreatMethod, `current`, `walker.currentNode`))
 
             expect = all.pop()
-            assert isSameNode(expect, current), (
-                "%s returned %s, expected %s. "
-                "TreeWalker.currentNode is %s." % (
-                retreatMethod, `current`, `expect`, `walker.currentNode`))
+            self.assert_(
+                isSameNode(expect, current),
+                "%s returned %s, expected %s. TreeWalker.currentNode is %s."
+                % (retreatMethod, `current`, `expect`, `walker.currentNode`))
 
             current = getattr(walker, retreatMethod)()
 
@@ -471,8 +446,8 @@ class TreeWalkerTestCase(TestCaseBase):
         walker = self.document.createTreeWalker(self.document,
             NodeFilter.SHOW_ALL, None, 0)
 
-        assert walker.parentNode() is None, (
-            "parentNode on a fresh walker did not return None.")
+        self.assert_(walker.parentNode() is None,
+                     "parentNode on a fresh walker did not return None.")
 
         walker.firstChild() # doctype
         walker.nextSibling() # A
@@ -601,8 +576,8 @@ class TreeWalkerTestCase(TestCaseBase):
         walker = self.document.createTreeWalker(self.document,
             NodeFilter.SHOW_ALL, None, 0)
 
-        assert walker.previousSibling() is None, (
-            "previousSibling on a fresh walker did not return None.")
+        self.assert_(walker.previousSibling() is None,
+                     "previousSibling on a fresh walker did not return None.")
 
         # move to B to make more interesting
         walker.firstChild() # doctype
@@ -619,15 +594,15 @@ class TreeWalkerTestCase(TestCaseBase):
         walker.firstChild() # doctype
         walker.nextSibling() # A
         retNode = walker.lastChild()
-        assert isSameNode(retNode, walker.currentNode)
-        assert isSameNode(self.G, walker.currentNode)
+        self.assert_(isSameNode(retNode, walker.currentNode))
+        self.assert_(isSameNode(self.G, walker.currentNode))
 
     def checkWalkerPreviousNode(self):
         walker = self.document.createTreeWalker(self.document,
             NodeFilter.SHOW_ALL, None, 0)
 
-        assert walker.previousNode() is None, (
-            "previousNode on a fresh walker did not return None.")
+        self.assert_(walker.previousNode() is None,
+                     "previousNode on a fresh walker did not return None.")
 
     def checkCurrentNodeNoneNotSupported(self):
         walker = self.document.createTreeWalker(self.document,
@@ -638,6 +613,6 @@ class TreeWalkerTestCase(TestCaseBase):
         except xml.dom.NotSupportedErr:
             pass
         else:
-            assert 0, "Was allowed to set currentNode to None."
+            self.fail("Was allowed to set currentNode to None.")
 
 cases = buildCases(__name__, 'Traversal', '2.0')
