@@ -18,7 +18,6 @@ def test(tester):
     tester.startTest('Testing syntax')
     try:
         from xml.dom import Node
-        from xml.dom.Node import Node
     except:
         tester.error('Error in syntax', 1)
     tester.testDone()
