@@ -23,10 +23,11 @@ To compile everything, simply perform the following steps.
 2) To install everything in the site-packages directory as an xml/
    package, run "python setup.py install".
 
-If you want to use PyXML's experimental XPath and XSLT packages, you
-need to pass --with-xpath and --with-xslt to setup.py. If you also
-want to install FourThought's 4Suite package, you should avoid doing
-that.
+If you want to use PyXML's experimental XSLT package, you need to pass
+--with-xslt to setup.py.  If you also want to install FourThought's
+4Suite package, you should not install the XSLT package and also avoid
+the XPath package, so you can use the one from 4Suite.  This can be
+done by using the command line option --without-xpath.
 
 If you use a binary distribution package, no compiler is needed, and
 setup.py does not need to be run.
@@ -35,12 +36,12 @@ If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
-        4DOM                    Fourthought, Inc. (Uche Ogbuji, Mike Olson)
-        4XSLT                   Fourthought, Inc. (Uche Ogbuji, Mike Olson)
-        PyExpat                 Jack Jansen, Fred Drake, Martin v. Löwis
-        Expat 1.95.4            James Clark, Clark Cooper, Fred Drake
-        saxlib-1.0              Lars Marius Garshol
-        sgmlop-000705           Fredrik Lundh
-        xmlproc 0.70            Lars Marius Garshol
-        minidom                 Paul Prescod
-        PyTREX                  James Tauber
+    4DOM                Fourthought, Inc. (Uche Ogbuji, Mike Olson)
+    4XSLT               Fourthought, Inc. (Uche Ogbuji, Mike Olson)
+    PyExpat             Jack Jansen, Fred Drake, Martin v. Löwis
+    Expat 1.95.5        James Clark, Clark Cooper, Fred Drake, Karl Waclawek
+    saxlib-1.0          Lars Marius Garshol
+    sgmlop-000705       Fredrik Lundh
+    xmlproc 0.70        Lars Marius Garshol
+    minidom, pulldom    Paul Prescod
+    PyTREX              James Tauber
