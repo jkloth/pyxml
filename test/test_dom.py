@@ -1,6 +1,7 @@
 
 import StringIO
-from xml.dom import core, sax_builder
+from xml.dom import implementation, DOMException
+from xml.dom import HIERARCHY_REQUEST_ERR, NOT_FOUND_ERR, INDEX_SIZE_ERR
 from xml.sax import saxexts
 
 # Internal test function: traverse a DOM tree, then verify that all
@@ -68,7 +69,7 @@ print 'Simple document'
 print doc.toxml()
 
 # Example from the docstring at the top of xml.dom.core.py
-doc = core.createDocument()                  
+doc = DOMImplementation.implementation.createDocument(None,None,None)
 html = doc.createElement('html')
 html.setAttribute('attr', 'value')
 head = doc.createElement('head')
@@ -92,7 +93,7 @@ def check(cond, explanation):
     if not truth:
         print ' *** Failed:', explanation, '\n\t', cond
 
-doc = core.createDocument()
+doc = implementation.createDocument(None,None,None)
 check( 'isinstance(doc, core.Document)', 'createDocument returns a Document')
 check( 'doc.parentNode == None', 'Documents have no parent')
 
@@ -103,14 +104,17 @@ pi = doc.createProcessingInstruction("Processing", "Instruction")
 doc.appendChild(pi)
 doc.appendChild(n1)
 doc.appendChild(n1)  # n1 should be removed, and then added again
-try: doc.appendChild(n2)
-except core.HierarchyRequestException: pass
+try:
+    doc.appendChild(n2)
+except DOMException,e:
+    assert e.code==HIERARCHY_REQUEST_ERR
 else:
     print " *** Failed: Document.insertBefore didn't raise HierarchyRequestException"
 
 doc.replaceChild(n2, n1)    # Should work
 try: doc.replaceChild(n1, pi)    
-except core.HierarchyRequestException: pass
+except DOMException,e:
+    assert e.code==HIERARCHY_REQUEST_ERR
 else:
     print " *** Failed: Document.replaceChild didn't raise HierarchyRequestException"
 doc.replaceChild(n2, pi)    # Should also work
@@ -133,7 +137,8 @@ check('n1.parentNode.nodeType == core.DOCUMENT_NODE',
 fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
 n2 = doc.createElement('n2') ; fragment.appendChild( n2 )
 try: doc.appendChild( fragment )
-except core.HierarchyRequestException: pass
+except DOMException,e:
+    assert e.code == HIERARCHY_REQUEST_ERR
 else:
     print " *** Failed: Document.fragment.appendChild didn't raise HierarchyRequestException"
 
@@ -141,7 +146,8 @@ fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
 n2 = doc.createElement('n2') ; fragment.appendChild( n2 )
 doc.appendChild( pi )
 try: doc.replaceChild(fragment, pi)
-except core.HierarchyRequestException: pass
+except DOMException:
+    assert e.code==HIERARCHY_REQUEST_ERR
 else:
     print " *** Failed: Document.fragment.replaceChild didn't raise HierarchyRequestException"
 
@@ -172,7 +178,8 @@ check('e2.parentNode.tagName == "n1"', "insertBefore: e2's parent is n1")
 check('e3.parentNode.tagName == "n2"', "insertBefore: e3's parent is n3")
 
 try: n2.insertBefore(e1, e2)
-except core.NotFoundException: pass
+except DOMException,e:
+    assert e.code==NOT_FOUND_ERR
 else:
     print " *** Failed: insertBefore didn't raise NotFoundException"
 
@@ -190,7 +197,8 @@ check('n1.firstChild.toxml()=="e1"', "replaceChild: node1's only child is e1")
 check('ret.toxml() == "e2"', "replaceChild: returned value node1's only child is e1")
 
 try: n1.replaceChild(e2, e2)
-except core.NotFoundException: pass
+except DOMException,e:
+    assert e.code==NOT_FOUND_ERR
 else:
     print " *** Failed: insertBefore didn't raise NotFoundException"
 
@@ -200,7 +208,8 @@ check('e1.parentNode == None', "removeChild: e1 has no parent")
 check('ret.toxml() == "e1"', "removeChild: e1 is the returned value")
 
 try: n1.removeChild(e2)
-except core.NotFoundException: pass
+except DOMException,e:
+    assert e.code==NOT_FOUND_ERR
 else:
     print " *** Failed: removeChild didn't raise NotFoundException"
 
@@ -212,17 +221,20 @@ text = doc.createText('Hello world')
 check('text[0:5].value == "Hello"', 'text: slicing a node')
 
 try: text.substringData(-5, 5)
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: substringData didn't raise IndexSizeException (negative)"
 
 try: text.substringData(200, 5)
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: substringData didn't raise IndexSizeException (larger)"
 
 try: text.substringData(5, -5)
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: substringData didn't raise IndexSizeException (negcount)"
 
@@ -230,12 +242,14 @@ text.appendData('!')
 check('text.value == "Hello world!"', 'text: appendData')
 
 try: text.insertData(-5, 'string')
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: insertData didn't raise IndexSizeException (negative)"
 
 try: text.insertData(200, 'string')
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: insertData didn't raise IndexSizeException (larger)"
 
@@ -243,12 +257,14 @@ text.insertData(5, ',')
 check('text.value == "Hello, world!"', 'text: insertData of ","')
 
 try: text.deleteData(-5, 5)
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: deleteData didn't raise IndexSizeException (negative)"
 
 try: text.deleteData(200, 5)
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: deleteData didn't raise IndexSizeException (larger)"
 
@@ -256,12 +272,14 @@ text.deleteData(0, 5)
 check('text.value == ", world!"', 'text: deleteData of first 5 chars')
 
 try: text.replaceData(-5, 5, 'Top of the')
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: replaceData didn't raise IndexSizeException (negative)"
 
 try: text.replaceData(200, 5, 'Top of the')
-except core.IndexSizeException: pass
+except DOMException,e:
+    assert e.code==INDEX_SIZE_ERR
 else:
     print " *** Failed: replaceData didn't raise IndexSizeException (larger)"
 
