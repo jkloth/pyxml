@@ -14,7 +14,6 @@ Todo:
  * SAX 2 namespaces
 """
 
-import sys
 import xml.dom
 
 from xml.dom import EMPTY_NAMESPACE
@@ -95,13 +94,8 @@ class Node(xml.dom.Node, GetattrMagic):
         if node.nodeType not in self.childNodeTypes:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(node), repr(self)))
-        try:
-            if node.parentNode is not None:
-                node.parentNode.removeChild(node)
-        except AttributeError:
-            sys.__stderr__.write(str(node) + "\n")
-            #print node
-            raise
+        if node.parentNode is not None:
+            node.parentNode.removeChild(node)
         _appendChild(self, node)
         node.nextSibling = None
         return node
