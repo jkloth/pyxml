@@ -68,7 +68,8 @@ def should_build_pyexpat():
         # ParseFile throws exception, not available up to 2.28.
         # Memory leak fixes, merged into 2.33
         # Wrong array boundaries fixed in 2.35
-        if pyexpat.__version__ <= '2.39':
+        # UpdatePairedHandlers fixed in 2.54
+        if pyexpat.__version__ <= '2.53':
             if 'pyexpat' in sys.builtin_module_names:
                 print "Error: builtin expat library will conflict with ours"
                 print "Re-build python without builtin expat module"
