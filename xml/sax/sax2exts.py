@@ -1,7 +1,7 @@
 """
 Various extensions to the core SAX 2.0 API.
 
-$Id: sax2exts.py,v 1.4 2001/03/03 07:30:06 loewis Exp $
+$Id: sax2exts.py,v 1.5 2001/12/30 22:17:03 loewis Exp $
 """
 
 import saxexts,saxlib
@@ -26,9 +26,12 @@ XMLParserFactory = XMLReaderFactory(["xml.sax.drivers2.drv_pyexpat",
 
 XMLValParserFactory = ValidatingReaderFactory(["xml.sax.drivers2.drv_xmlproc"])
 
-HTMLParserFactory = XMLReaderFactory([])
+HTMLParserFactory=XMLReaderFactory(["xml.sax.drivers2.drv_htmllib",
+                                    "xml.sax.drivers2.drv_sgmlop",
+                                    "xml.sax.drivers2.drv_sgmllib"])
 
-SGMLParserFactory = XMLReaderFactory([])
+SGMLParserFactory=XMLReaderFactory(["xml.sax.drivers2.drv_sgmlop",
+                                    "xml.sax.drivers2.drv_sgmllib"])
 
 def make_parser(parser_list = []):
     return XMLParserFactory.make_parser(parser_list)
