@@ -1,5 +1,5 @@
 
-import StringIO
+import StringIO, sys
 from xml.dom import Node        # MUST be first
 from xml.dom import implementation, DOMException
 from xml.dom import HIERARCHY_REQUEST_ERR, NOT_FOUND_ERR
@@ -62,7 +62,7 @@ End of test.
 doc = FromXml(test_text)
 _check_dom_tree(doc)
 print 'Simple document'
-PrettyPrint(doc)
+PrettyPrint(doc, sys.stdout)
 print
 
 # Example from the docstring at the top of xml.dom.core.py
@@ -80,7 +80,7 @@ doc.appendChild (html)
 
 _check_dom_tree(doc)
 print '\nOutput of docstring example'
-PrettyPrint(doc)
+PrettyPrint(doc, sys.stdout)
 print
 
 # Detailed test suite for the DOM
