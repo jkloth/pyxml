@@ -236,7 +236,7 @@ def write_cm(out, cm):
                 continue
 
             if mod == '?':
-                occurs = ' minOccurs="0"'
+                occurs = ' minOccurs="0" maxOccurs="1"'
             elif mod == '*':
                 occurs = ' minOccurs="0" maxOccurs="*"'
             elif mod == '+':
@@ -244,7 +244,7 @@ def write_cm(out, cm):
             else:
                 occurs = ''
 
-            out.write('        <element ref="%s"%s>\n' % (name, occurs))
+            out.write('        <element ref="%s"%s/>\n' % (name, occurs))
         elif len(cp) == 3:
             write_cm(out, cp)
         else:
