@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.25 2001/10/30 21:38:23 uche Exp $
+$Id: saxutils.py,v 1.26 2001/11/23 09:19:22 afayolle Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -208,7 +208,7 @@ class XMLGenerator(handler.ContentHandler):
 
         for k,v in self._undeclared_ns_maps:
             if k is None:
-                self._out.write(' xmlns="%s"' % v)
+                self._out.write(' xmlns="%s"' % (v or ''))
             else:
                 self._out.write(' xmlns:%s="%s"' % (k,v))
         self._undeclared_ns_maps = []
