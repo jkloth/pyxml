@@ -5,7 +5,7 @@
 
 \title{Python/XML HOWTO}
 
-\release{0.06}
+\release{0.6.1}
 
 \author{The Python/XML Special Interest Group}
 \authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
@@ -127,14 +127,22 @@ Java SAX implentations.
 
 \section{Installing the XML Toolkit}
 
-Windows users should get the precompiled version at \url{XXX}; Mac
-users will use the corresponding precompiled version at \url{XXX}.
-Linux users may wish to use either the Debian package from \url{XXX},
-or the RPM from \url{XXX}.  To compile from source on a \UNIX{} platform,
-simply perform the following steps.
+Windows users should get the precompiled version at
+\url{http://sourceforge.net/projects/pyxml}; Mac users will use the
+corresponding precompiled version at \url{XXX}.  Linux users may wish
+to use either the Debian package from \url{XXX}, or the RPM from
+\url{http://sourceforge.net/projects/pyxml}.  To compile from source
+on a \UNIX{} platform, simply perform the following steps.
 
 \begin{enumerate}
-\item Get a copy of the source distribution from \url{http://www.python.org/topics/xml/download.html}.  Unpack it with the following command.
+\item If you have are using Python 1.5, you need to install the
+distutils first, which are available from
+\url{http://www.python.org/sigs/distutils-sig}. Python 1.6 and later
+already includes the distutils, so you can skip this step.
+
+\item Get a copy of the source distribution from
+\url{http://sourceforge.net/projects/pyxml}.  Unpack it with the
+following command.
 
 \begin{verbatim}
 gzip -dc xml-package.tgz | tar -xvf -
@@ -143,37 +151,20 @@ gzip -dc xml-package.tgz | tar -xvf -
 \item
  Run:
 \begin{verbatim}
-make -f Makefile.pre.in boot
+python setup.py install
 \end{verbatim}
 
-This creates the \file{Makefile}
-and
-\file{config.c} (producing various other intermediate files in the process), incorporating the values for \code{sys.prefix}, \code{sys.exec_prefix}
-and \code{sys.version} from the installed Python binary.  For this to work,
-the Python interpreter must be on your path.  If this fails, try
-
-\begin{verbatim}
-make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
-\end{verbatim}
-
-where \samp{<prefix>} is the value of \samp{installdir} used when
-installing Python.  You may possibly have to also set
-\samp{exec_installdir} to the value of \samp{exec_prefix}.
-
-\item
- Once the Makefile has been constructed, just run \samp{make} to
- compile the C modules.  There's no test suite yet, but there will be
- one someday.
-
-\item
-To install the code, run \samp{make install}.
- The code will be installed under the \file{site-packages/} directory
- as a package named \file{xml/}.  
+To properly execute this operation, a C compiler is required - the
+same that was used to build Python itself. On a Unix system, this
+operation may require superuser permissions. \code{setup.py} supports
+a number of different commands and options, invoke \code{setup.py}
+without any arguments to obtain help.
 
 \end{enumerate}
 
 If you have difficulty installing this software, send a problem report
-to <xml-sig@python.org> describing the problem.
+to <xml-sig@python.org> describing the problem, or submit a bug report
+at \url{http://sourceforget.net/projects/pyxml}.
 
 There are various demonstration programs in the \file{demo/} directory
 of the source distribution.  You may wish to look at them next to get
@@ -201,6 +192,10 @@ many people on the xml-dev mailing list.  SAX defines an event-driven
 interface for parsing XML.  To use SAX, you must create Python class
 instances which implement a specified interface, and the parser will
 then call various methods of those objects.
+
+This howto describes version 2 of SAX (also referred to as
+SAX2). Earlier versions of this text did explain SAX1, which is
+primarily of historical interest only.
 
 SAX is most suitable for purposes where you want to read through an
 entire XML document from beginning to end, and perform some
@@ -236,7 +231,7 @@ The SAX interfaces are:
 
 \begin{tableii}{c|p{4in}}{code}{Interface}{Purpose}
 
-\lineii{DocumentHandler}{Called for general document events.  This
+\lineii{ContentHandler}{Called for general document events.  This
 interface is the heart of SAX; its methods are called for the start of
 the document, the start and end of elements, and for the characters of
 data contained inside elements.
@@ -260,21 +255,13 @@ Python doesn't support the concept of interfaces, so the interfaces
 listed above are implemented as Python classes.  The default method
 implementations are defined to do nothing---the method body is just a
 Python \code{pass} statement--so usually you can simply ignore methods
-that aren't relevant to your application.  The one big exception is
-the \class{ErrorHandler} interface; if you don't provide methods that
-print a message or otherwise take some action, errors in the XML data
-will be silently ignored.  This is almost certainly \emph{not} what
-you want your application to do, so always implement at least the
-\method{error()} and \method{fatalError()} methods.
-\module{xml.sax.saxutils} provides an \class{ErrorPrinter} class which
-sends error messages to standard error, and an \class{ErrorRaiser}
-class which raises an exception for any warnings or errors.
+that aren't relevant to your application. 
 
 Pseudo-code for using SAX looks something like this:
 \begin{verbatim}
 # Define your specialized handler classes
-from xml.sax import saxlib
-class docHandler(saxlib.DocumentHandler):
+from xml.sax import Contenthandler, ...
+class docHandler(ContentHandler):
     ...
 
 # Create an instance of the handler classes
@@ -284,13 +271,11 @@ dh = docHandler()
 parser = ...
 
 # Tell the parser to use your handler instance
-parser.setDocumentHandler(dh)
+parser.setContentHandler(dh)
 
 # Parse the file; your handler's method will get called
-parser.parseFile(sys.stdin)
+parser.parse(sys.stdin)
 
-# Close the parser
-parser.close()
 \end{verbatim}
 
 \subsection{Starting Out}
@@ -321,21 +306,21 @@ Let's start off with something simple: a document handler named
 collection.
 
 \begin{verbatim}
-from xml.sax import saxlib
+from xml.sax import saxutils
 
-class FindIssue(saxlib.HandlerBase):
+class FindIssue(saxutils.DefaultHandler):
     def __init__(self, title, number):
         self.search_title, self.search_number = title, number
 \end{verbatim}
 
-The \class{HandlerBase} class inherits from all four interfaces:
-\class{DocumentHandler}, \class{DTDHandler}, \class{EntityResolver},
-and \class{ErrorHandler}.  This is what you should use if you
-want to use one class for everything.  When you want separate classes
-for each purpose, you can just subclass each interface individually.
-Neither of the two approaches is always ``better'' than the other;
-their suitability depends on what you're trying to do, and on what you
-prefer.  
+The \class{DefaultHandler} class inherits from all four interfaces:
+\class{ContentHandler}, \class{DTDHandler}, \class{EntityResolver},
+and \class{ErrorHandler}.  This is what you should use if you want to
+use one class for everything.  When you want separate classes for each
+purpose, or if you want to implement only a single interface, you can
+just subclass each interface individually.  Neither of the two
+approaches is always ``better'' than the other; their suitability
+depends on what you're trying to do, and on what you prefer.
 
 Since this class is doing a search, an instance needs to know what to
 search for.  The desired title and issue number are passed to the
@@ -382,44 +367,49 @@ instances of a parser and of \class{FindIssue}, associates them, and
 then calls a parser method to process the input.
 
 \begin{verbatim}
-from xml.sax import saxexts
+from xml.sax import make_parser
+from xml.sax.handler import feature_namespaces
 
 if __name__ == '__main__':
     # Create a parser
-    parser = saxexts.make_parser()
+    parser = make_parser()
+    # Tell the parser we are not interested in XML namespaces
+    parser.setFeature(feature_namespaces, 0)
 
     # Create the handler
     dh = FindIssue('Sandman', '62')
 
     # Tell the parser to use our handler
-    parser.setDocumentHandler(dh)
+    parser.setContentHandler(dh)
 
     # Parse the input
-    parser.parseFile(file)
-
-    # Close the parser
-    parser.close()
+    parser.parse(file)
 \end{verbatim}
 
-The \class{ParserFactory} class can automate the job of creating
+The \function{make_parser} class can automate the job of creating
 parsers.  There are already several XML parsers available to Python,
 and more might be added in future.  \file{xmllib.py} is included with
 Python 1.5, so it's always available, but it's also not particularly
 fast.  A faster version of \file{xmllib.py} is included in
-\module{xml.parsers}.  The \module{pyexpat} module is faster still, so
-it's obviously a preferred choice if it's available.
-\class{ParserFactory}'s \method{make_parser} method determines
-which parsers are available and chooses the fastest one, so you don't
-have to know what the different parsers are, or how they differ. (You
-can also tell \method{make_parser} to use a given parser, if you want
-to use a specific one.)
+\module{xml.parsers}.  The \module{xml.parsers.expat} module is faster
+still, so it's obviously a preferred choice if it's available.
+\function{make_parser} determines which parsers are available and
+chooses the fastest one, so you don't have to know what the different
+parsers are, or how they differ. (You can also tell
+\function{make_parser} to try a list of parsers, if you want to use a
+specific one).
+
+In SAX2, XML namespace are supported. Parsers will not call
+\method{startElement}, but \method{startElementNS} if namespace
+processing is active. Since our content handler does not implement the
+namespace-aware methods, we request that namespace processing is
+deactivated. The default of this setting varies from parser to parser,
+so you should always set it to a safe value -- unless your handlers
+support either method.
 
 Once you've created a parser instance, calling
-\method{setDocumentHandler} tells the parser what to use as the
-handler.  The final statement, \code{parser.close()}, is very
-important, forcing the parser to flush its internal buffers and free
-any internal objects and memory allocations.  Memory leaks can result
-if you don't call the \method{close()} method.
+\method{setContentHandler} tells the parser what to use as the
+handler.
 
 If you run the above code with the sample XML document, it'll output
 \code{Sandman \#62 found.}  
@@ -436,37 +426,36 @@ Now, try running the above code with this file as input:
 
 The \code{\&foo;} entity is unknown, and the \element{comic} element
 isn't closed (if it was empty, there would be a \samp{/} before the
-closing \samp{>}.  Why did the file get processed without complaint?
-Because the default code for the \class{ErrorHandler} interface does
-nothing, and no different implementation was provided, so the errors
-are silently ignored.
+closing \samp{>}. As a result, you get a SAXParseException, e.g.
 
-The \class{ErrorRaiser} class automatically raises an exception for
-any error; you'll usually set an instance of this class as the error
-handler.  Otherwise, you should provide your own version of the
-\class{ErrorHandler} interface, and at minimum override the
-\method{error()} and \method{fatalError()} methods.  The minimal
-implementation for each method can be a single line.  The methods in
-the \class{ErrorHandler} interface--\method{warning}, \method{error},
-and \method{fatalError}--are all passed a single argument, an
-exception instance.  The exception will always be a subclass of
+\begin{verbatim}
+xml.sax._exceptions.SAXParseException: undefined entity at None:2:2
+\end{verbatim}
+
+The default code for the \class{ErrorHandler} interface automatically
+raises an exception for any error; if that is what you want in case of
+an error, you don't need to change the error handler.  Otherwise, you
+should provide your own version of the \class{ErrorHandler} interface,
+and at minimum override the \method{error()} and \method{fatalError()}
+methods.  The minimal implementation for each method can be a single
+line.  The methods in the \class{ErrorHandler}
+interface--\method{warning}, \method{error}, and
+\method{fatalError}--are all passed a single argument, an exception
+instance.  The exception will always be a subclass of
 \exception{SAXException}, and calling \code{str()} on it will produce
 a readable error message explaining the problem.
 
 So, to re-implement a variant of \class{ErrorRaiser}, simply define
-two of the three methods to raise the exception they're passed:
+one of the three methods to print the exception they're passed:
 
 \begin{verbatim}
     def error(self, exception):
-        raise exception
-    def fatalError(self, exception):
-        raise exception
+        import sys
+        sys.stderr.write("\%s\n" \% exception)
 \end{verbatim}
 
-\method{warning()} might simply print the exception to \code{sys.stderr} 
-and return without raising the exception.  Now the same incorrect XML
-file will cause a traceback to be printed, with the error message
-``xml.sax.saxlib.SAXException: reference to unknown entity''.  
+With this definition, non-fatal errors will result in an error message,
+whereas fatal errors will continue to produce a traceback.
 
 \subsection{Searching Element Content}
 
@@ -500,17 +489,17 @@ set \code{inWriterContent} back to false.
 Here's the first part of the code; this implements step 1.
 
 \begin{verbatim}
-from xml.sax import saxlib
+from xml.sax import ContentHandler
 import string
 
 def normalize_whitespace(text):
     "Remove redundant whitespace from a string"
-    return string.join( string.split(text), ' ')
+    return string.join(string.split(text), ' ')
 
-class FindWriter(saxlib.HandlerBase):
+class FindWriter(ContentHandler):
     def __init__(self, search_name):
         # Save the name we're looking for
-        self.search_name = normalize_whitespace( search_name )
+        self.search_name = normalize_whitespace(search_name)
 
         # Initialize the flag to false
         self.inWriterContent = 0
@@ -518,8 +507,8 @@ class FindWriter(saxlib.HandlerBase):
     def startElement(self, name, attrs):
         # If it's a comic element, save the title and issue
         if name == 'comic':
-            title = normalize_whitespace( attrs.get('title', "") )
-            number = normalize_whitespace( attrs.get('number', "") )
+            title = normalize_whitespace(attrs.get('title', ""))
+            number = normalize_whitespace(attrs.get('number', ""))
             self.this_title = title
             self.this_number = number
 
@@ -541,21 +530,16 @@ produce a wrong result due to the content of two elements having
 different amounts of whitespace.
 
 \begin{verbatim}
-    def characters(self, ch, start, length):
+    def characters(self, ch):
         if self.inWriterContent:
-            self.writerName = self.writerName + ch[start:start+length]
+            self.writerName = self.writerName + ch
 \end{verbatim}
 
 The \method{characters()} method is called for characters that aren't
-inside XML tags.  \var{ch} is a string of characters, and \var{start}
-is the point in the string where the characters
-start.  \var{length} is the length of the character data.  You should
-not assume that \var{start} is equal to 0, or that all of \var{ch} is
-the character data.  An XML parser could be implemented to read the
-entire document into memory as a string, and then operate by indexing
-into the string.   This would mean that \var{ch} would always contain
-the entire document, and only the values of \var{start} and
-\var{length} would be changed.  
+inside XML tags.  \var{ch} is a string of characters. It is not
+necessarily a byte string; parsers may also provide a buffer object
+that is a slice of the full document, or they may pass Unicode
+objects (as the expat parser does in Python 2.0).
 
 You also shouldn't assume that all the characters are passed in a
 single function call.  In the example above, there might be only one
@@ -638,34 +622,30 @@ available RAM.
 
 \subsection{Getting A DOM Tree}
 
-The easiest way to get a DOM tree is to have it built for you.  One of
-the modules in the \module{xml.dom} package is
-\module{sax_builder.py}, which provides a \class{SaxBuilder} class
-that will construct a DOM tree from its input.  You must create a
-\class{SaxBuilder} instance and a SAX parser, associate the instance
-as the parser's document handler, and then retrieve the resulting
-tree.
+The easiest way to get a DOM tree is to have it built for you. PyXML
+offers two alternative implementations of the DOM,
+\module{xml.dom.minidom} and \code{4DOM}. \module{xml.dom.minidom} is
+included in Python 2. It is a minimalistic implementation, which means
+it does not provide all interfaces and operations required by the DOM
+standard. \code{4DOM} (XXX reference) is a complete implementation of
+DOM Level 2 (which is currently work in progress), so we will use that
+in the examples.
+
+One of the modules in the \module{xml.dom} package is
+\module{xml.dom.ext.reader.Sax2}, which provides the functions
+\function{FromXmlStream}, \function{FromXml}, \function{FromXmlFile},
+and \function{FromXmlFile} which will construct a DOM tree from their
+input (a file-like object, a string, a file name, and a URL,
+respectively). They all return a DOM \class{Document} object.
 
 \begin{verbatim}
 import sys
-from xml.sax import saxexts
-from xml.dom.sax_builder import SaxBuilder
+from xml.dom.ext.reader.Sax import FromXmlStream
+from xml.dom.ext import PrettyPrint
 
-# Create a SAX parser and a SaxBuilder instance
-p = saxexts.make_parser()
-dh = SaxBuilder()
-p.setDocumentHandler(dh)
-
-# Parse the input, and close the parser
-p.parseFile(sys.stdin)
-p.close()
-
-# Retrieve the DOM tree
-doc = dh.document
+# parse the document
+doc = FromXmlStream(sys.stdin)
 \end{verbatim}
-
-The \class{SaxBuilder} document handler makes the resulting DOM tree
-available as its \member{document} attribute.  
 
 \subsection{Manipulating The Tree}
 
@@ -798,8 +778,7 @@ The World Wide Web Consortium's DOM page.
 %
 The DOM Level 1 Recommendation.  Unlike most standards, this one is
 actually pretty readable, particularly if you're only interested in
-the Core XML interfaces, which are the only ones implemented in
-Python.  
+the Core XML interfaces.  
 
 \end{definitions}
 

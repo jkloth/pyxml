@@ -1,6 +1,5 @@
 
-   Python/XML HOWTO
-     _________________________________________________________________
+                              Python/XML HOWTO
      _________________________________________________________________
    
                               Python/XML HOWTO
@@ -21,6 +20,8 @@
    This is a draft document; 'XXX' in the text indicates that something
    has to be filled in later, or rewritten, or verified, or something.
    
+   #0#
+   
 Contents
 
      * Contents
@@ -40,9 +41,7 @@ Contents
           + 4.4 Building A Document
           + 4.5 Processing HTML
           + 4.6 Related Links
-     * 5. xmlarch: Architectural Forms
-          + 5.1 Related Links
-     * 6. Glossary
+     * 5. Glossary
        
                             1. Introduction to XML
                                        
@@ -137,49 +136,42 @@ Contents
 
                          2. Installing the XML Toolkit
                                        
-   Windows users should get the precompiled version at XXX; Mac users
-   will use the corresponding precompiled version at XXX. Linux users may
-   wish to use either the Debian package from XXX, or the RPM from XXX.
-   To compile from source on a Unix platform, simply perform the
-   following steps.
+   Windows users should get the precompiled version at
+   http://sourceforge.net/projects/pyxml; Mac users will use the
+   corresponding precompiled version at XXX. Linux users may wish to use
+   either the Debian package from XXX, or the RPM from
+   http://sourceforge.net/projects/pyxml. To compile from source on a
+   Unix platform, simply perform the following steps.
    
    1.
+          If you have are using Python 1.5, you need to install the
+          distutils first, which are available from
+          http://www.python.org/sigs/distutils-sig. Python 1.6 and later
+          already includes the distutils, so you can skip this step.
+   2.
           Get a copy of the source distribution from
-          http://www.python.org/topics/xml/download.html. Unpack it with
-          the following command.
+          http://sourceforge.net/projects/pyxml. Unpack it with the
+          following command.
           
 gzip -dc xml-package.tgz | tar -xvf -
 
-   2.
-          Run:
-          
-make -f Makefile.pre.in boot
-
-          This creates the "Makefile" and "config.c" (producing various
-          other intermediate files in the process), incorporating the
-          values for sys.prefix, sys.exec_prefix and sys.version from the
-          installed Python binary. For this to work, the Python
-          interpreter must be on your path. If this fails, try
-          
-make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
-
-          where "<prefix>" is the value of "installdir" used when
-          installing Python. You may possibly have to also set
-          "exec_installdir" to the value of "exec_prefix".
    3.
-          Once the Makefile has been constructed, just run "make" to
-          compile the C modules. There's no test suite yet, but there
-          will be one someday.
-   4.
-          To install the code, run "make install". The code will be
-          installed under the "site-packages/" directory as a package
-          named "xml/".
-          
-   If you have difficulty installing this software, send a problem report
-   to <xml-sig@python.org> describing the problem.
+   Run:
    
-   There are various demonstration programs in the "demo/" directory of
-   the source distribution. You may wish to look at them next to get an
+python setup.py install
+
+   To properly execute this operation, a C compiler is required - the
+   same that was used to build Python itself. On a Unix system, this
+   operation may require superuser permissions. setup.py supports a
+   number of different commands and options, invoke setup.py without any
+   arguments to obtain help.
+   
+   If you have difficulty installing this software, send a problem report
+   to <xml-sig@python.org> describing the problem, or submit a bug report
+   at http://sourceforget.net/projects/pyxml.
+   
+   There are various demonstration programs in the demo/ directory of the
+   source distribution. You may wish to look at them next to get an
    impression of what's possible with the XML tools, and as a source of
    example code.
    
@@ -198,6 +190,10 @@ make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
    interface for parsing XML. To use SAX, you must create Python class
    instances which implement a specified interface, and the parser will
    then call various methods of those objects.
+   
+   This howto describes version 2 of SAX (also referred to as SAX2).
+   Earlier versions of this text did explain SAX1, which is primarily of
+   historical interest only.
    
    SAX is most suitable for purposes where you want to read through an
    entire XML document from beginning to end, and perform some
@@ -230,9 +226,9 @@ make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
    
    The SAX interfaces are:
    
-                             Interface Purpose
+                             Interface  Purpose
                                       
-   DocumentHandler Called for general document events. This interface is
+    ContentHandler Called for general document events. This interface is
        the heart of SAX; its methods are called for the start of the
      document, the start and end of elements, and for the characters of
                       data contained inside elements.
@@ -252,20 +248,13 @@ make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
    listed above are implemented as Python classes. The default method
    implementations are defined to do nothing--the method body is just a
    Python pass statement-so usually you can simply ignore methods that
-   aren't relevant to your application. The one big exception is the
-   ErrorHandler interface; if you don't provide methods that print a
-   message or otherwise take some action, errors in the XML data will be
-   silently ignored. This is almost certainly not what you want your
-   application to do, so always implement at least the error() and
-   fatalError() methods. xml.sax.saxutils provides an ErrorPrinter class
-   which sends error messages to standard error, and an ErrorRaiser class
-   which raises an exception for any warnings or errors.
+   aren't relevant to your application.
    
    Pseudo-code for using SAX looks something like this:
    
 # Define your specialized handler classes
-from xml.sax import saxlib
-class docHandler(saxlib.DocumentHandler):
+from xml.sax import Contenthandler, ...
+class docHandler(ContentHandler):
     ...
 
 # Create an instance of the handler classes
@@ -275,13 +264,10 @@ dh = docHandler()
 parser = ...
 
 # Tell the parser to use your handler instance
-parser.setDocumentHandler(dh)
+parser.setContentHandler(dh)
 
 # Parse the file; your handler's method will get called
-parser.parseFile(sys.stdin)
-
-# Close the parser
-parser.close()
+parser.parse(sys.stdin)
 
 3.1 Starting Out
 
@@ -307,16 +293,17 @@ parser.close()
    Let's start off with something simple: a document handler named
    FindIssue that reports whether a given issue is in the collection.
    
-from xml.sax import saxlib
+from xml.sax import saxutils
 
-class FindIssue(saxlib.HandlerBase):
+class FindIssue(saxutils.DefaultHandler):
     def __init__(self, title, number):
         self.search_title, self.search_number = title, number
 
-   The HandlerBase class inherits from all four interfaces:
-   DocumentHandler, DTDHandler, EntityResolver, and ErrorHandler. This is
+   The DefaultHandler class inherits from all four interfaces:
+   ContentHandler, DTDHandler, EntityResolver, and ErrorHandler. This is
    what you should use if you want to use one class for everything. When
-   you want separate classes for each purpose, you can just subclass each
+   you want separate classes for each purpose, or if you want to
+   implement only a single interface, you can just subclass each
    interface individually. Neither of the two approaches is always
    ``better'' than the other; their suitability depends on what you're
    trying to do, and on what you prefer.
@@ -361,40 +348,45 @@ Starting element: penciller
    instances of a parser and of FindIssue, associates them, and then
    calls a parser method to process the input.
    
-from xml.sax import saxexts
+from xml.sax import make_parser
+from xml.sax.handler import feature_namespaces
 
 if __name__ == '__main__':
     # Create a parser
-    parser = saxexts.make_parser()
+    parser = make_parser()
+    # Tell the parser we are not interested in XML namespaces
+    parser.setFeature(feature_namespaces, 0)
 
     # Create the handler
     dh = FindIssue('Sandman', '62')
 
     # Tell the parser to use our handler
-    parser.setDocumentHandler(dh)
+    parser.setContentHandler(dh)
 
     # Parse the input
-    parser.parseFile(file)
+    parser.parse(file)
 
-    # Close the parser
-    parser.close()
-
-   The ParserFactory class can automate the job of creating parsers.
-   There are already several XML parsers available to Python, and more
-   might be added in future. "xmllib.py" is included with Python 1.5, so
-   it's always available, but it's also not particularly fast. A faster
-   version of "xmllib.py" is included in xml.parsers. The pyexpat module
-   is faster still, so it's obviously a preferred choice if it's
-   available. ParserFactory's make_parser method determines which parsers
-   are available and chooses the fastest one, so you don't have to know
-   what the different parsers are, or how they differ. (You can also tell
-   make_parser to use a given parser, if you want to use a specific one.)
+   The make_parser class can automate the job of creating parsers. There
+   are already several XML parsers available to Python, and more might be
+   added in future. xmllib.py is included with Python 1.5, so it's always
+   available, but it's also not particularly fast. A faster version of
+   xmllib.py is included in xml.parsers. The xml.parsers.expat module is
+   faster still, so it's obviously a preferred choice if it's available.
+   make_parser determines which parsers are available and chooses the
+   fastest one, so you don't have to know what the different parsers are,
+   or how they differ. (You can also tell make_parser to try a list of
+   parsers, if you want to use a specific one).
    
-   Once you've created a parser instance, calling setDocumentHandler
-   tells the parser what to use as the handler. The final statement,
-   parser.close(), is very important, forcing the parser to flush its
-   internal buffers and free any internal objects and memory allocations.
-   Memory leaks can result if you don't call the close() method.
+   In SAX2, XML namespace are supported. Parsers will not call
+   startElement, but startElementNS if namespace processing is active.
+   Since our content handler does not implement the namespace-aware
+   methods, we request that namespace processing is deactivated. The
+   default of this setting varies from parser to parser, so you should
+   always set it to a safe value - unless your handlers support either
+   method.
+   
+   Once you've created a parser instance, calling setContentHandler tells
+   the parser what to use as the handler.
    
    If you run the above code with the sample XML document, it'll output
    Sandman #62 found.
@@ -409,34 +401,31 @@ if __name__ == '__main__':
 </collection>
 
    The &foo; entity is unknown, and the comic element isn't closed (if it
-   was empty, there would be a "/" before the closing ">". Why did the
-   file get processed without complaint? Because the default code for the
-   ErrorHandler interface does nothing, and no different implementation
-   was provided, so the errors are silently ignored.
+   was empty, there would be a "/" before the closing ">". As a result,
+   you get a SAXParseException, e.g.
    
-   The ErrorRaiser class automatically raises an exception for any error;
-   you'll usually set an instance of this class as the error handler.
-   Otherwise, you should provide your own version of the ErrorHandler
-   interface, and at minimum override the error() and fatalError()
-   methods. The minimal implementation for each method can be a single
-   line. The methods in the ErrorHandler interface-warning, error, and
-   fatalError-are all passed a single argument, an exception instance.
-   The exception will always be a subclass of SAXException, and calling
-   str() on it will produce a readable error message explaining the
-   problem.
+xml.sax._exceptions.SAXParseException: undefined entity at None:2:2
+
+   The default code for the ErrorHandler interface automatically raises
+   an exception for any error; if that is what you want in case of an
+   error, you don't need to change the error handler. Otherwise, you
+   should provide your own version of the ErrorHandler interface, and at
+   minimum override the error() and fatalError() methods. The minimal
+   implementation for each method can be a single line. The methods in
+   the ErrorHandler interface-warning, error, and fatalError-are all
+   passed a single argument, an exception instance. The exception will
+   always be a subclass of SAXException, and calling str() on it will
+   produce a readable error message explaining the problem.
    
-   So, to re-implement a variant of ErrorRaiser, simply define two of the
-   three methods to raise the exception they're passed:
+   So, to re-implement a variant of ErrorRaiser, simply define one of the
+   three methods to print the exception they're passed:
    
     def error(self, exception):
-        raise exception
-    def fatalError(self, exception):
-        raise exception
+        import sys
+        sys.stderr.write("\%s\n" \% exception)
 
-   warning() might simply print the exception to sys.stderr and return
-   without raising the exception. Now the same incorrect XML file will
-   cause a traceback to be printed, with the error message
-   ``xml.sax.saxlib.SAXException: reference to unknown entity''.
+   With this definition, non-fatal errors will result in an error
+   message, whereas fatal errors will continue to produce a traceback.
    
 3.3 Searching Element Content
 
@@ -466,17 +455,17 @@ if __name__ == '__main__':
           
    Here's the first part of the code; this implements step 1.
    
-from xml.sax import saxlib
+from xml.sax import ContentHandler
 import string
 
 def normalize_whitespace(text):
     "Remove redundant whitespace from a string"
-    return string.join( string.split(text), ' ')
+    return string.join(string.split(text), ' ')
 
-class FindWriter(saxlib.HandlerBase):
+class FindWriter(ContentHandler):
     def __init__(self, search_name):
         # Save the name we're looking for
-        self.search_name = normalize_whitespace( search_name )
+        self.search_name = normalize_whitespace(search_name)
 
         # Initialize the flag to false
         self.inWriterContent = 0
@@ -484,8 +473,8 @@ class FindWriter(saxlib.HandlerBase):
     def startElement(self, name, attrs):
         # If it's a comic element, save the title and issue
         if name == 'comic':
-            title = normalize_whitespace( attrs.get('title', "") )
-            number = normalize_whitespace( attrs.get('number', "") )
+            title = normalize_whitespace(attrs.get('title', ""))
+            number = normalize_whitespace(attrs.get('number', ""))
             self.this_title = title
             self.this_number = number
 
@@ -505,19 +494,15 @@ class FindWriter(saxlib.HandlerBase):
    result due to the content of two elements having different amounts of
    whitespace.
    
-    def characters(self, ch, start, length):
+    def characters(self, ch):
         if self.inWriterContent:
-            self.writerName = self.writerName + ch[start:start+length]
+            self.writerName = self.writerName + ch
 
    The characters() method is called for characters that aren't inside
-   XML tags. ch is a string of characters, and start is the point in the
-   string where the characters start. length is the length of the
-   character data. You should not assume that start is equal to 0, or
-   that all of ch is the character data. An XML parser could be
-   implemented to read the entire document into memory as a string, and
-   then operate by indexing into the string. This would mean that ch
-   would always contain the entire document, and only the values of start
-   and length would be changed.
+   XML tags. ch is a string of characters. It is not necessarily a byte
+   string; parsers may also provide a buffer object that is a slice of
+   the full document, or they may pass Unicode objects (as the expat
+   parser does in Python 2.0).
    
    You also shouldn't assume that all the characters are passed in a
    single function call. In the example above, there might be only one
@@ -591,32 +576,27 @@ class FindWriter(saxlib.HandlerBase):
    
 4.1 Getting A DOM Tree
 
-   The easiest way to get a DOM tree is to have it built for you. One of
-   the modules in the xml.dom package is sax_builder.py, which provides a
-   SaxBuilder class that will construct a DOM tree from its input. You
-   must create a SaxBuilder instance and a SAX parser, associate the
-   instance as the parser's document handler, and then retrieve the
-   resulting tree.
+   The easiest way to get a DOM tree is to have it built for you. PyXML
+   offers two alternative implementations of the DOM, xml.dom.minidom and
+   4DOM. xml.dom.minidom is included in Python 2. It is a minimalistic
+   implementation, which means it does not provide all interfaces and
+   operations required by the DOM standard. 4DOM (XXX reference) is a
+   complete implementation of DOM Level 2 (which is currently work in
+   progress), so we will use that in the examples.
+   
+   One of the modules in the xml.dom package is xml.dom.ext.reader.Sax2,
+   which provides the functions FromXmlStream, FromXml, FromXmlFile, and
+   FromXmlFile which will construct a DOM tree from their input (a
+   file-like object, a string, a file name, and a URL, respectively).
+   They all return a DOM Document object.
    
 import sys
-from xml.sax import saxexts
-from xml.dom.sax_builder import SaxBuilder
+from xml.dom.ext.reader.Sax import FromXmlStream
+from xml.dom.ext import PrettyPrint
 
-# Create a SAX parser and a SaxBuilder instance
-p = saxexts.make_parser()
-dh = SaxBuilder()
-p.setDocumentHandler(dh)
+# parse the document
+doc = FromXmlStream(sys.stdin)
 
-# Parse the input, and close the parser
-p.parseFile(sys.stdin)
-p.close()
-
-# Retrieve the DOM tree
-doc = dh.document
-
-   The SaxBuilder document handler makes the resulting DOM tree available
-   as its document attribute.
-   
 4.2 Manipulating The Tree
 
    This HOWTO can't be a complete introduction to the Document Object
@@ -727,145 +707,9 @@ Element xbel None
    http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/
           The DOM Level 1 Recommendation. Unlike most standards, this one
           is actually pretty readable, particularly if you're only
-          interested in the Core XML interfaces, which are the only ones
-          implemented in Python.
+          interested in the Core XML interfaces.
           
-                        5. xmlarch: Architectural Forms
-                                       
-   The xmlarch module contains an XML architectural forms processor
-   written in Python. It allows you to process XML architectural forms
-   using any parser that uses the SAX interfaces. The module allows you
-   to process several architectures in one parsing pass. Architectural
-   document events for an architecture can even be broadcasted to
-   multiple DocumentHandlers. (e.g. you can have 2 handlers for the RDF
-   architecture, 3 for the XLink architecture and perhaps one for the
-   HyTime architecture.) The architecture processor uses the SAX
-   DocumentHandler interface which means that you can register the
-   architecture handler (ArchDocHandler) with any SAX 1.0 compliant
-   parser. It currently does not process any meta document type
-   definition documents (meta-DTDs). When a DTD parser module is
-   available the code will be modified to use that in order to process
-   meta-DTD information. Please note that validating and well-formed
-   parsers may report different SAX events when parsing documents.
-   
-   The xmlarch module contains six classes: ArchDocHandler, Architecture,
-   ArchParseState, ArchException, AttributeParser and Normalizer.
-   
-     * ArchDocHandler is a subclass of the saxlib.DocumentHandler
-       interface. This is the class used for processing an architectural
-       document.
-     * Architecture contains information about an architecture.
-     * ArchParseState holds information about an architecture's parse
-       state when parsing a document.
-     * AttributeParser parses architecture use declaration PIs (attribute
-       strings).
-     * ArchException holds information about an architectural exception
-       thrown by an ArchDocHandler instance.
-     * Normalizer is a document handler that outputs "normalized" XML.
-       
-   Using the xmlarch module usually means that you have to do the
-   following things:
-   
-     * Import the required SAX modules; saxexts, saxlib, saxutils.
-     * Import the xmlarch module.
-     * Create a SAX compliant parser object.
-     * Create an XML architectures processor handler.
-     * Register this handler with the parser.
-     * Add document handlers for the architectures you want to process.
-     * Register a default document handler with the architecture
-       processor handler.
-     * Parse a document.
-       
-   A simple example
-   
-   Python code:
-   
-# Import needed modules
-from xml.sax import saxexts, saxlib, saxutils
-import sys, xmlarch
-
-# Create architecture processor handler
-arch_handler = xmlarch.ArchDocHandler()
-
-# Create parser and register architecture processor with it
-parser = saxexts.XMLParserFactory.make_parser()
-parser.setDocumentHandler(arch_handler)
-
-# Add an document handler to process the html architecture
-arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(sys.stdout))
-
-# Parse (and process) the document
-parser.parse("simple.xml")
-
-   A sample XML document:
-   
-<?xml version="1.0"?>
-<?IS10744:arch name="html"?>
-<doc>
-<title html="h1">My first architectual document</title>
-<author html="address">Geir Ove Gronmo, grove@infotek.no</author>
-<para>This is the first paragraph in this document</para>
-<para html="p">This is the second paragraph</para>
-</doc>
-
-   The result:
-   
-<html>
-<h1>My first architectual document</h1>
-<address>Geir Ove Gronmo, grove@infotek.no</address>
-
-<p>This is the second paragraph</p>
-</html>
-
-   See also the files "simple.py" and "simple.xml" in the "demo/arch"
-   directory of the Python/XML distribution. If you try to process the
-   persons architecture in this document instead you get the following
-   output:
-   
-<persons>
-
-<author>Geir Ove Grønmo</author><mentioned>Eliot Kimber</mentioned><mentioned>D
-avid Megginson</mentioned><mentioned>Lars Marius Garshol</mentioned>
-</persons>
-
-   A more complex example:
-   
-   Python code:
-   
-# Import needed modules
-from xml.sax import saxexts, saxlib, saxutils
-import sys, xmlarch
-
-# create architecture processor handler
-arch_handler = xmlarch.ArchDocHandler()
-
-# Create parser and register architecture processor with it
-parser = saxexts.XMLParserFactory.make_parser()
-parser.setDocumentHandler(arch_handler)
-
-# Add an document handlers to process the html and biblio architectures
-arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(open("html.out",
- "w")))
-arch_handler.addArchDocumentHandler("biblio", saxutils.ESISDocHandler(open("bib
-lio1.out", "w")))
-arch_handler.addArchDocumentHandler("biblio", saxutils.Canonizer(open("biblio2.
-out", "w")))
-
-# Register a default document handler that just passes through any incoming eve
-nts
-arch_handler.setDefaultDocumentHandler(xmlarch.Normalizer(sys.stdout))
-
-# Parse (and process) the document
-parser.parse("complex.xml")
-
-   Because this causes a lot of output I've not included the XML document
-   and the results. See instead the files "complex.py" and "complex.xml"
-   in the "demo/xml" directory of the Python/XML distribution and try it
-   yourself.
-   
-5.1 Related Links
-
-                                  6. Glossary
+                                  5. Glossary
                                        
    XML has given rise to a sea of acronyms and terms. This section will
    list the most significant terms, and sketch their relevance.
@@ -919,11 +763,8 @@ parser.parse("complex.xml")
    Sydney.
    
    The application of LaTeX2HTML to the Python documentation has been
-   heavily tailored by Fred L. Drake, Jr. (fdrake@acm.org). Original
-   navigation icons were contributed by Christopher Petrilli
-   (petrilli@dworkin.amber.org).
+   heavily tailored by Fred L. Drake, Jr. Original navigation icons were
+   contributed by Christopher Petrilli.
      _________________________________________________________________
    
-   Python/XML HOWTO
-     _________________________________________________________________
-
+                              Python/XML HOWTO
