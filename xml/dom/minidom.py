@@ -126,7 +126,10 @@ class Node(xml.dom.Node, GetattrMagic):
             newChild.parentNode.removeChild(newChild)
         if newChild is oldChild:
             return
-        index = self.childNodes.index(oldChild)
+        try:
+            index = self.childNodes.index(oldChild)
+        except ValueError:
+            raise xml.dom.NotFoundErr()
         self.childNodes[index] = newChild
         if self._makeParentNodes:
             newChild.parentNode = self
@@ -142,7 +145,10 @@ class Node(xml.dom.Node, GetattrMagic):
         return oldChild
 
     def removeChild(self, oldChild):
-        self.childNodes.remove(oldChild)
+        try:
+            self.childNodes.remove(oldChild)
+        except ValueError:
+            raise xml.dom.NotFoundErr()
         if oldChild.nextSibling is not None:
             oldChild.nextSibling.previousSibling = oldChild.previousSibling
         if oldChild.previousSibling is not None:
