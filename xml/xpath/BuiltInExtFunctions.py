@@ -126,7 +126,7 @@ def IsoTime(context):
 
 def Evaluate(context, expr):
     import xml.xpath
-    return xml.xpath.Evaluate(Conversions.StringValue(st), context=context)
+    return xml.xpath.Evaluate(Conversions.StringValue(expr), context=context)
 
 
 ##
