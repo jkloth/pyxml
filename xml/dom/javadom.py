@@ -9,7 +9,7 @@ Supports:
 - SXP
 - OpenXML
 
-$Id: javadom.py,v 1.6 2001/01/29 17:20:15 larsga Exp $
+$Id: javadom.py,v 1.7 2001/02/19 15:21:50 fdrake Exp $
 """
 
 # Todo:
@@ -25,7 +25,7 @@ class BaseDomImplementation:
     """An abstract DomImplementation with some reusable implementations
     of build* methods that depend on a lower-level _parse_from_source
     method."""
-    
+
     def buildDocumentString(self, string):
         from java.io import StringReader
         from org.xml.sax import InputSource
@@ -35,7 +35,7 @@ class BaseDomImplementation:
         return self._parse_from_source(url)
 
     def buildDocumentFile(self, filename):
-        return self.buildDocumentUrl(filetourl(filename))    
+        return self.buildDocumentUrl(filetourl(filename))
 
 class SunDomImplementation:
 
@@ -45,7 +45,7 @@ class SunDomImplementation:
 
     def buildDocumentString(self, string):
         from com.sun.xml.tree import XmlDocumentBuilder
-        return Document(XmlDocumentBuilder.createXmlDocument(string))    
+        return Document(XmlDocumentBuilder.createXmlDocument(string))
 
     def buildDocumentUrl(self, url):
         from com.sun.xml.tree import XmlDocument
@@ -96,7 +96,7 @@ class SxpDomImplementation(BaseDomImplementation):
     def _parse_from_source(self, source):
         from fr.loria.xml import DocumentLoader
         loader = DocumentLoader()
-        
+
         if type(source) == type(""):
             doc = loader.loadDocument(source)
         elif source.getCharacterStream() != None:
@@ -123,7 +123,7 @@ class OpenXmlDomImplementation(BaseDomImplementation):
         parser.setDocumentHandler(builder)
         parser.parse(source)
         return Document(builder.getDocument())
-    
+
 # ===== Utilities
 
 def filetourl(file):
@@ -131,7 +131,7 @@ def filetourl(file):
     from java.io import File
     from java.net import URL
     from java.lang import System
-    
+
     file = File(file).getAbsolutePath()
     sep = System.getProperty("file.separator")
 
@@ -146,7 +146,7 @@ def filetourl(file):
 def _wrap_node(node):
     if node == None:
         return None
-    
+
     return NODE_CLASS_MAP[node.getNodeType()] (node)
 
 # ===== Constants
@@ -196,7 +196,7 @@ class Node:
         self.__dict__['_impl'] = impl
 
     # attributes
-        
+
     def _get_nodeName(self):
         return self._impl.getNodeName()
 
@@ -221,13 +221,13 @@ class Node:
 
     def _get_lastChild(self):
         return _wrap_node(self._impl.getLastChild())
-        
+
     def _get_previousSibling(self):
         return _wrap_node(self._impl.getPreviousSibling())
-        
+
     def _get_nextSibling(self):
         return _wrap_node(self._impl.getNextSibling())
-        
+
     def _get_ownerDocument(self):
         return _wrap_node(self._impl.getOwnerDocument())
 
@@ -237,7 +237,7 @@ class Node:
             return None
         else:
             return NamedNodeMap(atts)
-    
+
     # methods
 
     def insertBefore(self, new, neighbour):
@@ -261,7 +261,7 @@ class Node:
         return _wrap_node(self._impl.cloneNode())
 
     # python
-    
+
     def __getattr__(self, name):
         if name[ : 5] != '_get_':
             return getattr(self, '_get_' + name) ()
@@ -270,14 +270,14 @@ class Node:
 
     def __setattr__(self, name, value):
         getattr(self, '_set_' + name) (value)
-            
+
 # ===== Document
 
 class Document(Node):
 
     def __init__(self, impl):
         Node.__init__(self, impl)
-    
+
     # methods
 
     def createTextNode(self, data):
@@ -306,7 +306,7 @@ class Document(Node):
 
     def getElementsByTagName(self, name):
         return NodeList(self._impl.getElementsByTagName(name))
-        
+
     # attributes
 
     def _get_doctype(self):
@@ -319,14 +319,14 @@ class Document(Node):
         return _wrap_node(self._impl.getDocumentElement())
 
     # python
-    
+
     def __repr__(self):
         docelm = self._impl.getDocumentElement()
         if docelm:
             return "<Document with root '%s'>" % docelm.getTagName()
         else:
             return "<Document with no root>"
-    
+
 # ===== Element
 
 class Element(Node):
@@ -341,7 +341,7 @@ class Element(Node):
         self.__dict__['normalize']       = self._impl.normalize
 
     # methods
-        
+
     def getAttributeNode(self, name):
         node = self._impl.getAttributeNode(name)
         if node == None:
@@ -359,30 +359,30 @@ class Element(Node):
         return NodeList(self._impl.getElementsByTagName(name))
 
     # python
-    
+
     def __repr__(self):
         return "<Element '%s' with %d attributes and %d children>" % \
                (self._impl.getTagName(),
                 self._impl.getAttributes().getLength(),
                 self._impl.getChildNodes().getLength())
-    
+
 # ===== CharacterData
 
 class CharacterData(Node):
-        
+
     def __init__(self, impl):
         Node.__init__(self, impl)
-        
+
         self.__dict__['_get_data']     = self._impl.getData
         self.__dict__['_set_data']     = self._impl.setData
         self.__dict__['_get_length']   = self._impl.getLength
-        
+
         self.__dict__['substringData'] = self._impl.substringData
         self.__dict__['appendData']    = self._impl.appendData
         self.__dict__['insertData']    = self._impl.insertData
         self.__dict__['deleteData']    = self._impl.deleteData
         self.__dict__['replaceData']   = self._impl.replaceData
-        
+
 # ===== Comment
 
 class Comment(CharacterData):
@@ -403,7 +403,7 @@ class ProcessingInstruction(Node):
 
     def __repr__(self):
         return "<PI with target '%s'>" % self._impl.getTarget()
-        
+
 # ===== Text
 
 class Text(CharacterData):
@@ -413,18 +413,18 @@ class Text(CharacterData):
 
     def __repr__(self):
         return "<Text of length %d>" % self._impl.getLength()
-    
+
 # ===== CDATASection
 
 class CDATASection(Text):
 
     def __repr__(self):
         return "<CDATA section of length %d>" % self._impl.getLength()
-    
+
 # ===== Attr
 
 class Attr(Node):
-        
+
     def __init__(self, impl):
         Node.__init__(self, impl)
 
@@ -435,14 +435,14 @@ class Attr(Node):
 
     def __repr__(self):
         return "<Attr '%s'>" % self._impl.getName()
-        
+
 # ===== EntityReference
 
 class EntityReference(Node):
 
     def __repr__(self):
         return "<EntityReference '%s'>" % self.getNodeName()
-        
+
 # ===== DocumentType
 
 class DocumentType(Node):
@@ -460,7 +460,7 @@ class DocumentType(Node):
 
     def __repr__(self):
         return "<DocumentType '%s'>" % self._impl.getNodeName()
-    
+
 # ===== Notation
 
 class Notation(Node):
@@ -473,7 +473,7 @@ class Notation(Node):
 
     def __repr__(self):
         return "<Notation '%s'>" % self._impl.getNodeName()
-        
+
 # ===== Entity
 
 class Entity(Node):
@@ -487,14 +487,14 @@ class Entity(Node):
 
     def __repr__(self):
         return "<Entity '%s'>" % self._impl.getNodeName()
-        
+
 # ===== DocumentFragment
 
 class DocumentFragment(Node):
 
     def __repr__(self):
         return "<DocumentFragment>"
-        
+
 # ===== NodeList
 
 class NodeList:
@@ -507,11 +507,11 @@ class NodeList:
         self.__dict__['item']        = self._impl.item
 
     # Python list methods
-        
+
     def __getitem__(self, ix):
         if ix < 0:
             ix = len(self) + ix
-            
+
         node = self._impl.item(ix)
         if node == None:
             raise IndexError, ix
@@ -526,46 +526,46 @@ class NodeList:
 
     def __setslice__(self, i, j, list):
         raise TypeError, "NodeList instances don't support slice assignment"
-    
+
     def __delslice__(self, i, j):
         raise TypeError, "NodeList instances don't support slice deletion"
 
-    def append(self, item): 
+    def append(self, item):
         raise TypeError, "NodeList instances don't support .append()"
-    
+
     def insert(self, i, item):
         raise TypeError, "NodeList instances don't support .insert()"
-    
-    def pop(self, i=-1): 
+
+    def pop(self, i=-1):
         raise TypeError, "NodeList instances don't support .pop()"
-    
-    def remove(self, item): 
+
+    def remove(self, item):
         raise TypeError, "NodeList instances don't support .remove()"
-    
-    def reverse(self): 
+
+    def reverse(self):
         raise TypeError, "NodeList instances don't support .reverse()"
-    
-    def sort(self, *args): 
+
+    def sort(self, *args):
         raise TypeError, "NodeList instances don't support .sort()"
-    
-    def __add__(self, *args): 
-        raise TypeError, "NodeList instances don't support +"
-    
-    def __radd__(self, *args): 
+
+    def __add__(self, *args):
         raise TypeError, "NodeList instances don't support +"
 
-    def __mul__(self, *args): 
-        raise TypeError, "NodeList instances don't support *"
-    
-    def __rmul__(self, *args): 
+    def __radd__(self, *args):
+        raise TypeError, "NodeList instances don't support +"
+
+    def __mul__(self, *args):
         raise TypeError, "NodeList instances don't support *"
 
-    def count(self, *args): 
+    def __rmul__(self, *args):
+        raise TypeError, "NodeList instances don't support *"
+
+    def count(self, *args):
         raise TypeError, "NodeList instances can't support count without equality"
-    
-    def count(self, *args): 
+
+    def count(self, *args):
         raise TypeError, "NodeList instances can't support index without equality"
-    
+
     def __getslice__(self, i, j):
         if i < len(self):
             i = len(self) + i
@@ -576,10 +576,10 @@ class NodeList:
         for ix in range(i, min(j, len(self))):
             slice.append(self[ix])
         return slice
-    
-    def __repr__(self):        
+
+    def __repr__(self):
         return "<NodeList [ %s ]>" % string.join(map(repr, self), ", ")
-    
+
 # ===== NamedNodeMap
 
 class NamedNodeMap:
@@ -591,7 +591,7 @@ class NamedNodeMap:
         self.__dict__['__len__']     = self._impl.getLength
 
     # methods
-        
+
     def getNamedItem(self, name):
         return _wrap_node(self._impl.getNamedItem(name))
 
@@ -605,10 +605,10 @@ class NamedNodeMap:
         return _wrap_node(self._impl.item(index))
 
     # Python dictionary methods
-    
+
     def __getitem__(self, key):
         node = self._impl.getNamedItem(key)
-        
+
         if node is None:
             raise KeyError, key
         else:
@@ -619,8 +619,8 @@ class NamedNodeMap:
         if node is None:
             return alternative
         else:
-            return _wrap_node(node)        
-        
+            return _wrap_node(node)
+
     def has_key(self, key):
         return self._impl.getNamedItem(key) != None
 
@@ -641,7 +641,7 @@ class NamedNodeMap:
         list = []
         for ix in range(self._impl.getLength()):
             list.append(_wrap_node(self._impl.item(ix)))
-        return list        
+        return list
 
     def __setitem__(self, key, item):
         assert key == item._impl._get_nodeName()
@@ -650,13 +650,13 @@ class NamedNodeMap:
     def update(self, nnm):
         for v in nnm.values():
             self._impl.setNamedItem(v._impl)
-    
+
     def __repr__(self):
         pairs = []
         for pair in self.items():
             pairs.append("'%s' : %s" % pair)
         return "<NamedNodeMap { %s }>" % string.join(pairs, ", ")
-    
+
 # ===== Various stuff
 
 NODE_CLASS_MAP = {
@@ -673,7 +673,7 @@ NODE_CLASS_MAP = {
     DOCUMENT_FRAGMENT_NODE : DocumentFragment,
     NOTATION_NODE : Notation
     }
-    
+
 # ===== Self-test
 
 if __name__ == "__main__":
@@ -689,7 +689,7 @@ if __name__ == "__main__":
     root.appendChild(txt)
 
     print root._get_childNodes()[0]
-    print root._get_childNodes()    
+    print root._get_childNodes()
 
     root.setAttribute("huba", "haba")
     print root

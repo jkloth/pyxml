@@ -21,4 +21,3 @@ g_errorMessages = {
     NAMESPACE_ERR: "Namespace operation results in malformed or invalid name or name declaration.",
     INVALID_ACCESS_ERR: "",
     }
-
