@@ -1,21 +1,25 @@
 test_sax
-<collection><quotation>We will perhaps eventually be writing only small modules which are identified by name as they are used to build larger ones, so that devices like indentation, rather than delimiters, might become feasible for expressing local structure in the source language.  <source>Donald E. Knuth, &quot;Structured Programming with goto Statements&quot;, Computing Surveys, Vol 6 No 4, Dec. 1974</source> </quotation>  <quotation> The infinities aren't contagious except in that they often appear that way due to to their large size. <source>Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998</source> </quotation>  </collection>
-(collection
-(quotation
--We will perhaps eventually be writing only small modules which are identified by name as they are used to build larger ones, so that devices like indentation, rather than delimiters, might become feasible for expressing local structure in the source language.  
-(source
--Donald E. Knuth, "Structured Programming with goto Statements", Computing Surveys, Vol 6 No 4, Dec. 1974
-)source
-- 
-)quotation
--  
-(quotation
-- The infinities aren't contagious except in that they often appear that way due to to their large size. 
-(source
--Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998
-)source
-- 
-)quotation
--  
-)collection
-
+Passed test_attrs_empty
+Passed test_attrs_wattr
+Passed test_escape_all
+Passed test_escape_basic
+Passed test_escape_extra
+Passed test_expat_attrs_empty
+Passed test_expat_attrs_wattr
+Passed test_expat_dtdhandler
+Passed test_expat_entityresolver
+Passed test_expat_inpsource_filename
+Passed test_expat_inpsource_stream
+Passed test_expat_inpsource_sysid
+Passed test_expat_nsattrs_empty
+Passed test_expat_nsattrs_wattr
+Passed test_filter_basic
+Passed test_nsattrs_empty
+Passed test_nsattrs_wattr
+Passed test_xmlgen_basic
+Passed test_xmlgen_content
+Passed test_xmlgen_content_escape
+Passed test_xmlgen_ignorable
+Passed test_xmlgen_ns
+Passed test_xmlgen_pi
+23 tests, 0 failures
