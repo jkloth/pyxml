@@ -29,11 +29,29 @@ Example: "python dom_from_xml_file.py addr_book1.xml"
 
 * generate_html1.py
 
-Demonstrates putting together a simple HTML page (a form in this case) with the Factory extension and standard DOM interface.
+Demonstrates putting together a simple HTML page (a form in this case)
+with the standard DOM factory interface.
 
 Just execute with "python generate_html1.py"
 
 You can re-direct the output to file and view the result with a browser.  Try adding in more sophisticated form elements.
+
+
+* generate_xml1.py
+
+Demonstrates putting together a simple XML document with the standard DOM
+factory interface.
+
+Just execute with "python generate_xml1.py"
+
+
+* 4tidy.py
+
+Demonstrates the XHTML support in 4DOM.  It takes a URL or file name on the
+command line and reads the HTML source.  It then prints xhtml based on the HTML
+source to standard output.
+
+try "python 4tidy.py http://fourthought.com"
 
 
 * iterator1.py
@@ -68,6 +86,14 @@ For James Clark's excellent introduction to and clarification of namespaces, see
 http://www.jclark.com/xml/xmlns.htm
 
 
+* link_title_invert.py
+
+Demonstrates node manipulations.  It takes a sample document with anchors
+embedded in header tags, and flips them so that the header tags are instead
+embedded in the anchors.
+
+just "python link_title_invert.py"
+
 * xll_replace.py
 
 A rather more involved demo.  This program reads in an XML file, and looks for XLL-type hyperlinks (see http://www.oasis-open.org/cover/xll.html for information on this remarkably powerful spec).
@@ -87,28 +113,6 @@ if you run
 "python xll_replace.py addr_book1.xml"
 
 it will read in the addr_book2.xml file into a node, and replace the ENTRY-LINK node with the new one.  It will then print out the result, which should be self-explanatory.
-
-
-* xptr.py and xpointer_query.py
-
-This is simply a modification (hack, if you will) to Lars Marius Garshol's PyPointers module (see http://www.stud.ifi.uio.no/~larsga/download/python/xml/xptr.html for the original: designed to work with PyDOM).
-
-Using this, you can add powerful hyper-linking to your DOM applications.
-
-Warning: This script uses a very obsolete version of XPointer
-
-xpointer_query.py demonstrates this.  It accepts two command line arguments: an XPointer expression, and a target file.
-
-Example: "python xpointer_query.py 'root().child(1)' addr_book1.xml"
-
-	Note: for many Unix shells, you'll have to escape the parentheses
-	in the XPointer argument:
-
-	"python xpointer_query.py root\(\).child\(1\) addr_book1.xml"
-
-This should print out only the sub-tree of the first ENTRY node inthe document.
-
-Try modifying xll_replace.py to accept XPointer expressions in link targets.  Yes this is a bit more of an involved exercise than the ones we suggest for the other demos.
 
 
 If you need help with the demos, or any other help working with 4DOM,

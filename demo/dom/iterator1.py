@@ -1,11 +1,9 @@
 """Demonstrates basic walking using DOM level 2 iterators"""
 
-from xml.dom.ext import ReleaseNode
-from xml.dom.ext.reader import Sax2
-from xml.dom import Node
+from xml.dom.ext.reader import PyExpat
 from xml.dom.NodeFilter import NodeFilter
 
-def iterate(xml_dom_object):
+def Iterate(xml_dom_object):
     print "Printing all nodes:"
     nit = xml_dom_object.ownerDocument.createNodeIterator(xml_dom_object, NodeFilter.SHOW_ALL, None, 0)
 
@@ -25,14 +23,9 @@ def iterate(xml_dom_object):
 
 if __name__ == '__main__':
     import sys
-    try:
-        xml_dom_object = Sax2.FromXmlFile(sys.argv[1], validate=0)
-    except Sax.saxlib.SAXException, msg:
-        print "SAXException caught:", msg
-    except Sax.saxlib.SAXParseException, msg:
-        print "SAXParseException caught:", msg
+    reader = PyExpat.Reader()
+    xml_dom_object = reader.fromUri(sys.argv[1])
+    Iterate(xml_dom_object)
+    reader.releaseNode(xml_dom_object)
 
-    iterate(xml_dom_object)
-    ReleaseNode(xml_dom_object)
 
-    

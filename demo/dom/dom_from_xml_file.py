@@ -1,19 +1,15 @@
 from xml.dom import ext
-from xml.dom.ext.reader import Sax2
+from xml.dom.ext.reader import PyExpat
 
 def read_xml_from_file(fileName):
     #build a DOM tree from the file
-    try:
-        xml_dom_object = Sax2.FromXmlFile(fileName, validate=0)
-    except Sax2.saxlib.SAXException, msg:
-        print "SAXException caught:", msg
-    except Sax2.saxlib.SAXParseException, msg:
-        print "SAXParseException caught:", msg
+    reader = PyExpat.Reader()
+    xml_dom_object = reader.fromUri(fileName)
 
     ext.Print(xml_dom_object)
 
     #reclaim the object
-    ext.ReleaseNode(xml_dom_object)
+    reader.releaseNode(xml_dom_object)
 
 if __name__ == '__main__':
     import sys

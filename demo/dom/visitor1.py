@@ -1,5 +1,6 @@
 """Demonstrates basic, pre-order DOM walking using the default, bare-bones visitor"""
 
+from xml.dom.ext.reader import PyExpat
 from xml.dom import Node
 from xml.dom.ext import Visitor
 from xml.dom.ext.reader import Sax2
@@ -14,7 +15,7 @@ class NsVisitor(Visitor.Visitor):
         return None
 
 
-def walk(xml_dom_object):
+def Walk(xml_dom_object):
     visitor = Visitor.Visitor()
     walker = Visitor.Walker(visitor, xml_dom_object)
     walker.run()
@@ -26,13 +27,8 @@ def walk(xml_dom_object):
 
 if __name__ == '__main__':
     import sys
-    try:
-        xml_dom_object = Sax2.FromXmlFile(sys.argv[1], validate=0)
-    except Sax.saxlib.SAXException, msg:
-        print "SAXException caught:", msg
-    except Sax.saxlib.SAXParseException, msg:
-        print "SAXParseException caught:", msg
-    else:
-        walk(xml_dom_object)
-    ReleaseNode(xml_dom_object)
+    reader = PyExpat.Reader()
+    xml_dom_object = reader.fromUri(sys.argv[1])
+    Walk(xml_dom_object)
+    reader.releaseNode(xml_dom_object)
 

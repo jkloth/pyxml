@@ -1,16 +1,16 @@
 """
 Demonstrates some advanced DOM manipulation.
-This function looks for XLL-compliant simple links to an xml document,
-and replaces the node containing such links with the contents of the referenced
-document.
+This function looks for simple XLinks and replaces the node containing
+such links with the contents of the referenced document.
 """
 
 from xml.dom import Node
 from xml.dom.NodeFilter import NodeFilter
 from xml.dom import ext
-from xml.dom.ext.reader import Sax2
+from xml.dom.ext.reader import PyExpat
 
-def xll_replace(start_node):
+def XllReplace(start_node):
+    reader = PyExpat.Reader()
     owner_doc = start_node.ownerDocument
     snit = owner_doc.createNodeIterator(start_node, NodeFilter.SHOW_ELEMENT, None, 0)
     curr_node = snit.nextNode()
@@ -27,8 +27,8 @@ def xll_replace(start_node):
             if is_link and href:
                #Then make a tree of the new file and insert it
                 f = open(href, "r")
-                str = f.read()
-                new_df = Sax2.FromXml(str, ownerDocument=start_node.ownerDocument, validate=0)
+                st = f.read()
+                new_df = reader.fromString(st, ownerDoc=start_node.ownerDocument)
 
                 #Get the first element node and assume it's the document node
                 for a_node in new_df.childNodes:
@@ -42,8 +42,9 @@ def xll_replace(start_node):
 
 if __name__ == "__main__":
     import sys
-    xml_dom_tree = Sax2.FromXmlUrl(sys.argv[1], validate=0)
-    xll_replace(xml_dom_tree)
+    reader = PyExpat.Reader()
+    xml_dom_tree = reader.fromUri(sys.argv[1])
+    XllReplace(xml_dom_tree)
     ext.PrettyPrint(xml_dom_tree)
-    ext.ReleaseNode(xml_dom_tree)
+    reader.releaseNode(xml_dom_tree)
 

@@ -3,8 +3,7 @@ Walk through a namespace-compliant XML file and print out the
 the namespaces of all elements and attributes in document order
 '''
 
-from xml.dom.ext.reader import Sax2
-from xml.dom.ext import ReleaseNode
+from xml.dom.ext.reader import PyExpat
 from xml.dom.NodeFilter import NodeFilter
 
 def TraceNs(doc):
@@ -32,7 +31,8 @@ def TraceNs(doc):
         
 if __name__ == "__main__":
     import sys
-    doc = Sax2.FromXmlFile(sys.argv[1], validate=0)
+    reader = PyExpat.Reader()
+    doc = reader.fromUri(sys.argv[1])
     TraceNs(doc)
-    ReleaseNode(doc)
+    reader.releaseNode(doc)
 

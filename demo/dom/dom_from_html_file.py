@@ -5,7 +5,8 @@ from xml.dom import ext
 
 def read_html_from_file(fileName):
     #build a DOM tree from the file
-    dom_object = HtmlLib.FromHtmlFile(fileName)
+    reader = HtmlLib.Reader()
+    dom_object = reader.fromUri(fileName)
 
     #strip any ignorable white-space in preparation for pretty-printing
     ext.StripHtml(dom_object)
@@ -14,7 +15,7 @@ def read_html_from_file(fileName):
     ext.PrettyPrint(dom_object)
 
     #reclaim the object
-    ext.ReleaseNode(dom_object);
+    reader.releaseNode(dom_object);
    
 
 if __name__ == '__main__':

@@ -1,9 +1,7 @@
 """
-A basic example of using the DOM to create an HTML document purely
-from raw data.
+A basic example of using the DOM to create an HTML document from scratch.
 Also demonstrates creation of HTML forms
 """
-
 
 from xml.dom import ext
 from xml.dom import implementation
