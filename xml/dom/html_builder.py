@@ -4,10 +4,9 @@ Tag names are normalised to upper case, the usual HTML fashion.
 '''
 
 from sgmllib import SGMLParser
-from xml.dom.core import DOMFactory
+from xml.dom import core
 from xml.dom.builder import Builder
 import string
-
 
 class HtmlBuilder(SGMLParser, Builder):
 	from htmlentitydefs import entitydefs
@@ -91,8 +90,8 @@ if __name__ == '__main__':
 	b = HtmlBuilder()
 	b.feed(open(sys.argv[1]).read())
 	b.close()
-	#print b.document
-	#print b.document.documentElement
+	print b.document
+	print b.document.documentElement
 
 	from writer import HtmlLineariser
 	w = HtmlLineariser()

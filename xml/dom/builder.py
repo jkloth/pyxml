@@ -5,6 +5,10 @@ Event-driven, almost-SAXish, grove builder.
 '''
 
 from xml.dom.core import *
+import string
+
+_LEGAL_DOCUMENT_CHILDREN = (ELEMENT, PROCESSING_INSTRUCTION, COMMENT)
+
 
 class Builder:
 
@@ -16,13 +20,18 @@ class Builder:
 	def push(self, node):
 		"Add node to current node and move to new node."
 
+		nodetype = node.get_nodeType()
+
 		if self.current_element:
 			self.current_element.insertBefore(node, None)
-		elif node.get_nodeType() == ELEMENT:
-#			cur_root = self.document.get_firstChild()
-			self.document.appendChild(node)
+		elif nodetype in _LEGAL_DOCUMENT_CHILDREN:
+			if nodetype == TEXT_NODE:
+				if string.strip(node.get_nodeValue()) != "":
+					self.document.appendChild(node)
+			else:
+				self.document.appendChild(node)
 
-		if node.get_nodeType() == ELEMENT:
+		if nodetype == ELEMENT_NODE:
 			self.current_element = node
 
 	def pop(self):
@@ -45,9 +54,18 @@ class Builder:
 		self.pop()
 
 
+	def processingInstruction(self, target, data):
+		node = self.document.createProcessingInstruction(target, data)
+		self.push(node)
+
+
 	def text(self, s):
 		if self.current_element:
 			text_node = self.document.createTextNode(s)
+			if (self.current_element == self.document and
+			    string.strip(s) == ""):
+				return
+
 			self.current_element.insertBefore(text_node, None)
 
 
