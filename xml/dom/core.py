@@ -870,7 +870,7 @@ class Element(Node):
             append(" %s='" % (attr,))
             for value in attrnode.children:
                 if value.type == TEXT_NODE:
-                    append(escape(value.value) )
+                    append(escape(value.value, {"'":"&apos;"}) )
                 else:
                     n = NODE_CLASS[ value.type ] (value, self._document)
                     append(value.toxml())
