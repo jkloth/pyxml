@@ -2,7 +2,6 @@
 #
 # File Name:            LiteralText.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/LiteralText.py.html
 #
 """
 Implementation of the XSLT Spec import stylesheet element.

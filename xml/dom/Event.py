@@ -2,7 +2,6 @@
 #
 # File Name:            Event.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Event.py.html
 #
 """
 Implements DOM level 2 Mutation Events

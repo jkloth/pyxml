@@ -2,7 +2,6 @@
 #
 # File Name:            ApplyTemplatesElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ApplyTemplatesElement.py.html
 #
 """
 Implementation of the XSLT Spec apply-templates stylesheet element.

@@ -2,7 +2,6 @@
 #
 # File Name:            __init__.py
 #
-# Documentation:        http://docs.4suite.org/4DOM/ext/reader/__init__.py.html
 #
 """
 The 4DOM reader module has routines for deserializing XML and HTML to DOM

@@ -2,7 +2,6 @@
 #
 # File Name:            Comment.py
 #
-# Documentation:        http://docs.4suite.org/4DOM/Comment.py.html
 #
 """
 WWW: http://4suite.org/4DOM         e-mail: support@4suite.org

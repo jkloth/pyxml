@@ -2,7 +2,6 @@
 #
 # File Name:            XsltContext.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/XsltContext.py.html
 #
 """
 Provide contextual and state information wrt the transform processing

@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedAbbreviatedAbsoluteLocationPath.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedAbbreviatedAbsoluteLocationPath.py.html
 #
 """
 A parsed token for an abreviated absolute location path.

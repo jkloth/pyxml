@@ -2,7 +2,6 @@
 #
 # File Name:   BuiltInExtFunctions.py
 #
-# Docs:        http://docs.4suite.org/XPath/BuiltInExtFunctions.py.html
 #
 """
 4XPath-specific Extension functions

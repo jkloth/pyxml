@@ -2,7 +2,6 @@
 #
 # File Name:            SortElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/SortElement.py.html
 #
 """
 Implementation of the XSLT Spec sort stylesheet element.

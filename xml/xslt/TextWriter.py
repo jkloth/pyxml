@@ -2,7 +2,6 @@
 #
 # File Name:            TextWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/TextWriter.py.html
 #
 """
 Implement the core Writer for XSLT processor output

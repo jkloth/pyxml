@@ -2,7 +2,6 @@
 #
 # File Name:            XPatternParser.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/XPatternParser.py.html
 #
 """
 Implement the XSLT pattern parsing engine

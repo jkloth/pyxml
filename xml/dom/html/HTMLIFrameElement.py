@@ -2,7 +2,6 @@
 #
 # File Name:            HTMLIFrameElement.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/HTMLIFrameElement.py.html
 #
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com

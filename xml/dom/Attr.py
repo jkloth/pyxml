@@ -2,7 +2,6 @@
 #
 # File Name:            Attr.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Attr.py.html
 #
 """
 DOM Level 2 Attribute Node

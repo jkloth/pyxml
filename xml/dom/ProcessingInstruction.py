@@ -2,7 +2,6 @@
 #
 # File Name:            ProcessingInstruction.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/ProcessingInstruction.py.html
 #
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com

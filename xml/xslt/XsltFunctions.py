@@ -2,7 +2,6 @@
 #
 # File Name:   XsltFunctions.py
 #
-# Docs:        http://docs.4suite.com/XSLT/XsltFunctions.py.html
 #
 
 """

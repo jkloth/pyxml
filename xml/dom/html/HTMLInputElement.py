@@ -2,7 +2,6 @@
 #
 # File Name:            HTMLInputElement.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/HTMLInputElement.py.html
 #
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com

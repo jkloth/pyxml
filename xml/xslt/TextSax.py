@@ -2,7 +2,6 @@
 #
 # File Name:            TextSax.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/TextSax.py.html
 #
 #
 """

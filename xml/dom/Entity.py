@@ -2,7 +2,6 @@
 #
 # File Name:            Entity.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Entity.py.html
 #
 """
 Implementation of DOM Level 2 Entity interface

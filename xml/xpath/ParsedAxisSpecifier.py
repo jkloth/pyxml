@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedAxisSpecifier.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedAxisSpecifier.py.html
 #
 """
 A Parsed token that represents an acis specifier on the parsed tree.

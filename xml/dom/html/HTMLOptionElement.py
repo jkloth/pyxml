@@ -2,7 +2,6 @@
 #
 # File Name:            HTMLOptionElement.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/HTMLOptionElement.py.html
 #
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com

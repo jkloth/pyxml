@@ -2,7 +2,6 @@
 #
 # File Name:            OtherwiseElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/OtherwiseElement.py.html
 #
 """
 Implementation of the XSLT Spec otherwise instruction

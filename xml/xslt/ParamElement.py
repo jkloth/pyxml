@@ -2,7 +2,6 @@
 #
 # File Name:            ParamElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ParamElement.py.html
 #
 """
 Implementation of the XSLT Spec param stylesheet element.

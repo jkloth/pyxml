@@ -2,7 +2,6 @@
 #
 # File Name:            TreeWalker.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/TreeWalker.py.html
 #
 """
 Tree Walker from DOM Level 2.  Allows multi-directional iteration over nodes.

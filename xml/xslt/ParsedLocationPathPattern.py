@@ -2,7 +2,6 @@
 #
 # File Name:            ParsedLocationPathPattern.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ParsedLocationPathPattern.py.html
 #
 """
 Parse class to handle XSLT LocationPathPattern patterns

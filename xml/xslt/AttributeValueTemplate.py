@@ -2,7 +2,6 @@
 #
 # File Name:   AttributeValueTemplate.py
 #
-# Docs:        http://docs.4suite.com/4XSLT/AttributeValueTemplate.py.html
 #
 """
 Implementation of AVTs from the XSLT Spec.

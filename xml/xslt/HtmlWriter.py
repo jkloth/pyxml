@@ -2,7 +2,6 @@
 #
 # File Name:            HtmlWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/HtmlWriter.py.html
 #
 """
 Implements the HTML output writer for XSLT processor output

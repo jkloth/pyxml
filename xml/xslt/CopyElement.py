@@ -2,7 +2,6 @@
 #
 # File Name:            CopyElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/CopyElement.py.html
 #
 """
 Implementation of the XSLT Spec copy stylesheet element.

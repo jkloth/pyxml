@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedStep.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedStep.py.html
 #
 """
 A Parsed token that represents a step on the result tree.

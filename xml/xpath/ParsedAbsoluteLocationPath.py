@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedAbsoluteLocationPath.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedAbsoluteLocationPath.py.html
 #
 """
 A Parsed Token that represents a absolute location path in the parsed tree.

@@ -2,7 +2,6 @@
 #
 # File Name:            NumberElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/NumberElement.py.html
 #
 """
 Implementation of the XSLT Spec number stylesheet element.

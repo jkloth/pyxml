@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedExpr.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedExpr.py.html
 #
 """
 The implementation of all of the expression pared tokens.

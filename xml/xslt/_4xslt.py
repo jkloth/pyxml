@@ -3,7 +3,6 @@
 #
 # File Name:            4xslt.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/4xslt.py.html
 #
 """
 Command-line invokation of the 4XSLT processor

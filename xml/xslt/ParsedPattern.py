@@ -2,7 +2,6 @@
 #
 # File Name:            ParsedPattern.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ParsedPattern.py.html
 #
 """
 Parse class to handle base XSLT patterns

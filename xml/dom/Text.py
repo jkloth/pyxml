@@ -2,7 +2,6 @@
 #
 # File Name:            Text.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Text.py.html
 #
 """
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com

@@ -2,7 +2,6 @@
 #
 # File Name:            Notation.py
 #
-# Documentation:        http://docs.4suite.org/4DOM/Notation.py.html
 #
 """
 Implementation of DOM Level 2 Notation interface

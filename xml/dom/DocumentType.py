@@ -2,7 +2,6 @@
 #
 # File Name:            DocumentType.py
 #
-# Documentation:        http://docs.4suite.org/4DOM/DocumentType.py.html
 #
 """
 WWW: http://4suite.org/4DOM         e-mail: support@4suite.org

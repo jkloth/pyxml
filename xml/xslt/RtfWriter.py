@@ -2,7 +2,6 @@
 #
 # File Name:            RtfWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/RtfWriter.py.html
 #
 
 """

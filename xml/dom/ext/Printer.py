@@ -2,7 +2,6 @@
 #
 # File Name:            Printer.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Printer.py.html
 #
 """
 The printing sub-system.

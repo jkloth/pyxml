@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedAbbreviatedRelativeLocationPath.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedAbbreviatedRelativeLocationPath.py.html
 #
 """
 A parsed token that represents a abbreviated relative location path.

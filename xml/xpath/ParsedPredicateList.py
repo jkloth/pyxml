@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedPredicateList.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedPredicateList.py.html
 #
 """
 A Parsed Token that represents a predicate list.

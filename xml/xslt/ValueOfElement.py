@@ -2,7 +2,6 @@
 #
 # File Name:            ValueOfElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ValueOfElement.py.html
 #
 """
 Implementation of the XSLT Spec import stylesheet element.

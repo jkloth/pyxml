@@ -2,7 +2,6 @@
 #
 # File Name:            FtElements.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/FtElements.py.html
 #
 """
 FourThought proprietary extension elements

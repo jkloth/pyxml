@@ -2,7 +2,6 @@
 #
 # File Name:            ForEachElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ForEachElement.py.html
 #
 """
 Implementation of the XSLT Spec for-each stylesheet element.

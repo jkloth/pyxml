@@ -2,7 +2,6 @@
 #
 # File Name:            __init__.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/__init__.py.html
 #
 """
 WWW: http://4suite.org/4XSLT         e-mail: support@4suite.org

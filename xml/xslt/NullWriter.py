@@ -2,7 +2,6 @@
 #
 # File Name:            NullWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/NullWriter.py.html
 #
 """
 Implements an empty writer for XSLT processor output

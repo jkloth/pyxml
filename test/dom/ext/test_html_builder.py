@@ -2,7 +2,6 @@
 #
 # File Name:   TestHtmlBuilder.py
 #
-# Docs:        http://docs.4suite.com/4Dom/TestHtmlBuilder.py.html
 #
 """
 Test suite for the Html portion of the builder.

@@ -2,7 +2,6 @@
 #
 # File Name:            NodeIterator.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/NodeIterator.py.html
 #
 """
 Node Iterators from DOM Level 2.  Allows "flat" iteration over nodes.

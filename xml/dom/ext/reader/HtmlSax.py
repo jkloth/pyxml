@@ -2,7 +2,6 @@
 #
 # File Name:            HtmlSax.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/HtmlSax.py.html
 #
 #
 """

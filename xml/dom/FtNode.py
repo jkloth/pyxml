@@ -2,7 +2,6 @@
 #
 # File Name:            Node.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Node.py.html
 #
 """
 Implements the basic tree structure of DOM

@@ -2,7 +2,6 @@
 #
 # File Name:            Util.py
 #
-# Documentation:        http://docs.4suite.org/4XSLT/Util.py.html
 #
 """
 General Utilities for XPath apps.

@@ -2,7 +2,6 @@
 #
 # File Name:            Processor.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/Processor.py.html
 #
 """
 Implement the XSLT processor engine

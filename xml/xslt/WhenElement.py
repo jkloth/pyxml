@@ -2,7 +2,6 @@
 #
 # File Name:            WhenElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/WhenElement.py.html
 #
 """
 Implementation of the XSLT Spec if instruction

@@ -2,7 +2,6 @@
 #
 # File Name:            HtmlLib.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/HtmlLib.py.html
 #
 """
 Components for reading HTML files using htmllib.py.

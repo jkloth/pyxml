@@ -2,7 +2,6 @@
 #
 # File Name:   Conversions.py
 #
-# Docs:        http://docs.4suite.org/XPATH/Conversions.py.html
 #
 """
 The implementation of all of the core functions for the XPath spec.

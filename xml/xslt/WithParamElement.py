@@ -2,7 +2,6 @@
 #
 # File Name:            WithParamElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/WithParamElement.py.html
 #
 """
 Implementation of the XSLT Spec with-param stylesheet element.

@@ -2,7 +2,6 @@
 #
 # File Name:            VariableElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/VariableElement.py.html
 #
 """
 Implementation of the XSLT Spec variable stylesheet element.

@@ -2,7 +2,6 @@
 #
 # File Name:            Document.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Document.py.html
 #
 """
 

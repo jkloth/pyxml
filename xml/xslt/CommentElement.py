@@ -2,7 +2,6 @@
 #
 # File Name:            CommentElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/CommentElement.py.html
 #
 """
 Implementation of the XSLT Spec comment stylesheet element.

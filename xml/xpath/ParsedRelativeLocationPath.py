@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedRelativeLocationPath.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedRelativeLocationPath.py.html
 #
 """
 A Parsed Token that represents a relative location path in the parsed result tree.

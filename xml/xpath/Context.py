@@ -2,7 +2,6 @@
 #
 # File Name:   Context.py
 #
-# Docs:        http://docs.4suite.org/XPATH/Context.py.html
 #
 """
 The context of an XPath expression.

@@ -2,7 +2,6 @@
 #
 # File Name:            TextElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/TextElement.py.html
 #
 """
 Implementation of the XSLT Spec text stylesheet element.

@@ -2,7 +2,6 @@
 #
 # File Name:            CallTemplateElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/CallTemplateElement.py.html
 #
 """
 Implementation of the XSLT Spec call-template stylesheet element.

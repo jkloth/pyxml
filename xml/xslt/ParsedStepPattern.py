@@ -2,7 +2,6 @@
 #
 # File Name:            ParsedStepPattern.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ParsedStepPattern.py.html
 #
 """
 Parse class to handle XSLT StepPatterns

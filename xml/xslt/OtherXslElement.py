@@ -2,7 +2,6 @@
 #
 # File Name:            OtherXslElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/OtherXslElement.py.html
 #
 """
 Non-template instructions from the XSLT spec

@@ -2,7 +2,6 @@
 #
 # File Name:            PlainTextWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/PlainTextWriter.py.html
 #
 """
 Implements a text output writer for XSLT processor output

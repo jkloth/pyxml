@@ -2,7 +2,6 @@
 #
 # File Name:            Sax.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/Sax.py.html
 #
 """
 Components for reading XML files from a SAX producer.

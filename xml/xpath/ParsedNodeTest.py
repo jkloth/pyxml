@@ -2,7 +2,6 @@
 #
 # File Name:   ParsedNodeTest.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ParsedNodeTest.py.html
 #
 """
 A Parsed Token that represents a node test.

@@ -2,7 +2,6 @@
 #
 # File Name:            ParsedRelativePathPattern.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ParsedRelativePathPattern.py.html
 #
 """
 Parse class to handle XSLT RelativePathPattern patterns

@@ -2,7 +2,6 @@
 #
 # File Name:            XmlWriter.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/XmlWriter.py.html
 #
 """
 Implements the XML output writer for XSLT processor output

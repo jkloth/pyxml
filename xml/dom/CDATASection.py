@@ -2,7 +2,6 @@
 #
 # File Name:            CDATASection.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/CDATASection.py.html
 #
 """
 Implementation of DOM Level 2 CDATASection interface

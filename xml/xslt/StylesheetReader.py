@@ -2,7 +2,6 @@
 #
 # File Name:            StylesheetReader.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/StylesheetReader.py.html
 #
 
 """

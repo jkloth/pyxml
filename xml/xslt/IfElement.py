@@ -2,7 +2,6 @@
 #
 # File Name:            IfElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/IfElement.py.html
 #
 """
 Implementation of the XSLT Spec if instruction

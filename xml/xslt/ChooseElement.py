@@ -2,7 +2,6 @@
 #
 # File Name:            ChooseElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ChooseElement.py.html
 #
 """
 Implementation of the XSLT Spec choose instruction

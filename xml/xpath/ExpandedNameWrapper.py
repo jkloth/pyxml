@@ -2,7 +2,6 @@
 #
 # File Name:   ExpandedNameWrapper.py
 #
-# Docs:        http://docs.4suite.org/XPATH/ExpandedNameWrapper.py.html
 #
 """
 A structure to hold a node's expanded name.  Internal use only.

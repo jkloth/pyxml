@@ -2,7 +2,6 @@
 #
 # File Name:   NamespaceNode.py
 #
-# Docs:        http://docs.4suite.org/XPATH/NamespaceNode.py.py.html
 #
 """
 A container class for the namespace axis results.

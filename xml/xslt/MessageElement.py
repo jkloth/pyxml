@@ -2,7 +2,6 @@
 #
 # File Name:            MessageElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/MessageElement.py.html
 #
 """
 Implementation of the XSLT Spec import stylesheet element.

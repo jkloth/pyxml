@@ -2,7 +2,6 @@
 #
 # File Name:            Stylesheet.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/Stylesheet.py.py.html
 #
 """
 Implement all the stylesheet internals

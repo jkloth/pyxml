@@ -2,7 +2,6 @@
 #
 # File Name:   TemplateElement.py
 #
-# Docs:        http://docs.4suite.com/4XSLT/TemplateElement.py.html
 #
 """
 Implementation of the XSLT Spec template stylesheet element.

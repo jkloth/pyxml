@@ -2,7 +2,6 @@
 #
 # File Name:            PyExpat.py
 #
-# Documentation:        http://docs.4suite.com/4DOM/PyExpat.py.html
 #
 """
 Components for reading XML files from PyExpat (Python 1.6, 2.0 or from PyXML).

@@ -2,7 +2,6 @@
 #
 # File Name:            CopyOfElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/CopyOfElement.py.html
 #
 """
 Implementation of the XSLT Spec copy-of element.

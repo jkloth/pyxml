@@ -2,7 +2,6 @@
 #
 # File Name:            Set.py
 #
-# Documentation:        http://docs.4suite.org/Set.py.html
 #
 """
 WWW: http://4suite.org/         e-mail: support@4suite.org

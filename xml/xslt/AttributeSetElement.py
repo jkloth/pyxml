@@ -2,7 +2,6 @@
 #
 # File Name:            AttributeSetElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/AttributeSetElement.py.html
 #
 """
 Implementation of the XSLT Spec attribute-set stylesheet element.

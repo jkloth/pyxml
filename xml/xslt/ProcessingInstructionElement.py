@@ -2,7 +2,6 @@
 #
 # File Name:            ProcessingInstructionElement.py
 #
-# Documentation:        http://docs.4suite.com/4XSLT/ProcessingInstructionElement.py.html
 #
 """
 Implementation of the XSLT Spec processing-instruction stylesheet element.
