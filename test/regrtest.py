@@ -161,7 +161,14 @@ def runtest(test, generate, verbose, testdir = None):
             if cfp:
                 sys.stdout = cfp
                 print test              # Output file starts with test name
-            __import__(test, globals(), locals(), [])
+            the_module = __import__(test, globals(), locals(), [])
+            # Most tests run to completion simply as a side-effect of
+            # being imported.  For the benefit of tests that can't run
+            # that way (like test_threaded_import), explicitly invoke
+            # their test_main() function (if it exists).
+            indirect_test = getattr(the_module, "test_main", None)
+            if indirect_test is not None:
+                indirect_test()
         finally:
             sys.stdout = save_stdout
     except ImportError, msg:
