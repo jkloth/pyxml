@@ -133,6 +133,8 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
 
     def close(self):
         self.parser.close()
+	self.err_handler = self.dtd_handler = self.doc_handler = None
+	self.parser = self.locator = self.ent_handler = None
 	
 # --- Global functions
 
