@@ -328,7 +328,7 @@ def testProcessingInstruction():
             and pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE
             and pi.attributes is None
             and not pi.hasChildNodes()
-            and pi.childNodes.length == 0
+            and len(pi.childNodes) == 0
             and pi.firstChild is None
             and pi.lastChild is None
             and pi.localName is None
@@ -990,6 +990,39 @@ def testReplaceWholeText():
     checkWholeText(text2, "d")
     confirm(text is None
             and len(elem.childNodes) == 2)
+
+def testSchemaType():
+    doc = parseString(
+        "<!DOCTYPE doc [\n"
+        "  <!ENTITY e1 SYSTEM 'http://xml.python.org/e1'>\n"
+        "  <!ENTITY e2 SYSTEM 'http://xml.python.org/e2'>\n"
+        "  <!ATTLIST doc id   ID       #IMPLIED \n"
+        "                ref  IDREF    #IMPLIED \n"
+        "                refs IDREFS   #IMPLIED \n"
+        "                enum (a|b)    #IMPLIED \n"
+        "                ent  ENTITY   #IMPLIED \n"
+        "                ents ENTITIES #IMPLIED \n"
+        "                nm   NMTOKEN  #IMPLIED \n"
+        "                nms  NMTOKENS #IMPLIED \n"
+        "                text CDATA    #IMPLIED \n"
+        "    >\n"
+        "]><doc id='name' notid='name' text='splat!' enum='b'"
+        "       ref='name' refs='name name' ent='e1' ents='e1 e2'"
+        "       nm='123' nms='123 abc' />")
+    elem = doc.documentElement
+    # We don't want to rely on any specific loader at this point, so
+    # just make sure we can get to all the names, and that the
+    # DTD-based namespace is right.  The names can vary by loader
+    # since each supports a different level of DTD information.
+    t = elem.schemaType
+    confirm(t.name is None
+            and t.namespace == xml.dom.EMPTY_NAMESPACE)
+    names = "id notid text enum ref refs ent ents nm nms".split()
+    for name in names:
+        a = elem.getAttributeNode(name)
+        t = a.schemaType
+        confirm(hasattr(t, "name")
+                and t.namespace == xml.dom.EMPTY_NAMESPACE)
 
 def testPickledDocument():
     doc = parseString("<?xml version='1.0' encoding='us-ascii'?>\n"
