@@ -176,7 +176,7 @@ else:
     xmldocfiles = []
 
 setup (name = "PyXML",
-       version = "0.6.5", # Needs to match xml/__init__.version_info
+       version = "0.7", # Needs to match xml/__init__.version_info
        description = "Python/XML package",
        author = "XML-SIG",
        author_email = "xml-sig@python.org",
