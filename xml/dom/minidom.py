@@ -138,8 +138,12 @@ class Node(_Node):
             oldChild.parentNode = None
         newChild.nextSibling = oldChild.nextSibling
         newChild.previousSibling = oldChild.previousSibling
-        oldChild.newChild = None
+        oldChild.nextSibling = None
         oldChild.previousSibling = None
+        if newChild.previousSibling:
+            newChild.previousSibling.nextSibling = newChild
+        if newChild.nextSibling:
+            newChild.nextSibling.previousSibling = newChild
         return oldChild
 
     def removeChild(self, oldChild):
