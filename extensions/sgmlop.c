@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.9 2001/12/28 15:50:38 loewis Exp $
+ * $Id: sgmlop.c,v 1.10 2001/12/30 23:42:40 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -25,6 +25,7 @@
  * 2000-05-28 fl  Raise exception on recursive feed (@SGMLOP4)
  * 2000-07-05 fl  Fixed attribute handling in empty tags (@SGMLOP6)
  * 2001-12-28 wd  Add XMLUnicodeParser
+ * 2001-12-31 mvl Properly process large character references
  *
  * Copyright (c) 1998-2000 by Secret Labs AB
  * Copyright (c) 1998-2000 by Fredrik Lundh
@@ -56,6 +57,11 @@
 #include "Python.h"
 
 #include <ctype.h>
+
+#if (PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION > 5) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
+/* In Python 1.6, 2.0 and  2.1, disabling Unicode was not possible. */
+#define Py_USING_UNICODE
+#endif
 
 #ifdef SGMLOP_UNICODE_SUPPORT
 /* wide character set (experimental) */
@@ -1216,20 +1222,41 @@ fastfeed(FastSGMLParserObject* self)
             }
             else {
                 /* fallback: handle charref's as data */
-                CHAR_T ch;
+                int ch;
                 CHAR_T *p;
                 ch = 0;
                 if (*b == 'x') {
                     for (p = b+1; p < e; p++)
-                        ch = (CHAR_T) (ch*16 + *p - (*p > 'F' ? 
-                                                     'a'-1 :(*p > '9' ? 
-                                                             'A'-1 : '0')));
+                        ch = ch*16 + *p - (*p > 'F' ? 
+					   'a'-1 :(*p > '9' ? 
+						   'A'-1 : '0'));
                 } else {
                     for (p = b; p < e; p++)
-                        ch = (CHAR_T) (ch*10 + *p - '0');
+                        ch = ch*10 + *p - '0';
                 }
-                if (callHandleData(self, &ch, sizeof(CHAR_T)))
-                    return -1;
+#ifdef Py_USING_UNICODE
+		if (self->unicode) {
+		    PyObject *res;
+		    Py_UNICODE uch = ch;
+		    res = PyObject_CallFunction(self->handle_data,
+						"u#", &uch, 1);
+		    if (!res)
+			return -1;
+		    Py_DECREF(res);
+		} else
+#endif
+		{
+		    char nch;
+		    if (ch > 128) {
+			/* XXX: should utf-8 encode here. */
+			PyErr_SetString(PyExc_ValueError, 
+					"character reference too large");
+			return -1;
+		    }
+		    nch = ch;
+		    if (callHandleData(self, &nch, 1))
+			return -1;
+		}
             }
         } else if (token == CDATA && (self->handle_cdata ||
                                       self->handle_data)) {
@@ -1444,10 +1471,12 @@ static char *defaultEncoding = "utf-8";
 static PyObject*
 stringFromData(FastSGMLParserObject* self, const CHAR_T* data, int len)
 {
+#ifdef Py_USING_UNICODE
     if (self->unicode)
         return PyUnicode_Decode(data, len,
             self->encoding ? self->encoding : defaultEncoding, "strict");
     else
+#endif
         return PyString_FromStringAndSize(data, len);
 }
 
