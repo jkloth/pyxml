@@ -252,14 +252,18 @@ class ExpatBuilder:
             child.ownerDocument = self.document
             node.__dict__['childNodes'] = minidom.NodeList()
             node.childNodes.append(child)
-        if (  self._filter and
-              self._filter.acceptNode(node) != FILTER_REJECT):
+        if self._filter:
+            if self._filter.acceptNode(node) != FILTER_REJECT:
+                self._entities.append(node)
+        else:
             self._entities.append(node)
 
     def notation_decl_handler(self, notationName, base, systemId, publicId):
         node = minidom.Notation(notationName, publicId, systemId)
-        if (  self._filter and
-              self._filter.acceptNode(node) != FILTER_REJECT):
+        if self._filter:
+            if self._filter.acceptNode(node) == FILTER_ACCEPT:
+                self._notations.append(node)
+        else:
             self._notations.append(node)
 
     def comment_handler(self, data):
@@ -391,13 +395,16 @@ class ExpatBuilder:
 
     def _create_doctype(self):
         if not self._doctype_args:
-            return
+            return None
         doctype = apply(theDOMImplementation.createDocumentType,
                         self._doctype_args)
         # To modify the entities and notations NamedNodeMaps, we
         # simply need to work with the underlying sequences.
         doctype.entities._seq = self._entities
         doctype.notations._seq = self._notations
+        if (  self._filter
+              and self._filter.acceptNode(doctype) != FILTER_ACCEPT):
+            return None
         return doctype
 
     def _include_early_events(self):
