@@ -9,7 +9,8 @@ from xml.sax._exceptions import *
 from xml.sax.handler import feature_validation, feature_namespaces
 from xml.sax.handler import feature_namespace_prefixes
 from xml.sax.handler import feature_external_ges, feature_external_pes
-from xml.sax.handler import feature_string_interning, property_xml_string
+from xml.sax.handler import feature_string_interning
+from xml.sax.handler import property_xml_string, property_interning_dict
 
 # xml.parsers.expat does not raise ImportError in Jython
 import sys
@@ -45,6 +46,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._parsing = 0
         self._entity_stack = []
         self._external_ges = 1
+        self._interning = None
 
     # XMLReader methods
 
@@ -71,8 +73,10 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
     def getFeature(self, name):
         if name == feature_namespaces:
             return self._namespaces
+        elif name == feature_string_interning:
+            return self._interning is not None
         elif name in (feature_validation, feature_external_pes,
-                      feature_string_interning, feature_namespace_prefixes):
+                      feature_namespace_prefixes):
             return 0
         elif name == feature_external_ges:
             return self._external_ges
@@ -86,15 +90,18 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
             self._namespaces = state
         elif name == feature_external_ges:
             self._external_ges = state
+        elif name == feature_string_interning:
+            if state:
+                if self._interning is None:
+                    self._interning = {}
+            else:
+                self._interning = None
         elif name == feature_validation:
             if state:
                 raise SAXNotSupportedException("expat does not support validation")
         elif name == feature_external_pes:
             if state:
                 raise SAXNotSupportedException("expat does not read external parameter entities")
-        elif name == feature_string_interning:
-            if state:
-                raise SAXNotSupportedException("expat does not intern strings")
         elif name == feature_namespace_prefixes:
             if state:
                 raise SAXNotSupportedException("expat does not report namespace prefixes")
@@ -105,6 +112,8 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
     def getProperty(self, name):
         if name == handler.property_lexical_handler:
             return self._lex_handler_prop
+        elif name == property_interning_dict:
+            return self._interning
         elif name == property_xml_string:
             if self._parser:
                 if hasattr(self._parser, "GetInputContext"):
@@ -120,6 +129,8 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
             self._lex_handler_prop = value
             if self._parsing:
                 self._reset_lex_handler_prop()
+        elif name == property_interning_dict:
+            self._interning = value
         elif name == property_xml_string:
             raise SAXNotSupportedException("Property '%s' cannot be set" %
                                            name)
@@ -169,11 +180,11 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
     def reset(self):
         if self._namespaces:
-            self._parser = expat.ParserCreate(None, " ")
+            self._parser = expat.ParserCreate(None, " ", intern = self._interning)
             self._parser.StartElementHandler = self.start_element_ns
             self._parser.EndElementHandler = self.end_element_ns
         else:
-            self._parser = expat.ParserCreate()
+            self._parser = expat.ParserCreate(intern = self._interning)
             self._parser.StartElementHandler = self.start_element
             self._parser.EndElementHandler = self.end_element
 

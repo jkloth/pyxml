@@ -67,6 +67,7 @@ typedef struct {
     int ordered_attributes;     /* Return attributes as a list. */
     int specified_attributes;   /* Report only specified attributes. */
     int in_callback;            /* Is a callback active? */
+    PyObject *intern;           /* Dictionary to intern strings */
     PyObject **handlers;
 } xmlparseobject;
 
@@ -130,7 +131,7 @@ set_error(xmlparseobject *self)
    Returns None if str is a null pointer. */
 
 static PyObject *
-conv_string_to_unicode(XML_Char *str)
+conv_string_to_unicode(const XML_Char *str)
 {
     /* XXX currently this code assumes that XML_Char is 8-bit, 
        and hence in UTF-8.  */
@@ -139,8 +140,7 @@ conv_string_to_unicode(XML_Char *str)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyUnicode_DecodeUTF8((const char *)str, 
-                                strlen((const char *)str), 
+    return PyUnicode_DecodeUTF8(str, strlen(str), 
                                 "strict");
 }
 
@@ -162,7 +162,7 @@ conv_string_len_to_unicode(const XML_Char *str, int len)
    Returns None if str is a null pointer. */
 
 static PyObject *
-conv_string_to_utf8(XML_Char *str)
+conv_string_to_utf8(const XML_Char *str)
 {
     /* XXX currently this code assumes that XML_Char is 8-bit, 
        and hence in UTF-8.  */
@@ -171,7 +171,7 @@ conv_string_to_utf8(XML_Char *str)
         Py_INCREF(Py_None);
         return Py_None;
     }
-    return PyString_FromString((const char *)str);
+    return PyString_FromString(str);
 }
 
 static PyObject *
@@ -282,6 +282,23 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
                           ? conv_string_to_unicode : conv_string_to_utf8)
 #endif
 
+static PyObject*
+string_intern(xmlparseobject *self, const char* str)
+{
+    PyObject *result = STRING_CONV_FUNC(str);
+    PyObject *value;
+    if (!self->intern)
+	return result;
+    value = PyDict_GetItem(self->intern, result);
+    if (!value) {
+	PyErr_Clear();
+	PyDict_SetItem(self->intern, result, result);
+	return result;
+    }
+    Py_DECREF(result);
+    return value;
+}
+
 static void
 my_StartElementHandler(void *userData,
                        const XML_Char *name, const XML_Char **atts)
@@ -314,7 +331,7 @@ my_StartElementHandler(void *userData,
             return;
         }
         for (i = 0; i < max; i += 2) {
-            PyObject *n = STRING_CONV_FUNC((XML_Char *) atts[i]);
+            PyObject *n = string_intern(self, (XML_Char *) atts[i]);
             PyObject *v;
             if (n == NULL) {
                 flag_error(self);
@@ -343,7 +360,7 @@ my_StartElementHandler(void *userData,
                 Py_DECREF(v);
             }
         }
-        args = Py_BuildValue("(O&N)", STRING_CONV_FUNC,name, container);
+	args = Py_BuildValue("(NN)", string_intern(self, name), container);
         if (args == NULL) {
             Py_DECREF(container);
             return;
@@ -401,13 +418,13 @@ my_##NAME##Handler PARAMS {\
 
 VOID_HANDLER(EndElement, 
              (void *userData, const XML_Char *name), 
-             ("(O&)", STRING_CONV_FUNC, name))
+             ("(N)", string_intern(self, name)))
 
 VOID_HANDLER(ProcessingInstruction,
              (void *userData, 
               const XML_Char *target, 
               const XML_Char *data),
-             ("(O&O&)",STRING_CONV_FUNC,target, STRING_CONV_FUNC,data))
+             ("(NO&)", string_intern(self, target), STRING_CONV_FUNC,data))
 
 #ifndef Py_USING_UNICODE
 VOID_HANDLER(CharacterData, 
@@ -480,7 +497,7 @@ VOID_HANDLER(XmlDecl,
 
 static PyObject *
 conv_content_model(XML_Content * const model,
-                   PyObject *(*conv_string)(XML_Char *))
+                   PyObject *(*conv_string)(const XML_Char *))
 {
     PyObject *result = NULL;
     PyObject *children = PyTuple_New(model->numchildren);
@@ -560,12 +577,12 @@ VOID_HANDLER(StartNamespaceDecl,
 		(void *userData,
 		      const XML_Char *prefix,
 		      const XML_Char *uri),
-                ("(O&O&)", STRING_CONV_FUNC,prefix, STRING_CONV_FUNC,uri))
+                ("(NN)", string_intern(self, prefix), string_intern(self, uri)))
 
 VOID_HANDLER(EndNamespaceDecl,
 		(void *userData,
 		    const XML_Char *prefix),
-                ("(O&)", STRING_CONV_FUNC,prefix))
+                ("(N)", string_intern(self, prefix)))
 
 VOID_HANDLER(Comment,
                (void *userData, const XML_Char *prefix),
@@ -863,6 +880,8 @@ xmlparse_ExternalEntityParserCreate(xmlparseobject *self, PyObject *args)
     new_parser->itself = XML_ExternalEntityParserCreate(self->itself, context,
 							encoding);
     new_parser->handlers = 0;
+    new_parser->intern = self->intern;
+    Py_XINCREF(new_parser->intern);
 #ifdef Py_TPFLAGS_HAVE_GC
     PyObject_GC_Track(new_parser);
 #else
@@ -995,7 +1014,7 @@ XML_Encoding * info)
 #endif
 
 static PyObject *
-newxmlparseobject(char *encoding, char *namespace_separator)
+newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
 {
     int i;
     xmlparseobject *self;
@@ -1029,6 +1048,8 @@ newxmlparseobject(char *encoding, char *namespace_separator)
     else {
         self->itself = XML_ParserCreate(encoding);
     }
+    self->intern = intern;
+    Py_XINCREF(self->intern);
 #ifdef Py_TPFLAGS_HAVE_GC
     PyObject_GC_Track(self);
 #else
@@ -1081,6 +1102,7 @@ xmlparse_dealloc(xmlparseobject *self)
         }
         free(self->handlers);
     }
+    Py_XDECREF(self->intern);
 #if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
     /* Code for versions before 1.6 */
     free(self);
@@ -1125,6 +1147,10 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         return PyInt_FromLong((long) self->returns_unicode);
     if (strcmp(name, "specified_attributes") == 0)
         return PyInt_FromLong((long) self->specified_attributes);
+    if (strcmp(name, "intern") == 0 && self->intern) {
+	Py_INCREF(self->intern);
+	return self->intern;
+    }
 
     handlernum = handlername2int(name);
 
@@ -1145,6 +1171,8 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         PyList_Append(rc, PyString_FromString("ordered_attributes"));
         PyList_Append(rc, PyString_FromString("returns_unicode"));
         PyList_Append(rc, PyString_FromString("specified_attributes"));
+	if (self->intern)
+	    PyList_Append(rc, PyString_FromString("intern"));
 
         return rc;
     }
@@ -1228,6 +1256,8 @@ static int
 xmlparse_clear(xmlparseobject *op)
 {
     clear_handlers(op, 0);
+    Py_XDECREF(op->intern);
+    op->intern = 0;
     return 0;
 }
 #endif
@@ -1283,10 +1313,14 @@ pyexpat_ParserCreate(PyObject *notused, PyObject *args, PyObject *kw)
 {
     char *encoding = NULL;
     char *namespace_separator = NULL;
-    static char *kwlist[] = {"encoding", "namespace_separator", NULL};
+    PyObject *intern = NULL;
+    PyObject *result;
+    int intern_decref = 0;
+    static char *kwlist[] = {"encoding", "namespace_separator", 
+			     "intern", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|zz:ParserCreate", kwlist,
-                                     &encoding, &namespace_separator))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|zzO:ParserCreate", kwlist,
+                                     &encoding, &namespace_separator, &intern))
         return NULL;
     if (namespace_separator != NULL
         && strlen(namespace_separator) > 1) {
@@ -1295,7 +1329,26 @@ pyexpat_ParserCreate(PyObject *notused, PyObject *args, PyObject *kw)
                         " character, omitted, or None");
         return NULL;
     }
-    return newxmlparseobject(encoding, namespace_separator);
+    /* Explicitly passing None means no interning is desired.
+       Not passing anything means that a new dictionary is used. */
+    if (intern == Py_None)
+	intern = NULL;
+    else if (intern == NULL) {
+	intern = PyDict_New();
+	if (!intern)
+	    return NULL;
+	intern_decref = 1;
+    } 
+    else if (!PyDict_Check(intern)) {
+	PyErr_SetString(PyExc_TypeError, "intern must be a dictionary");
+	return NULL;
+    }
+
+    result = newxmlparseobject(encoding, namespace_separator, intern);
+    if (intern_decref) {
+	Py_DECREF(intern);
+    }
+    return result;
 }
 
 static char pyexpat_ErrorString__doc__[] =

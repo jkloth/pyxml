@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: handler.py,v 1.4 2001/12/30 22:16:34 loewis Exp $
+$Id: handler.py,v 1.5 2002/02/14 08:09:36 loewis Exp $
 """
 
 version = '2.0beta'
@@ -329,7 +329,17 @@ property_encoding = "http://www.python.org/sax/properties/encoding"
 # initial value: UTF-8 
 #
 
+property_interning_dict = "http://www.python.org/sax/properties/interning-dict"
+# data type: Dictionary
+# description: The dictionary used to intern common strings in the document
+# access: write: Request that the parser uses a specific dictionary, to
+#                allow interning across different documents
+#         read:  return the current interning dictionary, or None
+#
+
 all_properties = [property_lexical_handler,
                   property_dom_node,
                   property_declaration_handler,
-                  property_xml_string]
+                  property_xml_string,
+                  property_encoding,
+                  property_interning_dict]
