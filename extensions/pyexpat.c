@@ -305,7 +305,7 @@ xmlparse_Parse( xmlparseobject *self, PyObject *args )
 		return NULL;
 	}
 	else if (rv == 0) {
-		PyErr_Format(ErrorObject, "%s: line %i, column %i",
+                PyErr_Format(ErrorObject, "%.200s: line %i, column %i",
 			     XML_ErrorString( XML_GetErrorCode(self->itself) ),
 			     XML_GetErrorLineNumber(self->itself),
 			     XML_GetErrorColumnNumber(self->itself) );
@@ -469,7 +469,12 @@ newxmlparseobject( char *encoding, char *namespace_separator){
 	int i;
 	xmlparseobject *self;
 	
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION <= 6
 	self = PyObject_NEW(xmlparseobject, &Xmlparsetype);
+#else
+        /* Code for versions 1.6 and later */
+        self = PyObject_New(xmlparseobject, &Xmlparsetype);
+#endif
 	if (self == NULL)
 		return NULL;
 
@@ -510,7 +515,13 @@ xmlparse_dealloc( xmlparseobject *self )
 	for( i=0; handler_info[i].name!=NULL; i++ ){
 		Py_XDECREF( self->handlers[i] );
 	}
-	PyMem_DEL(self);
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+        /* Code for versions before 1.6 */
+        free(self);
+#else
+        /* Code for versions 1.6 and later */
+        PyObject_Del(self);
+#endif
 }
 
 static int handlername2int( const char *name ){
@@ -681,7 +692,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.6 $";
+	char *rev="$Revision: 1.7 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
