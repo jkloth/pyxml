@@ -15,9 +15,16 @@ single = re.compile("^#x[0-9A-F]+$")
 
 def uniclass(i):
     c = unichr(i)
-    if c in [u'-',u']']:
+    if c in (u'-',u']'):
         c = r'\x%02x' % i
     return c
+
+def compatrepr(s):
+    """Return a repr of a string that is syntactically correct in
+    Python 1.5 as well."""
+    if type(s) == types.UnicodeType:
+        return "unicode(%s,'utf-16-be')" % repr(s.encode('utf-16-be'))
+    return repr(s)
 
 class CharacterParser:
     def __init__(self, chars = None):
@@ -161,20 +168,20 @@ LetterDigit = union(Letter, Digit)
 
 if __name__=='__main__':
     print "# This file was generated using xmlchargen.py"
-    print "S =",repr("[\n\t \r]+")
-    print "BaseChar =",repr(BaseChar.as_re_class())
-    print "Ideographic =",repr(Ideographic.as_re_class())
-    print "CombiningChar =",repr(CombiningChar.as_re_class())
-    print "Digit =",repr(Digit.as_re_class())
-    print "Extender =",repr(Extender.as_re_class())
-    print "Letter =",repr(Letter.as_re_class())
-    print "NameChar =",repr(NameChar.as_re_class())
+    print "S =",compatrepr("[\n\t \r]+")
+    print "BaseChar =",compatrepr(BaseChar.as_re_class())
+    print "Ideographic =",compatrepr(Ideographic.as_re_class())
+    print "CombiningChar =",compatrepr(CombiningChar.as_re_class())
+    print "Digit =",compatrepr(Digit.as_re_class())
+    print "Extender =",compatrepr(Extender.as_re_class())
+    print "Letter =",compatrepr(Letter.as_re_class())
+    print "NameChar =",compatrepr(NameChar.as_re_class())
     first = FirstNameChar.as_re_class()
     follow = NameChar.as_re_class()
     name = first+follow+"*"
-    print "Name =",repr(name)
+    print "Name =",compatrepr(name)
     print "Names = Name+'('+S+Name+')*'"
-    print "Nmtoken =",repr(follow+"+")
+    print "Nmtoken =",compatrepr(follow+"+")
     print "Nmtokens = Nmtoken+'('+S+Nmtoken+')*'"
 
     print "import re"
