@@ -3,6 +3,9 @@
  * the version string in get_version_string() must be corrected.
  */
 #include "Python.h"
+#if PY_VERSION_HEX < 0x020000B1
+#include <assert.h>
+#endif
 #include <ctype.h>
 
 #include "compile.h"
@@ -1512,7 +1515,7 @@ PyModule_AddStringConstant(PyObject *m, char *name, char *value)
 static PyObject *
 get_version_string(void)
 {
-    static char *rcsid = "#Revision: 2.54 $";
+    static char *rcsid = "#Revision: 2.55 $";
     char *rev = rcsid;
     int i = 0;
 
