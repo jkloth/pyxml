@@ -9,7 +9,7 @@
 
    This list is not complete; if you've been left out, or if you're
    listed and something you've done hasn't been included, send a note
-   to amk1@bigfoot.com.
+   to akuchlin@mems-exchange.org.
 
 -->
 
@@ -66,7 +66,7 @@
 
   <xml-hacker>
     <name> A.M. Kuchling </name>
-    <email> amk1@bigfoot.com </email>
+    <email> akuchlin@mems-exchange.org </email>
     <home-page> http://www.amk.ca </home-page>
     <task> Packaging </task>
     <task> XML HOWTO </task>
