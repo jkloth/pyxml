@@ -45,16 +45,16 @@ class Marshaller(saxlib.HandlerBase):
     # The four basic functions that form the caller's interface
     def dump(self, value, file):
         "Write the value on the open file"
-        dict = { 'id':1 }
+        dict = {'id': 1}
         L = [self.PROLOGUE + self.DTD] + self.m_root(value, dict)
 
         # XXX should this just loop through the L and call file.write
         # for each item?
-        file.write( string.join(L, "") )
+        file.write(string.join(L, ""))
 
     def dumps(self, value):
         "Marshal value, returning the resulting string"
-        dict = {'id':1}
+        dict = {'id': 1}
         # now uses m_root for proper root element handling
         L = [self.PROLOGUE + self.DTD] + self.m_root(value, dict)
         return string.join(L, "")
@@ -80,13 +80,16 @@ class Marshaller(saxlib.HandlerBase):
     # references to already-marshalled objects
 
     def _marshal(self, value, dict):
-        t = type(value) ; i = str( id(value) )
-        if dict.has_key( i ):
-            return self.m_reference( value, dict )
+        t = type(value)
+        i = str(id(value))
+        if dict.has_key(i):
+            return self.m_reference(value, dict)
         else:
-            if type(value) == type(1L): meth = 'm_long'
-            else: meth = "m_" + type(value).__name__
-            return getattr(self,meth)(value, dict)
+            if type(value) is LongType:
+                meth = 'm_long'
+            else:
+                meth = "m_" + type(value).__name__
+            return getattr(self, meth)(value, dict)
 
     # Utility function, used for types that aren't implemented
     def m_unimplemented(self, value, dict):
@@ -107,19 +110,19 @@ class Marshaller(saxlib.HandlerBase):
     def m_reference(self, value, dict):
         # This object has already been marshalled, so
         # emit a reference element.
-        i = dict[ str(id(value)) ]
-        return [ '<' + self.tag_reference + ' id="i%s"/>' % (i, ) ]
+        i = dict[str(id(value))]
+        return ['<' + self.tag_reference + ' id="i%s"/>' % (i,)]
 
     def m_string(self, value, dict):
         name = self.tag_string
-        L = [ '<' + name + '>' ]
+        L = ['<' + name + '>']
         s = str(value)
         if '&' in s or '>' in s or '<' in s:
             s = string.replace(s, '&', '&amp;')
             s = string.replace(s, '<', '&lt;')
             s = string.replace(s, '>', '&gt;')
-        L.append( s )
-        L.append( '</' + name + '>')
+        L.append(s)
+        L.append('</' + name + '>')
         return L
 
     # Since Python 2.2, the string type has a name of 'str'
@@ -129,55 +132,58 @@ class Marshaller(saxlib.HandlerBase):
         return self.m_string(value, dict)
 
     def m_int(self, value, dict):
-        name = self.tag_int ; L = []
-        L.append( '<' + name + '>' + str(value) + '</' + name + '>' )
-        return L
+        name = self.tag_int
+        return ['<' + name + '>' + str(value) + '</' + name + '>']
 
     def m_float(self, value, dict):
-        name = self.tag_float ; L = []
-        L.append( '<' + name + '>' + str(value) + '</' + name + '>' )
-        return L
+        name = self.tag_float
+        return ['<' + name + '>' + str(value) + '</' + name + '>']
 
     def m_long(self, value, dict):
-        name = self.tag_long ; L = []
+        name = self.tag_long
         value = str(value)
         if value[-1] == 'L':
             # some Python versions append and 'L'
             value = value[:-1]
-        L.append( '<' + name + '>' + str(value) + '</' + name + '>' )
-        return L
+        return ['<' + name + '>' + str(value) + '</' + name + '>']
 
     def m_tuple(self, value, dict):
-        name = self.tag_tuple ; L = []
+        name = self.tag_tuple
+        L = []
         L.append( '<' + name + '>')
         for elem in value:
             L = L + self._marshal(elem, dict)
-        L.append( '</' + name + '>')
+        L.append('</' + name + '>')
         return L
 
     def m_list(self, value, dict):
-        name = self.tag_list ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
-        dict[ str(id(value)) ] = i ; dict[ i ] = value
-        L.append( '<' + name + ' id="i%s">' % (i,))
+        name = self.tag_list
+        L = []
+        dict['id'] = dict['id'] + 1
+        i = str(dict['id'])
+        dict[str(id(value))] = i
+        dict[i] = value
+        L.append('<' + name + ' id="i%s">' % i)
         for elem in value:
             L = L + self._marshal(elem, dict)
-        L.append( '</' + name + '>')
+        L.append('</' + name + '>')
         return L
 
     def m_dictionary(self, value, dict):
-        name = self.tag_dictionary ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
-        dict[ str(id(value)) ] = i ; dict[ i ] = value
-        L.append( '<' + name + ' id="i%s">' %(i,) )
+        name = self.tag_dictionary
+        L = []
+        dict['id'] = dict['id'] + 1
+        i = str(dict['id'])
+        dict[str(id(value))] = i
+        dict[i] = value
+        L.append('<' + name + ' id="i%s">' % (i,))
         items = value.items()
         # Sort the items to allow reproducable results across Python
         # versions
         items.sort(version_independent_cmp)
         for key, v in items:
-            L = L + self._marshal(key, dict)
-            L = L + self._marshal(v, dict)
-        L.append( '</' + name + '>')
+            L = L + self._marshal(key, dict) + self._marshal(v, dict)
+        L.append('</' + name + '>')
         return L
 
     # Python 2.2 renames dictionary to dict.
@@ -192,33 +198,35 @@ class Marshaller(saxlib.HandlerBase):
         return self.m_None(value, dict)
 
     def m_complex(self, value, dict):
-        name = self.tag_complex ; L = []
-        return [ '<' + name + '>' + str(value.real) + ' ' + str(value.imag)
-                 + '</' + name + '>' ]
+        name = self.tag_complex
+        return ['<' + name + '>' + str(value.real) + ' ' + str(value.imag)
+                + '</' + name + '>']
 
     def m_code(self, value, dict):
-        name = self.tag_code ; L = []
-
+        name = self.tag_code
+        L = []
         # The full information about code objects is only available
         # from the C level, so we'll use the built-in marshal module
         # to convert the code object into a string, and include it in
         # the HTML.
         import marshal, base64
-        L.append( '<code>' )
+        L.append('<code>')
         s = marshal.dumps(value)
         s = base64.encodestring(s)
-        L.append( s )
-        L.append( '</code>' )
-        i = str( id(value) )
+        L.append(s)
+        L.append('</code>')
         return L
 
     def m_instance(self, value, dict):
-        name = self.tag_instance ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
-        dict[ str(id(value)) ] = i ; dict[ i ] = value
+        name = self.tag_instance
+        L = []
+        dict['id'] = dict['id'] + 1
+        i = str(dict['id'])
+        dict[str(id(value))] = i
+        dict[i] = value
         cls = value.__class__
-        L.append( '<%s id="i%s" module="%s" class="%s">'
-                 % (name, i, cls.__module__, cls.__name__) )
+        L.append('<%s id="i%s" module="%s" class="%s">'
+                 % (name, i, cls.__module__, cls.__name__))
 
         # Check for pickle's __getinitargs__
         if hasattr(value, '__getinitargs__'):
@@ -227,7 +235,7 @@ class Marshaller(saxlib.HandlerBase):
         else:
             args = ()
 
-        L = L + self._marshal(args, dict )
+        L = L + self._marshal(args, dict)
 
         # Check for pickle's __getstate__ function
         try:
@@ -239,7 +247,7 @@ class Marshaller(saxlib.HandlerBase):
 
         L = L + self._marshal(stuff, dict)
 
-        L.append('</%s>' % (name,) )
+        L.append('</%s>' % name)
         return L
 
 # These values are used as markers in the stack when unmarshalling
@@ -249,7 +257,9 @@ class Marshaller(saxlib.HandlerBase):
 # looks back into the stack until TUPLE is found; all the higher
 # objects are then collected into a tuple.  Ditto for lists...
 
-TUPLE = {} ; LIST = {} ; DICT = {}
+TUPLE = {}
+LIST = {}
+DICT = {}
 
 class Unmarshaller(saxlib.HandlerBase):
     # This dictionary maps element names to the names of starting and ending
@@ -277,9 +287,11 @@ class Unmarshaller(saxlib.HandlerBase):
         # method object.
         d = {}
         for key, (sm, em) in self.unmarshal_meth.items():
-            if sm is not None: sm = getattr(self, sm)
-            if em is not None: em = getattr(self, em)
-            d[ key ] = sm,em
+            if sm is not None:
+                sm = getattr(self, sm)
+            if em is not None:
+                em = getattr(self, em)
+            d[key] = sm,em
         self.unmarshal_meth = d
         self._clear()
 
@@ -314,7 +326,7 @@ class Unmarshaller(saxlib.HandlerBase):
 
     def _load(self, file):
         "Read one value from the open file"
-        p=saxexts.make_parser()
+        p = saxexts.make_parser()
         p.setDocumentHandler(self)
         p.parseFile(file)
         assert len(self.data_stack) == 1
@@ -333,8 +345,7 @@ class Unmarshaller(saxlib.HandlerBase):
             raise SystemError, \
                   "Failed to import class %s from module %s" % \
                   (name, module)
-        klass = env[name]
-        return klass
+        return env[name]
 
 
     # SAXlib handler methods.
@@ -355,8 +366,9 @@ class Unmarshaller(saxlib.HandlerBase):
 
     def startElement(self, name, attrs):
         # Call the start unmarshalling method, if specified
-        sm, em = self.unmarshal_meth[ name ]
-        if sm is not None: return sm(name,attrs)
+        sm, em = self.unmarshal_meth[name]
+        if sm is not None:
+            return sm(name,attrs)
 
     def characters(self, ch, start, length):
         if self.accumulating_chars:
@@ -364,8 +376,9 @@ class Unmarshaller(saxlib.HandlerBase):
 
     def endElement(self, name):
         # Call the ending method
-        sm, em = self.unmarshal_meth[ name ]
-        if em is not None: em(name)
+        sm, em = self.unmarshal_meth[name]
+        if em is not None:
+            em(name)
 
     # um_start_root is really a "sentinel" method
     # which ensures that the unmarshaller is in a steady,
@@ -380,10 +393,10 @@ class Unmarshaller(saxlib.HandlerBase):
         assert attrs.has_key('id')
         id = attrs['id']
         assert self.dict.has_key(id)
-        self.data_stack.append( self.dict[id] )
+        self.data_stack.append(self.dict[id])
 
     def um_start_generic(self, name, attrs):
-        self.data_stack.append( [] )
+        self.data_stack.append([])
         self.accumulating_chars = 1
 
     um_start_float = um_start_long = um_start_string = um_start_generic
@@ -399,19 +412,19 @@ class Unmarshaller(saxlib.HandlerBase):
     def um_end_int(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
-        ds[-1] = string.atoi( ds[-1] )
+        ds[-1] = int(ds[-1])
         self.accumulating_chars = 0
 
     def um_end_long(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
-        ds[-1] = string.atol( ds[-1] )
+        ds[-1] = long(ds[-1])
         self.accumulating_chars = 0
 
     def um_end_float(self, name):
         ds = self.data_stack
         ds[-1] = string.join(ds[-1], "")
-        ds[-1] = string.atof( ds[-1] )
+        ds[-1] = float(ds[-1])
         self.accumulating_chars = 0
 
     def um_end_none(self, name):
@@ -431,7 +444,7 @@ class Unmarshaller(saxlib.HandlerBase):
         import marshal, base64
         ds = self.data_stack
         s = string.join(ds[-1], "")
-        s = base64.decodestring( s )
+        s = base64.decodestring(s)
         ds[-1] = marshal.loads(s)
         self.accumulating_chars = 0
 
@@ -441,28 +454,30 @@ class Unmarshaller(saxlib.HandlerBase):
         L = []
         if attrs.has_key('id'):
             id = attrs[ 'id']
-            self.dict[ id ] = L
-        self.data_stack.append( L )
+            self.dict[id] = L
+        self.data_stack.append(L)
 
     def um_end_list(self, name):
         ds = self.data_stack
         for index in range(len(ds)-1, -1, -1):
-            if ds[index] is LIST: break
-        assert index!=-1
-        L = ds[index+1]
-        L[:] = ds[index+2 : len(ds)]
-        ds[index:] = [ L ]
+            if ds[index] is LIST:
+                break
+        assert index != -1
+        L = ds[index + 1]
+        L[:] = ds[index + 2:len(ds)]
+        ds[index:] = [L]
 
     def um_start_tuple(self, name, attrs):
         self.data_stack.append(TUPLE)
 
     def um_end_tuple(self, name):
         ds = self.data_stack
-        for index in range(len(ds)-1, -1, -1):
-            if ds[index] is TUPLE: break
-        assert index!=-1
-        t = tuple( ds[index+1 : len(ds)] )
-        ds[index:] = [ t ]
+        for index in range(len(ds) - 1, -1, -1):
+            if ds[index] is TUPLE:
+                break
+        assert index != -1
+        t = tuple(ds[index+1:len(ds)])
+        ds[index:] = [t]
 
     # Dictionary elements, in the generic format, must always have an
     # even number of objects contained inside them.  These objects are
@@ -471,31 +486,33 @@ class Unmarshaller(saxlib.HandlerBase):
         self.data_stack.append(DICT)
         d = {}
         if attrs.has_key('id'):
-            id = attrs[ 'id']
-            self.dict[ id ] = d
-        self.data_stack.append( d )
+            id = attrs['id']
+            self.dict[id] = d
+        self.data_stack.append(d)
 
     def um_end_dictionary(self, name):
         ds = self.data_stack
-        for index in range(len(ds)-1, -1, -1):
-            if ds[index] is DICT: break
-        assert index!=-1
-        d = ds[index+1]
-        for i in range(index+2, len(ds), 2):
-            key = ds[i] ; value =ds[i+1]
+        for index in range(len(ds) - 1, -1, -1):
+            if ds[index] is DICT:
+                break
+        assert index != -1
+        d = ds[index + 1]
+        for i in range(index + 2, len(ds), 2):
+            key = ds[i]
+            value = ds[i+1]
             d[key] = value
-        ds[index:] = [ d ]
+        ds[index:] = [d]
 
     def um_start_instance(self, name, attrs):
         module = attrs['module']
         classname = attrs['class']
         value = _EmptyClass()
         if attrs.has_key('id'):
-            id = attrs[ 'id']
-            self.dict[ id ] = value
-        self.data_stack.append( value )
-        self.data_stack.append( module )
-        self.data_stack.append( classname )
+            id = attrs['id']
+            self.dict[id] = value
+        self.data_stack.append(value)
+        self.data_stack.append(module)
+        self.data_stack.append(classname)
 
     def um_end_instance(self, name):
         value, module, classname, initargs, dict = self.data_stack[-5:]
@@ -522,37 +539,28 @@ class Unmarshaller(saxlib.HandlerBase):
         # Now set the object's attributes from the marshalled dictionary
         for k,v in dict.items():
             setattr(value, k, v)
-        self.data_stack[ -5: ] = [value]
+        self.data_stack[-5:] = [value]
 
 # Helper class for instance unmarshalling
-class _EmptyClass: pass
+class _EmptyClass:
+    pass
 
 # module functions for procedural use of module
 _m = Marshaller()
-dump = _m.dump ; dumps = _m.dumps
+dump = _m.dump
+dumps = _m.dumps
 _um = Unmarshaller()
-load = _um.load ; loads = _um.loads
+load = _um.load
+loads = _um.loads
+del _m, _um
 
 def test(load, loads, dump, dumps, test_values,
-         do_assert = 1):
+         do_assert=1):
     # Try all the above bits of data
     import StringIO
-    def format(x):
-        # like str, but wont put an L in the end of longs
-        # also, for dictionaries, always gives the same dictionary order
-        if type(x) == DictionaryType:
-            x = x.items()
-            x.sort()
-            r = str(x)
-            return "{"+r[1:-1]+"}"
-        r=str(x)
-        if type(x)==LongType and r[-1]=='L':
-            return r[:-1]
-        return r
-
     for item in test_values:
         s = dumps(item)
-        print format(item), s
+        print s
         output = loads(s)
         # Try it from a file
         file = StringIO.StringIO()
@@ -560,38 +568,40 @@ def test(load, loads, dump, dumps, test_values,
         file.seek(0)
         output2 = load(file)
         if do_assert:
-            assert item==output and item==output2 and output==output2
+            assert item == output and item == output2 and output == output2
 
 
 # Classes used in the test suite
 class _A:
-    def __repr__(self): return '<A instance>'
+    def __repr__(self):
+        return '<A instance>'
 class _B:
-    def __repr__(self): return '<B instance>'
+    def __repr__(self):
+        return '<B instance>'
 
 def runtests():
     print "Testing XML marshalling..."
 
-    L = [None, 1, pow(2,123L), 19.72, 1+5j,
+    L = [None, 1, pow(2, 123L), 19.72, 1+5j,
          "here is a string & a <fake tag>",
-         (1,2,3),
+         (1, 2, 3),
          ['alpha', 'beta', 'gamma'],
-         {'key':'value', 1:2}
+         {'key': 'value', 1: 2}
          ]
     test(load, loads, dump, dumps, L)
 
     instance = _A() ; instance.subobject = _B()
-    instance.subobject.list=[None, 1, pow(2,123L), 19.72, 1+5j,
+    instance.subobject.list=[None, 1, pow(2, 123L), 19.72, 1+5j,
                              "here is a string & a <fake tag>"]
     instance.self = instance
-    L = [ instance ]
+    L = [instance]
 
     test(load, loads, dump, dumps, L, do_assert=0)
 
-    recursive_list = [None, 1, pow(3,65L), {1:'spam', 2:'eggs'},
-                      '<fake tag>', 1+5j ]
-    recursive_list.append( recursive_list )
-    test(load, loads, dump, dumps, [ recursive_list ], do_assert=0)
+    recursive_list = [None, 1, pow(3, 65L), {1: 'spam', 2: 'eggs'},
+                      '<fake tag>', 1+5j]
+    recursive_list.append(recursive_list)
+    test(load, loads, dump, dumps, [recursive_list], do_assert=0)
 
     # Try unmarshalling XML with extra harmless whitespace (as if it was
     # pretty-printed)
