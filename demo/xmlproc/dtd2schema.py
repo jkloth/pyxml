@@ -250,7 +250,7 @@ def write_cm(out, cm):
         else:
             out.write('        <!-- %s -->\n' % (cp,))
 
-    out.write('      <%s>\n' % wrapper)
+    out.write('      </%s>\n' % wrapper)
 
     out.write('    </group>\n')
 
