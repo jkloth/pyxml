@@ -1,4 +1,5 @@
 TODO list:
+	* Shift to the new public CVS server
         * Namespace support for DOM(major thing)
 (SAX namespace support can wait and see what the current effort to revise
 SAX will produce in a few months; SAX2 may add a standard filter for
