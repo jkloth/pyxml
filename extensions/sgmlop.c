@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.2 2000/06/06 12:39:21 amkcvs Exp $
+ * $Id: sgmlop.c,v 1.3 2000/07/14 21:08:38 effbot Exp $
  *
  * The sgmlop accelerator module
  *
@@ -23,6 +23,7 @@
  * 2000-05-28 fl  Added temporary workaround for unicode problem (@SGMLOP2)
  * 2000-05-28 fl  Removed optional close argument (@SGMLOP3)
  * 2000-05-28 fl  Raise exception on recursive feed (@SGMLOP4)
+ * 2000-07-05 fl  Fixed attribute handling in empty tags (@SGMLOP6)
  *
  * Copyright (c) 1998-2000 by Secret Labs AB
  * Copyright (c) 1998-2000 by Fredrik Lundh
@@ -972,7 +973,7 @@ fastfeed(FastSGMLParserObject* self)
             if (!self->xml)
                 while (ISALNUM(*p) || *p == '-' || *p == '.' ||
                        *p == ':' || *p == '?') {
-                    *p = TOLOWER(*p);
+                    *p = (CHAR_T) TOLOWER(*p);
                     if (++p >= end)
                         goto eol;
                 }
@@ -1199,7 +1200,7 @@ fastfeed(FastSGMLParserObject* self)
                 CHAR_T *p;
                 ch = 0;
                 for (p = b; p < e; p++)
-                    ch = ch*10 + *p - '0';
+                    ch = (CHAR_T) (ch*10 + *p - '0');
                 res = PyObject_CallFunction(self->handle_data,
                                             "s#", &ch, sizeof(CHAR_T));
             }
@@ -1278,18 +1279,18 @@ attrparse(const CHAR_T* p, int len, int xml)
         if (key == NULL)
             goto err;
 
+        if (xml)
+            value = Py_None;
+        else
+            value = key; /* in SGML mode, default is same as key */
+
         while (p < end && ISSPACE(*p))
             p++;
 
-        if (p < end && *p != '=') {
-
-            /* attribute value not specified: set value to name */
-            value = key;
-            Py_INCREF(value);
-
-        } else {
+        if (p < end && *p == '=') {
 
             /* attribute value found */
+            Py_DECREF(value);
 
             if (p < end)
                 p++;
