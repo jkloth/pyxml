@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: CDATASection.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.21  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.20  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.19  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -53,8 +62,12 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom.Text import Text
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Text = implementation._4dom_fileImport('Text').Text
+Node = implementation._4dom_fileImport('Node').Node
 
 class CDATASection(Text):
     nodeType = Node.CDATA_SECTION_NODE
@@ -62,16 +75,8 @@ class CDATASection(Text):
     def __init__(self, ownerDocument, data):
         Text.__init__(self, ownerDocument, data)
         self.__dict__['__nodeName'] = "#cdata-section"
-    
-    ### Overridden Methods ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createCDATASection(self.data)
-            else:
-                node = newOwner.createCDATASection(self.data)
-        return Node.cloneNode(self,deep,node)
+    ### Overridden Methods ###
 
     def __repr__(self):
         return "<CDATA Section at %s: data = '%s%s'>" % (

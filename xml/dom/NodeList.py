@@ -6,8 +6,21 @@
 #
 # History:
 # $Log: NodeList.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.37  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.36  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.35  2000/07/03 02:12:53  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.34  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -68,13 +81,35 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-import UserList
-from xml.dom import DOMException
-from xml.dom import NO_MODIFICATION_ALLOWED_ERR
+relevantEvents = [
+    "DOMNodeRemoved",
+    "DOMNodeRemovedFromDocument",
+    "DOMNodeInsertedIntoDocument"
+    ]
 
-class NodeList(UserList.UserList):
-    def __init__(self, list=None):
+import UserList
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+Event = implementation._4dom_fileImport('Event')
+DOMException = dom.DOMException
+NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
+
+
+class NodeList(UserList.UserList, Event.EventListener):
+    # For internal purposes
+    nodeType = Node._NODE_LIST
+
+    def __init__(self, list=None, listener=0):
         UserList.UserList.__init__(self, list or [])
+        self.listener = listener
+        if listener and list:
+            for node in list:
+                for etype in relevantEvents:
+                    node.addEventListener(etype, self, 0)
+        return
 
     ### Attribute Access Methods ###
 
@@ -106,10 +141,17 @@ class NodeList(UserList.UserList):
         else:
             return self[int(index)]
 
+    def handleEvent(evt):
+        pass
+
     #Not defined in the standard
     def contains(self, node):
         return node in self
 
+#    def append(self, obj):
+#        if self.listener:
+#            obj.addEventListener(etype, listener, useCapture)
+    
     def __repr__(self):
         st = "<NodeList at %s: ["%(id(self))
         if len(self):
@@ -118,3 +160,5 @@ class NodeList(UserList.UserList):
             st = st + repr(self[-1])
         st = st + ']>'
         return st
+
+

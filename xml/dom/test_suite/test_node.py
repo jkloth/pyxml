@@ -3,6 +3,14 @@ from xml.dom import HIERARCHY_REQUEST_ERR
 from xml.dom import WRONG_DOCUMENT_ERR
 from xml.dom import NOT_FOUND_ERR
 
+def get_exception_name(code):
+    import types
+    from xml import dom
+    for (name,value) in vars(dom).items():
+        if (type(value) == types.IntType 
+        and value == code):
+            return name
+
 def test(tester):
 
     tester.startGroup('Node')
@@ -20,17 +28,17 @@ def test(tester):
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
     doc = implementation.createDocument(None,'ROOT',dt);
-    	
+
     # We cannot use just plain old nodes, we need to use Elements
     p = doc.createElement('PARENT')
-	
+
     nodes = []
     for ctr in range(3):
-        n = doc.createElement('Child %d' % ctr)
+        n = doc.createElement('Child%d' % ctr)
         nodes.append(n)
     tester.testDone()
-	
-	
+
+
     tester.startTest("Testing attributes")
     if p.nodeName != 'PARENT':
         tester.error("Error getting nodeName");
@@ -109,7 +117,8 @@ def test(tester):
         p.insertBefore(nodes[2],nodes[1]);
     except DOMException, x:
         if x.code != NOT_FOUND_ERR:
-            raise x
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected NOT_FOUND_ERR" % name)
     tester.testDone()
 
 
@@ -135,16 +144,18 @@ def test(tester):
         p.replaceChild(nodes[0],nodes[0] )
     except DOMException, x:
         if x.code != NOT_FOUND_ERR:
-            raise x
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected NOT_FOUND_ERR" % name)
     tester.testDone()
 
-			
+
     tester.startTest("Testing removeChild")
     try:
         p.removeChild(nodes[0]);
     except DOMException, x:
         if x.code != NOT_FOUND_ERR:
-            raise x
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected NOT_FOUND_ERR" % name)
     if p.removeChild(nodes[1]).nodeName != nodes[1].nodeName:
         tester.error("Error Remove Failed");
 
@@ -158,7 +169,7 @@ def test(tester):
         tester.error("Error Remove Failed");
     tester.testDone()
 
-		
+
     tester.startTest("Testing appendChild()")
     if p.appendChild(nodes[0]).nodeName != nodes[0].nodeName:
         tester.error("Error Append Failed");
@@ -174,7 +185,7 @@ def test(tester):
         tester.error("Error Append Failed")
     tester.testDone()
 
-	
+
     tester.startTest("Testing hasChildNodes()")
     if not p.hasChildNodes():
         tester.error("Error hasChildNodes");
@@ -189,7 +200,7 @@ def test(tester):
         tester.error("Supports failed")
     tester.testDone()
 
-		
+
     tester.startTest('Testing normalize()')
     e = doc.createElement('TEST');
     e1 = doc.createElement('TAG3')
@@ -208,20 +219,20 @@ def test(tester):
     if e.childNodes.length != 3:
         tester.error('Normalize did not work');
     tester.testDone()
-	
-	
+
+
     tester.startTest("Testing cloneNode() [single]")
     p1 = e.cloneNode(0)
     if p1.nodeName != e.nodeName:
-	tester.error("cloneNode failed on nodeName")
+        tester.error("cloneNode failed on nodeName")
     if p1.nodeValue != e.nodeValue:
-	tester.error("cloneNode failed on nodeValue")
+        tester.error("cloneNode failed on nodeValue")
     if p1.nodeType != e.nodeType:
-	tester.error("cloneNode failed on nodeType")
+        tester.error("cloneNode failed on nodeType")
     if p1.ownerDocument.nodeName != e.ownerDocument.nodeName:
-	tester.error("cloneNode failed on ownerDocument")
+        tester.error("cloneNode failed on ownerDocument")
     tester.testDone()
-	
+
 
     tester.startTest("Testing cloneNode() [deep]")
     p2 = e.cloneNode(1)
@@ -229,16 +240,16 @@ def test(tester):
     if p2.childNodes.length != e.childNodes.length:
         tester.error("cloneNode didn\'t copy all of the nodes");
     if p2.firstChild == e.firstChild:
-	tester.error("cloneNode failed on firstChild")
+        tester.error("cloneNode failed on firstChild")
     if p2.lastChild == e.lastChild:
-	tester.error("cloneNode failed on lastChild")
+        tester.error("cloneNode failed on lastChild")
     if p2.childNodes.item(1) == e.childNodes.item(1):
         tester.error("cloneNode has the same children");
     tester.testDone()
 
-    	
+
     return tester.groupDone()
-	
+
 
 if __name__ == '__main__':
     import sys

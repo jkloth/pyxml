@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: DocumentFragment.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.22  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.21  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.20  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -53,7 +62,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 
 
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
 
 class DocumentFragment(Node):
     nodeType = Node.DOCUMENT_FRAGMENT_NODE
@@ -70,17 +83,15 @@ class DocumentFragment(Node):
 
     ### Overridden Methods ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createDocumentFragment()
-            else:
-                node = newOwner.createDocumentFragment()
-        Node.cloneNode(self, deep, node)
-        return node
-
     def __repr__(self):
-        return '<Document Fragment Node at %s: with %d children>' % (
+        return '<DocumentFragment Node at %s: with %d children>' % (
                 id(self),
                 self.childNodes.length
                 )
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                )
+

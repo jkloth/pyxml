@@ -242,7 +242,7 @@ class XPointerParser:
                 
         if name=="child" or name=="ancestor" or name=="psibling" or \
            name=="fsibling" or name=="descendant" or name=="following" or \
-	   name=="preceding":
+           name=="preceding":
             self.parse_rel_term(name,params)
         elif name=="span":
             self.parse_span_term(params)

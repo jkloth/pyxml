@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('EntityReference')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import EntityReference
@@ -10,7 +10,7 @@ def test(tester):
         tester.error('Error in syntax',1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
@@ -22,10 +22,10 @@ def test(tester):
     tester.startTest('Test cloneNode()')
     entr1 = entr.cloneNode(1)
     if entr1.nodeName != entr.nodeName:
-	tester.error("cloneNode failed")
+        tester.error("cloneNode failed")
     tester.testDone()
-	
-	
+
+
     return tester.groupDone()
 
 

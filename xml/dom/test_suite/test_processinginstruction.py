@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('ProcessingInstruction')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import ProcessingInstruction
@@ -10,7 +10,7 @@ def test(tester):
         tester.error('Error in syntax', 1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
@@ -28,12 +28,12 @@ def test(tester):
     tester.startTest('Test cloneNode()')
     pi1 = pi.cloneNode(1)
     if pi1.target != pi.target:
-	tester.error("cloneNode fails on target")
+        tester.error("cloneNode fails on target")
     if pi1.data != pi.data:
-	tester.error("cloneNode fails on data")
+        tester.error("cloneNode fails on data")
     tester.testDone()
-	
-	
+
+
     return tester.groupDone()
 
 

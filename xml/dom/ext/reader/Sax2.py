@@ -6,8 +6,47 @@
 #
 # History:
 # $Log: Sax2.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.19  2000/09/22 01:55:46  uogbuji
+# Namespace bugs fixed
+#
+# Revision 1.18  2000/09/19 20:24:00  uogbuji
+# Buncha DOM fixes: namespaces, printing, etc.
+# Add Alex F's problem reports to Dom/test_suite/problems
+#
+# Revision 1.17  2000/09/09 00:22:33  uogbuji
+# undo cogbuji's erroneous commit
+#
+# Revision 1.15  2000/09/07 17:57:38  molson
+# Fixed dumb ass bugs in reader
+#
+# Revision 1.14  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.13  2000/08/17 06:31:08  uogbuji
+# Update SplitQName to simplify usage
+# Fix namespace declaration namespaces acc to May DOM CR
+#
+# Revision 1.12  2000/07/27 20:05:56  jkloth
+# Bug fixes galore
+#
+# Revision 1.11  2000/07/26 19:02:39  molson
+# Fixed attribute bugs in optimization
+#
+# Revision 1.10  2000/07/26 18:37:21  molson
+# Tested speed and made some improvements
+#
+# Revision 1.9  2000/07/13 23:09:14  uogbuji
+# Printer and reader fixes
+#
+# Revision 1.8  2000/07/12 05:29:52  molson
+# Modified to use only the DOM interface
+#
+# Revision 1.7  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
 #
 # Revision 1.6  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -122,8 +161,9 @@ from xml.dom import Entity, DocumentType, Document
 from xml.dom.Node import Node
 from xml.dom import implementation
 from xml.dom.ext import SplitQName
-from xml.dom import XML_NAMESPACE
-
+from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
+from xml.dom import Element
+from xml.dom import Attr
 
 class XmlDomGenerator(saxlib.HandlerBase,
                       Sax2Lib.LexicalHandler,
@@ -142,7 +182,8 @@ class XmlDomGenerator(saxlib.HandlerBase,
         self.__dt = None
         self.__xmlDecl = None
         self.__orphanedNodes = []
-        self.__namespaces = [{'xml': XML_NAMESPACE}]
+        self.__namespaces = {'xml': XML_NAMESPACE}
+        self.__namespaceStack = []
         self.__keepAllWs = keepAllWs
         self.__currText = ''
 
@@ -150,7 +191,6 @@ class XmlDomGenerator(saxlib.HandlerBase,
         if not self.__dt:
             self.__dt = implementation.createDocumentType(docElementName,'','')
         self.__ownerDoc = implementation.createDocument(docElementUri, docElementName, self.__dt)
-        dt_ix = self.__ownerDoc._4dom_getChildIndex(self.__dt)
         if self.__xmlDecl:
             decl_data = 'version="%s"' % (
                     self.__xmlDecl['version']
@@ -189,13 +229,15 @@ class XmlDomGenerator(saxlib.HandlerBase,
                 before_doctype = 0
         self.__rootNode = self.__ownerDoc
         self.__nodeStack.append(self.__rootNode)
+        return
 
     def __completeTextNode(self):
-        #Note some parsers don;t report ignorable white space properly 
+        #Note some parsers don;t report ignorable white space properly
         if self.__currText and len(self.__nodeStack) and self.__nodeStack[-1].nodeType != Node.DOCUMENT_NODE:
             new_text = self.__ownerDoc.createTextNode(self.__currText)
             self.__nodeStack[-1].appendChild(new_text)
         self.__currText = ''
+        return
 
     def getRootNode(self):
         self.__completeTextNode()
@@ -209,62 +251,62 @@ class XmlDomGenerator(saxlib.HandlerBase,
             self.__nodeStack[-1].appendChild(pi)
         else:
             self.__orphanedNodes.append(('pi', target, data))
+        return
 
     def startElement(self, name, attribs):
-        pass
         self.__completeTextNode()
-        self.__namespaces.append(self.__namespaces[-1].copy())
-        for curr_attrib_key in attribs.keys():
-            name_parts = SplitQName(curr_attrib_key)
-            if name_parts == ('', 'xmlns'):
-                self.__namespaces[-1][''] = attribs[curr_attrib_key]
-            elif name_parts[0] == 'xmlns':
-                self.__namespaces[-1][name_parts[1]] = attribs[curr_attrib_key]
-        name_parts = SplitQName(name)
+        old_nss = {}
+        del_nss = []
+        for curr_attrib_key, value in attribs.items():
+            (prefix, local) = SplitQName(curr_attrib_key)
+            if local == 'xmlns':
+                if self.__namespaces.has_key(prefix):
+                    old_nss[prefix] = self.__namespaces[prefix]
+                else:
+                    del_nss.append(prefix)
+                if (prefix or value):
+                    self.__namespaces[prefix] = attribs[curr_attrib_key]
+                else:
+                    del self.__namespaces[prefix]
 
-        pass
+        self.__namespaceStack.append((old_nss, del_nss))
+        (prefix, local) = SplitQName(name)
+        nameSpace = self.__namespaces.get(prefix, '')
 
         if self.__ownerDoc:
-            new_element = self.__ownerDoc.createElementNS(
-                self.__namespaces[-1].has_key(name_parts[0]) and self.__namespaces[-1][name_parts[0]] or '',
-                name
-                )
+            new_element = self.__ownerDoc.createElementNS(nameSpace, (prefix and prefix + ':' +  local) or local)
         else:
-            self.__initRootNode(
-                self.__namespaces[-1].has_key(name_parts[0]) and self.__namespaces[-1][name_parts[0]] or '',
-                name
-                )
+            self.__initRootNode(nameSpace, name)
             new_element = self.__ownerDoc.documentElement
 
-        for curr_attrib_key in attribs.keys():
+        for curr_attrib_key,curr_attrib_value in attribs.items():
             pass
-            name_parts = SplitQName(curr_attrib_key)
-            if name_parts == ('', 'xmlns') or name_parts[0] == 'xmlns':
-                new_element.setAttributeNS(
-                    '',
-                    curr_attrib_key,
-                    attribs[curr_attrib_key]
-                    )
+            (prefix, local) = SplitQName(curr_attrib_key)
+            if local == 'xmlns':
+                namespace = XMLNS_NAMESPACE
+                attr = self.__ownerDoc.createAttributeNS(namespace,
+                                                         local + ':' + prefix)
             else:
-                name_parts = SplitQName(curr_attrib_key)
-                if name_parts[0] and self.__namespaces[-1].has_key(name_parts[0]):
-                    ns = self.__namespaces[-1][name_parts[0]]
-                else:
-                    ns = ''
-                new_element.setAttributeNS(
-                    ns,
-                    curr_attrib_key,
-                    attribs[curr_attrib_key]
-                    )
+                namespace = prefix and self.__namespaces.get(prefix, '') or ''
+                attr = self.__ownerDoc.createAttributeNS(namespace,
+                                                         (prefix and prefix + ':' + local) or local)
+            attr.value = curr_attrib_value
+            new_element.setAttributeNodeNS(attr)
         self.__nodeStack.append(new_element)
+        return
 
     def endElement(self, name):
         self.__completeTextNode()
         new_element = self.__nodeStack[-1]
         del self.__nodeStack[-1]
-        del self.__namespaces[-1]
+        old_nss, del_nss = self.__namespaceStack[-1]
+        del self.__namespaceStack[-1]
+        self.__namespaces.update(old_nss)
+        for prefix in del_nss:
+            del self.__namespaces[prefix]
         if new_element != self.__ownerDoc.documentElement:
             self.__nodeStack[-1].appendChild(new_element)
+        return
 
     def ignorableWhitespace(self, ch, start, length):
         """
@@ -275,13 +317,16 @@ class XmlDomGenerator(saxlib.HandlerBase,
         """
         if self.__keepAllWs and self.__nodeStack[-1].nodeType !=  Node.DOCUMENT_NODE:
             self.__currText = self.__currText + ch[start:start+length]
+        return
 
     def characters(self, ch, start, length):
         self.__currText = self.__currText + ch[start:start+length]
+        return
 
     #Overridden LexicalHandler methods
     def xmlDecl(self, version, encoding, standalone):
         self.__xmlDecl = {'version': version, 'encoding': encoding, 'standalone': standalone}
+        return
 
     def startDTD(self, doctype, publicID, systemID):
         if not self.__rootNode:
@@ -289,6 +334,7 @@ class XmlDomGenerator(saxlib.HandlerBase,
             self.__orphanedNodes.append(('doctype'))
         else:
             raise 'Illegal DocType declaration'
+        return
 
     def comment(self, text):
         if self.__rootNode:
@@ -297,9 +343,11 @@ class XmlDomGenerator(saxlib.HandlerBase,
             self.__nodeStack[-1].appendChild(new_comment)
         else:
             self.__orphanedNodes.append(('comment', text))
+        return
 
     def startCDATA(self):
         self.__completeTextNode()
+        return
 
     def endCDATA(self):
         #NOTE: this doesn't handle the error where endCDATA is called
@@ -308,16 +356,18 @@ class XmlDomGenerator(saxlib.HandlerBase,
             new_text = self.__ownerDoc.createCDATASection(self.__currText)
             self.__nodeStack[-1].appendChild(new_text)
             self.__currText = ''
-
+        return
 
     #Overridden DTDHandler methods
     def notationDecl (self, name, publicId, systemId):
         new_notation = self.__ownerDoc.getFactory().createNotation(self.__ownerDoc,  publicId, systemId, name)
         self.__ownerDoc.getDocumentType().getNotations().setNamedItem(new_notation)
+        return
 
     def unparsedEntityDecl (self, publicId, systemId, notationName):
         new_notation = self.__ownerDoc.getFactory().createEntity(self.__ownerDoc,  publicId, systemId, notationName)
         self.__ownerDoc.getDocumentType().getEntities().setNamedItem(new_notation)
+        return
 
     #Overridden ErrorHandler methods
     #FIXME: How do we handle warnings?
@@ -349,13 +399,13 @@ def FromXmlStream(stream,
     parser.parseFile(stream)
     return handler.getRootNode()
 
-def FromXml(str,
+def FromXml(text,
             ownerDocument=None,
             validate=0,
             keepAllWs=0,
             catName=None,
             saxHandlerClass=XmlDomGenerator):
-    fp = cStringIO.StringIO(str)
+    fp = cStringIO.StringIO(text)
     rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName, saxHandlerClass)
     return rv
 

@@ -1,3 +1,13 @@
+Changes in 0.10.2 (R20000724)
+-----------------------------
+
+ - Support wide range of output encodings via wstring
+ - Updated conformance to 20000510 DOM CR
+ - Changed internals to use Node as the clone manager, using a pickle-
+   style interface.
+ - Changed many classes to be generated in the HTML Extension
+ - Other bug-fixes
+
 Changes in 0.10.1 (R20000606)
 -----------------------------
 

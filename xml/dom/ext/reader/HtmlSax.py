@@ -57,7 +57,6 @@ class HtmlDomGenerator:
 
     #Overridden DocumentHandler methods
     def startElement(self, name, attribs):
-        pass
         self.__completeTextNode()
         for curr_attrib_key in attribs.keys():
             pass

@@ -6,8 +6,45 @@
 #
 # History:
 # $Log: Element.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.63  2000/09/22 18:53:56  uogbuji
+# More AF bug-ficxes: dom stylesheets
+#
+# Revision 1.62  2000/09/22 01:55:46  uogbuji
+# Namespace bugs fixed
+#
+# Revision 1.61  2000/09/19 20:24:00  uogbuji
+# Buncha DOM fixes: namespaces, printing, etc.
+# Add Alex F's problem reports to Dom/test_suite/problems
+#
+# Revision 1.60  2000/09/12 18:40:40  molson
+# Fixed import bug
+#
+# Revision 1.59  2000/09/09 00:43:19  uogbuji
+# Fix illegal character checks
+# Printer fixes
+#
+# Revision 1.58  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.57  2000/08/17 06:31:08  uogbuji
+# Update SplitQName to simplify usage
+# Fix namespace declaration namespaces acc to May DOM CR
+#
+# Revision 1.56  2000/07/25 18:25:09  jkloth
+# Fixed cloning bugs
+#
+# Revision 1.55  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.54  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.53  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -116,15 +153,25 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-import xml.dom.ext
-from xml.dom.Node import Node
-from xml.dom import INVALID_CHARACTER_ERR
-from xml.dom import WRONG_DOCUMENT_ERR
-from xml.dom import INUSE_ATTRIBUTE_ERR
-from xml.dom import NOT_FOUND_ERR
-from xml.dom import implementation
-from xml.dom import DOMException
-import string
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+
+ext = implementation._4dom_fileImport('ext')
+INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
+WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
+NAMESPACE_ERR = dom.NAMESPACE_ERR
+INUSE_ATTRIBUTE_ERR = dom.INUSE_ATTRIBUTE_ERR
+NOT_FOUND_ERR = dom.NOT_FOUND_ERR
+DOMException = dom.DOMException
+XML_NAMESPACE = dom.XML_NAMESPACE
+NAMESPACE_ERR = dom.NAMESPACE_ERR
+
+import re, string
+#FIXME: should allow combining characters: fix when Python gets Unicode
+g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
 
 
 class Element(Node):
@@ -171,7 +218,6 @@ class Element(Node):
             if err.code != NOT_FOUND_ERR:
                 raise err
             return
-        old._4dom_setParentNode(None)
         old._4dom_setOwnerElement(None)
 
     def getAttributeNode(self, name):
@@ -183,12 +229,11 @@ class Element(Node):
         if ourOwner != None and nodeOwner != None:
             if (ourOwner.isXml() != nodeOwner.isXml()) or (ourOwner.isHtml() != nodeOwner.isHtml()):
                 raise DOMException(WRONG_DOCUMENT_ERR)
-        if node.parentNode != None:
+        if node.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
-        node._4dom_setOwnerElement(self)
         rt = self.attributes.setNamedItem(node)
-        if rt:
-            return rt
+        node._4dom_setOwnerElement(self)
+        return rt
 
     def removeAttributeNode(self, node):
         old = self.getAttributeNode(node.name)
@@ -223,21 +268,21 @@ class Element(Node):
         return ''
 
     def setAttributeNS(self, namespaceURI, qualifiedName, value):
-        self._4dom_validateName(qualifiedName)
-        #FIXME: Check for NAMESPACE_ERR
+        if not g_namePattern.match(qualifiedName):
+            raise DOMException(INVALID_CHARACTER_ERR)
         att = self.ownerDocument.createAttributeNS(namespaceURI, qualifiedName)
-        if not namespaceURI:
-            name_parts = xml.dom.ext.SplitQName(qualifiedName)
-            if name_parts[0] == 'xml':
-                namespaceURI = 'http://www.w3.org/XML/1998/namespace'
-        att.value = value
+        att.nodeValue = value
         self.setAttributeNodeNS(att)
+        return
 
     def removeAttributeNS(self, namespaceURI, localName):
-        old = self.attributes.removeNamedItemNS(namespaceURI,localName)
-        if old != None:
-            old._4dom_setParentNode(None)
-            old._4dom_setOwnerElement(None)
+        try:
+            old = self.attributes.removeNamedItemNS(namespaceURI,localName)
+            if old != None:
+                old._4dom_setOwnerElement(None)
+        except DOMException, e:
+            pass
+        return None
 
     def getAttributeNodeNS(self, namespaceURI, localName):
         return self.attributes.getNamedItemNS(namespaceURI, localName)
@@ -247,11 +292,11 @@ class Element(Node):
         nodeOwner = node.ownerDocument
         if ourOwner != nodeOwner:
             raise DOMException(WRONG_DOCUMENT_ERR)
-        if node.parentNode != None:
+        if node.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
-        node._4dom_setOwnerElement(self)
         rt = self.attributes.setNamedItemNS(node)
-        return rt or None
+        node._4dom_setOwnerElement(self)
+        return rt
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
         if namespaceURI == None:
@@ -276,24 +321,43 @@ class Element(Node):
 
     ### Overridden Methods ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createElement(self.tagName)
-            else:
-                node = newOwner.createElement(self.tagName)
-        #Clone our ancestors
-        Node.cloneNode(self,deep,node)
-        #Now clone our map
-        for attr in self.attributes:
-            if self.ownerDocument._4dom_isNsAware:
-                node.setAttributeNodeNS(attr.cloneNode(1, newOwner=newOwner))
-            else:
-                node.setAttributeNode(attr.cloneNode(1, newOwner=newOwner))
-        return node
-
     def __repr__(self):
-        return "<Element Node at %s: Name = '%s' with %d attributes and %d children>" % (id(self),self.nodeName,len(self.attributes), len(self.childNodes))
+        return "<Element Node at %s: Name = '%s' with %d attributes and %d children>" % (
+            id(self),
+            self.nodeName,
+            len(self.attributes),
+            len(self.childNodes)
+            )
+
+    # Behind the back setting of element's ownerDocument
+    # Also sets the owner of the NamedNodeMaps
+    def _4dom_setOwnerDocument(self, newOwner):
+        self.__dict__['__ownerDocument'] = newOwner
+        self.__dict__['__attributes']._4dom_setOwnerDocument(newOwner)
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                self.nodeName,
+                self.namespaceURI,
+                self.prefix,
+                self.localName
+                )
+
+    def __getstate__(self):
+        return self.attributes
+
+    def __setstate__(self, attributes):
+        for attr in attributes:
+            # Attribute children are the value, so they're cloned
+            # when the attribute is cloned, no need to go deep
+            newAttr = attr.cloneNode(0, newOwner=self.ownerDocument)
+            if self.ownerDocument._4dom_isNsAware:
+                self.attributes.setNamedItemNS(newAttr)
+            else:
+                self.attributes.setNamedItem(newAttr)
+            newAttr._4dom_setOwnerElement(self)
 
     ### Attribute Access Mappings ###
 

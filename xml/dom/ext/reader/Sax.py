@@ -6,8 +6,14 @@
 #
 # History:
 # $Log: Sax.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.6  2000/07/13 23:09:14  uogbuji
+# Printer and reader fixes
+#
+# Revision 1.5  2000/07/12 05:29:52  molson
+# Modified to use only the DOM interface
 #
 # Revision 1.4  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -142,7 +148,6 @@ class XmlDomGenerator(saxlib.HandlerBase):
         self.__nodeStack[-1].appendChild(p)
 
     def startElement(self, name, attribs):
-        pass
         self.__completeTextNode()
         new_element = self.__ownerDoc.createElement(name)
 

@@ -2,6 +2,14 @@ from xml.dom import INDEX_SIZE_ERR
 from xml.dom import DOMException
 from xml.dom import implementation
 
+def get_exception_name(code):
+    import types
+    from xml import dom
+    for (name,value) in vars(dom).items():
+        if (type(value) == types.IntType 
+        and value == code):
+            return name
+
 def test(tester):
     tester.startGroup('CharacterData')
 
@@ -32,46 +40,48 @@ def test(tester):
     tester.startTest('Testing attributes')
     t1.data = 'TEST';
     if t1.data != 'TEST':
-	tester.error('Get/set data doesn\'t match')
+        tester.error('Get/set data doesn\'t match')
 
     if t1.length != 4:
-	tester.error('length returned wrong size')
+        tester.error('length returned wrong size')
     tester.testDone()
 
 
     tester.startTest('Testing substringData()')
     if t2.substringData(1,2) != 'UB':
-	tester.error('substringData returns wrong section')
+        tester.error('substringData returns wrong section')
     if t2.substringData(5,100) != 'RING':
-	tester.error('substringData fails on oversized \'count\'')
+        tester.error('substringData fails on oversized \'count\'')
     try:
-	t2.substringData(100,2)
+        t2.substringData(100,2)
     except DOMException, x:
-	if x.code != INDEX_SIZE_ERR:
-	    raise x;
+        if x.code != INDEX_SIZE_ERR:
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected INDEX_SIZE_ERR" % name)
     else:
-	tester.error('substringData doesn\'t catch an invalid index')
+        tester.error('substringData doesn\'t catch an invalid index')
     tester.testDone()
 
 
     tester.startTest('Testing appendData()')
     t3.appendData(' TEST')
     if t3.data != 'APPEND TEST':
-	tester.error('appendData does not append')
+        tester.error('appendData does not append')
     tester.testDone()
 
 
     tester.startTest('Testing insertData()')
     t4.insertData(2,'here')
     if t4.data != 'INhereSERT':
-	tester.error('insertData did not properly insert');
+        tester.error('insertData did not properly insert');
     try:
-	t4.insertData(100,'TEST');
+        t4.insertData(100,'TEST');
     except DOMException, x:
-	if x.code != INDEX_SIZE_ERR:
-	    raise x;
+        if x.code != INDEX_SIZE_ERR:
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected INDEX_SIZE_ERR" % name)
     else:
-	tester.error('insertData doesn\'t catch an invalid index')
+        tester.error('insertData doesn\'t catch an invalid index')
     tester.testDone()
 
 
@@ -79,19 +89,20 @@ def test(tester):
     # DELETE
     t5.deleteData(2,2)
     if t5.data != 'DETE':
-	tester.error('deleteData did not properly get rid of the data')
+        tester.error('deleteData did not properly get rid of the data')
 
     t5.deleteData(2,10)
     if t5.data != 'DE':
-	tester.error('deleteData fails on oversized \'count\'')
+        tester.error('deleteData fails on oversized \'count\'')
 
     try:
-	t5.deleteData(100,3);
+        t5.deleteData(100,3);
     except DOMException, x:
-	if x.code != INDEX_SIZE_ERR:
-	    raise x;
+        if x.code != INDEX_SIZE_ERR:
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected INDEX_SIZE_ERR" % name)
     else:
-	tester.error('deleteData doesn\'t catch an invalid index')
+        tester.error('deleteData doesn\'t catch an invalid index')
     tester.testDone()
 
 
@@ -99,20 +110,21 @@ def test(tester):
     # REPLACE
     t6.replaceData(0,1,'CH')
     if t6.data != 'CHEST':
-	tester.error('replaceData did not properly replace')
+        tester.error('replaceData did not properly replace')
     t6.replaceData(3,7,'ESE')
     if t6.data != 'CHEESE':
-	tester.error('replaceData did not properly replace')
+        tester.error('replaceData did not properly replace')
     try:
-	t6.replaceData(100,3,'Not Gonna Happen');
+        t6.replaceData(100,3,'Not Gonna Happen');
     except DOMException, x:
-	if x.code != INDEX_SIZE_ERR:
-	    raise x;
+        if x.code != INDEX_SIZE_ERR:
+            name = get_exception_name(x.code)
+            tester.error("Wrong exception '%s', expected INDEX_SIZE_ERR" % name)
     else:
-	tester.error('replaceData doesn\'t catch an invalid index')
+        tester.error('replaceData doesn\'t catch an invalid index')
     tester.testDone()
 
-    	
+
     return tester.groupDone()
 
 

@@ -5,8 +5,12 @@
 #
 # History:
 # $Log: HTMLFormElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.22  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
 #
 # Revision 1.21  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -142,7 +146,7 @@ class HTMLFormElement(HTMLElement):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
+    _readComputedAttrs.update ({
         'acceptCharset' : _get_acceptCharset,
         'action'        : _get_action,
         'elements'      : _get_elements,
@@ -153,8 +157,8 @@ class HTMLFormElement(HTMLElement):
         'target'        : _get_target
         })
 
-    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
         'acceptCharset' : _set_acceptCharset,
         'action'        : _set_action,
         'encType'       : _set_encType,

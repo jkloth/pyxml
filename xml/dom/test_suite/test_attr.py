@@ -19,13 +19,13 @@ def test(tester):
     except:
         tester.error('Error creating document')
 
-    a = doc.createAttribute('Test Node');
-    e = doc.createElement('Test Element')
+    a = doc.createAttribute('TestNode');
+    e = doc.createElement('TestElement')
     tester.testDone()
 
 
     tester.startTest('Testing attributes')
-    if a.name != 'Test Node':
+    if a.name != 'TestNode':
        tester.error("name failed")
     if a.specified != 0:
         tester.error("specified failed")

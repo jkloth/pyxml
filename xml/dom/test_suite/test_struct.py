@@ -10,9 +10,9 @@ def testRestriction(tester, doc, mapping, node, good):
     # Make sure none of the good fail
     for type in good:
         try:
-	    node.appendChild(mapping[type])
+            node.appendChild(mapping[type])
         except:
-	    tester.error('Didn\'t allow addition of %s' % type)
+            tester.error('Didn\'t allow addition of %s' % type)
         else:
             df.appendChild(mapping[type])
 
@@ -26,11 +26,11 @@ def testRestriction(tester, doc, mapping, node, good):
     # And none of the bad work
     for type in bad:
         try:
-	    node.appendChild(mapping[type])
+            node.appendChild(mapping[type])
         except:
-	    pass
+            pass
         else:
-	    tester.error('Allowed addition of %s' % type)
+            tester.error('Allowed addition of %s' % type)
 
 
 def test(tester):

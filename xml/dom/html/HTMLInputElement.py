@@ -6,8 +6,12 @@
 #
 # History:
 # $Log: HTMLInputElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.29  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
 #
 # Revision 1.28  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -238,7 +242,7 @@ class HTMLInputElement(HTMLElement):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
+    _readComputedAttrs.update ({
          'accept'         : _get_accept,
          'accessKey'      : _get_accessKey,
          'align'          : _get_align,
@@ -257,10 +261,10 @@ class HTMLInputElement(HTMLElement):
          'type'           : _get_type,
          'useMap'         : _get_useMap,
          'value'          : _get_value,
-      }) 
+      })
 
     _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
-    _writeComputedAttrs.update ({ 
+    _writeComputedAttrs.update ({
          'accept'         : _set_accept,
          'accessKey'      : _set_accessKey,
          'align'          : _set_align,
@@ -277,7 +281,7 @@ class HTMLInputElement(HTMLElement):
          'tabIndex'       : _set_tabIndex,
          'useMap'         : _set_useMap,
          'value'          : _set_value,
-      }) 
+      })
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                             HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())

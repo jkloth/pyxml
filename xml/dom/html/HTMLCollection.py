@@ -6,8 +6,12 @@
 #
 # History:
 # $Log: HTMLCollection.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.25  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
 #
 # Revision 1.24  2000/06/09 01:36:39  jkloth
 # Moved to generated source files

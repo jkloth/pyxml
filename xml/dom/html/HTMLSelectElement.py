@@ -6,11 +6,15 @@
 #
 # History:
 # $Log: HTMLSelectElement.py,v $
-# Revision 1.4  2000/09/20 16:28:35  loewis
-# Fix syntax errors.
+# Revision 1.5  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
 #
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.35  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.34  2000/07/18 16:58:52  jkloth
+# Fixed small bugs
 #
 # Revision 1.33  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -73,7 +77,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 from xml.dom import implementation
 from xml.dom import DOMException
 from xml.dom import INDEX_SIZE_ERR
-from xml.dom.html import HTMLElement
+from xml.dom.html.HTMLElement import HTMLElement
 import string
 
 class HTMLSelectElement(HTMLElement):
@@ -122,7 +126,7 @@ class HTMLSelectElement(HTMLElement):
 
     def _get_length(self):
         return self._get_options()._get_length()
-        
+
     def _get_options(self):
         children = self.getElementsByTagName('OPTION')
         return implementation._4dom_createHTMLCollection(children)
@@ -151,7 +155,7 @@ class HTMLSelectElement(HTMLElement):
 
     def _get_name(self):
         return self.getAttribute('NAME')
-    
+
     def _set_name(self,name):
         self.setAttribute('NAME',name)
 
@@ -190,31 +194,31 @@ class HTMLSelectElement(HTMLElement):
 
     ### Attribute Access Mappings ###
 
-    _readComputedAttrs = HTMLFormBasedElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
-         'type'          : _get_type, 
-         'length'        : _get_length, 
-         'options'       : _get_options, 
-         'form'          : _get_form, 
-         'selectedIndex' : _get_selectedIndex, 
-         'value'         : _get_value, 
-         'disabled'      : _get_disabled, 
-         'multiple'      : _get_multiple, 
-         'name'          : _get_name, 
-         'size'          : _get_size, 
-         'tabIndex'      : _get_tabIndex, 
-      }) 
+    _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
+    _readComputedAttrs.update ({
+         'type'          : _get_type,
+         'length'        : _get_length,
+         'options'       : _get_options,
+         'form'          : _get_form,
+         'selectedIndex' : _get_selectedIndex,
+         'value'         : _get_value,
+         'disabled'      : _get_disabled,
+         'multiple'      : _get_multiple,
+         'name'          : _get_name,
+         'size'          : _get_size,
+         'tabIndex'      : _get_tabIndex,
+      })
 
-    _writeComputedAttrs = HTMLFormBasedElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
-         'selectedIndex' : _set_selectedIndex, 
-         'value'         : _set_value, 
-         'disabled'      : _set_disabled, 
-         'multiple'      : _set_multiple, 
-         'name'          : _set_name, 
-         'size'          : _set_size, 
-         'tabIndex'      : _set_tabIndex, 
-      }) 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
+         'selectedIndex' : _set_selectedIndex,
+         'value'         : _set_value,
+         'disabled'      : _set_disabled,
+         'multiple'      : _set_multiple,
+         'name'          : _set_name,
+         'size'          : _set_size,
+         'tabIndex'      : _set_tabIndex,
+      })
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                      HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())

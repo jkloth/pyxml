@@ -6,8 +6,21 @@
 #
 # History:
 # $Log: Attr.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.34  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.33  2000/07/09 19:02:19  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.32  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.31  2000/06/09 01:37:23  jkloth
 # Updated copyright
@@ -75,8 +88,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-import xml.dom
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+Node = implementation._4dom_fileImport('Node').Node
+
 
 class Attr(Node):
     nodeType = Node.ATTRIBUTE_NODE
@@ -109,7 +125,8 @@ class Attr(Node):
             nl = [self.ownerDocument.createTextNode(value)]
         else:
             nl = []
-        self.__dict__['__childNodes'] = xml.dom.implementation._4dom_createNodeList(nl)
+        self.__dict__['__childNodes'] = implementation._4dom_createNodeList(nl)
+        return
 
     def _get_ownerElement(self):
         return self.__dict__['__ownerElement']
@@ -119,15 +136,8 @@ class Attr(Node):
     def _get_nodeValue(self):
         return self._get_value()
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createAttribute(self.name)
-            else:
-                node = newOwner.createAttribute(self.name)
-        #Clone from our ancestors
-        Node.cloneNode(self, deep, node)
-        return node
+    def _set_nodeValue(self, value):
+        self._set_value(value)
 
     def __repr__(self):
          return '<Attribute Node at %s: Name = "%s", Value = "%s">' % (
@@ -135,6 +145,16 @@ class Attr(Node):
              self.name,
              self.value
              )
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                self.nodeName,
+                self.namespaceURI,
+                self.prefix,
+                self.localName
+                )
 
     ### Internal Methods ###
 

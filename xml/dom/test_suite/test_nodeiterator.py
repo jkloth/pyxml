@@ -52,7 +52,7 @@ def test(tester):
     tester.startTest('Iterating in reverse')
     curr_node =  nit.previousNode()   
     while curr_node:
-	curr_node =  nit.previousNode()
+        curr_node =  nit.previousNode()
     tester.testDone()
 
 

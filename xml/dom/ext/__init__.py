@@ -6,8 +6,49 @@
 #
 # History:
 # $Log: __init__.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:25  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.27  2000/09/22 21:56:13  uogbuji
+# Add output encoding support to printer
+#
+# Revision 1.26  2000/09/19 20:24:00  uogbuji
+# Buncha DOM fixes: namespaces, printing, etc.
+# Add Alex F's problem reports to Dom/test_suite/problems
+#
+# Revision 1.25  2000/09/17 05:20:41  uogbuji
+# Domlette fixes.
+#
+# Revision 1.24  2000/09/15 22:10:33  molson
+# Removed isHtml reference
+#
+# Revision 1.23  2000/09/15 18:21:21  molson
+# Fixed minor import bugs
+#
+# Revision 1.22  2000/09/09 00:22:33  uogbuji
+# undo cogbuji's erroneous commit
+#
+# Revision 1.18  2000/09/04 00:14:39  uogbuji
+# Make Printer smarter about multiply-declared namespaces
+#
+# Revision 1.17  2000/08/28 08:34:13  uogbuji
+# bug-fix
+#
+# Revision 1.16  2000/08/28 08:31:41  uogbuji
+# Optimization and some bug-fixes to printer
+#
+# Revision 1.15  2000/08/17 06:31:08  uogbuji
+# Update SplitQName to simplify usage
+# Fix namespace declaration namespaces acc to May DOM CR
+#
+# Revision 1.14  2000/08/07 06:17:18  molson
+# Tracked down memory problems
+#
+# Revision 1.13  2000/07/26 18:37:21  molson
+# Tested speed and made some improvements
+#
+# Revision 1.12  2000/07/12 05:29:52  molson
+# Modified to use only the DOM interface
 #
 # Revision 1.11  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -146,8 +187,9 @@ import xml.dom
 from xml.dom.Node import Node
 from xml.dom.NodeIterator import NodeIterator
 from xml.dom.NodeFilter import NodeFilter
-from xml.dom import XML_NAMESPACE
+from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE
+import re
 
 NodeTypeDict = {
     Node.ELEMENT_NODE : "Element",
@@ -169,36 +211,30 @@ def NodeTypeToClassName(nodeType):
     return NodeTypeDict[nodeType]
 
 
-def Print(root, stream=sys.stdout):
-    if not isinstance(root, Node):
+def Print(root, stream=sys.stdout, encoding='UTF-8'):
+    if not hasattr(root, "nodeType"):
         return
     from xml.dom.ext import Printer
-    visitor = Printer.PrintVisitor()
-    st = Printer.PrintWalker(visitor, root).run()
-    stream.write(st)
+    nss_hints = SeekNss(root)
+    visitor = Printer.PrintVisitor(stream, encoding, nss_hints)
+    Printer.PrintWalker(visitor, root).run()
     return
 
 
-def PrettyPrint(
-        root,
-        stream=sys.stdout,
-        indent='  ',
-        width=80,
-        preserveElements=None
-    ):
-    if not isinstance(root, Node):
+def PrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  ',
+                width=80, preserveElements=None):
+    if not hasattr(root, "nodeType"):
         return
     from xml.dom.ext import Printer
+    nss_hints = SeekNss(root)
     preserveElements = preserveElements or []
-    if root.ownerDocument.isHtml():
+    if hasattr(root.ownerDocument,'isHtml') and root.ownerDocument.isHtml():
         #We don't want to insert any whitespace into HTML inline elements
         preserveElements = preserveElements + HTML_4_TRANSITIONAL_INLINE
-    visitor = Printer.PrettyPrintVisitor(
-        indent,
-        width,
-        preserveElements
-        )
-    stream.write(Printer.PrintWalker(visitor, root).run())
+    visitor = Printer.PrettyPrintVisitor(stream, encoding, indent, width,
+                                         preserveElements, nss_hints)
+    Printer.PrintWalker(visitor, root).run()
+    stream.write('\n')
     return
 
 
@@ -210,7 +246,8 @@ def ReleaseNode(node):
         node.removeChild(child)
 
     if node.nodeType == Node.ELEMENT_NODE:
-        for attr in node.attributes:
+        for ctr in range(node.attributes.length):
+            attr = node.attributes.item(0)
             node.removeAttributeNode(attr)
             ReleaseNode(attr)
 
@@ -315,14 +352,11 @@ def GetAllNs(node):
     if node.nodeType == Node.ELEMENT_NODE:
         if node.namespaceURI:
             nss[node.prefix] = node.namespaceURI
-        for attr in node.attributes:
-            if attr.namespaceURI:
+        for attr in node.attributes.values():
+            if attr.namespaceURI == XMLNS_NAMESPACE:
+                nss[attr.localName] = attr.value
+            elif attr.namespaceURI:
                 nss[attr.prefix] = attr.namespaceURI
-            else:
-                if attr.prefix == 'xmlns':
-                    nss[attr.localName] = attr.value
-                if not attr.prefix and attr.localName == 'xmlns':
-                    nss[''] = attr.value
     if node.parentNode:
         #Inner NS/Prefix mappings take precedence over outer ones
         parent_nss = GetAllNs(node.parentNode)
@@ -331,12 +365,49 @@ def GetAllNs(node):
     return nss
 
 
+#FIXME: this dict is a small memory leak: a splay tree that rotates out
+#out of the tree would be perfect.
+#g_splitNames = {}
 def SplitQName(qname):
-    name_parts = string.splitfields(qname, ':')
-    if len(name_parts) == 1:
-        return ('', name_parts[0])
-    elif len(name_parts) == 2:
-        return (name_parts[0], name_parts[1])
-    else:
-        return ('', string.joinfields(name_parts, ':'))
+    """
+    Input a QName according to XML Namespaces 1.0
+    http://www.w3.org/TR/REC-xml-names
+    Return the name parts according to the spec
+    In the case of namespace declarations the tuple returned
+    is (prefix, 'xmlns')
+    Note that this won't hurt users since prefixes and local parts starting
+    with "xml" are reserved, but it makes ns-aware builders easier to write
+    """
+    #sName = g_splitNames.get(qname)
+    sName = None
+    if sName == None:
+        index = string.find(qname, ':')
+        if index == -1:
+            #Note: we could gain a tad more performance by interning 'xmlns'
+            if qname == 'xmlns':
+                sName = ('', 'xmlns')
+            else:
+                sName = ('', qname)
+        else:
+            (part1, part2) = (qname[:index], qname[index+1:])
+            if part1 == 'xmlns':
+                sName = (part2, 'xmlns')
+            else:
+                sName = (part1, part2)
+        #g_splitNames[qname] = sName
+    return sName
+
+
+def SeekNss(node, nss=None):
+    '''traverses the tree to seek an approximate set of defined namespaces'''
+    nss = nss or {}
+    for child in node.childNodes:
+        if child.nodeType == Node.ELEMENT_NODE:
+            if child.namespaceURI:
+                nss[child.prefix] = child.namespaceURI
+            for attr in child.attributes.values():
+                if attr.namespaceURI == XMLNS_NAMESPACE:
+                    nss[attr.localName] = attr.value
+            SeekNss(child, nss)
+    return nss
 

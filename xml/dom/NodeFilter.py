@@ -6,8 +6,8 @@
 #
 # History:
 # $Log: NodeFilter.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
 #
 # Revision 1.10  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc

@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: Comment.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.20  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.19  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.18  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -52,10 +61,12 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-from xml.dom.CharacterData import CharacterData
-
-from xml.dom.Node import Node
+CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
+Node = implementation._4dom_fileImport('Node').Node
 
 class Comment(CharacterData):
     nodeType = Node.COMMENT_NODE
@@ -65,14 +76,6 @@ class Comment(CharacterData):
         self.__dict__['__nodename'] = '#comment'
 
     ### Overridden Methods ###
-
-    def cloneNode(self, deep, node=None, newOwner = None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createComment(self.data)
-            else:
-                node = newOwner.createComment(self.data)
-        return CharacterData.cloneNode(self,deep,node)
 
     def __repr__(self):
         st = "<Comment Node at %s: data = '%s%s'>" % (id(self)

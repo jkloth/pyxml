@@ -6,8 +6,16 @@
 #
 # History:
 # $Log: HTMLTableRowElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.31  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.30  2000/07/05 21:45:40  jkloth
+# fixed method name errors
+# fixed stupid errors in code
 #
 # Revision 1.29  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -140,7 +148,6 @@ class HTMLTableRowElement(HTMLElement):
     def insertCell(self, index):
         cells = self._get_cells()
         if index < 0 or index > len(cells):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         cell = self.ownerDocument.createElement('TD')
         length = cells.length
@@ -153,33 +160,31 @@ class HTMLTableRowElement(HTMLElement):
     def deleteCell(self,index):
         cells = self._get_cells()
         if index < 0 or index >= len(cells):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         self.removeChild(cells[index])
 
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
-         'rowIndex'      : _get_rowIndex, 
-         'sectionRowIndex' : _get_sectionRowIndex, 
-         'cells'         : _get_cells, 
-         'align'         : _get_align, 
-         'bgColor'       : _get_bgColor, 
-         'ch'            : _get_ch, 
-         'chOff'         : _get_chOff, 
-         'vAlign'        : _get_vAlign, 
-      }) 
+    _readComputedAttrs.update ({
+         'rowIndex'      : _get_rowIndex,
+         'sectionRowIndex' : _get_sectionRowIndex,
+         'cells'         : _get_cells,
+         'align'         : _get_align,
+         'bgColor'       : _get_bgColor,
+         'ch'            : _get_ch,
+         'chOff'         : _get_chOff,
+         'vAlign'        : _get_vAlign,
+      })
 
-    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
-         'cells'         : _set_cells, 
-         'align'         : _set_align, 
-         'bgColor'       : _set_bgColor, 
-         'ch'            : _set_ch, 
-         'chOff'         : _set_chOff, 
-         'vAlign'        : _set_vAlign, 
-      }) 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
+         'align'         : _set_align,
+         'bgColor'       : _set_bgColor,
+         'ch'            : _set_ch,
+         'chOff'         : _set_chOff,
+         'vAlign'        : _set_vAlign,
+      })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

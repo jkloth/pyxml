@@ -1,29 +1,29 @@
 def test(tester):
-        tester.startGroup('DocumentFragment')
+    tester.startGroup('DocumentFragment')
 
-	tester.startTest('Testing syntax')
-	try:
-	    from xml.dom import DocumentFragment
-	    from xml.dom.DocumentFragment import DocumentFragment
-	except:
-	    tester.error('Error in syntax', 1)
-	tester.testDone()
+    tester.startTest('Testing syntax')
+    try:
+        from xml.dom import DocumentFragment
+        from xml.dom.DocumentFragment import DocumentFragment
+    except:
+        tester.error('Error in syntax', 1)
+    tester.testDone()
 
-	
-	tester.startTest('Creating test environment')
-	from xml.dom import implementation
-	dt = implementation.createDocumentType('','','')
-	doc = implementation.createDocument('','ROOT',dt)
-	df = doc.createDocumentFragment()
-	tester.testDone()
 
-	
-	tester.startTest('Testing cloneNode()')
-	df1 = df.cloneNode(1)
-	tester.testDone()
+    tester.startTest('Creating test environment')
+    from xml.dom import implementation
+    dt = implementation.createDocumentType('','','')
+    doc = implementation.createDocument('','ROOT',dt)
+    df = doc.createDocumentFragment()
+    tester.testDone()
 
-	
-	return tester.groupDone()
+
+    tester.startTest('Testing cloneNode()')
+    df1 = df.cloneNode(1)
+    tester.testDone()
+
+
+    return tester.groupDone()
 
 
 if __name__ == '__main__':

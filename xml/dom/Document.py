@@ -6,8 +6,60 @@
 #
 # History:
 # $Log: Document.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.75  2000/09/22 02:47:23  uogbuji
+# Fixes before 0.9.0.1
+#
+# Revision 1.74  2000/09/22 01:55:46  uogbuji
+# Namespace bugs fixed
+#
+# Revision 1.73  2000/09/19 23:20:08  uogbuji
+# Pre-packaging bug-fixes
+#
+# Revision 1.72  2000/09/19 20:24:00  uogbuji
+# Buncha DOM fixes: namespaces, printing, etc.
+# Add Alex F's problem reports to Dom/test_suite/problems
+#
+# Revision 1.71  2000/09/13 07:10:18  molson
+# More packaging
+#
+# Revision 1.70  2000/09/10 22:56:46  uogbuji
+# Minor fixes
+#
+# Revision 1.69  2000/09/09 00:43:19  uogbuji
+# Fix illegal character checks
+# Printer fixes
+#
+# Revision 1.68  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.67  2000/08/17 06:31:08  uogbuji
+# Update SplitQName to simplify usage
+# Fix namespace declaration namespaces acc to May DOM CR
+#
+# Revision 1.66  2000/08/07 05:16:29  molson
+# HHHunted down memory leakes
+#
+# Revision 1.65  2000/07/26 18:37:21  molson
+# Tested speed and made some improvements
+#
+# Revision 1.64  2000/07/25 18:25:09  jkloth
+# Fixed cloning bugs
+#
+# Revision 1.63  2000/07/18 16:58:52  jkloth
+# Fixed small bugs
+#
+# Revision 1.62  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.61  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.60  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -129,17 +181,27 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+import re, string, copy
 
-from xml.dom import DOMException
-from xml.dom import implementation
 
-from xml.dom.Node import Node
-import string,copy
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-from xml.dom import HIERARCHY_REQUEST_ERR
-from xml.dom import INVALID_CHARACTER_ERR
-from xml.dom import NOT_SUPPORTED_ERR
-from xml import dom
+Node = implementation._4dom_fileImport('Node').Node
+Text = implementation._4dom_fileImport('Text')
+SplitQName = implementation._4dom_fileImport('ext').SplitQName
+
+DOMException = dom.DOMException
+HIERARCHY_REQUEST_ERR = dom.HIERARCHY_REQUEST_ERR
+INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
+NOT_SUPPORTED_ERR = dom.NOT_SUPPORTED_ERR
+XMLNS_NAMESPACE = dom.XMLNS_NAMESPACE
+XML_NAMESPACE = dom.XML_NAMESPACE
+NAMESPACE_ERR = dom.NAMESPACE_ERR
+
+#FIXME: should allow combining characters: fix when Python gets Unicode
+g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
 
 class Document(Node):
     #Base node type for this class
@@ -153,9 +215,8 @@ class Document(Node):
         Node.DOCUMENT_TYPE_NODE
         ]
 
-
     def __init__(self, doctype):
-        Node.__init__(self,self,'','','')
+        Node.__init__(self,None,'','','')
         self.__dict__['__doctype'] = None
         self.__dict__['__implementation'] = implementation
         self.__dict__['__documentElement'] = None
@@ -163,10 +224,10 @@ class Document(Node):
         self.__dict__['_singleChildren'] = {Node.ELEMENT_NODE:'__documentElement',
                                             Node.DOCUMENT_TYPE_NODE:'__doctype'
                                             }
-        if doctype:
-            doctype._4dom_setOwnerDocument(self)
-            self.appendChild(doctype)
-
+        self._4dom_setDocumentType(doctype)
+#        if doctype:
+#            doctype._4dom_setOwnerDocument(self)
+#            Node.appendChild(self, doctype)
 
     ### Attribute Methods ###
 
@@ -179,95 +240,87 @@ class Document(Node):
     def _get_documentElement(self):
         return self.__dict__['__documentElement']
 
+    def _get_ownerDocument(self):
+        return self
+
     ### Methods ###
 
     def createElement(self, tagname):
-        from Element import Element
+        Element = implementation._4dom_fileImport('Element').Element
         if self.isHtml(): tagname = string.upper(tagname)
-        self._4dom_validateName(tagname)
+        if not g_namePattern.match(tagname):
+            raise DOMException(INVALID_CHARACTER_ERR)
         e = Element(self,tagname,'','',tagname)
         #trace("Create Element")
         return e
 
     def createDocumentFragment(self):
-        from xml.dom.DocumentFragment import DocumentFragment
+        DocumentFragment = implementation._4dom_fileImport('DocumentFragment').DocumentFragment
         newDocFrag = DocumentFragment(self)
         return newDocFrag
 
     def createTextNode(self, data):
-        from Text import Text
-        tn = Text(self,data)
+        tn = Text.Text(self,data)
         #trace("Create Text Node")
         return tn
 
     def createComment(self, data):
-        from Comment import Comment
+        Comment = implementation._4dom_fileImport('Comment').Comment
         c = Comment(self,data)
         #trace("Create comment")
         return c
 
     def createCDATASection(self, data):
-        from xml.dom.CDATASection import CDATASection
+        CDATASection = implementation._4dom_fileImport('CDATASection').CDATASection
         if not self.isXml():
-            pass
             raise DOMException(NOT_SUPPORTED_ERR)
         c = CDATASection(self,data)
-        return c                
+        return c
 
     def createProcessingInstruction(self, target, data):
-        from xml.dom.ProcessingInstruction import ProcessingInstruction
+        ProcessingInstruction = implementation._4dom_fileImport('ProcessingInstruction').ProcessingInstruction
         if not self.isXml():
-            pass
             raise DOMException(NOT_SUPPORTED_ERR)
-        #FIXME: Need to lookup the complete list of invalid chars
-        for c in target:
-            if c in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR);
-        newPI = ProcessingInstruction(self,target,data);
-        return newPI
+        #FIXME: Technically, chacters from the unicode surrogate blocks are illegal.  Fix when Python gets unicode
+        #for c in target:
+        #    if c in unicode_surrogate_blocks:
+        #        trace('Create Processing Instruction Failed, Invalid character')
+        #        raise DOMException(INVALID_CHARACTER_ERR);
+        if not g_namePattern.match(target):
+            raise DOMException(INVALID_CHARACTER_ERR)
 
+
+        newPI = ProcessingInstruction(self, target, data);
+        return newPI
+    
     def createAttribute(self, name):
-        #FIXME: Need to lookup the complete list of invalid chars
-        from Attr import Attr
-        for c in name:
-            if c in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
-        a = Attr(self,name,'','','')
-        pass
+        Attr = implementation._4dom_fileImport('Attr').Attr
+        if not g_namePattern.match(name):
+            raise DOMException(INVALID_CHARACTER_ERR)
+        a = Attr(self,name, '', '', '')
         return a
 
     def createEntityReference(self, name):
-        from xml.dom.EntityReference import EntityReference
+        EntityReference = implementation._4dom_fileImport('EntityReference').EntityReference
         if not self.isXml():
-            pass
             raise dom.DOMException(NOT_SUPPORTED_ERR)
-        #FIXME: Complete the list of invalid chars
-        for c in name:
-            if c in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
+        if not g_namePattern.match(name):
+            raise DOMException(INVALID_CHARACTER_ERR)
         e = EntityReference(self, name)
-        pass
         return e
 
     def _4dom_createEntity(self, publicId, systemId, notationName):
-        from xml.dom.Entity import Entity
+        Entity = implementation._4dom_fileImport('Entity').Entity
         if not self.isXml():
-            pass
             raise dom.DOMException(NOT_SUPPORTED_ERR)
         e = Entity(self, publicId, systemId, notationName)
-        pass
         return e
 
     def _4dom_createNotation(self, publicId, systemId, name):
-        from xml.dom.Notation import Notation
+        Notation = implementation._4dom_fileImport('Notation').Notation
         if not self.isXml():
-            pass
             raise dom.DOMException(NOT_SUPPORTED_ERR)
         n = Notation(self, publicId, systemId, name)
-        pass
         return n
 
     def getElementsByTagName(self,tagName):
@@ -287,43 +340,52 @@ class Document(Node):
         #FIXME: Must be implemented in the parser first
         return None
 
-    def importNode(self,importedNode,deep):
-        return importedNode.cloneNode(deep,newOwner = self)
+    def importNode(self, importedNode, deep):
+        importType = importedNode.nodeType
+
+        # No import allow per spec
+        if importType in [Node.DOCUMENT_NODE, Node.DOCUMENT_TYPE_NODE]:
+            raise DOMException(NOT_SUPPORTED_ERR)
+
+        # Only the EntRef itself is copied since the source and destination
+        # documents might have defined the entity differently
+        #FIXME: If the document being imported into provides a definition for
+        #       this entity name, its value is assigned.
+        #       Need entity support for this!!
+        elif importType == Node.ENTITY_REFERENCE_NODE:
+            deep = 0
+
+        return importedNode.cloneNode(deep, newOwner=self)
 
     def createElementNS(self, namespaceURI, qualifiedName):
-        from Element import Element
-        fields = string.split(qualifiedName, ':')
-        if len(fields) == 2:
-            prefix = fields[0]
-            localName = fields[1]
-        elif len(fields) == 1:
-            prefix = ''
-            localName = fields[0]            
-        #FIXME: I need to look up the full list of "not allowed" chars
-        for c in localName:
-            if c in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
+        Element = implementation._4dom_fileImport('Element').Element
+        (prefix, localName) = SplitQName(qualifiedName)
+        if not g_namePattern.match(qualifiedName):
+            raise DOMException(INVALID_CHARACTER_ERR)
+        if prefix == 'xml':
+            if namespaceURI and namespaceURI != XML_NAMESPACE:
+                raise DOMException(NAMESPACE_ERR)
+        if (not namespaceURI and prefix):
+            raise DOMException(NAMESPACE_ERR)
         e = Element(self, qualifiedName, namespaceURI, prefix, localName)
-        pass
         return e
 
     def createAttributeNS(self, namespaceURI, qualifiedName):
-        #FIXME: Need to lookup the complete list of invalid chars
-        from Attr import Attr
-        fields = string.split(qualifiedName,':')
-        if len(fields) == 2:
-            localName = fields[1]
-            prefix = fields[0]
-        elif len(fields) == 1:
-            localName = fields[0]
-            prefix = None
-        for c in localName:
-            if c in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
-        a = Attr(self, qualifiedName, namespaceURI, prefix, localName)
-        pass
+        if not g_namePattern.match(qualifiedName):
+            raise DOMException(INVALID_CHARACTER_ERR)
+        Attr = implementation._4dom_fileImport('Attr').Attr
+        (prefix, localName) = SplitQName(qualifiedName)
+        if prefix == 'xml':
+            if namespaceURI and namespaceURI != XML_NAMESPACE:
+                raise DOMException(NAMESPACE_ERR)
+        if localName == 'xmlns':
+            if namespaceURI != XMLNS_NAMESPACE:
+                raise DOMException(NAMESPACE_ERR)
+            a = Attr(self, qualifiedName, XMLNS_NAMESPACE, 'xmlns', prefix)
+        else:
+            if (not namespaceURI and prefix) or (not prefix and namespaceURI):
+                raise DOMException(NAMESPACE_ERR)
+            a = Attr(self, qualifiedName, namespaceURI, prefix, localName)
         return a
 
     def getElementsByTagNameNS(self,namespaceURI,localName):
@@ -336,70 +398,70 @@ class Document(Node):
                 py.insert(0,root)
         return py
 
-    #Document Traversal interface
-    def createNodeIterator(self,root,whatToShow,filter,expand):
-        from xml.dom import NodeIterator
-        nodi = NodeIterator.NodeIterator(root, whatToShow, filter,expand)
-        pass
+    ### Document Traversal Factory Functions ###
+
+    def createNodeIterator(self, root, whatToShow, filter, entityReferenceExpansion):
+        NodeIterator = implementation._4dom_fileImport('NodeIterator')
+        nodi = NodeIterator.NodeIterator(root, whatToShow, filter, entityReferenceExpansion)
         return nodi
 
-    def createTreeWalker(self, root, whatToShow, filter, expand):
-        from xml.dom import TreeWalker
-        tw = TreeWalker.TreeWalker(root, whatToShow, filter, expand)
-        pass
+    def createTreeWalker(self, root, whatToShow, filter, entityReferenceExpansion):
+        TreeWalker = implementation._4dom_fileImport('TreeWalker')
+        tw = TreeWalker.TreeWalker(root, whatToShow, filter, entityReferenceExpansion)
         return tw
 
     ### Overridden Methods ###
 
-    def appendChild(self, newChild):
-        '''Make sure only one of the singleChildren are added to a Document'''
-        attr = self.__dict__['_singleChildren'].get(newChild.nodeType)
-        if attr:
-            if self.__dict__[attr] != None:
-                pass
+    def _4dom_setDocumentType(self, doctype):
+        if not self.__dict__['__doctype'] and doctype is not None:
+            self.__dict__['__doctype'] = doctype
+            doctype._4dom_setOwnerDocument(self)
+            return Node.appendChild(self, doctype)
+        pass
+
+    def _4dom_addSingle(self, node):
+        '''Make sure only one Element node is added to a Document'''
+        if node.nodeType == Node.ELEMENT_NODE:
+            if self.__dict__['__documentElement']:
                 raise DOMException(HIERARCHY_REQUEST_ERR)
-            self.__dict__[attr] = newChild
+            self.__dict__['__documentElement'] = node
+
+    def appendChild(self, newChild):
+        self._4dom_addSingle(newChild)
         return Node.appendChild(self, newChild)
 
     def insertBefore(self, newChild, oldChild):
-        '''Make sure only one of the singleChildren are added to a Document'''
-        attr = self.__dict__['_singleChildren'].get(newChild.nodeType)
-        if attr:
-            if self.__dict__[attr] != None:
-                pass
-                raise DOMException(HIERARCHY_REQUEST_ERR)
-            self.__dict__[attr] = newChild
+        self._4dom_addSingle(newChild)
         return Node.insertBefore(self, newChild, oldChild)
 
     def replaceChild(self, newChild, oldChild):
-        '''Make sure only one of the singleChildren are added to a Document'''
-        attr = self.__dict__['_singleChildren'].get(newChild.nodeType)
-        if attr:
-            if self.__dict__[attr] != None and self.__dict__[attr] != oldChild:
-                pass
-                raise DOMException(HIERARCHY_REQUEST_ERR)
-            self.__dict__[attr] = newChild
-        return Node.replaceChild(self, newChild, oldChild)
+        if newChild.nodeType == Node.ELEMENT_NODE \
+        and oldChild.nodeType != Node.ELEMENT_NODE \
+        and self.__dict__['__documentElement']:
+            raise DOMException(HIERARCHY_REQUEST_ERR)
+        replaced = Node.replaceChild(self, newChild, oldChild)
+        if self.documentElement == replaced:
+            if newChild.nodeType == Node.DOCUMENT_FRAGMENT_NODE:
+                newChild = newChild.firstChild
+            self.__dict__['__documentElement'] = newChild
+        return replaced
 
     def removeChild(self,oldChild):
-        attr = self.__dict__['_singleChildren'].get(oldChild.nodeType)
-        if attr:
-            if self.__dict__[attr] == oldChild:
-                self.__dict__[attr] = None
-        return Node.removeChild(self, oldChild)
-
-    def cloneNode(self,deep,node=None,newOwner=None):
-        if node == None:
-            #FIXME
-            node = implementation.createDocument('','',self.doctype)
-        node = Node.cloneNode(self,deep,node)
+        node = Node.removeChild(self, oldChild)
+        if self.documentElement == node:
+            self.__dict__['__documentElement'] = None
+        if self.__dict__['__doctype'] == node:
+            self.__dict__['__doctype'] = None
         return node
 
-    def isXml(self):
-        return 1
-
-    def isHtml(self):
-        return 0
+    #DocumentEvent interface
+    import Event
+    def createEvent(eventType):
+        if eventType in Event.supportedEvents:
+            #Only mutation events are supported
+            return Event.MutationEvent(eventType)
+        else:
+            raise DOMException(NOT_SUPPORTED_ERR)
 
     def __repr__(self):
         return "<%s Document at %s>" % (
@@ -407,18 +469,46 @@ class Document(Node):
             id(self)
             )
 
+    def cloneNode(self, deep):
+        clone = Document(None)
+        if deep:
+            if self.doctype is not None:
+                # Cannot have any children, no deep needed
+                dt = self.doctype.cloneNode(0)
+                clone._4dom_setDocumentType(dt)
+            if self.documentElement is not None:
+                # The root element can have children, duh
+                root = self.documentElement.cloneNode(1, newOwner=clone)
+                clone.appendChild(root)
+        return clone
+
+    ### Helper Functions for Pickling ###
+
+    def __getinitargs__(self):
+        return (None,)
+
+    def __getstate__(self):
+        return {}
+
+    ### Convenience Functions ###
+
+    def isXml(self):
+        return 1
+
+    def isHtml(self):
+        return 0
+
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = Node._readComputedAttrs.copy()
     _readComputedAttrs.update({'doctype':_get_doctype,
                                'implementation':_get_implementation,
                                'documentElement':_get_documentElement,
+                               'ownerDocument':_get_ownerDocument,
                                })
 
 
     _writeComputedAttrs = Node._writeComputedAttrs.copy()
-    _writeComputedAttrs.update({
-                                })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

@@ -6,8 +6,14 @@
 #
 # History:
 # $Log: NodeIterator.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.22  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.21  2000/07/12 05:29:52  molson
+# Modified to use only the DOM interface
 #
 # Revision 1.20  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -62,11 +68,16 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom.Node import Node
-from xml.dom.NodeFilter import NodeFilter
-from xml.dom import DOMException
-from xml.dom import NO_MODIFICATION_ALLOWED_ERR
-from xml.dom import INVALID_STATE_ERR
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
+
+DOMException = dom.DOMException
+NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
+INVALID_STATE_ERR = dom.INVALID_STATE_ERR
 
 class NodeIterator:
     def __init__(self, root, whatToShow, filter, expandEntityReferences):
@@ -98,7 +109,6 @@ class NodeIterator:
         next_node = self.__advance()
         while next_node and not (self.__checkWhatToShow(next_node) and self.__checkFilter(next_node) == NodeFilter.FILTER_ACCEPT):
             next_node = self.__advance()
-        pass
         return next_node
 
     def previousNode(self):
@@ -107,7 +117,6 @@ class NodeIterator:
         prev_node = self.__regress()
         while prev_node and not (self.__checkWhatToShow(prev_node) and self.__checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT):
             prev_node = self.__regress()
-        pass
         return prev_node
         
     def detach(self):
@@ -117,12 +126,11 @@ class NodeIterator:
         #Deasil?  --Uche
         if not self.__dict__['__nodeStack']:
             self.__dict__['__nodeStack'].append(self.__dict__['__root'])
-            pass
             return self.__dict__['__root']
         index = 1
         for sub_root in self.__dict__['__nodeStack'][1:]:
             #FIXME: getChildIndex Not DOM compliant
-            if self.__dict__['__nodeStack'][index-1]._4dom_getChildIndex(sub_root) == -1:
+            if getChildNodeIndex(self.__dict__['__nodeStack'][index-1],sub_root) == -1:
                 self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
                 break
             index = index + 1
@@ -135,17 +143,15 @@ class NodeIterator:
         if curr_node:
             self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
             self.__dict__['__nodeStack'].append(curr_node)
-        pass
         return curr_node
 
     def __regress(self):
         #Widdershins?  --Uche
         if not self.__dict__['__nodeStack']:
-            pass
             return None
         index = 1
         for sub_root in self.__dict__['__nodeStack'][1:]:
-            if self.__dict__['__nodeStack'][index-1]._4dom_getChildIndex(sub_root) == -1:
+            if getChildNodeIndex(self.__dict__['__nodeStack'][index-1],sub_root) == -1:
                 self.__dict__['__nodeStack'] = self.__dict__['__nodeStack'][:index]
                 break
             index = index + 1
@@ -157,11 +163,10 @@ class NodeIterator:
             self.__dict__['__nodeStack'].append(curr_node)
             curr_node = curr_node.lastChild
 
-        pass
         return result
 
     def __checkWhatToShow(self, node):
-        show_bit = 1 << (node._get_nodeType() - 1)
+        show_bit = 1 << (node.nodeType - 1)
         return self.__dict__['__whatToShow'] & show_bit
 
     def __checkFilter(self, node):
@@ -170,3 +175,9 @@ class NodeIterator:
         else:
             return NodeFilter.FILTER_ACCEPT
 
+
+
+def getChildNodeIndex(pNode,child):
+    if child in pNode.childNodes:
+        return pNode.childNodes.index(child)
+    return -1

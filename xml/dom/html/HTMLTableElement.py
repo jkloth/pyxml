@@ -6,11 +6,19 @@
 #
 # History:
 # $Log: HTMLTableElement.py,v $
-# Revision 1.4  2000/09/20 16:28:35  loewis
-# Fix syntax errors.
+# Revision 1.5  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
 #
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.34  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.33  2000/07/18 16:58:52  jkloth
+# Fixed small bugs
+#
+# Revision 1.32  2000/07/05 21:45:40  jkloth
+# fixed method name errors
+# fixed stupid errors in code
 #
 # Revision 1.31  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -207,8 +215,7 @@ class HTMLTableElement(HTMLElement):
             self.replaceChild(newFooter, oldFooter)
 
     def _get_tHead(self):
-        children = self.childNodes
-        for child in children:
+        for child in self.childNodes:
             if child.tagName == 'THEAD':
                 return child
         return None
@@ -277,7 +284,6 @@ class HTMLTableElement(HTMLElement):
     def deleteRow(self,index):
         rows = self._get_rows()
         if index < 0 or index >= len(rows):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         rows[index].parentNode.removeChild(rows[index])
 
@@ -294,7 +300,6 @@ class HTMLTableElement(HTMLElement):
     def insertRow(self,index):
         rows = self._get_rows()
         if index < 0 or index > len(rows):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         newRow = self.ownerDocument.createElement('TR')
         if not rows:
@@ -315,38 +320,38 @@ class HTMLTableElement(HTMLElement):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
-         'rows'          : _get_rows, 
-         'tBodies'       : _get_tBodies, 
-         'caption'       : _get_caption, 
-         'tHead'         : _get_tHead, 
-         'tFoot'         : _get_tFoot, 
-         'align'         : _get_align, 
-         'bgColor'       : _get_bgColor, 
-         'border'        : _get_border, 
-         'cellPadding'   : _get_cellPadding, 
-         'cellSpacing'   : _get_cellSpacing, 
-         'frame'         : _get_frame, 
-         'rules'         : _get_rules, 
-         'summary'       : _get_summary, 
-         'width'         : _get_width, 
-      }) 
+    _readComputedAttrs.update ({
+         'rows'          : _get_rows,
+         'tBodies'       : _get_tBodies,
+         'caption'       : _get_caption,
+         'tHead'         : _get_tHead,
+         'tFoot'         : _get_tFoot,
+         'align'         : _get_align,
+         'bgColor'       : _get_bgColor,
+         'border'        : _get_border,
+         'cellPadding'   : _get_cellPadding,
+         'cellSpacing'   : _get_cellSpacing,
+         'frame'         : _get_frame,
+         'rules'         : _get_rules,
+         'summary'       : _get_summary,
+         'width'         : _get_width,
+      })
 
-    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
-         'caption'       : _set_caption, 
-         'tHead'         : _set_tHead, 
-         'tFoot'         : _set_tFoot, 
-         'align'         : _set_align, 
-         'bgColor'       : _set_bgColor, 
-         'border'        : _set_border, 
-         'cellPadding'   : _set_cellPadding, 
-         'cellSpacing'   : _set_cellSpacing, 
-         'frame'         : _set_frame, 
-         'rules'         : _set_rules, 
-         'summary'       : _set_summary, 
-         'width'         : _set_width, 
-      }) 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
+         'caption'       : _set_caption,
+         'tHead'         : _set_tHead,
+         'tFoot'         : _set_tFoot,
+         'align'         : _set_align,
+         'bgColor'       : _set_bgColor,
+         'border'        : _set_border,
+         'cellPadding'   : _set_cellPadding,
+         'cellSpacing'   : _set_cellSpacing,
+         'frame'         : _set_frame,
+         'rules'         : _set_rules,
+         'summary'       : _set_summary,
+         'width'         : _set_width,
+      })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

@@ -6,8 +6,8 @@
 #
 # History:
 # $Log: HtmlLib.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
 #
 # Revision 1.10  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -96,7 +96,6 @@ class HtmlToDomParser(SGMLParser):
     def unknown_starttag(self,tag,attrs):
         #push this new element onto the stack
         #Fix the name
-        pass
         newElement = self.ownerDoc.createElement(tag)
         #Add any attributes to the tag
         for attr in attrs:
@@ -105,7 +104,6 @@ class HtmlToDomParser(SGMLParser):
         self.stack.append(newElement)
 
     def unknown_endtag(self, tag):
-        pass
         #Pop the last element off the stack
         oldElement = self.stack[-1]
         tn = string.upper(tag)

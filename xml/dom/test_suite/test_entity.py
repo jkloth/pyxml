@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('Entity')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import Entity
@@ -10,7 +10,7 @@ def test(tester):
         tester.error('Error in syntax', 1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
@@ -31,13 +31,13 @@ def test(tester):
     tester.startTest('Test cloneNode()')
     ent1 = ent.cloneNode(1)
     if ent1.publicId != ent.publicId:
-	tester.error("cloneNode fails on publicId")
+        tester.error("cloneNode fails on publicId")
 
     if ent1.systemId != ent.systemId:
-	tester.error("cloneNode fails on systemId")
+        tester.error("cloneNode fails on systemId")
     tester.testDone()
-	
-	
+
+
     return tester.groupDone()
 
 

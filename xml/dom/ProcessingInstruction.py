@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: ProcessingInstruction.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.21  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.20  2000/07/03 02:12:53  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.19  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -49,8 +58,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-from xml.dom.Node import Node
+Node = implementation._4dom_fileImport('Node').Node
 
 class ProcessingInstruction(Node):
     nodeType = Node.PROCESSING_INSTRUCTION_NODE
@@ -70,13 +82,7 @@ class ProcessingInstruction(Node):
     def _set_data(self, newData):
         self.__dict__['__nodeValue'] = newData
 
-    def cloneNode(self, deep, node = None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createProcessingInstruction(self.target, self.data)
-            else:
-                node = newOwner.createProcessingInstruction(self.target, self.sata)
-        return Node.cloneNode(self,deep,node)
+    ### Overridden Methods ###
 
     def __repr__(self):
         return "<Processing Instruction at %s: target = '%s%s', data = '%s%s'>" % (
@@ -86,6 +92,14 @@ class ProcessingInstruction(Node):
             self.data[:20],
             len(self.data) > 20 and "..." or ""
             )
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                self.target,
+                self.data
+                )
 
     ### Attribute Access Mappings ###
 

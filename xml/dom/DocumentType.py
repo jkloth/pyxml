@@ -6,8 +6,20 @@
 #
 # History:
 # $Log: DocumentType.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.18  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.17  2000/08/07 05:16:29  molson
+# HHHunted down memory leakes
+#
+# Revision 1.16  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.15  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -46,9 +58,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-from xml.dom.Node import Node
-from xml.dom import implementation
+Node = implementation._4dom_fileImport('Node').Node
 
 
 class DocumentType(Node):
@@ -62,8 +76,8 @@ class DocumentType(Node):
         self.__dict__['__notations'] = notations
         self.__dict__['__publicId'] = publicId;
         self.__dict__['__systemId'] = systemId;
-        #FIXME: No idea what this actually is
-        self.__dict__['__internalSubset'] = 'internalSubsetString'
+        #FIXME: Text repr of the entities
+        self.__dict__['__internalSubset'] = ''
 
     ### Attribute Methods ###
 
@@ -87,14 +101,13 @@ class DocumentType(Node):
 
     ### Overridden Methods ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = implementation.createDocumentType(self.name, self.publicId, self.systemId)
-            else:
-                node = implementation.createDocumentType(self.name, self.publicId, self.systemId)
-                node._4dom_setOwnerDocument(newOwner)
-        return Node.cloneNode(self, deep, node)
+    def __repr__(self):
+        return "<DocumentType Node at %s: Name = '%s' with %d entities and %d notations>" % (
+            id(self),
+            self.nodeName,
+            len(self.entities),
+            len(self.notations)
+            )
 
     ### Internal Methods ###
 
@@ -102,8 +115,32 @@ class DocumentType(Node):
     # Also sets the owner of the NamedNodeMaps
     def _4dom_setOwnerDocument(self, newOwner):
         self.__dict__['__ownerDocument'] = newOwner
-        self.__dict__['__entities']._4dom_setOwnerDocument(newOwner)
-        self.__dict__['__notations']._4dom_setOwnerDocument(newOwner)
+        #self.__dict__['__entities']._4dom_setOwnerDocument(newOwner)
+        #self.__dict__['__notations']._4dom_setOwnerDocument(newOwner)
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.nodeName,
+                implementation._4dom_createNamedNodeMap(),    # entities
+                implementation._4dom_createNamedNodeMap(),    # notations
+                self.publicId,
+                self.systemId
+                )
+
+    def __getstate__(self):
+        return (self.ownerDocument, self.entities, self.notations)
+
+    def __setstate__(self, state):
+        self._4dom_setOwnerDocument(state[0])
+        for entity in state[1]:
+            # Entities can contain children, so go deep
+            newEntity = entity.cloneNode(1)
+            self.__dict__['__entities'].setNamedItem(newEntity)
+        for notation in state[2]:
+            # Notations cannot contain children
+            newNotation = notation.cloneNode(0)
+            self.__dict__['__notations'].setNamedItem(newNotation)
 
     ### Attribute Access Mappings ###
 

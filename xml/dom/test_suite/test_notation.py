@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('Notation')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import Notation
@@ -10,7 +10,7 @@ def test(tester):
         tester.error('Error in syntax', 1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
@@ -31,13 +31,13 @@ def test(tester):
     tester.startTest('Test cloneNode()')
     nota1 = nota.cloneNode(1)
     if nota1.publicId != nota.publicId:
-	tester.error("cloneNode fails on publicId")
+        tester.error("cloneNode fails on publicId")
 
     if nota1.systemId != nota.systemId:
-	tester.error("cloneNode fails on systemId")
+        tester.error("cloneNode fails on systemId")
     tester.testDone()
-	
-	
+
+
     return tester.groupDone()
 
 

@@ -6,8 +6,22 @@
 #
 # History:
 # $Log: HTMLDocument.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.42  2000/09/08 20:44:07  jkloth
+# Fixed cloning of HTMLDocuments
+#
+# Revision 1.41  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.40  2000/07/27 20:05:56  jkloth
+# Bug fixes galore
+#
+# Revision 1.39  2000/07/05 21:45:40  jkloth
+# fixed method name errors
+# fixed stupid errors in code
 #
 # Revision 1.38  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -195,7 +209,7 @@ class HTMLDocument(Document):
             title_node = self.createElement('TITLE')
             title_node.appendChild(text)
             #Try and find the HEAD node
-            self.__getHead().appendChild(title_node)
+            self._4dom_getHead().appendChild(title_node)
 
     ### Methods ###
 
@@ -212,7 +226,7 @@ class HTMLDocument(Document):
         self.__dict__['__url'] = ''
         self.__dict__['__cookie'] = ''
         self.__dict__['__writable'] = 1
-        
+
     def write(self, st):
         if not self.__dict__['__writable']:
             return
@@ -260,12 +274,11 @@ class HTMLDocument(Document):
             self.documentElement.insertBefore(head, body)
         else:
             head = nl[0]
-        return head 
+        return head
 
     def _4dom_createHTMLElement(self, tagName):
         from xml.dom.html import HTMLElement
         #We only except strings
-        pass
         #See if tag name is in the lookup table
         normTagName = string.capitalize(tagName)
         if normTagName in NoClassTags:
@@ -287,19 +300,22 @@ class HTMLDocument(Document):
 
         return rt
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = implementation.createHTMLDocument(self._get_title())
-            else:
-                node = newOwner.createHTMLDocument()
+    def cloneNode(self, deep):
+        clone = HTMLDocument()
+        clone.__dict__['__referrer'] = self._get_referrer()
+        clone.__dict__['__domain'] = self._get_domain()
+        clone.__dict__['__URL'] = self._get_URL()
+        clone.__dict__['__cookie'] = self._get_cookie()
         if deep:
-            self.documentElement.cloneNode(1, node.documentElement, newOwner)
-        node.__dict__['__referrer'] = self._get_referrer()
-        node.__dict__['__domain'] = self._get_domain()
-        node.__dict__['__URL'] = self._get_URL()
-        node._set_cookie(self._get_cookie())
-        return node
+            if self.doctype is not None:
+                # Cannot have any children, no deep needed
+                dt = self.doctype.cloneNode(0)
+                clone._4dom_setDocumentType(dt)
+            if self.documentElement is not None:
+                # The root element can have children, duh
+                root = self.documentElement.cloneNode(1, newOwner=clone)
+                clone.appendChild(root)
+        return clone
 
     def isXml(self):
         return 0
@@ -310,26 +326,26 @@ class HTMLDocument(Document):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = Document._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
+    _readComputedAttrs.update ({
          'title'         : _get_title,
-         'referrer'      : _get_referrer, 
-         'domain'        : _get_domain, 
-         'URL'           : _get_URL, 
-         'body'          : _get_body, 
+         'referrer'      : _get_referrer,
+         'domain'        : _get_domain,
+         'URL'           : _get_URL,
+         'body'          : _get_body,
          'images'        : _get_images,
          'applets'       : _get_applets,
          'links'         : _get_links,
          'forms'         : _get_forms,
          'anchors'       : _get_anchors,
          'cookie'        : _get_cookie
-      }) 
+      })
 
-    _writeComputedAttrs = Document._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
+    _writeComputedAttrs = Document._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
          'title'         : _set_title,
          'body'          : _set_body,
-         'cookie'        : _set_cookie, 
-      }) 
+         'cookie'        : _set_cookie,
+      })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
@@ -353,7 +369,7 @@ HTMLTagMap =    {'Isindex':     'IsIndex'
                 ,'H5':          'Heading'
                 ,'H6':          'Heading'
                 ,'Q':           'Quote'
-		,'Blockquote':  'Quote'
+                ,'Blockquote':  'Quote'
                 ,'Br':          'BR'
                 ,'Basefont':    'BaseFont'
                 ,'Hr':          'HR'

@@ -6,8 +6,28 @@
 #
 # History:
 # $Log: Node.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.67  2000/09/09 00:43:19  uogbuji
+# Fix illegal character checks
+# Printer fixes
+#
+# Revision 1.66  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.65  2000/07/25 18:25:09  jkloth
+# Fixed cloning bugs
+#
+# Revision 1.64  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.63  2000/07/03 02:12:53  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.62  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -107,15 +127,21 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom import implementation
-from xml.dom import DOMException
-from xml.dom import NO_MODIFICATION_ALLOWED_ERR
-from xml.dom import NOT_FOUND_ERR
-from xml.dom import HIERARCHY_REQUEST_ERR
-from xml.dom import WRONG_DOCUMENT_ERR
-from xml.dom import INVALID_CHARACTER_ERR
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-import copy, sys
+DOMException = dom.DOMException
+NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
+NOT_FOUND_ERR = dom.NOT_FOUND_ERR
+HIERARCHY_REQUEST_ERR = dom.HIERARCHY_REQUEST_ERR
+WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
+INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
+
+import re, copy, sys
+#FIXME: should allow combining characters: fix when Python gets Unicode
+g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
+
 
 class Node:
     """
@@ -137,6 +163,11 @@ class Node:
     DOCUMENT_FRAGMENT_NODE      = 11
     NOTATION_NODE               = 12
 
+    # Internally used node types
+    # Node types up to 200 are reserved by W3C
+    _NODE_LIST                  = 201
+    _NAMED_NODE_MAP             = 202
+
     nodeType = None
     # Children that this node is allowed to have
     _allowedChildren = []
@@ -156,6 +187,7 @@ class Node:
         self.__dict__['__prefix'] = prefix
         self.__dict__['__localName'] = localName
         self.__dict__['__childNodes'] = implementation._4dom_createNodeList([])
+        self.__dict__['__readOnly'] = 0
 
     ### Attribute Access Methods -- Node.attr ###
 
@@ -224,7 +256,8 @@ class Node:
 
     def _set_prefix(self, value):
         # Check for invalid characters
-        self._4dom_validateName(value)
+        if not g_namePattern.match(value):
+            raise DOMException(INVALID_CHARACTER_ERR)
         #FIXME: Check for NAMESPACE_ERR
         self.__dict__['__prefix'] = value
 
@@ -245,7 +278,6 @@ class Node:
             #Make sure the refChild is indeed our child
             index = self._4dom_getChildIndex(refChild)
             if index == -1:
-                pass
                 raise DOMException(NOT_FOUND_ERR)
 
             #Remove from old parent
@@ -270,7 +302,7 @@ class Node:
                 newChild._4dom_setNextSibling(self.__dict__['__childNodes'][1])
                 self.__dict__['__childNodes'][1]._4dom_setPreviousSibling(newChild)
             newChild._4dom_setParentNode(self)
-        
+
             return newChild
 
     def replaceChild(self, newChild, oldChild):
@@ -281,10 +313,12 @@ class Node:
             #Make sure the oldChild is indeed our child
             index = self._4dom_getChildIndex(oldChild)
             if index == -1:
-                pass
                 raise DOMException(NOT_FOUND_ERR)
 
             self.__dict__['__childNodes'][index] = newChild
+            if newChild.parentNode is not None:
+                newChild.parentNode.removeChild(newChild)
+                
             newChild._4dom_setNextSibling(oldChild.nextSibling)
             newChild._4dom_setPreviousSibling(oldChild.previousSibling)
 
@@ -295,6 +329,7 @@ class Node:
             newChild._4dom_setParentNode(self)
 
 
+            
             oldChild._4dom_setNextSibling(None)
             oldChild._4dom_setPreviousSibling(None)
             oldChild._4dom_setParentNode(None)
@@ -302,7 +337,7 @@ class Node:
             if self.__dict__['__childNodes'].length:
                 self.__dict__['__firstChild'] = self.__dict__['__childNodes'][0]
                 self.__dict__['__lastChild'] = self.__dict__['__childNodes'][-1]
-                
+
             return oldChild
 
     def removeChild(self, childNode):
@@ -310,7 +345,6 @@ class Node:
         #FIXME: more efficient using list.remove()
         index = self._4dom_getChildIndex(childNode)
         if index == -1:
-            pass
             raise DOMException(NOT_FOUND_ERR)
         del self.childNodes[index]
         #Adjust caches
@@ -354,20 +388,52 @@ class Node:
     def hasChildNodes(self):
         return self.__dict__['__childNodes'].length != 0
 
-    def cloneNode(self, deep, newNode=None, newOwner=None):
-        if newNode == None:
-            newNode = Node(self.ownerDocument, self.namespaceURI, self.prefix, self.localName)
-        if newOwner == None:
-            newOwner = newNode.ownerDocument
-        newNode.nodeValue = self.__dict__['__nodeValue']
-        if deep:
-            for child in self.__dict__['__childNodes']:
-                new_child = child.cloneNode(1, newOwner=newOwner)
+    def cloneNode(self, deep, newOwner=None, readOnly=0):
+        # Get constructor values
+        if hasattr(self, '__getinitargs__'):
+            args = self.__getinitargs__()
+        else:
+            args = []
+
+        # Create the copy
+        newNode = apply(self.__class__, args)
+
+        # Set when cloning EntRef children
+        if readOnly:
+            newNode._4dom_setReadOnly(readOnly)
+
+        # Get the current state
+        getstate = getattr(self, '__getstate__', None)
+        if getstate:
+            state = getstate()
+        else:
+            state = {}
+
+        # Set when clone is used for import
+        if newOwner:
+            newNode._4dom_setOwnerDocument(newOwner)
+
+        # Assign the current state to the copy
+        setstate = getattr(newNode, '__setstate__', None)
+        if setstate:
+            setstate(state)
+        else:
+            newNode.__dict__.update(state)
+
+        # Copy the child nodes if deep
+        if deep or self.nodeType == Node.ATTRIBUTE_NODE:
+            # Children of EntRefs are cloned readOnly
+            if self.nodeType == Node.ENTITY_REFERENCE_NODE:
+                readOnly = 1
+
+            for child in self.childNodes:
+                new_child = child.cloneNode(1, newOwner, readOnly)
                 newNode.appendChild(new_child)
+
         return newNode
 
     def normalize(self):
-        #This one needs to join all adjacent text nodes 
+        #This one needs to join all adjacent text nodes
         curr_node = self.__dict__['__firstChild']
         if not curr_node:
             return
@@ -386,7 +452,7 @@ class Node:
             if child.nodeType == Node.ELEMENT_NODE:
                 child.normalize()
         return
-                
+
     def supports(self, feature, version):
         return implementation.hasFeature(feature,version)
 
@@ -397,7 +463,6 @@ class Node:
 
     def _4dom_appendDocumentFragment(self, frag):
         """Insert all of the top level nodes"""
-        pass
         head = frag.firstChild
         while head != None:
             frag.removeChild(head)
@@ -407,17 +472,15 @@ class Node:
 
     def _4dom_insertDocFragmentBefore(self,frag,oldChild):
         """Insert all of the top level nodes before the oldChild"""
-        pass
         head = frag.firstChild
         while head != None:
             frag.removeChild(head)
             self.insertBefore(head,oldChild)
             head = frag.firstChild
         return frag
-                                
+
     def _4dom_replaceDocumentFragment(self,frag,oldChild):
         #Do a insertBefore on oldChild->NextSibling
-        pass
         nextSib = oldChild.nextSibling;
         #get rid of the old Child
         self.removeChild(oldChild);
@@ -429,26 +492,9 @@ class Node:
 
     def _4dom_validateNode(self, newNode):
         if not newNode.nodeType in self.__class__._allowedChildren:
-            pass
-            pass
             raise DOMException(HIERARCHY_REQUEST_ERR)
         if self.ownerDocument != newNode.ownerDocument:
-            pass
             raise DOMException(WRONG_DOCUMENT_ERR)
-
-    def _4dom_validateString(self, string):
-        #FIXME: complete list of invalid characters
-        for char in string:
-            if char in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
-
-    def _4dom_validateName(self, name):
-        #FIXME: complete list of invalid characters
-        for char in name:
-            if char in ['<','>','&']:
-                pass
-                raise DOMException(INVALID_CHARACTER_ERR)
 
     def _4dom_getChildIndex(self,child):
         if child in self.__dict__['__childNodes']:
@@ -463,6 +509,27 @@ class Node:
 
     def _4dom_setPreviousSibling(self,prev):
         self.__dict__['__previousSibling'] = prev
+
+    def _4dom_setOwnerDocument(self, owner):
+        self.__dict__['__ownerDocument'] = owner
+
+    def _4dom_setReadOnly(self, flag):
+        self.__dict__['__readOnly'] = flag
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.__dict__['__ownerDocument'],
+                self.__dict__['__namespaceURI'],
+                self.__dict__['__prefix'],
+                self.__dict__['__localName']
+                )
+
+    def __getstate__(self):
+        return {'__nodeValue':self.nodeValue}
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     ### Attribute Access Mappings ###
 

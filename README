@@ -29,7 +29,7 @@ If you have difficulty installing this software, send a problem report
 to <xml-sig@python.org> describing the problem.
 
 Software versions and credits:
-	DOM 	 		Stefane Fermigier, hacked by A.M. Kuchling
+	DOM 	 		4DOM, courtesy Fourthought, Inc.
 	PyExpat 		Jack Jansen
 	saxlib-1.0		Lars Marius Garshol
 	sgmlop-981008		Fredrik Lundh

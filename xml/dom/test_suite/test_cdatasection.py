@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('CDATASection')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import CDATASection
@@ -10,7 +10,7 @@ def test(tester):
         tester.tester.error('Error in syntax', 1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('','','')
@@ -26,10 +26,10 @@ def test(tester):
     cds1 = cds.cloneNode(1)
 
     if cds1.data != cds.data:
-	tester.error("cloneNode does not copy data")
+        tester.error("cloneNode does not copy data")
     tester.testDone()
-	
-	
+
+
     return tester.groupDone()
 
 

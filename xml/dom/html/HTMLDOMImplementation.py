@@ -6,8 +6,18 @@
 #
 # History:
 # $Log: HTMLDOMImplementation.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.14  2000/08/29 19:29:06  molson
+# Fixed initial parameters
+#
+# Revision 1.13  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.12  2000/07/27 20:05:56  jkloth
+# Bug fixes galore
 #
 # Revision 1.11  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -60,9 +70,8 @@ class HTMLDOMImplementation(DOMImplementation):
 
     def __init__(self):
         DOMImplementation.__init__(self)
-    
+
     def createHTMLDocument(self, title):
-        pass
         from xml.dom.html import HTMLDocument
         #from xml.dom.DocumentType import DocumentType
         doc = HTMLDocument.HTMLDocument()
@@ -71,15 +80,9 @@ class HTMLDOMImplementation(DOMImplementation):
         doc._set_title(title)
         return doc
 
-#Not in DOM HTML Level 2
-#    def cloneImplementation(self):
-#        imp = implementation(self.factory)
-#   imp.feature = self.feature
-#   imp.version = self.version
-#   return imp
-
-    def _4dom_createHTMLCollection(self,list=[]):
-        pass
+    def _4dom_createHTMLCollection(self,list=None):
+        if list is None:
+            list = []
         from xml.dom.html import HTMLCollection
         hc = HTMLCollection.HTMLCollection(list)
         return hc

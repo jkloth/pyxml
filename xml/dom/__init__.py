@@ -6,8 +6,21 @@
 #
 # History:
 # $Log: __init__.py,v $
-# Revision 1.4  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.5  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.19  2000/09/14 06:42:25  jkloth
+# Fixed circular import errors
+#
+# Revision 1.18  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.17  2000/08/29 19:29:06  molson
+# Fixed initial parameters
+#
+# Revision 1.16  2000/08/17 06:31:08  uogbuji
+# Update SplitQName to simplify usage
+# Fix namespace declaration namespaces acc to May DOM CR
 #
 # Revision 1.15  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -49,7 +62,6 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-
 #ExceptionCode
 INDEX_SIZE_ERR                 = 1
 DOMSTRING_SIZE_ERR             = 2
@@ -64,20 +76,23 @@ INUSE_ATTRIBUTE_ERR            = 10
 INVALID_STATE_ERR              = 11
 SYNTAX_ERR                     = 12
 INVALID_MODIFICATION_ERR       = 13
-NAMSPACE_ERR                   = 14
+NAMESPACE_ERR                  = 14
 INVALID_ACCESS_ERR             = 15
 
 class DOMException(Exception):
     def __init__(self, code):
         self.code = code
 
+from xml.dom import DOMImplementation
+
 try:
     from xml.dom.html import HTMLDOMImplementation
     implementation =  HTMLDOMImplementation.HTMLDOMImplementation()
-
+    HTMLDOMImplementation.implementation = implementation
 except ImportError:
-    from xml.dom import DOMImplementation
     implementation = DOMImplementation.DOMImplementation()
+DOMImplementation.implementation = implementation
 
 XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace"
+XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/"
 

@@ -6,8 +6,12 @@
 #
 # History:
 # $Log: HTMLTableSectionElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.27  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
 #
 # Revision 1.26  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -114,14 +118,12 @@ class HTMLTableSectionElement(HTMLElement):
     def deleteRow(self,index):
         rows = self._get_rows()
         if index < 0 or index > len(rows):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         rows[index].parentNode.removeChild(rows[index])
 
     def insertRow(self,index):
         rows = self._get_rows()
         if index < 0 or index >= len(rows):
-            pass
             raise DOMException(INDEX_SIZE_ERR)
         rows = self._get_rows()
         newRow = self.ownerDocument.createElement('TR')
@@ -134,21 +136,21 @@ class HTMLTableSectionElement(HTMLElement):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
-         'rows'          : _get_rows, 
-         'align'         : _get_align, 
-         'ch'            : _get_ch, 
-         'chOff'         : _get_chOff, 
-         'vAlign'        : _get_vAlign, 
-      }) 
+    _readComputedAttrs.update ({
+         'rows'          : _get_rows,
+         'align'         : _get_align,
+         'ch'            : _get_ch,
+         'chOff'         : _get_chOff,
+         'vAlign'        : _get_vAlign,
+      })
 
-    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
-         'align'         : _set_align, 
-         'ch'            : _set_ch, 
-         'chOff'         : _set_chOff, 
-         'vAlign'        : _set_vAlign, 
-      }) 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
+         'align'         : _set_align,
+         'ch'            : _set_ch,
+         'chOff'         : _set_chOff,
+         'vAlign'        : _set_vAlign,
+      })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

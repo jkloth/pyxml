@@ -1,7 +1,7 @@
 def test(tester):
 
     tester.startGroup('DocumentType')
-	
+
     tester.startTest('Testing syntax')
     try:
         from xml.dom import DocumentType
@@ -10,7 +10,7 @@ def test(tester):
         tester.tester.error('Error in syntax', 1)
     tester.testDone()
 
-	
+
     tester.startTest('Creating test environment')
     from xml.dom import implementation
     dt = implementation.createDocumentType('TEST','PublicID','SystemID')
@@ -31,18 +31,18 @@ def test(tester):
     #Should always be done deep
     dt1 = dt.cloneNode(1)
     if dt1.name != dt.name:
-	tester.error("cloneNode failed on name")
+        tester.error("cloneNode failed on name")
     if dt1.entities.length != dt.entities.length:
-	tester.error("cloneNode did not copy all entities")
+        tester.error("cloneNode did not copy all entities")
     if dt1.notations.length != dt.notations.length:
-	tester.error("cloneNode did not copy all notations")
+        tester.error("cloneNode did not copy all notations")
     if dt1.publicId != dt.publicId:
-	tester.error("cloneNode fails on publicId")
+        tester.error("cloneNode fails on publicId")
     if dt1.systemId != dt.systemId:
-	tester.error("cloneNode fails on systemId")
+        tester.error("cloneNode fails on systemId")
     tester.testDone()
 
-	
+
     return tester.groupDone()
 
 

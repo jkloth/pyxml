@@ -6,8 +6,21 @@
 #
 # History:
 # $Log: Text.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.31  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.30  2000/08/09 22:41:55  jkloth
+# Speedup in Text repr
+# Added support for '--' to quick option in stage
+#
+# Revision 1.29  2000/07/03 02:12:53  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.28  2000/06/16 17:31:55  jkloth
 # Added escaping to repr output
@@ -67,10 +80,15 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
-from xml.dom.CharacterData import CharacterData
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
+DOMException = dom.DOMException
+INDEX_SIZE_ERR = dom.INDEX_SIZE_ERR
+
 
 class Text(CharacterData):
     nodeType = Node.TEXT_NODE
@@ -128,14 +146,6 @@ class Text(CharacterData):
 
     ### Overridden Methods ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createTextNode(self.data)
-            else:
-                node = newOwner.createTextNode(self.data)
-        return CharacterData.cloneNode(self, deep, node)
-
     def __repr__(self):
         # Trim to a managable size
         if len(self.data) > 20:
@@ -145,12 +155,11 @@ class Text(CharacterData):
 
         # Escape unprintable chars
         import string
-        for ws in ['\011','\012','\015']:
-            data = string.replace(data, ws, '\\%s' % oct(ord(ws)))
+        for ws in ['\t','\n','\r']:
+            data = string.replace(data, ws, '\\0x%x' % ord(ws))
 
-        st = "<Text Node at %s: data = '%s'>" % (
+        st = "<Text Node at %x: data = '%s'>" % (
                 id(self),
                 data
                 )
         return st
-

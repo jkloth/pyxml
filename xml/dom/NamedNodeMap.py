@@ -6,8 +6,27 @@
 #
 # History:
 # $Log: NamedNodeMap.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.37  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.36  2000/08/01 17:49:19  jkloth
+# Bug fixes from R20000724
+#
+# Revision 1.35  2000/07/18 16:58:52  jkloth
+# Fixed small bugs
+#
+# Revision 1.34  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.33  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.32  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -76,22 +95,32 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom import DOMException
-from xml.dom import NO_MODIFICATION_ALLOWED_ERR
-from xml.dom import NOT_FOUND_ERR
-from xml.dom import WRONG_DOCUMENT_ERR
-from xml.dom import INUSE_ATTRIBUTE_ERR
+
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+
+DOMException = dom.DOMException
+NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
+NOT_FOUND_ERR = dom.NOT_FOUND_ERR
+WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
+INUSE_ATTRIBUTE_ERR = dom.INUSE_ATTRIBUTE_ERR
 
 import UserDict
 import string
 
 class NamedNodeMap(UserDict.UserDict):
+    # For internal purposes
+    nodeType = Node._NAMED_NODE_MAP
+
     def __init__(self, owner=None):
         UserDict.UserDict.__init__(self)
-        self.__dict__['_4dom_ownerDoc'] = owner
+        self._ownerDocument = owner
 
     ### Attribute Methods ###
-        
+
     def __getattr__(self, name):
         if name == 'length':
             return self._get_length()
@@ -122,18 +151,18 @@ class NamedNodeMap(UserDict.UserDict):
         return self.get((namespaceURI, localName))
 
     def setNamedItem(self, arg):
-        if self.__dict__['_4dom_ownerDoc'] != arg.ownerDocument:
+        if self._ownerDocument != arg.ownerDocument:
             raise DOMException(WRONG_DOCUMENT_ERR)
-        if arg.parentNode != None:
+        if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
         retval = self.get(arg.nodeName)
         self[arg.nodeName] = arg
         return retval
 
     def setNamedItemNS(self, arg):
-        if self.__dict__['_4dom_ownerDoc'] != arg.ownerDocument:
+        if self._ownerDocument != arg.ownerDocument:
             raise DOMException(WRONG_DOCUMENT_ERR)
-        if arg.parentNode != None:
+        if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
             raise DOMException(INUSE_ATTRIBUTE_ERR)
         retval = self.get((arg.namespaceURI, arg.localName))
         self[(arg.namespaceURI, arg.localName)] = arg
@@ -171,7 +200,18 @@ class NamedNodeMap(UserDict.UserDict):
             st = st[:-2]
         return st + '}>'
 
+    ### Helper Methods for Cloning ###
+
+    def __getinitargs__(self):
+        return (self._ownerDocument,)
+
+    def __getstate__(self):
+        return self.data
+
+    def __setstate__(self, state):
+        self.data = state
+
     ### Internal Methods ###
 
     def _4dom_setOwnerDocument(self, newOwner):
-        self.__dict__['__ownerDocument'] = newOwner
+        self._ownerDocument = newOwner

@@ -27,6 +27,7 @@ def test(tester):
 
     xml_string = '<a><b><c/><d/></b><e><f/><g/></e></a>'
     doc = Sax.FromXml(xml_string)
+    from xml.dom.ext import PrettyPrint
     tw = TreeWalker(doc.documentElement, NodeFilter.SHOW_ELEMENT, None, 1)
     tester.testDone()
 
@@ -57,25 +58,25 @@ def test(tester):
     if tw.nextSibling().nodeName != 'e':
         tester.error('Wrong nextSibling')
     if tw.nextSibling() != None:
-    	tester.error('nextSibling returns a value; should be (null)')
+        tester.error('nextSibling returns a value; should be (null)')
     if tw.parentNode().nodeName != 'a':
-    	tester.error('Wrong parentNode')
+        tester.error('Wrong parentNode')
     if tw.lastChild().nodeName != 'e':
-    	tester.error('Wrong lastChild')
+        tester.error('Wrong lastChild')
     if tw.nextNode().nodeName != 'f':
-    	tester.error('Wrong nextNode')
+        tester.error('Wrong nextNode')
     # See if whatToShow works
     tw.currentNode.appendChild(t)
     if tw.firstChild() != None:
-    	tester.error('whatToShow failed in firstChild()')
+        tester.error('whatToShow failed in firstChild()')
     if tw.previousSibling() != None:
-    	tester.error('previousSibling returns a value; should be (null)')
+        tester.error('previousSibling returns a value; should be (null)')
     if tw.previousNode().nodeName != 'e':
-    	tester.error('Wrong previousNode')
+        tester.error('Wrong previousNode')
     tw.currentNode.appendChild(t)
     # See if whatToShow works
     if tw.lastChild().nodeName != 'g':
-    	tester.error('whatToShow failed in lastChlid()')
+        tester.error('whatToShow failed in lastChlid()')
     tester.testDone()
 
 
@@ -87,7 +88,7 @@ def test(tester):
 
 
     return tester.groupDone()
-	
+
 
 if __name__ == '__main__':
     import sys

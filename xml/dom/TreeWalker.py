@@ -6,8 +6,20 @@
 #
 # History:
 # $Log: TreeWalker.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.9  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.8  2000/07/18 16:58:52  jkloth
+# Fixed small bugs
+#
+# Revision 1.7  2000/07/03 02:12:53  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.6  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -40,11 +52,15 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom import Node
-from xml.dom.Node import Node
-from xml.dom.NodeFilter import NodeFilter
-from xml.dom import DOMException
-from xml.dom import NOT_SUPPORTED_ERR
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
+NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
+
+DOMException = dom.DOMException
+NOT_SUPPORTED_ERR = dom.NOT_SUPPORTED_ERR
 
 class TreeWalker:
     def __init__(self, root, whatToShow, filter, expandEntityReferences):
@@ -107,9 +123,8 @@ class TreeWalker:
                 next_node = next_node._get_parentNode()
         if next_node:
             self.__dict__['__currentNode'] = next_node
-            pass
         return next_node
-        
+
     def firstChild(self):
         next_node = None
         if self.__checkFilter(self.__dict__['__currentNode']) != NodeFilter.FILTER_REJECT:
@@ -119,9 +134,8 @@ class TreeWalker:
                 next_node = next_node._get_nextSibling()
         if next_node:
             self.__dict__['__currentNode'] = next_node
-            pass
         return next_node
-        
+
     def lastChild(self):
         next_node = None
         if self.__checkFilter(self.__dict__['__currentNode']) != NodeFilter.FILTER_REJECT:
@@ -131,7 +145,6 @@ class TreeWalker:
                 next_node = next_node._get_previousSibling()
         if next_node:
             self.__dict__['__currentNode'] = next_node
-            pass
         return next_node
 
     def previousSibling(self):
@@ -143,7 +156,6 @@ class TreeWalker:
                 prev_node = prev_node._get_previousSibling()
         if prev_node:
             self.__dict__['__currentNode'] = prev_node
-            pass
         return prev_node
 
     def nextSibling(self):
@@ -154,7 +166,6 @@ class TreeWalker:
                 next_node = next_node._get_nextSibling()
         if next_node:
             self.__dict__['__currentNode'] = next_node
-            pass
         return next_node
 
 
@@ -162,14 +173,12 @@ class TreeWalker:
         next_node = self.__advance()
         while next_node and not (self.__checkWhatToShow(next_node) and self.__checkFilter(next_node) == NodeFilter.FILTER_ACCEPT):
             next_node = self.__advance()
-        pass
         return next_node
 
     def previousNode(self):
         prev_node = self.__regress()
         while prev_node and not (self.__checkWhatToShow(prev_node) and self.__checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT):
             prev_node = self.__regress()
-        pass
         return prev_node
 
 
@@ -198,7 +207,7 @@ class TreeWalker:
 
     def __checkFilter(self, node):
         if self.__dict__['__filter']:
-            return __dict__['__filter'].acceptNode(node)
+            return self.__dict__['__filter'].acceptNode(node)
         else:
             return NodeFilter.FILTER_ACCEPT
 
@@ -216,4 +225,4 @@ class TreeWalker:
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
-                            _readOnlyAttrs + _readComputedAttrs.keys())
+                            _readComputedAttrs.keys())

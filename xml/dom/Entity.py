@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: Entity.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.18  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.17  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.16  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -47,7 +56,11 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
+
+Node = implementation._4dom_fileImport('Node').Node
 
 class Entity(Node):
     nodeType = Node.ENTITY_NODE
@@ -77,18 +90,19 @@ class Entity(Node):
     def _get_notationName(self):
         return self.__dict__['__notationName']
         
-   ### Overridden Methods (from Node) ###
-
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument._4dom_createEntity(self.publicId, self.systemId, self.notationName)
-            else:
-                node = self.ownerDocument._4dom_createEntity(self.publicId, self.systemId, self.notationName)
-        return Node.cloneNode(self, deep, node)
+   ### Overridden Methods ###
 
     def __repr__(self):
         return '<Entity Node at %s: PublicId = "%s" SystemId = "%s" Notation Name = "%s">' % (id(self),self.publicId,self.systemId,self.notationName)
+
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                self.publicId,
+                self.systemId,
+                self.notationName
+                )
 
     ### Attribute Access Mappings ###
 
@@ -100,8 +114,6 @@ class Entity(Node):
 
 
     _writeComputedAttrs = Node._writeComputedAttrs.copy()
-    _writeComputedAttrs.update({
-                                })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

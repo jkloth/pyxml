@@ -6,8 +6,17 @@
 #
 # History:
 # $Log: CharacterData.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.24  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.23  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.22  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -57,11 +66,15 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 
-from xml.dom.Node import Node
+import DOMImplementation
+implementation = DOMImplementation.implementation
+dom = implementation._4dom_fileImport('')
 
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
-from xml.dom import SYNTAX_ERR
+Node = implementation._4dom_fileImport('Node').Node
+
+DOMException = dom.DOMException
+INDEX_SIZE_ERR = dom.INDEX_SIZE_ERR
+SYNTAX_ERR = dom.SYNTAX_ERR
 
 class CharacterData(Node):
     def __init__(self, ownerDocument, data):
@@ -124,17 +137,26 @@ class CharacterData(Node):
             self.insertData(offset, arg);
         return
 
+    ### Helper Functions For Cloning ###
+
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+                self.data
+                )
+
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = Node._readComputedAttrs.copy()
-    _readComputedAttrs.update({'length':_get_length,
-                               'data':_get_data
-                       })
+    _readComputedAttrs.update({
+        'length':_get_length,
+        'data':_get_data
+        })
 
 
     _writeComputedAttrs = Node._writeComputedAttrs.copy()
-    _writeComputedAttrs.update({'data':_set_data
-                                })
+    _writeComputedAttrs.update({
+        'data':_set_data
+        })
 
     # Create the read-only list of attributes
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),

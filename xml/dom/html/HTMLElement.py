@@ -6,8 +6,15 @@
 #
 # History:
 # $Log: HTMLElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.27  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
+#
+# Revision 1.26  2000/07/27 20:05:56  jkloth
+# Bug fixes galore
 #
 # Revision 1.25  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -81,7 +88,7 @@ class HTMLElement(Element):
 
     def _get_id(self):
         return self.getAttribute('ID')
-    
+
     def _set_id(self,ID):
         self.setAttribute('ID',ID)
 
@@ -109,37 +116,34 @@ class HTMLElement(Element):
     def _set_className(self,className):
         self.setAttribute('CLASSNAME',className)
 
-    ### Overridden Methods ###
+    ### Helper Functions For Cloning ###
 
-    def cloneNode(self, deep, node=None, newOwner=None):
-        if node == None:
-            if newOwner == None:
-                node = self.ownerDocument.createElement(self.nodeName)
-            else:
-                node = newOwner.createElement(self.nodeName)
-        return Element.cloneNode(self, deep, node)
+    def __getinitargs__(self):
+        return (self.ownerDocument,
+            self.tagName
+        )
 
     ### Attribute Access Mappings ###
 
-    from xml.dom.Element import Element 
+    from xml.dom.Element import Element
 
-    _readComputedAttrs = Element._readComputedAttrs.copy() 
-    _readComputedAttrs.update ({ 
+    _readComputedAttrs = Element._readComputedAttrs.copy()
+    _readComputedAttrs.update ({
          'id'            : _get_id,
-         'title'         : _get_title, 
-         'lang'          : _get_lang, 
-         'dir'           : _get_dir, 
-         'className'     : _get_className, 
-      }) 
+         'title'         : _get_title,
+         'lang'          : _get_lang,
+         'dir'           : _get_dir,
+         'className'     : _get_className,
+      })
 
-    _writeComputedAttrs = Element._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
+    _writeComputedAttrs = Element._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
          'id'            : _set_id,
-         'title'         : _set_title, 
-         'lang'          : _set_lang, 
-         'dir'           : _set_dir, 
-         'className'     : _set_className, 
-      }) 
+         'title'         : _set_title,
+         'lang'          : _set_lang,
+         'dir'           : _set_dir,
+         'className'     : _set_className,
+      })
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                             Element._readOnlyAttrs + _readComputedAttrs.keys())

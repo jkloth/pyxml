@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 import string, time
+from Ft.Lib import TestSuite, TraceOut
 
 ### Methods ###
 
 def runTests(list, testSuite):
-    print '#'*25, "Performing a test of Core", '#'*25
+    print '#'*19, "Performing a test of DOM Core/Traversal", '#'*19
 
     start = time.time()
     for module in list:
-        exec 'import test_%s;_mod = test_%s' %(string.lower(module),
-		                               string.lower(module))
-        TraceOut.AddModule(module)
-	rt = _mod.test(testSuite)
-	TraceOut.RemoveModule(module)
+        mod = __import__('test_' + string.lower(module))
+        TraceOut.AddModule('xml.dom.' + module)
+        rt = mod.test(testSuite)
+        TraceOut.RemoveModule('xml.dom.' + module)
 
     print "Test Time - %f secs" %(time.time() - start)
 
@@ -21,32 +21,33 @@ def runTests(list, testSuite):
 if __name__ == '__main__':
     logLevel = TraceOut.INFO
     logFile = None
-    haltOnError = 0
+    haltOnError = 1
 
-    test_list = ['Node',
-                 'NodeList',
-		 'NamedNodeMap',
-		 'NodeIterator',
-		 'TreeWalker',
-		 'Attr',
-		 'Element',
-		 'DocumentFragment',
-		 'Document',
-		 'DOMImplementation',
-		 'CharacterData',
-		 'Comment',
-		 'Text',
-		 'CDATASection',
-		 'DocumentType',
-		 'Entity',
-		 'EntityReference',
-		 'Notation',
-		 'ProcessingInstruction',
-		 'Struct',
-#		 'HTML',
-#		 'Demo',
-#		 'Pythonic'
-		 ]
+    test_list = [
+        'Node',
+        'NodeList',
+        'NamedNodeMap',
+        'NodeIterator',
+        'TreeWalker',
+        'Attr',
+        'Element',
+        'DocumentFragment',
+        'Document',
+        'DOMImplementation',
+        'CharacterData',
+        'Comment',
+        'Text',
+        'CDATASection',
+        'DocumentType',
+        'Entity',
+        'EntityReference',
+        'Notation',
+        'ProcessingInstruction',
+        'Struct',
+#        'HTML',
+#        'Demo',
+#        'Pythonic'
+         ]
 
     import sys, os, getopt
 
@@ -126,19 +127,17 @@ Options:
         tests = test_list
 
     if command_line_error or display_usage or display_tests:
-    	for op in bad_options:
-    	    print "%s: Unrecognized option '%s'" %(prog_name,op)
-    	if display_usage:
-    	    print usage
-    	if display_tests:
-    	    print 'Available tests are:'
-    	    for t in test_list:
-    	        print '  %s' % t
+        for op in bad_options:
+            print "%s: Unrecognized option '%s'" %(prog_name,op)
+        if display_usage:
+            print usage
+        if display_tests:
+            print 'Available tests are:'
+            for t in test_list:
+                print '  %s' % t
         sys.exit(command_line_error)
 
-    from Ft.Lib import TestSuite
     testSuite = TestSuite.TestSuite(haltOnError, 1)
-    TraceOut.AddModule('TestSuite')
     TraceOut.SetLevel(logLevel)
     if logFile:
         TraceOut.SetOutput(logFile)

@@ -6,8 +6,12 @@
 #
 # History:
 # $Log: HTMLOptionElement.py,v $
-# Revision 1.3  2000/06/20 16:03:15  uche
-# Put back in the "static" HTML files.
+# Revision 1.4  2000/09/27 23:45:26  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.30  2000/08/03 23:30:28  jkloth
+# Cleaned up TraceOut stuff
+# Fixed small bugs
 #
 # Revision 1.29  2000/06/09 01:36:39  jkloth
 # Moved to generated source files
@@ -158,8 +162,8 @@ class HTMLOptionElement(HTMLElement):
 
     ### Attribute Access Mappings ###
 
-    _readComputedAttrs = HTMLFormBasedElement._readComputedAttrs.copy()
-    _readComputedAttrs.update ({ 
+    _readComputedAttrs = HTMLElement._readComputedAttrs.copy()
+    _readComputedAttrs.update ({
          'defaultSelected' : _get_defaultSelected,
          'disabled'        : _get_disabled,
          'form'            : _get_form,
@@ -168,16 +172,16 @@ class HTMLOptionElement(HTMLElement):
          'selected'        : _get_selected,
          'text'            : _get_text,
          'value'           : _get_value,
-      }) 
+      })
 
-    _writeComputedAttrs = HTMLFormBasedElement._writeComputedAttrs.copy() 
-    _writeComputedAttrs.update ({ 
-         'defaultSelected' : _set_defaultSelected, 
-         'disabled'      : _set_disabled, 
-         'label'         : _set_label, 
-         'selected'      : _set_selected, 
-         'value'         : _set_value, 
-      }) 
+    _writeComputedAttrs = HTMLElement._writeComputedAttrs.copy()
+    _writeComputedAttrs.update ({
+         'defaultSelected' : _set_defaultSelected,
+         'disabled'      : _set_disabled,
+         'label'         : _set_label,
+         'selected'      : _set_selected,
+         'value'         : _set_value,
+      })
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                      HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())

@@ -6,8 +6,33 @@
 #
 # History:
 # $Log: DOMImplementation.py,v $
-# Revision 1.2  2000/06/20 15:51:29  uche
-# first stumblings through 4Suite integration
+# Revision 1.3  2000/09/27 23:45:24  uche
+# Update to 4DOM from 4Suite 0.9.1
+#
+# Revision 1.29  2000/09/15 22:38:54  jkloth
+# Removed tabs
+#
+# Revision 1.28  2000/09/15 18:21:21  molson
+# Fixed minor import bugs
+#
+# Revision 1.27  2000/09/14 06:42:25  jkloth
+# Fixed circular import errors
+#
+# Revision 1.26  2000/09/07 15:11:34  molson
+# Modified to abstract import
+#
+# Revision 1.25  2000/08/29 19:29:06  molson
+# Fixed initial parameters
+#
+# Revision 1.24  2000/07/09 19:02:20  uogbuji
+# Begin implementing Events
+# bug-fixes
+#
+# Revision 1.23  2000/07/03 02:12:52  jkloth
+#
+# fixed up/improved cloneNode
+# changed Document to handle DTS as children
+# fixed miscellaneous bugs
 #
 # Revision 1.22  2000/06/09 01:37:43  jkloth
 # Fixed copyright to Fourthought, Inc
@@ -61,16 +86,20 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
+import string
 
 #At this level we only support XML
 FEATURES_MAP = {'XML':2.0,
-        'TRAVERSAL':2.0
+        'TRAVERSAL':2.0,
+        'EVENTS':2.0,
+        'MUTATIONEVENTS':2.0
         }
 
 class DOMImplementation:
     def __init__(self):
+        self.__mods = {}
         pass
-                
+
     def hasFeature(self, feature, version=''):
         import string
         featureVersion = FEATURES_MAP.get(string.upper(feature))
@@ -87,30 +116,41 @@ class DOMImplementation:
                                        self._4dom_createNamedNodeMap(),
                                        publicId,
                                        systemId)
-        pass
         return dt
 
     def createDocument(self, namespaceURI, qualifiedName, doctype):
         from xml.dom import Document
-        doc = Document.Document(doctype)                        
+        doc = Document.Document(doctype)
         if qualifiedName:
             el = doc.createElementNS(namespaceURI, qualifiedName)
             doc.appendChild(el)
-        pass
         return doc
 
-    def cloneImplementation(self):
-        imp = self.factory.createDOMImplementation()
-        return imp
-
-    def _4dom_createNodeList(self,list=[]):
+    def _4dom_createNodeList(self,list=None):
+        if list is None:
+            list = []
         from xml.dom import NodeList
         nl = NodeList.NodeList(list)
-        pass
         return nl
 
     def _4dom_createNamedNodeMap(self, owner=None):
         from xml.dom import NamedNodeMap
         nnm = NamedNodeMap.NamedNodeMap(owner)
-        pass
         return nnm
+
+
+    #This function is defined to abstract imports
+    def _4dom_fileImport(self,file,package="xml.dom"):
+        mod_map = self.__mods.get(package)
+        if mod_map:
+            if mod_map.has_key(file):
+                return mod_map[file]
+        else:
+            self.__mods[package] = {}
+        mod = __import__(package or file, globals(), locals(), [file])
+        if file:
+            mod = getattr(mod,file)
+        self.__mods[package][file] = mod
+        return mod
+
+implementation = DOMImplementation()
