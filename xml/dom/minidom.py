@@ -146,12 +146,12 @@ class Node(xml.dom.Node, GetattrMagic):
             index = self.childNodes.index(oldChild)
         except ValueError:
             raise xml.dom.NotFoundErr()
-        self.childNodes[index] = newChild
-        newChild.parentNode = self
-        oldChild.parentNode = None
         if (newChild.nodeType in _nodeTypes_with_children
             or oldChild.nodeType in _nodeTypes_with_children):
             _clear_id_cache(self)
+        self.childNodes[index] = newChild
+        newChild.parentNode = self
+        oldChild.parentNode = None
         newChild.nextSibling = oldChild.nextSibling
         newChild.previousSibling = oldChild.previousSibling
         oldChild.nextSibling = None
