@@ -14,7 +14,11 @@ Distributed under the terms of the Python 2.0 Copyright.'''
 from xml.dom import Node
 from xml.ns import XMLNS
 import re
-import StringIO
+try:
+    import cStringIO
+    StringIO = cStringIO
+except:
+    import StringIO
 
 _attrs = lambda E: E.attributes or []
 _children = lambda E: E.childNodes or []
