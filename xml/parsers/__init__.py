@@ -1,1 +1,1 @@
-__all__ = ['xmllib', 'sgmllib', 'xmlproc']
+__all__ = ['expat', 'sgmllib', 'xmlproc']
