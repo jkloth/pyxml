@@ -17,6 +17,8 @@ from setupext import Data_Files, install_Data_Files, wininst_request_delete
 # Use either unixfilemap or readfilemap depending on the platform
 if sys.platform == 'win32':
     FILEMAP_SRC = 'extensions/expat/xmlwf/win32filemap.c'
+elif sys.platform[:4] == 'beos':
+    FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
 elif sys.platform[:3] == 'mac':
     FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
 else:
