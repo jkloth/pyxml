@@ -904,7 +904,7 @@ class ProcessingInstruction(Node):
     childNodeTypes = []
     
     def toxml(self):
-        return "<? " + self._node.name + ' ' +self._node.value + "?>"
+        return "<?" + self._node.name + ' ' +self._node.value + "?>"
 
     def get_target(self):
         return self._node.name
@@ -1037,6 +1037,9 @@ class Document(Node):
         return self.documentType
     def get_implementation(self):
         return self.DOMImplementation
+
+    def get_childNodes(self):
+        return NodeList(self._node.children, self, self)
 
     def get_documentElement(self):
         """Return the root element of the Document object, or None
