@@ -103,6 +103,12 @@ if list is type([]):
             raise xml.dom.NoModificationAllowedErr(
                 "attempt to modify read-only attribute 'length'")
 
+        def index(self, value):
+            try:
+                return list.index(self, value)
+            except ValueError:
+                raise xml.dom.NotFoundErr
+
         length = property(_get_length, _set_length,
                           doc="The number of nodes in the NodeList.")
 
