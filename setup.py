@@ -119,6 +119,12 @@ if sys.platform == 'win32':
 # This is a fragment from MANIFEST.in which should contain all
 # files which are considered documentation (doc, demo, test, plus some
 # toplevel files)
+
+# distutils 1.0 has a bug where
+# recursive-include test/output test_*
+# is translated into a pattern ^test\\output\.*test\_[^/]*$
+# on windows, which results in files not being included. Work around
+# this bug by using graft where possible.
 docfiles="""
 recursive-include doc *.html
 recursive-include doc *.tex
@@ -143,7 +149,7 @@ include demo/xmlproc/catalog.soc
 recursive-include test *.py
 recursive-include test *.xml
 include test/test.xml.out
-recursive-include test/output test_*
+graft test/output
 
 include ANNOUNCE
 include CREDITS
