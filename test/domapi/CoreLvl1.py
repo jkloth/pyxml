@@ -133,13 +133,18 @@ class DOMImplementationReadTestCase(TestCaseBase):
 
             expect = ((feature, level) in self.supportedFeatures)
 
-            assert result1 == result2 and result1 == result3, (
+            self.assertEqual(
+                result1, result2,
+                "Different results from different case feature string.")
+            self.assertEqual(
+                result1, result3,
                 "Different results from different case feature string.")
 
-            assert (result1 and 1 or 0) == expect, (
+            self.assertEqual(
+                (result1 and 1 or 0), expect,
                 "Test for %s, version %s should have returned %s, "
                 "returned %s" % (repr(feature), repr(level), repr(expect),
-                    repr(result1)))
+                                 repr(result1)))
 
 
 # --- Node
@@ -297,11 +302,13 @@ class NodeReadTestCaseBase(TestCaseBase):
             expectTrue = 0
 
         if expectTrue:
-            assert self.node.hasChildNodes(), \
-                   "hasChildNodes returned 'false' when 'true' was expected."
+            self.failUnless(
+                self.node.hasChildNodes(),
+                "hasChildNodes returned 'false' when 'true' was expected.")
         else:
-            assert not self.node.hasChildNodes(), \
-                   "hasChildNodes returned 'true' when 'false' was expected."
+            self.failIf(
+                self.node.hasChildNodes(),
+                "hasChildNodes returned 'true' when 'false' was expected.")
 
 
 class NodeWriteTestCaseBase(TestCaseBase):
@@ -458,41 +465,44 @@ class NodeWriteTestCaseBase(TestCaseBase):
             except xml.dom.HierarchyRequestErr:
                 if self.node.nodeType == Node.DOCUMENT_NODE:
                     if newNode.nodeType == Node.ELEMENT_NODE:
-                        assert self.node.documentElement, (
-                            "Couldn't add a Element node to an empty Document."
-                        )
+                        self.assert_(self.node.documentElement,
+                                     "Couldn't add a Element node to"
+                                     " an empty Document.")
                     else: # tried to append nonElement to a Document node
-                        assert newNode.nodeType not in allowedChildren, (
-                            "Couldn't append a %s Node." % TYPE_NAME[
-                            newNode.nodeType])
+                        self.assert_(
+                            newNode.nodeType not in allowedChildren,
+                            "Couldn't append a %s Node."
+                            % TYPE_NAME[newNode.nodeType])
                 else: # tried to append a node to a nonDocument node
-                    assert newNode.nodeType not in allowedChildren, (
-                        "Couldn't append a %s Node." % TYPE_NAME[
-                        newNode.nodeType])
+                    self.assert_(
+                        newNode.nodeType not in allowedChildren,
+                        "Couldn't append a %s Node."
+                        % TYPE_NAME[newNode.nodeType])
 
             except xml.dom.NoModificationAllowedErr:
-                assert self.node.nodeType in self.readOnlyNodeList, (
-                    "Claim of read-only-ness on a modifiable node. "
-                    "Tried to append a %s Node" % TYPE_NAME[newNode.nodeType]
-                )
+                self.assert_(self.node.nodeType in self.readOnlyNodeList,
+                             "Claim of read-only-ness on a modifiable node. "
+                             "Tried to append a %s Node"
+                             % TYPE_NAME[newNode.nodeType])
 
             else:
                 if newNode.nodeType != Node.DOCUMENT_FRAGMENT_NODE:
-                    assert isSameNode(newNode, returnedNode), (
+                    self.assert_(
+                        isSameNode(newNode, returnedNode),
                         "Returned Node is not the same as has been added.")
-
                     checkAttributeSameNode(self.node, 'lastChild', newNode)
                     checkLength(self.node.childNodes, numberOfChildren + 2)
                 else:
                     checkLength(self.node.childNodes, numberOfChildren)
 
-                assert newNode.nodeType in allowedChildren, (
-                    "Was allowed to append a %s Node." % TYPE_NAME[
-                        newNode.nodeType])
+                self.assert_(newNode.nodeType in allowedChildren,
+                             "Was allowed to append a %s Node."
+                             % TYPE_NAME[newNode.nodeType])
 
-                assert self.node.nodeType not in self.readOnlyNodeList, (
-                    "Was allowed to append a %s Node to a read-only Node" % (
-                        TYPE_NAME[newNode.nodeType]))
+                self.assert_(
+                    self.node.nodeType not in self.readOnlyNodeList,
+                    "Was allowed to append a %s Node to a read-only Node"
+                    % TYPE_NAME[newNode.nodeType])
 
     def checkAppendChildForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -508,35 +518,24 @@ class NodeWriteTestCaseBase(TestCaseBase):
         else:
             foreignNode = foreignDoc.createComment('a Comment Node')
 
-        try:
-            self.node.appendChild(foreignNode)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to add %s Node from a foreign Document." %
-                    TYPE_NAME[foreignNode.nodeType])
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.node.appendChild, foreignNode)
 
     def checkAppendChildAncestorNode(self):
-        if self.node.nodeType in self.readOnlyNodeList:
+        nodeType = self.node.nodeType
+        if nodeType in self.readOnlyNodeList:
             return
 
-        if Node.ELEMENT_NODE not in self.allowedChildrenMap[self.node.nodeType]:
+        if Node.ELEMENT_NODE not in self.allowedChildrenMap[nodeType]:
             return
-        if self.node.nodeType not in self.allowedChildrenMap[Node.ELEMENT_NODE]:
+        if nodeType not in self.allowedChildrenMap[Node.ELEMENT_NODE]:
             return
 
         ancestorNode = self.document.createElement('foo')
         ancestorNode.appendChild(self.node)
 
-        try:
-            self.node.appendChild(ancestorNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to append ancestor Node to a %s Node." %
-                    TYPE_NAME[newNode.nodeType])
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.appendChild, ancestorNode)
 
     def checkAppendChildSelf(self):
         # See DOM erratum core-6
@@ -547,14 +546,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
                 self.node.nodeType]:
             return
 
-        try:
-            self.node.appendChild(self.node)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to append the Node to itself." %
-                    TYPE_NAME[newNode.nodeType])
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.appendChild, self.node)
 
     def checkAppendChildWithAttachedNode(self):
         # Test appending a Node that itself is part of a tree
@@ -574,8 +567,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(newNode)
 
-        assert not oldParent.hasChildNodes(), (
-            "Appended Node not removed from previous parent.")
+        self.failIf(oldParent.hasChildNodes(),
+                    "Appended Node not removed from previous parent.")
 
     def checkAppendChildNodeParentReadOnly(self):
         # See DOM erratum core-2 http://www.w3.org/2000/11/DOM-Level-2-errata
@@ -596,24 +589,15 @@ class NodeWriteTestCaseBase(TestCaseBase):
         # we need self.node to have the same doc as textNode
         self.node = doc.importNode(self.node, 1)
 
-        try:
-            self.node.appendChild(textNode)
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to append a Node from a read-only tree.")
+        self.assertRaises(xml.dom.NoModificationAllowedErr,
+                          self.node.appendChild, textNode)
 
     def checkRemoveChild(self):
         if self.node.nodeType in self.readOnlyNodeList:
             if self.node.hasChildNodes():
                 # Test for read-only
-                try:
-                    self.node.removeChild(self.node.firstChild)
-                except xml.dom.NoModificationAllowedErr:
-                    pass
-                else:
-                    assert 0, "Removed child from read-only Node."
+                self.assertRaises(xml.dom.NoModificationAllowedErr,
+                                  self.node.removeChild, self.node.firstChild)
             return
 
         # If this is a Document Node, let's try and remove the doctype.
@@ -621,17 +605,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
         # created for the Document Node tests doesn't *have* a doctype.
         if self.node.nodeType == Node.DOCUMENT_TYPE_NODE:
             doc = self.implementation.createDocument('', 'foo', self.node)
-            try:
-                doc.removeChild(doc.doctype)
-            except xml.dom.NotFoundErr:
-                assert 0, (
-                    "The doctype of a Document Node should also be a "
-                    "childNode of that Node.")
-            except xml.dom.NoModificationAllowedErr:
-                pass
-            else:
-                assert 0, (
-                    "Was allowed to remove the doctype of a Document Node.")
+            self.assertRaises(xml.dom.NoModificationAllowedErr,
+                              doc.removeChild, doc.doctype)
 
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
 
@@ -647,8 +622,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node.appendChild(newNode)
 
         returnedNode = self.node.removeChild(newNode)
-        assert isSameNode(newNode, returnedNode), (
-            "Returned Node is not the appended Node.")
+        self.assert_(isSameNode(newNode, returnedNode),
+                     "Returned Node is not the appended Node.")
         checkAttribute(newNode, "parentNode", None)
         checkAttribute(returnedNode, "parentNode", None)
 
@@ -658,24 +633,17 @@ class NodeWriteTestCaseBase(TestCaseBase):
             return
 
         loseNode = self.document.createTextNode('booh')
-        try:
-            self.node.removeChild(loseNode)
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, "Removed a Node that was no longer a child node."
+        self.assertRaises(xml.dom.NotFoundErr,
+                          self.node.removeChild, loseNode)
 
     def checkInsertBefore(self):
         if self.node.nodeType in self.readOnlyNodeList:
             if self.node.hasChildNodes():
                 # Test for read-only
                 newNode = self.document.createTextNode('a Text Node')
-                try:
-                    self.node.insertBefore(newNode, self.node.firstChild)
-                except xml.dom.NoModificationAllowedErr:
-                    pass
-                else:
-                    assert 0, "Allowed to insert Node into read-only Node."
+                self.assertRaises(
+                    xml.dom.NoModificationAllowedErr,
+                    self.node.insertBefore, newNode, self.node.firstChild)
             return
 
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -721,23 +689,24 @@ class NodeWriteTestCaseBase(TestCaseBase):
             except xml.dom.HierarchyRequestErr:
                 if self.node.nodeType == Node.DOCUMENT_NODE:
                     if newNode.nodeType == Node.ELEMENT_NODE:
-                        assert self.node.documentElement, (
-                            "Couldn't add a Element node to an empty Document."
-                        )
+                        self.assert_(
+                            self.node.documentElement, 
+                            "Couldn't add a Element node to an empty Document.")
 
-                assert newNode.nodeType not in allowedChildren, (
-                    "Couldn't append a %s Node." % TYPE_NAME[
-                        newNode.nodeType])
+                self.assert_(newNode.nodeType not in allowedChildren,
+                             "Couldn't append a %s Node."
+                             % TYPE_NAME[newNode.nodeType])
 
             except xml.dom.NoModificationAllowedErr:
-                assert self.node.nodeType in self.readOnlyNodeList, (
-                    "Claim of read-only-ness on a modifiable node. "
-                    "Tried to append a %s Node" % TYPE_NAME[self.node.nodeType]
-                )
+                self.assert_(self.node.nodeType in self.readOnlyNodeList,
+                             "Claim of read-only-ness on a modifiable node. "
+                             "Tried to append a %s Node"
+                             % TYPE_NAME[self.node.nodeType])
 
             else:
                 if newNode.nodeType != Node.DOCUMENT_FRAGMENT_NODE:
-                    assert isSameNode(newNode, returnedNode), (
+                    self.assert_(
+                        isSameNode(newNode, returnedNode),
                         "Returned Node is not the same as has been added.")
 
                     checkAttributeSameNode(newNode, 'nextSibling', refNode)
@@ -746,9 +715,9 @@ class NodeWriteTestCaseBase(TestCaseBase):
                 else:
                     checkLength(self.node.childNodes, numberOfChildren)
 
-                assert newNode.nodeType in allowedChildren, (
-                    "Was allowed to insert a %s Node." % TYPE_NAME[
-                        newNode.nodeType])
+                self.assert_(newNode.nodeType in allowedChildren,
+                             "Was allowed to insert a %s Node."
+                             % TYPE_NAME[newNode.nodeType])
 
     def checkInsertBeforeNotFound(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -762,24 +731,16 @@ class NodeWriteTestCaseBase(TestCaseBase):
         else:
             refNode = self.document.createComment('a Comment Node')
 
-        try:
-            self.node.insertBefore(refNode, refNode.cloneNode(0))
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, "Inserted Node using a document-less Node as reference."
+        self.assertRaises(
+            xml.dom.NotFoundErr,
+            self.node.insertBefore, refNode, refNode.cloneNode(0))
 
     def checkInsertBeforeExtraElementToDocument(self):
         if self.node.nodeType == Node.DOCUMENT_NODE:
             newNode = self.document.createElement('foo')
-            try:
-                self.node.insertBefore(newNode, self.node.documentElement)
-            except xml.dom.HierarchyRequestErr:
-                pass
-            else:
-                assert 0, (
-                    "Was allowed to insert a second Element into a Document "
-                    "Node.")
+            self.assertRaises(
+                xml.dom.HierarchyRequestErr,
+                self.node.insertBefore, newNode, self.node.documentElement)
 
     def checkInsertBeforeForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -799,14 +760,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.insertBefore(foreignNode, refNode)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to insert %s Node from a foreign Document." %
-                    TYPE_NAME[foreignNode.nodeType])
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.node.insertBefore, foreignNode, refNode)
 
     def checkInsertBeforeAncestorNode(self):
         if self.node.nodeType in self.readOnlyNodeList:
@@ -827,14 +782,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.insertBefore(ancestorNode, refNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to insert ancestor Node into a %s Node." %
-                    TYPE_NAME[newNode.nodeType])
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.insertBefore, ancestorNode, refNode)
 
     def checkInsertBeforeSelf(self):
         # See DOM erratum core-7
@@ -852,14 +801,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.insertBefore(self.node, refNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to insert the Node into itself." %
-                    TYPE_NAME[newNode.nodeType])
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.insertBefore, self.node, refNode)
 
     def checkInsertBeforeWithAttachedNode(self):
         # Test appending a Node that itself is part of a tree
@@ -882,8 +825,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node.appendChild(refNode)
         self.node.insertBefore(newNode, refNode)
 
-        assert not oldParent.hasChildNodes(), (
-            "Appended Node not removed from previous parent.")
+        self.failIf(oldParent.hasChildNodes(),
+                    "Appended Node not removed from previous parent.")
 
     def checkInsertBeforeNodeParentReadOnly(self):
         # See DOM erratum core-2 http://www.w3.org/2000/11/DOM-Level-2-errata
@@ -907,25 +850,17 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node = doc.importNode(self.node, 1)
         self.node.appendChild(refNode)
 
-        try:
-            self.node.insertBefore(textNode, refNode)
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to insert a Node from a read-only tree.")
+        self.assertRaises(xml.dom.NoModificationAllowedErr,
+                          self.node.insertBefore, textNode, refNode)
 
     def checkReplaceChild(self):
         if self.node.nodeType in self.readOnlyNodeList:
             if self.node.hasChildNodes():
                 # Test for read-only
                 newNode = self.document.createTextNode('a Text Node')
-                try:
-                    self.node.replaceChild(newNode, self.node.firstChild)
-                except xml.dom.NoModificationAllowedErr:
-                    pass
-                else:
-                    assert 0, "Allowed to replace childNode of read-only Node."
+                self.assertRaises(
+                    xml.dom.NoModificationAllowedErr,
+                    self.node.replaceChild, newNode, self.node.firstChild)
             return
 
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -972,35 +907,39 @@ class NodeWriteTestCaseBase(TestCaseBase):
             except xml.dom.HierarchyRequestErr:
                 if self.node.nodeType == Node.DOCUMENT_NODE \
                    and newNode.nodeType == Node.ELEMENT_NODE:
-                    assert self.node.documentElement, \
-                           "Couldn't add an Element node to an empty Document."
+                    self.assert_(
+                        self.node.documentElement,
+                        "Couldn't add an Element node to an empty Document.")
 
-                assert newNode.nodeType not in allowedChildren, (
-                    "Couldn't replace an old Node with a %s Node." % TYPE_NAME[
-                        newNode.nodeType])
+                self.assert_(
+                    newNode.nodeType not in allowedChildren,
+                    "Couldn't replace an old Node with a %s Node."
+                    % TYPE_NAME[newNode.nodeType])
 
             except xml.dom.NoModificationAllowedErr:
-                assert self.node.nodeType in self.readOnlyNodeList, (
+                self.assert_(
+                    self.node.nodeType in self.readOnlyNodeList,
                     "Claim of read-only-ness on a modifiable node. "
-                    "Tried to replace an old Node with a %s Node" % TYPE_NAME[
-                        self.node.nodeType]
-                )
+                    "Tried to replace an old Node with a %s Node"
+                    % TYPE_NAME[self.node.nodeType])
 
             else:
                 if newNode.nodeType != Node.DOCUMENT_FRAGMENT_NODE:
-                    assert isSameNode(refNode, returnedNode), (
+                    self.assert_(
+                        isSameNode(refNode, returnedNode),
                         "Returned Node is not the same as has been replaced.")
 
                     checkAttributeSameNode(self.node, 'lastChild', newNode)
                     checkLength(self.node.childNodes, numberOfChildren)
-                    assert isSameNode(refNode, returnedNode), (
+                    self.assert_(
+                        isSameNode(refNode, returnedNode),
                         "Returned Node is not the same as has been replaced.")
                 else:
                     checkLength(self.node.childNodes, numberOfChildren - 1)
 
-                assert newNode.nodeType in allowedChildren, (
-                    "Was allowed to replace an old Node with a "
-                    "%s Node." % TYPE_NAME[newNode.nodeType])
+                self.assert_(newNode.nodeType in allowedChildren,
+                             "Was allowed to replace an old Node with a "
+                             "%s Node." % TYPE_NAME[newNode.nodeType])
 
     def checkReplaceChildNotFound(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -1014,12 +953,9 @@ class NodeWriteTestCaseBase(TestCaseBase):
         else:
             refNode = self.document.createComment('a Comment Node')
 
-        try:
-            self.node.replaceChild(refNode, refNode.cloneNode(0))
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, "Replaced perentless Node (reference had no parent)."
+        self.assertRaises(
+            xml.dom.NotFoundErr,
+            self.node.replaceChild, refNode, refNode.cloneNode(0))
 
     def checkReplaceChildExtraElementToDocument(self):
         if self.node.nodeType == Node.DOCUMENT_NODE:
@@ -1027,14 +963,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
             self.node.appendChild(refNode)
             newNode = self.document.createElement('foo')
 
-            try:
-                self.node.replaceChild(newNode, refNode)
-            except xml.dom.HierarchyRequestErr:
-                pass
-            else:
-                assert 0, (
-                    "Was allowed to replace an old Node with a second Element "
-                    "into a Document Node.")
+            self.assertRaises(xml.dom.HierarchyRequestErr,
+                              self.node.replaceChild, newNode, refNode)
 
     def checkReplaceChildForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
@@ -1054,14 +984,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.replaceChild(foreignNode, refNode)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to replace an old Node with a %s Node from a "
-                "foreign Document." % TYPE_NAME[foreignNode.nodeType])
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.node.replaceChild, foreignNode, refNode)
 
     def checkReplaceChildAncestorNode(self):
         if self.node.nodeType in self.readOnlyNodeList:
@@ -1082,13 +1006,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.replaceChild(ancestorNode, refNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to replace an old Node with a ancestor Node.")
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.replaceChild, ancestorNode, refNode)
 
     def checkReplaceChildSelf(self):
         # See DOM erratum core-8
@@ -1106,14 +1025,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
 
-        try:
-            self.node.replaceChild(self.node, refNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Allowed to replace an old child Node with the parent Node "
-                "itself.")
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.node.replaceChild, self.node, refNode)
 
     def checkReplaceChildWithAttachedNode(self):
         # Test replacing with a Node that itself is part of a tree
@@ -1136,8 +1049,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node.appendChild(refNode)
         self.node.replaceChild(newNode, refNode)
 
-        assert not oldParent.hasChildNodes(), (
-            "Replacing Node not removed from previous parent.")
+        self.failIf(oldParent.hasChildNodes(),
+                    "Replacing Node not removed from previous parent.")
 
     def checkReplaceChildNodeParentReadOnly(self):
         # See DOM erratum core-2 http://www.w3.org/2000/11/DOM-Level-2-errata
@@ -1160,14 +1073,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
         refNode = doc.createTextNode('a Text Node')
         self.node.appendChild(refNode)
 
-        try:
-            self.node.replaceChild(textNode, refNode)
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to replace a Node with a Node from a read-only "
-                "tree.")
+        self.assertRaises(xml.dom.NoModificationAllowedErr,
+                          self.node.replaceChild, textNode, refNode)
 
 
 
@@ -1225,19 +1132,19 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
         # find all elements in the right order
         result = doc.getElementsByTagName('*')
-        assert len(result) == len(names) + 1
+        self.assertEqual(len(result), len(names) + 1)
         for name, element in map(None, names, result[1:]):
-            assert name == element.tagName
+            self.assertEqual(name, element.tagName)
 
         # find single element, top
         result = doc.getElementsByTagName('a')
-        assert len(result) == 1
-        assert result[0].tagName == 'a'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'a')
 
         # find single element somewhere in tree
         result = doc.getElementsByTagName('h')
-        assert len(result) == 1
-        assert result[0].tagName == 'h'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'h')
 
     def checkCreateAttribute(self):
         attr = self.document.createAttribute(self.TEST_NAME)
@@ -1257,12 +1164,8 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(attr, 'localName', None)
         checkAttribute(attr, 'prefix', None)
 
-        try:
-            self.document.createAttribute('5_illegal')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Attribute Node with illegal name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.document.createAttribute, '5_illegal')
 
     def checkCreateCDATASection(self):
         cdata = self.document.createCDATASection('A CDATA Section')
@@ -1303,12 +1206,8 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(el, 'prefix', None)
 
     def checkCreateElementInvalidCharacter(self):
-        try:
-            self.document.createElement('5_illegal')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Element Node with illegal name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.document.createElement, '5_illegal')
 
     def checkCreateEntityReference(self):
         entRef = self.document.createEntityReference('entityReference')
@@ -1318,12 +1217,8 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttributeSameNode(entRef, 'ownerDocument', self.document)
 
     def checkCreateEntityReferenceInvalidCharacter(self):
-        try:
-            self.document.createEntityReference('5_illegal')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Entity Reference Node with illegal name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.document.createEntityReference, '5_illegal')
 
     def checkCreateProcessingInstruction(self):
         pi = self.document.createProcessingInstruction('PITarget', 'PI Data')
@@ -1334,12 +1229,9 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttributeSameNode(pi, 'ownerDocument', self.document)
 
     def checkCreateProcessingInstructionInvalidCharacter(self):
-        try:
-            self.document.createProcessingInstruction('5_illegal', 'data')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Processing Instruction Node with illegal name."
+        self.assertRaises(
+            xml.dom.InvalidCharacterErr,
+            self.document.createProcessingInstruction, '5_illegal', 'data')
 
     def checkCreateTextNode(self):
         text = self.document.createTextNode('A Text Node')
@@ -1381,12 +1273,12 @@ class ElementReadTestCase(NodeReadTestCaseBase):
         checkReadOnly(self.floating_element, "tagName")
 
     def checkGetAttribute(self):
-        assert self.element.getAttribute("ugga") == "", \
-               "non-existant attribute should return ''"
+        self.assertEqual(self.element.getAttribute("ugga"), "",
+                         "non-existant attribute should return ''")
 
     def checkGetAttributeNode(self):
-        assert self.element.getAttributeNode("ugga") is None, \
-               "non-existant attribute should return None"
+        self.assert_(self.element.getAttributeNode("ugga") is None,
+                     "non-existant attribute node should return None")
 
     def checkCloneNode(self):
         el = self.element
@@ -1399,9 +1291,10 @@ class ElementReadTestCase(NodeReadTestCaseBase):
         el.appendChild(el.cloneNode(0))
         clone = el.cloneNode(1)
 
-        assert not isSameNode(el, clone), "Clone is same Node as original."
-        assert not isSameNode(el, clone.lastChild), (
-            "Clone is same Node as original.")
+        self.failIf(isSameNode(el, clone),
+                    "Clone is same Node as original.")
+        self.failIf(isSameNode(el, clone.lastChild),
+                    "Clone is same Node as original.")
 
         checkAttribute(clone, 'parentNode', None)
         checkLength(clone.childNodes, el.childNodes.length)
@@ -1445,8 +1338,8 @@ class ElementReadTestCase(NodeReadTestCaseBase):
             checkAttributeSameNode(clone.lastChild.attributes.item(i),
                 'ownerElement', clone.lastChild)
 
-            assert not isSameNode(el.attributes.item(i),
-                                  clone.attributes.item(i))
+            self.failIf(isSameNode(el.attributes.item(i),
+                                   clone.attributes.item(i)))
 
 
 class ElementWriteTestCase(NodeWriteTestCaseBase):
@@ -1496,56 +1389,55 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         # find all elements in the right order
         result = el.getElementsByTagName('*')
-        assert len(result) == len(names)
+        self.assertEqual(len(result), len(names))
         for name, element in map(None, names, result):
-            assert name == element.tagName
+            self.assertEqual(name, element.tagName)
 
         # find single element, top
         result = el.getElementsByTagName('a')
-        assert len(result) == 1
-        assert result[0].tagName == 'a'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'a')
 
         # find single element somewhere in tree
         result = el.getElementsByTagName('h')
-        assert len(result) == 1
-        assert result[0].tagName == 'h'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'h')
 
     def checkSetAttribute(self):
         self.element.setAttribute("ugga", "foo")
 
-        assert self.element.hasAttribute("ugga"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(self.element.hasAttribute("ugga"),
+                     "Test for presence of created attribute returned false.")
 
         value = self.element.getAttribute("ugga")
-        assert value == 'foo', \
-               ("Incorrect attr value returned. Expected 'foo', got %s"
-                % repr(value))
+        self.assertEqual(value, 'foo',
+                         "Incorrect attr value returned. Expected 'foo', got "
+                          + repr(value))
 
     def checkSetAttributeIllegalCharacter(self):
-        try:
-            self.element.setAttribute('5_illegal', "Don't eat this")
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Was allowed to use an illegal attribute name."
+        self.assertRaises(
+            xml.dom.InvalidCharacterErr,
+            self.element.setAttribute, '5_illegal', "Don't eat this")
 
     def checkSetAttributeNode(self):
         node = self.document.createAttribute("ugga")
         node.value = 'foo'
         returnValue = self.element.setAttributeNode(node)
 
-        assert self.element.hasAttribute("ugga"), \
-               "Test for presence of created attribute returned false."
-        assert returnValue is None, "Returned value is %s" % repr(returnValue)
+        self.assert_(
+            self.element.hasAttribute("ugga"),
+            "Test for presence of created attribute returned false.")
+        self.assert_(returnValue is None,
+                     "Returned value is %s" % repr(returnValue))
 
         value = self.element.getAttribute("ugga")
-        assert value == 'foo', \
-               ("Incorrect attr value returned. Expected 'foo', got %s"
-                % repr(value))
+        self.assertEqual(value, 'foo',
+                         "Incorrect attr value returned. Expected 'foo', got "
+                         + repr(value))
 
         returnedNode = self.element.getAttributeNode("ugga")
-        assert isSameNode(node, returnedNode), \
-               "Incorrect node returned from getAttributeNode."
+        self.assert_(isSameNode(node, returnedNode),
+                     "Incorrect node returned from getAttributeNode.")
 
     def checkSetAttributeNodeReplaceExisting(self):
         node = self.document.createAttribute("ugga")
@@ -1554,31 +1446,22 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         returnValue = self.element.setAttributeNode(newNode)
         if returnValue is None:
-            assert 0, "setAttributeNode did not replace original attribute"
-        assert isSameNode(node, returnValue), (
-            "setAttributeNode returned %s" % repr(returnValue))
+            self.fail("setAttributeNode did not replace original attribute")
+        self.assert_(isSameNode(node, returnValue),
+                     "setAttributeNode returned %s" % repr(returnValue))
 
     def checkSetAttributeNodeWrongDocument(self):
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
         foreignAttr = foreignDoc.createAttribute('spam')
-        try:
-            self.element.setAttributeNodeNS(foreignAttr)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, "Was allowed to setAttributeNode with a foreign Attr."
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.element.setAttributeNodeNS, foreignAttr)
 
     def checkSetAttributeNodeAlreadyInUse(self):
         otherElement = self.document.createElement('foo')
         otherAttr = self.document.createAttribute('spam')
         otherElement.setAttributeNodeNS(otherAttr)
-        try:
-            self.element.setAttributeNodeNS(otherAttr)
-        except xml.dom.InuseAttributeErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to setAttributeNode with an Attr already in use.")
+        self.assertRaises(xml.dom.InuseAttributeErr,
+                          self.element.setAttributeNodeNS, otherAttr)
 
     def checkRemoveAttribute(self):
         node1 = self.document.createAttribute("foo")
@@ -1588,11 +1471,12 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         self.element.removeAttribute("foo")
 
-        assert not self.element.hasAttribute("foo"), \
-               "Test for presence of created attribute still returns true."
+        self.failIf(
+            self.element.hasAttribute("foo"),
+            "Test for presence of created attribute still returns true.")
 
-        assert self.element.hasAttribute("bar"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(self.element.hasAttribute("bar"),
+                     "Test for presence of created attribute returned false.")
 
         checkAttribute(node1, 'ownerElement', None)
 
@@ -1604,27 +1488,24 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         returnedNode = self.element.removeAttributeNode(node1)
 
-        assert isSameNode(node1, returnedNode), (
+        self.assert_(
+            isSameNode(node1, returnedNode),
             "Returned node not the same as the one removed.")
 
         checkAttribute(node1, 'ownerElement', None)
 
-        assert not self.element.hasAttribute("foo"), (
-               "Test for presence of created attribute still returns true.")
+        self.failIf(
+            self.element.hasAttribute("foo"),
+            "Test for presence of created attribute still returns true.")
 
-        assert self.element.hasAttribute("bar"), (
-               "Test for presence of created attribute returned false.")
+        self.assert_(
+            self.element.hasAttribute("bar"),
+            "Test for presence of created attribute returned false.")
 
     def checkRemoveAttributeNodeNotFound(self):
         node = self.document.createAttribute("foo")
-        try:
-            self.element.removeAttributeNode(node)
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, (
-                "No NotFoundErr raised when trying to remove "
-                "non-attached Node.")
+        self.assertRaises(xml.dom.NotFoundErr,
+                          self.element.removeAttributeNode, node)
 
 
 # --- CharacterData
@@ -1636,47 +1517,35 @@ class CharacterDataReadTestCaseBase(NodeReadTestCaseBase):
 
     def checkGetLength(self):
         checkLength(self.chardata, 3)
-        assert len(self.chardata.data) == 3
-        assert len(self.chardata._get_data()) == 3
+        self.assertEqual(len(self.chardata.data), 3)
+        self.assertEqual(len(self.chardata._get_data()), 3)
 
     def checkSubstringData(self):
-        assert self.chardata.substringData(0, 2) == "co"
+        self.assertEqual(self.chardata.substringData(0, 2), "co")
 
     def checkSubstringDataNegativeOffset(self):
-        try:
-            self.chardata.substringData(-2, 0)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.substringData, -2, 0)
 
     def checkSubstringDataOffsetGreaterThanLength(self):
-        try:
-            self.chardata.substringData(10, 0)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for too high offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.substringData, 10, 0)
 
     def checkSubstringDataNegativeCount(self):
-        try:
-            self.chardata.substringData(0, -2)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative count."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.substringData, 0, -2)
 
     def checkSubstringDataOffsetAndCountGreaterThanLength(self):
-        assert self.chardata.substringData(1, 10) == "om"
+        self.assertEqual(self.chardata.substringData(1, 10), "om")
 
     def checkCloneNode(self):
         clone = self.chardata.cloneNode(0)
         deepClone = self.chardata.cloneNode(1)
 
-        assert not isSameNode(self.chardata, clone), (
-            "Clone is same as original.")
-        assert not isSameNode(self.chardata, deepClone), (
-            "Clone is same as original.")
+        self.failIf(isSameNode(self.chardata, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.chardata, deepClone),
+                    "Clone is same as original.")
 
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
@@ -1703,48 +1572,28 @@ class CharacterDataWriteTestCaseBase(NodeWriteTestCaseBase):
         checkAttribute(self.chardata, "data", "cocomm")
 
     def checkInsertDataNegativeOffset(self):
-        try:
-            self.chardata.insertData(-2, 'foo')
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.insertData, -2, 'foo')
 
     def checkInsertDataOffsetGreaterThanLength(self):
-        try:
-            self.chardata.insertData(10, 'foo')
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for too high offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.insertData, 10, 'foo')
 
     def checkDeleteData(self):
         self.chardata.deleteData(1, 1)
         checkAttribute(self.chardata, "data", "cm")
 
     def checkDeleteDataNegativeOffset(self):
-        try:
-            self.chardata.deleteData(-2, 0)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.deleteData, -2, 0)
 
     def checkDeleteDataOffsetGreaterThanLength(self):
-        try:
-            self.chardata.deleteData(10, 0)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for too high offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.deleteData, 10, 0)
 
     def checkDeleteDataNegativeCount(self):
-        try:
-            self.chardata.deleteData(0, -2)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative count."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.deleteData, 0, -2)
 
     def checkDeleteDataOffsetAndCountGreaterThanLength(self):
         self.chardata.deleteData(0, 10)
@@ -1755,28 +1604,16 @@ class CharacterDataWriteTestCaseBase(NodeWriteTestCaseBase):
         checkAttribute(self.chardata, "data", "cuuuu")
 
     def checkReplaceDataNegativeOffset(self):
-        try:
-            self.chardata.replaceData(-2, 0, 'foo')
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.replaceData, -2, 0, 'foo')
 
     def checkReplaceDataOffsetGreaterThanLength(self):
-        try:
-            self.chardata.replaceData(10, 0, 'foo')
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for too high offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.replaceData, 10, 0, 'foo')
 
     def checkReplaceDataNegativeCount(self):
-        try:
-            self.chardata.replaceData(0, -2, 'foo')
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative count."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.replaceData, 0, -2, 'foo')
 
     def checkReplaceDataOffsetAndCountGreaterThanLength(self):
         self.chardata.replaceData(0, 10, "foo")
@@ -1838,7 +1675,7 @@ class TextWriteTestCase(CharacterDataWriteTestCaseBase):
         except:
             pass
         else:
-            assert 0, 'removeAttribute() was acquired from documentElement.'
+            self.fail('removeAttribute() was acquired from documentElement.')
         checkAttribute(self.document.documentElement.childNodes, "length", 2)
         checkAttribute(self.document.documentElement.attributes, "length", 1)
 
@@ -1852,26 +1689,18 @@ class TextWriteTestCase(CharacterDataWriteTestCaseBase):
         try:
             newNode = self.chardata.splitText(self.chardata.length)
         except xml.dom.IndexSizeErr:
-            assert 0, (
+            self.fail(
                 "INDEX_SIZE_ERR raised on splitText with offset == length.")
         checkAttribute(self.chardata, 'data', 'com')
         checkAttribute(newNode, 'data', '')
 
     def checkSplitTextNegativeOffset(self):
-        try:
-            self.chardata.splitText(-2)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for negative offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.splitText, -2)
 
     def checkSplitTextOffsetGreateThanLength(self):
-        try:
-            self.chardata.splitText(10)
-        except xml.dom.IndexSizeErr:
-            pass
-        else:
-            assert 0, "Expected exception for too high offset."
+        self.assertRaises(xml.dom.IndexSizeErr,
+                          self.chardata.splitText, 10)
 
     def checkSplitTextWithParent(self):
         el = self.document.createElement('foo')
@@ -1893,8 +1722,8 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         checkAttribute(self.attr, "name", "name")
 
     def checkGetSpecified(self):
-        assert self.attr._get_specified()
-        assert self.attr.specified
+        self.assert_(self.attr._get_specified())
+        self.assert_(self.attr.specified)
 
     def checkGetValue(self):
         checkAttribute(self.attr, "value", "")
@@ -1907,9 +1736,10 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         clone = self.attr.cloneNode(0)
         deepClone = self.attr.cloneNode(1)
 
-        assert not isSameNode(self.attr, clone), "Clone is same as original."
-        assert not isSameNode(self.attr, deepClone), (
-            "Clone is same as original.")
+        self.failIf(isSameNode(self.attr, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.attr, deepClone),
+                    "Clone is same as original.")
 
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
@@ -1951,7 +1781,8 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
     def checkManipulateSubTree(self):
         attr = self.attr
 
-        assert attr.hasChildNodes(), "Attr doesn't have subtree to manipulate!"
+        self.assert_(attr.hasChildNodes(),
+                     "Attr doesn't have subtree to manipulate!")
 
         newNode = self.document.createTextNode('New Value')
         attr.replaceChild(newNode, attr.firstChild)
@@ -1986,8 +1817,9 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         a1 = self.document.documentElement.attributes.item(0)
         a2 = self.document.documentElement.attributes.item(0)
         a1.appendChild(self.document.createTextNode('eggs'))
-        assert a1.childNodes.length == a2.childNodes.length, \
-               "Write to one attr reference isn't reflected in another ref."
+        self.assertEqual(
+            a1.childNodes.length, a2.childNodes.length,
+            "Write to one attr reference isn't reflected in another ref.")
 
     def checkAttrReferenceElementAttributeIntegrity(self):
         "changing an attribute node should be reflected by getAttribute"
@@ -1995,12 +1827,12 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         self.document.documentElement.setAttributeNode(attr)
         a1 = self.document.documentElement.attributes.item(0)
         a1.value = 'eggs'
-        assert (self.document.documentElement.getAttribute('spam') ==
-                'eggs'), (
+        self.assertEqual(
+            self.document.documentElement.getAttribute('spam'), 'eggs',
             "setting value of attr reference isn't reflected by getAttribute")
         a1.appendChild(self.document.createTextNode('ham'))
-        assert (self.document.documentElement.getAttribute('spam') ==
-                'eggsham'), (
+        self.assertEqual(
+            self.document.documentElement.getAttribute('spam'), 'eggsham',
             "appendChild on attr reference isn't reflected by getAttribute.")
 
     def checkSetAttrWithSubtree(self):
@@ -2012,23 +1844,28 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         self.element.setAttributeNode(self.attr)
         # check that getting the attr from the element preserves subtree
         checkAttribute(self.element.attributes.item(0).childNodes, "length", 3)
-        assert self.attr.firstChild.nextSibling.isSameNode(eggs), (
+        self.assert_(
+            self.attr.firstChild.nextSibling.isSameNode(eggs),
             "setting an attribute node destroys children")
-        assert self.attr.firstChild.nextSibling.nextSibling.isSameNode(ham), (
+        self.assert_(
+            self.attr.firstChild.nextSibling.nextSibling.isSameNode(ham),
             "setting an attribute node destroys children")
         # check that another ref preserves subtree, too
         attr2 = self.element.getAttributeNode('attrName')
         checkAttribute(attr2.childNodes, "length", 3)
-        assert attr2.firstChild.nextSibling.isSameNode(eggs), (
+        self.assert_(
+            attr2.firstChild.nextSibling.isSameNode(eggs),
             "setting an attribute node destroys children")
-        assert attr2.firstChild.nextSibling.nextSibling.isSameNode(ham), (
+        self.assert_(
+            attr2.firstChild.nextSibling.nextSibling.isSameNode(ham),
             "setting an attribute node destroys children")
 
     def checkCloneNode(self):
         attr = self.attr
         clone = attr.cloneNode(0)
 
-        assert not isSameNode(attr, clone), "Clone is same Node as original."
+        self.failIf(isSameNode(attr, clone),
+                    "Clone is same Node as original.")
         checkAttribute(clone, 'value', attr.value)
 
         # make sure the cloned attr isn't sharing data with the original
@@ -2052,23 +1889,26 @@ class DefaultAttrTestCase(TestCaseBase):
     def checkHasAttribute(self):
         el = self.document.documentElement
 
-        assert el.hasAttribute('foo'), 'Default attribute not found.'
+        self.assert_(el.hasAttribute('foo'), 'Default attribute not found.')
 
     def checkGetAttribute(self):
         el = self.document.documentElement
 
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s" %
-            repr(el.getAttribute('foo')))
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found %s"
+            % repr(el.getAttribute('foo')))
 
     def checkCreateElement(self):
         el = self.document.createElement('doc')
 
-        assert el.hasAttribute('foo'), (
+        self.assert_(
+            el.hasAttribute('foo'),
             'Newly created Element Node should have default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s" %
-            el.getAttribute('foo'))
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found %s"
+            % el.getAttribute('foo'))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
     def checkCloneNode(self):
@@ -2090,11 +1930,13 @@ class DefaultAttrTestCase(TestCaseBase):
         el.setAttribute('foo', 'baz')
 
         el.removeAttribute('foo')
-        assert el.hasAttribute('foo'), (
-            'Removing specified attribute should bring back default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s" %
-            el.getAttribute('foo'))
+        self.assert_(
+            el.hasAttribute('foo'),
+            'Removing specified attribute should restore default attribute.')
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found %s"
+            % el.getAttribute('foo'))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
     def checkRemoveAttributeNode(self):
@@ -2105,11 +1947,13 @@ class DefaultAttrTestCase(TestCaseBase):
         el.setAttributeNode(newAttr)
 
         el.removeAttributeNode(newAttr)
-        assert el.hasAttribute('foo'), (
-            'Removing specified attribute should bring back default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s" %
-            el.getAttribute('foo'))
+        self.assert_(
+            el.hasAttribute('foo'), 
+            'Removing specified attribute should restore default attribute.')
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found %s"
+            % el.getAttribute('foo'))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
     def checkRemoveNamedItem(self):
@@ -2118,11 +1962,13 @@ class DefaultAttrTestCase(TestCaseBase):
         el.setAttribute('foo', 'baz')
 
         el.attributes.removeNamedItem('foo')
-        assert el.hasAttribute('foo'), (
-            'Removing specified attribute should bring back default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s" %
-            el.getAttribute('foo'))
+        self.assert_(
+            el.hasAttribute('foo'),
+            'Removing specified attribute should restore default attribute.')
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found %s"
+            % el.getAttribute('foo'))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
     def checkSpecified(self):
@@ -2160,9 +2006,10 @@ class DocumentFragmentReadTestCase(NodeReadTestCaseBase):
         clone = frag.cloneNode(0)
         deepClone = frag.cloneNode(1)
 
-        assert not isSameNode(frag, clone), "Clone is same Node as original."
-        assert not isSameNode(frag, deepClone), (
-            "Clone is same Node as original.")
+        self.failIf(isSameNode(frag, clone),
+                    "Clone is same Node as original.")
+        self.failIf(isSameNode(frag, deepClone),
+                    "Clone is same Node as original.")
 
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
@@ -2209,23 +2056,20 @@ class NodeListReadTestCase(TestCaseBase):
         checkLength(self.document.childNodes, 1)
 
     def checkItem(self):
-        assert self.list.item(0) is None
+        self.assert_(self.list.item(0) is None)
 
     def checkGetItem(self):
-        try:
-            self.list[0]
-            assert 0, "expected IndexError to be raised"
-        except IndexError:
-            pass
+        self.assertRaises(IndexSizeErr, self.list[0])
 
     # there's no cmp for NodeList right now
     #def checkCmp(self):
     #    list1 = self.document.documentElement._get_childNodes()
     #    list2 = self.document.firstChild._get_childNodes()
-    #    assert list1 == list2, "two NodeLists of the same thing don't compare"
+    #    self.assertEqual(list1, list2,
+    #                     "two NodeLists of the same thing don't compare"
 
 ##     def checkGetSlice(self):
-##         assert self.list[2 : 5] == []
+##         self.assertEqual(self.list[2:5], [])
 
 
 class NodeListWriteTestCase(TestCaseBase):
@@ -2262,39 +2106,36 @@ class NamedNodeMapReadTestCase(TestCaseBase):
         checkLength(self.map, 0)
 
     def checkGetNamedItem(self):
-        assert self.map.getNamedItem("uuu") is None
+        self.assert_(self.map.getNamedItem("uuu") is None)
 
     def checkRemoveNamedItem(self):
-        try:
-            self.map.removeNamedItem("uuu")
-            assert 0, "expected NotFoundErr to be raised"
-        except xml.dom.NotFoundErr:
-            pass
+        self.assertRaises(xml.dom.NotFoundErr,
+                          self.map.removeNamedItem, "uuu")
 
     def checkItem(self):
-        assert self.map.item(0) is None
+        self.assert_(self.map.item(0) is None)
 
     def checkGetItem(self):
         try:
             self.map["uuu"]
-            assert 0, "expected KeyError to be raised"
+            self.fail("expected KeyError to be raised")
         except KeyError:
             pass
 
     def checkGet(self):
-        assert self.map.get("uuu", 5) == 5
+        self.assertEqual(self.map.get("uuu", 5), 5)
 
     def checkHasKey(self):
-        assert not self.map.has_key("uuu")
+        self.failIf(self.map.has_key("uuu"))
 
     def checkItems(self):
-        assert self.map.items() == []
+        self.assertEqual(self.map.items(), [])
 
     def checkKeys(self):
-        assert self.map.keys() == []
+        self.assertEqual(self.map.keys(), [])
 
     def checkValues(self):
-        assert self.map.values() == []
+        self.assertEqual(self.map.values(), [])
 
 
 class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
@@ -2306,79 +2147,75 @@ class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
         self.map.setNamedItem(self.attribute)
 
     def checkRemoveNonexistentNamedItem(self):
-        try:
-            self.map.removeNamedItem("uuu")
-            assert 0, "did not catch expected DOMException"
-        except xml.dom.DOMException:
-            pass
+        self.assertRaises(xml.dom.DOMException,
+                          self.map.removeNamedItem, "uuu")
 
     def checkRemoveNamedItem(self):
         attribute2 = self.document.createAttribute("attrName2")
         self.map.setNamedItem(attribute2)
         attrOut = self.map.removeNamedItem("attrName2")
-        assert isSameNode(attrOut, attribute2)
+        self.assert_(isSameNode(attrOut, attribute2))
 
     def checkRemoveNamedItemNotFound(self):
-        try:
-            self.map.removeNamedItem("bogus")
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, (
-                "Expected an exception when trying to remove non-existing "
-                "entry.")
+        self.assertRaises(xml.dom.NotFoundErr,
+                          self.map.removeNamedItem, "bogus")
 
     def checkGetLength(self):
         checkLength(self.map, 1)
 
     def checkGetNamedItem(self):
-        assert isSameNode(self.attribute, self.map.getNamedItem("attrName"))
+        self.assert_(isSameNode(self.attribute,
+                                self.map.getNamedItem("attrName")))
 
     def checkGetNonexistentNamedItem(self):
-        assert self.map.getNamedItem("uuu") is None
+        self.assert_(self.map.getNamedItem("uuu") is None)
 
     def checkItem(self):
-        assert isSameNode(self.map.item(0), self.attribute)
-        assert isSameNode(self.attribute, self.map.item(0))
+        self.assert_(isSameNode(self.map.item(0), self.attribute))
+        self.assert_(isSameNode(self.attribute, self.map.item(0)))
 
     def checkGetNonexistentItem(self):
         try:
             self.map["uuu"]
-            assert 0, "expected KeyError to be raised"
+            self.fail("expected KeyError to be raised")
         except KeyError:
             pass
 
     def checkGetItem(self):
-        assert isSameNode(self.attribute, self.map["attrName"])
+        self.assert_(isSameNode(self.attribute, self.map["attrName"]))
 
     def checkGet(self):
-        assert isSameNode(self.attribute, self.map.get("attrName"))
+        self.assert_(isSameNode(self.attribute, self.map.get("attrName")))
 
     def checkHasKey(self):
-        assert self.map.has_key("attrName")
-        assert not self.map.has_key("uuu")
+        self.assert_(self.map.has_key("attrName"))
+        self.assert_(not self.map.has_key("uuu"))
 
     def checkItems(self):
         key, node = self.map.items()[0]
-        assert key == "attrName" and isSameNode(self.attribute, node)
+        self.assertEqual(key, "attrName")
+        self.assert_(isSameNode(self.attribute, node))
 
     def checkKeys(self):
-        assert self.map.keys() == ["attrName"]
+        self.assertEqual(self.map.keys(), ["attrName"])
 
     def checkValues(self):
         L = []
         for attr in self.map.values():
             L.append(attr.value)
-        assert L == ["attrValue"], "bad values list: %s" % `L`
+        self.assertEqual(L, ["attrValue"], "bad values list: %s" % `L`)
 
     def checkSetNamedItem(self):
         newAttr = self.document.createAttribute('someAttr')
         newAttr.value = 'spam'
 
         retVal = self.map.setNamedItem(newAttr)
-        assert retVal is None, "setNamedItem returned %s" % repr(retVal)
+        self.assert_(
+            retVal is None,
+            "setNamedItem returned %s" % repr(retVal))
         checkLength(self.map, 2)
-        assert isSameNode(self.map.getNamedItem('someAttr'), newAttr), (
+        self.assert_(
+            isSameNode(self.map.getNamedItem('someAttr'), newAttr),
             "setNamedItem store seems to have failed, can't retrieve.")
 
     def checkSetNamedItemReplacingExistingNode(self):
@@ -2388,44 +2225,30 @@ class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
         anotherAttr.value = 'eggs'
 
         retVal = self.map.setNamedItem(newAttr)
-        assert retVal is not None, "setNamedItem returned None"
-        assert isSameNode(retVal, newAttr), (
-            "setNamedItem didn't return replaced Node.")
+        self.assert_(retVal is not None,
+                     "setNamedItem returned None")
+        self.assert_(isSameNode(retVal, newAttr),
+                     "setNamedItem didn't return replaced Node.")
         checkLength(self.map, 2)
 
     def checkSetNamedItemWrongDocument(self):
         newDoc = self.implementation.createDocument(None, 'foo', None)
         foreignAttr = newDoc.createAttribute('someAttr')
-        try:
-            self.map.setNamedItem(foreignAttr)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, "Was allowed to add foreign Node to NamedNodeMap."
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.map.setNamedItem, foreignAttr)
 
     def checkSetNamedItemAlreadyInUse(self):
         el = self.document.createElement('someElement')
         attr = self.document.createAttribute('someAttribute')
         el.setAttributeNode(attr)
-        try:
-            self.map.setNamedItem(attr)
-        except xml.dom.InuseAttributeErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to add attribute already in use to NamedNodeMap.")
+        self.assertRaises(xml.dom.InuseAttributeErr,
+                          self.map.setNamedItem, attr)
 
     def checkSetNamedItemHierarchyRequestErr(self):
         # See DOM erratum core-4.
         textNode = self.document.createTextNode('text node')
-        try:
-            self.map.setNamedItem(textNode)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to add a Node Type not belonging in this "
-                "NamedNodeMap (a Text Node to a map of attributes).")
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.map.setNamedItem, textNode)
 
 
 cases = buildCases(__name__, 'Core', None)
