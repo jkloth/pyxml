@@ -212,8 +212,8 @@ This version of PyXML was tested with Python 2.x.
                                 copy_to=xml('/dom/en_US/LC_MESSAGES'),
                                 files=['xml/dom/en_US/LC_MESSAGES/4Suite.mo']),
                      Data_Files(base_dir='install_lib',
-                                copy_to=xml('/dom/fr_FR/LC_MESSAGES'),
-                                files=['xml/dom/fr_FR/LC_MESSAGES/4Suite.mo']),
+                                copy_to=xml('/dom/fr/LC_MESSAGES'),
+                                files=['xml/dom/fr/LC_MESSAGES/4Suite.mo']),
                      ] + xmldocfiles,
        
        packages = [xml(''), 
