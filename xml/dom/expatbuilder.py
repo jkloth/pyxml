@@ -33,17 +33,7 @@ from xml.parsers import expat
 from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
 
-from xml.dom.minicompat import *   # True, False, NewStyle, isinstance
-
-try:
-    from types import StringTypes
-except ImportError:
-    try:
-        from types import UnicodeType
-    except ImportError:
-        StringTypes = type(''),
-    else:
-        StringTypes = type(''), UnicodeType
+from xml.dom.minicompat import *
 
 TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
