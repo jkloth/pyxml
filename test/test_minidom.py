@@ -246,17 +246,16 @@ def testGetElementsByTagNameNS():
     dom = parseString(d)
     elems = dom.getElementsByTagNameNS("http://pyxml.sf.net/minidom", "myelem")
     confirm(len(elems) == 1
-            and elems.item(0).namespaceURI == "http://pyxml.sf.net/minidom"
-            and elems.item(0).localName == "myelem"
-            and elems.item(0).prefix == "minidom"
-            and elems.item(0).tagName == "minidom:myelem"
-            and elems.item(0).nodeName == "minidom:myelem")
+            and elems[0].namespaceURI == "http://pyxml.sf.net/minidom"
+            and elems[0].localName == "myelem"
+            and elems[0].prefix == "minidom"
+            and elems[0].tagName == "minidom:myelem"
+            and elems[0].nodeName == "minidom:myelem")
     dom.unlink()
 
 def get_empty_nodelist_from_elements_by_tagName_ns_helper(doc, nsuri, lname):
     nodelist = doc.getElementsByTagNameNS(nsuri, lname)
-    confirm(len(nodelist) == 0
-            and nodelist.item(0) is None)
+    confirm(len(nodelist) == 0)
 
 def testGetEmptyNodeListFromElementsByTagNameNS():
     doc = parseString('<doc/>')
