@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.22 2001/08/08 07:21:46 larsga Exp $
+# $Id: xmlutils.py,v 1.23 2001/08/08 07:29:09 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -135,26 +135,30 @@ class EntityParser:
         self.feed(doc)
 	self.close()
         
-    def open_entity(self,sysID,name="None"):
+    def open_entity(self, sys_id, name = "None"):
         """Starts parsing a new entity, pushing the old onto the stack. This
         method must not be used to start parsing, use parse_resource for
         that."""
 
-        sysID=join_sysids(self.get_current_sysid(),sysID)
+        if not self.get_current_sysid() and \
+           urlparse.urlparse(sys_id)[0] == "":
+            self.report_error(2024, sys_id)
+            
+        sys_id = join_sysids(self.get_current_sysid(), sys_id)
 
         try:
-            inf=self.isf.create_input_source(sysID)
+            inf = self.isf.create_input_source(sys_id)
         except IOError:
-            self.report_error(3000,sysID)
+            self.report_error(3000, sys_id)
             return
 
         self._push_ent_stack(name)
-        self.current_sysID=sysID
-        self.pos=0
-        self.line=1
-        self.last_break=0
-        self.data=""
-        self.encoded_data=""
+        self.current_sys_id = sys_id
+        self.pos = 0
+        self.line = 1
+        self.last_break = 0
+        self.data = ""
+        self.encoded_data = ""
         self.input_encoding = None
         self.charset_converter = None
 
