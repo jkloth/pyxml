@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.6 2001/03/03 07:30:46 loewis Exp $
+$Id: drv_xmlproc.py,v 1.7 2001/03/03 08:00:29 loewis Exp $
 """
 
 import types, string
@@ -42,8 +42,8 @@ class XmlprocDriver(saxlib.XMLReader):
 
         self.__locator = 0
 
-        self._lex_handler = None
-        self._decl_handler = None
+        self._lex_handler = saxlib.LexicalHandler()
+        self._decl_handler = saxlib.DeclHandler()
         
     def parse(self, source):
         try:
