@@ -1,6 +1,6 @@
 
 # regression test for SAX drivers
-# $Id: test_saxdrivers.py,v 1.3 2001/06/07 20:04:33 larsga Exp $
+# $Id: test_saxdrivers.py,v 1.4 2001/12/16 09:35:54 loewis Exp $
 
 from xml.sax.saxutils import XMLGenerator, ContentGenerator
 from xml.sax import handler, SAXReaderNotAvailable
@@ -83,13 +83,13 @@ def test_incremental():
     for p in factory.get_parser_list():
         try:
             parser = factory._create_parser(p)
-            if not hasattr(parser, "feed"):
-                continue
         except ImportError:
             print p,"NOT SUPPORTED"
             continue
         except SAXReaderNotAvailable:
             print p,"NOT SUPPORTED"
+            continue
+        if not hasattr(parser, "feed"):
             continue
         
         # Don't try to test namespace support, yet
