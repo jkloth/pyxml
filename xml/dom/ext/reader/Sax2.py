@@ -102,8 +102,8 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
         self._rootNode = None
         #Set up the stack which keeps track of the nesting of DOM nodes.
         self._nodeStack = []
-        self._nsuri2pref = {EMPTY_NAMESPACE:[None]}
-        self._pref2nsuri = {None:[EMPTY_NAMESPACE]}
+        self._nsuri2pref = {EMPTY_NAMESPACE:[None], XML_NAMESPACE: ['xml']}
+        self._pref2nsuri = {None: [EMPTY_NAMESPACE], 'xml': XML_NAMESPACE}
         self._new_prefix_mappings = []
         if ownerDoc:
             self._ownerDoc = ownerDoc
@@ -187,7 +187,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
             self._orphanedNodes.append(('pi', target, data))
         return
 
-    def startPrefixMapping(self,prefix,uri):
+    def startPrefixMapping(self, prefix, uri):
         try:
             map = self._pref2nsuri[prefix]
         except:
