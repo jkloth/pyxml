@@ -43,11 +43,6 @@ XML_NS = "http://www.w3.org/XML/1998/namespace"
 XMLNS_NS = "http://www.w3.org/2000/xmlns/"
 
 
-# teeny tiny performance hack!
-# XXX this needs to disappear once None is a keyword in Python.
-None = None
-
-
 def _intern(builder, s):
     return builder._intern_setdefault(s, s)
 
