@@ -937,7 +937,7 @@ class Document(Node):
             s = s + n.toxml()
         return s
 
-    def createElement(self, tagName, **kwdict):
+    def createElement(self, tagName, dict={}, **kwdict):
         "Return a new Element object."
 
         d = _nodeData(ELEMENT_NODE)
@@ -945,6 +945,7 @@ class Document(Node):
         d.value = None
         d.attributes = {}
         elem = Element(d, None, self)
+        kwdict.update( dict )
         for name, value in kwdict.items():
             elem.setAttribute(name, value)
         return elem
