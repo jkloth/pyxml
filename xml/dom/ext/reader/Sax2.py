@@ -92,8 +92,9 @@ class NsHandler:
 class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
                       saxlib.LexicalHandler,
                       saxlib.DeclHandler):
-    def __init__(self, keepAllWs=0):
+    def __init__(self, keepAllWs=0, implementation=implementation):
         self._keepAllWs = keepAllWs
+        self._impl = implementation
         return
 
     def initState(self, ownerDoc=None):
@@ -118,8 +119,8 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
 
     def _initRootNode(self, docElementUri, docElementName):
         if not self._dt:
-            self._dt = implementation.createDocumentType(docElementName, None, '')
-        self._ownerDoc = implementation.createDocument(docElementUri, docElementName, self._dt)
+            self._dt = self._impl.createDocumentType(docElementName, '', '')
+        self._ownerDoc = self._impl.createDocument(docElementUri, docElementName, self._dt)
         if self._xmlDecl:
             decl_data = 'version="%s"' % (
                     self._xmlDecl['version']
@@ -287,7 +288,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
         return
 
     def startDTD(self, doctype, publicID, systemID):
-        self._dt = implementation.createDocumentType(doctype, publicID, systemID)
+        self._dt = self._impl.createDocumentType(doctype, publicID, systemID)
         if not self._rootNode:
             self._orphanedNodes.append(('doctype',))
         #else:
