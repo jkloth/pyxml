@@ -1,4 +1,4 @@
-/* Based on Python's pyexpat.c, version 2.33.
+/* Based on Python's pyexpat.c, version 2.35.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
@@ -101,6 +101,7 @@ conv_atts_using_string(XML_Char **atts)
             }
             if (PyDict_SetItemString(attrs_obj,
                                      (char*)*attrs_k, rv) < 0) {
+                Py_DECREF(rv);
                 Py_DECREF(attrs_obj);
                 attrs_obj = NULL;
                 goto finally;
@@ -259,6 +260,10 @@ getcode(enum HandlerTypes slot, char* func_name, int lineno)
 			nulltuple,	/* consts */
 			nulltuple,	/* names */
 			nulltuple,	/* varnames */
+#if PYTHON_API_VERSION >= 1010
+			nulltuple,	/* freevars */
+			nulltuple,	/* cellvars */
+#endif
 			filename,	/* filename */
 			name,		/* name */
 			lineno,		/* firstlineno */
@@ -290,7 +295,11 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 			tstate,			/*back*/
 			c,			/*code*/
 			tstate->frame->f_globals,	/*globals*/
-			NULL);			/*locals*/
+			NULL			/*locals*/
+#if PYTHON_API_VERSION >= 1010
+			,NULL			/*closure*/
+#endif
+		);
 	if (f == NULL)
 		return NULL;
 	tstate->frame = f;
@@ -781,7 +790,7 @@ static struct PyMethodDef xmlparse_methods[] = {
     Make it as simple as possible.
 */
 
-static char template_buffer[256];
+static char template_buffer[257];
 PyObject * template_string=NULL;
 
 static void 
@@ -1164,7 +1173,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.33 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.35 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
