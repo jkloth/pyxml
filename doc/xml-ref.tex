@@ -185,6 +185,36 @@ Mixin classes:
 \class{DOMImplementationLS}
 \class{DocumentLS}
 
+\subsection{DocumentLS Extensions}
+
+The \class{DocumentLS} mixin class for a \class{Document} adds the
+following methods:
+
+\begin{methoddesc}[DocumentLS]{load}{uri}
+  Load a new document from a URI into this DOM \class{Document}
+  instance.  This is not yet implemented in PyXML.
+\end{methoddesc}
+
+\begin{methoddesc}[DocumentLS]{loadXML}{source}
+  Load a new document from a \class{DOMInputSource} into this DOM
+  \class{Document} instance.  This is not yet implemented in PyXML.
+\end{methoddesc}
+
+\begin{methoddesc}[DocumentLS]{saveXML}{snode}
+  Return an XML serialization of the DOM node \var{snode} as a
+  string.  \var{snode} must belong to this document; if not,
+  \exception{xml.dom.WrongDocumentErr} will be raised.
+\end{methoddesc}
+
+The following attribute is also added:
+
+\begin{memberdesc}[DocumentLS]{async}
+  If set to a true value, the \method{load()} and \method{loadXML()}
+  methods should load documents asynchronously.  If false, these
+  methods will operate in a synchronous mode.
+  PyXML does not support setting this to true.
+\end{memberdesc}
+
 
 %\section{builder}
 %\section{core}
