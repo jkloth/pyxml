@@ -8,41 +8,41 @@ from xml.parsers import expat
 import string
 
 class XMLTree:
-	def __init__(self):
-		pass
+    def __init__(self):
+        pass
 
-	# Define a handler for start element events
-	def StartElement(self, name, attrs ):
-		#name = name.encode()
-		print "<", repr(name), ">"
-		print "attr name:", attrs.get("name",u"").encode("koi8-r")
-		print "attr value:", attrs.get("value",u"").encode("koi8-r")
+    # Define a handler for start element events
+    def StartElement(self, name, attrs ):
+        #name = name.encode()
+        print "<", repr(name), ">"
+        print "attr name:", attrs.get("name",u"").encode("koi8-r")
+        print "attr value:", attrs.get("value",u"").encode("koi8-r")
 
-	def EndElement(self,  name ):
-		print "</", repr(name), ">"
+    def EndElement(self,  name ):
+        print "</", repr(name), ">"
 
-	def CharacterData(self, data ):
-		if string.strip(data):
-			data = data.encode("koi8-r")
-			print data
+    def CharacterData(self, data ):
+        if string.strip(data):
+            data = data.encode("koi8-r")
+            print data
 
 
-	def LoadTree(self, filename):
-		# Create a parser
-		Parser = expat.ParserCreate()
+    def LoadTree(self, filename):
+        # Create a parser
+        Parser = expat.ParserCreate()
 
-		# Tell the parser what the start element handler is
-		Parser.StartElementHandler = self.StartElement
-		Parser.EndElementHandler = self.EndElement
-		Parser.CharacterDataHandler = self.CharacterData
+        # Tell the parser what the start element handler is
+        Parser.StartElementHandler = self.StartElement
+        Parser.EndElementHandler = self.EndElement
+        Parser.CharacterDataHandler = self.CharacterData
 
-		# Parse the XML File
-		ParserStatus = Parser.Parse(open(filename,'r').read(), 1)
+        # Parse the XML File
+        ParserStatus = Parser.Parse(open(filename,'r').read(), 1)
 
 
 def runTest():
-	win = XMLTree()
-	win.LoadTree("enc_test.xml")
-	return win
+    win = XMLTree()
+    win.LoadTree("enc_test.xml")
+    return win
 
 runTest()
