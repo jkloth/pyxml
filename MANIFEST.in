@@ -1,0 +1,45 @@
+include ANNOUNCE 
+include CREDITS 
+include LICENCE 
+include MANIFEST 
+include README* 
+include TODO 
+include setup.py
+
+recursive-include xml *.py 
+recursive-include windows *.dll 
+recursive-include windows *.mak 
+
+recursive-include mac *.prj 
+recursive-include mac *.prj.exp
+
+recursive-include Wise *.py 
+recursive-include Wise *.WSM 
+recursive-include Wise *.wse
+
+recursive-include doc *.html 
+recursive-include doc *.tex 
+recursive-include doc *.txt 
+recursive-include doc *.gif 
+recursive-include doc *.css
+
+recursive-include extensions Makefile.pre.in 
+recursive-include extensions Setup.in 
+recursive-include extensions *.c 
+recursive-include extensions *.h 
+
+recursive-include extensions/expat *.html 
+recursive-include extensions/expat *Makefile 
+recursive-include extensions/expat expat.* 
+recursive-include extensions/expat *.dsp
+
+recursive-include test *.py 
+recursive-include test *.xml
+
+recursive-include test/output test_*
+
+recursive-include demo README 
+recursive-include demo *.py 
+recursive-include demo *.xml
+
+
