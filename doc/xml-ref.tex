@@ -301,12 +301,43 @@ interface:
 \end{memberdesc}
 
 \begin{methoddesc}[Document]{importNode}{node, deep}
+  Imports a node \var{node} from another document.  If \var{deep} is
+  true, child nodes are recursively imported.  Nodes of type
+  \constant{DOCUMENT_NODE} and \constant{DOCUMENT_TYPE_NODE} cannot be
+  imported; if \var{node} has one of these values for its
+  \member{nodeType} attribute, \exception{xml.dom.NotSupportedErr}
+  will be raised.
   Added in DOM Level~2.
 \end{methoddesc}
 
 \begin{methoddesc}[Document]{renameNode}{node, namespaceURI, name}
   Added in DOM Level~3.
 \end{methoddesc}
+
+
+
+\strong{Implementation specific behavior:} The DOM Level~2 Core
+specification leaves some room for differing behaviors for how some
+node types are handled by the \method{Node.cloneNode()} method.
+Before PyXML 0.8.1, the specific behavior exhibited by PyXML varied as
+an accident of implementation.  Starting with PyXML 0.8.1, the
+following behavior is considered intentional and will be maintained.
+
+When called on a \class{Document} node, \method{cloneNode()} with the
+\var{deep} argument set to true will create a new document with the
+children recursively imported into the new document.  When \var{deep}
+is false, \method{cloneNode()} will return \code{None}, as the
+operation is no reasonable meaning for the operation.
+
+When called on a \class{DocumentType} node, \method{cloneNode()} will
+return \code{None} if it is owned by a document.  If it is not owned,
+a new document type node is created with all of the attributes copied
+over, except for the \member{entities} and \member{notations} fields.
+If \var{deep} is true, these will be new \class{NamedNodeMap} objects
+which hold clones of the \class{Entity} and \class{Notation} nodes, as
+appropriate.  If \var{deep} is false, these will be initialized to
+new, empty \class{NamedNodeMap} objects.
+
 
 
 \section{\module{xml.dom.xmlbuilder} ---
@@ -898,8 +929,25 @@ One new callback method has been added as well:
 \end{seealso}
 
 
+\section{\module{xml.parsers.sgmllib} ---
+         Accelerated SGML Parser}
+
+\declaremodule{}{xml.parsers.sgmllib}
+\moduleauthor{Fredrik Lundh}{effbot@effbot.org}
+
+This module is an alternate implementation of the
+\ulink{\module{sgmllib}
+module}{http://www.python.org/doc/current/lib/module-sgmllib.html}
+from the Python standard library.  This implementation uses the
+\refmodule{xml.parsers.sgmlop} accelerator to improve performance.
+
+This module does create a cyclic reference.  In order to break the
+cycle, be sure to call the \method{close()} method of the parser
+instances when done with them.
+
+
 \section{\module{xml.parsers.sgmlop} ---
-         Accelerated XML/SGML Parser}
+         XML/SGML Parser Accelerator}
 
 \declaremodule{}{xml.parsers.sgmlop}
 \moduleauthor{Fredrik Lundh}{effbot@effbot.org}
