@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.8 1999/08/15 23:53:07 amk Exp $
+$Id: xmldtd.py,v 1.9 2000/03/29 16:04:59 lars Exp $
 """
 
 import types
@@ -753,7 +753,7 @@ def print_states(states,stop=0):
 
 def make_empty_model():
     "Constructs a state model for empty content models."
-    return { 1:[], "final":1, "start":1 }
+    return { 1:{}, "final":1, "start":1 }
 
 def make_model(cmhash,content_model,err):
     "Creates an FDA from the content model."
