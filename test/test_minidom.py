@@ -517,7 +517,8 @@ class UserDataHandler:
         self.called = 1
 
 def testUserData():
-    n = xml.dom.minidom.Element('e')
+    dom = Document()
+    n = dom.createElement('e')
     confirm(n.getUserData("foo") is None)
     n.setUserData("foo", None, None)
     confirm(n.getUserData("foo") is None)
