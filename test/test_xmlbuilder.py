@@ -11,12 +11,13 @@ from xml.dom import xmlbuilder
 
 INTERNAL_SUBSET = ("<!NOTATION x SYSTEM 'http://xml.python.org/notation/x'>\n"
                    "<!ENTITY e SYSTEM 'http://xml.python.org/entity/e'>")
-DOCUMENT_SOURCE = '<!DOCTYPE doc [' + INTERNAL_SUBSET + ''']>
+DOCUMENT_SOURCE = (
+    '<!DOCTYPE doc [' + INTERNAL_SUBSET.replace('\n', '\r\n') + ''']>
 <doc xmlns:a="http://xml.python.org/a"
      xmlns:A="http://xml.python.org/a"
      xmlns:b="http://xml.python.org/b"
      a:a="a" b:b="b"/>
-'''
+''')
 
 
 def check_attrs(atts, expected):
@@ -32,7 +33,8 @@ def run_checks(document, attributes):
     document = builder.parse(source)
 
     if document.doctype.internalSubset != INTERNAL_SUBSET:
-        raise ValueError, "internalSubset not properly initialized"
+        raise ValueError, ("internalSubset not properly initialized; found:\n"
+                           + repr(document.doctype.internalSubset))
     if document.doctype.entities.length != 1:
         raise ValueError, "entity not stored in doctype"
     node = document.doctype.entities['e']
