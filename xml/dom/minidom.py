@@ -32,7 +32,6 @@ _nodeTypes_with_children = (xml.dom.Node.ELEMENT_NODE,
 
 
 class Node(xml.dom.Node, GetattrMagic):
-    _make_parent_nodes = 1
     namespaceURI = None # this is non-null only for elements and attributes
     parentNode = None
     ownerDocument = None
@@ -108,8 +107,7 @@ class Node(xml.dom.Node, GetattrMagic):
                 newChild.previousSibling = node
             else:
                 newChild.previousSibling = None
-            if self._make_parent_nodes:
-                newChild.parentNode = self
+            newChild.parentNode = self
         return newChild
 
     def appendChild(self, node):
@@ -146,9 +144,8 @@ class Node(xml.dom.Node, GetattrMagic):
         except ValueError:
             raise xml.dom.NotFoundErr()
         self.childNodes[index] = newChild
-        if self._make_parent_nodes:
-            newChild.parentNode = self
-            oldChild.parentNode = None
+        newChild.parentNode = self
+        oldChild.parentNode = None
         if (newChild.nodeType in _nodeTypes_with_children
             or oldChild.nodeType in _nodeTypes_with_children):
             _clear_id_cache(self)
@@ -175,8 +172,7 @@ class Node(xml.dom.Node, GetattrMagic):
         if oldChild.nodeType in _nodeTypes_with_children:
             _clear_id_cache(self)
 
-        if self._make_parent_nodes:
-            oldChild.parentNode = None
+        oldChild.parentNode = None
         return oldChild
 
     def normalize(self):
@@ -290,8 +286,7 @@ def _append_child(self, node):
         node.__dict__["previousSibling"] = last
         last.__dict__["nextSibling"] = node
     childNodes.append(node)
-    if self._make_parent_nodes:
-        node.__dict__["parentNode"] = self
+    node.__dict__["parentNode"] = self
 
 def _in_document(node):
     # return True iff node is part of a document tree
