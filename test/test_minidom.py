@@ -1,6 +1,7 @@
 # test for xml.dom.minidom
 
 from xml.dom.minidom import parse, Node, Document, parseString
+from xml.dom import HierarchyRequestErr
 import xml.parsers.expat
 
 import os.path
@@ -75,6 +76,30 @@ def testAppendChild():
     confirm(dom.documentElement.childNodes[-1].nodeName == "#comment")
     confirm(dom.documentElement.childNodes[-1].data == "Hello")
     dom.unlink()
+
+def testLegalChildren():
+    dom = Document()
+    elem = dom.createElement('element')
+    text = dom.createTextNode('text')
+    
+    try: dom.appendChild(text)
+    except HierarchyRequestErr: pass
+    else:
+        print "dom.appendChild didn't raise HierarchyRequestErr"
+
+    dom.appendChild(elem)
+    try: dom.insertBefore(text, elem)
+    except HierarchyRequestErr: pass
+    else:
+        print "dom.appendChild didn't raise HierarchyRequestErr"
+
+    try: dom.replaceChild(text, elem)
+    except HierarchyRequestErr: pass
+    else:
+        print "dom.appendChild didn't raise HierarchyRequestErr"
+
+    elem.appendChild(text)
+    dom.unlink() 
 
 def testNonZero():
     dom = parse(tstfile)
@@ -279,7 +304,7 @@ def testTooManyDocumentElements():
 
 def testCreateElementNS(): pass
 
-def testCreatAttributeNS(): pass
+def testCreateAttributeNS(): pass
 
 def testParse(): pass
 
