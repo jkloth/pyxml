@@ -1,6 +1,7 @@
 # test for xml.dom.minidom
 
 import os.path
+import pickle
 import sys
 import traceback
 from StringIO import StringIO
@@ -976,6 +977,51 @@ def testReplaceWholeText():
     checkWholeText(text2, "d")
     confirm(text is None
             and len(elem.childNodes) == 2)
+
+def testPickledDocument():
+    doc = parseString("<?xml version='1.0' encoding='us-ascii'?>\n"
+                      "<!DOCTYPE doc PUBLIC 'http://xml.python.org/public'"
+                      " 'http://xml.python.org/system' [\n"
+                      "  <!ELEMENT e EMPTY>\n"
+                      "  <!ENTITY ent SYSTEM 'http://xml.python.org/entity'>\n"
+                      "]><doc attr='value'> text\n"
+                      "<?pi sample?> <!-- comment --> <e/> </doc>")
+    s = pickle.dumps(doc)
+    doc2 = pickle.loads(s)
+    stack = [(doc, doc2)]
+    while stack:
+        n1, n2 = stack.pop()
+        confirm(n1.nodeType == n2.nodeType
+                and len(n1.childNodes) == len(n2.childNodes)
+                and n1.nodeName == n2.nodeName
+                and not n1.isSameNode(n2)
+                and not n2.isSameNode(n1))
+        if n1.nodeType == Node.DOCUMENT_TYPE_NODE:
+            len(n1.entities)
+            len(n2.entities)
+            len(n1.notations)
+            len(n2.notations)
+            confirm(len(n1.entities) == len(n2.entities)
+                    and len(n1.notations) == len(n2.notations))
+            for i in range(len(n1.notations)):
+                no1 = n1.notations.item(i)
+                no2 = n1.notations.item(i)
+                confirm(no1.name == no2.name
+                        and no1.publicId == no2.publicId
+                        and no1.systemId == no2.systemId)
+                statck.append((no1, no2))
+            for i in range(len(n1.entities)):
+                e1 = n1.entities.item(i)
+                e2 = n2.entities.item(i)
+                confirm(e1.notationName == e2.notationName
+                        and e1.publicId == e2.publicId
+                        and e1.systemId == e2.systemId)
+                stack.append((e1, e2))
+        if n1.nodeType != Node.DOCUMENT_NODE:
+            confirm(n1.ownerDocument.isSameNode(doc)
+                    and n2.ownerDocument.isSameNode(doc2))
+        for i in range(len(n1.childNodes)):
+            stack.append((n1.childNodes[i], n2.childNodes[i]))
 
 
 # --- MAIN PROGRAM
