@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
-<?IS10744 
- 
-
-    arch
- name="html"?>
+<?IS10744:arch name="html"?>
 <doc>
 <title html="h1">My first architectual document</title>
 <author html="address">Geir Ove Gronmo, grove@infotek.no</author>

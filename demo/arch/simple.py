@@ -14,7 +14,7 @@ parser = saxexts.XMLParserFactory.make_parser()
 parser.setDocumentHandler(arch_handler)
 
 # Add an document handler to process the html architecture
-arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(sys.stdout))
+arch_handler.add_document_handler("html", xmlarch.Prettifier(sys.stdout))
 
 # Parse (and process) the document
 parser.parse("simple.xml")

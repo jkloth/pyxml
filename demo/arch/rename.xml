@@ -1,0 +1,9 @@
+<?IS10744:arch name ="rename" renamer-att="ren"?>
+<doc>
+  <first rename="one" a="v1" b="v2" ren="a c"/>
+  <second  rename="two"a="v1" b="v2" ren="a #CONTENT">Content <y>I</y> abc</second>
+  <third rename="three" a="abc def ghi" b="o2 o3 o4" ren="a d #MAPTOKEN def mmm b #DEFAULT #MAPTOKEN o3 o6"/>
+  <forth rename="four" a="abc def ghi jkl" b="v2 v3" c="o2 o3 o4" ren="a d #MAPTOKEN def xxx #MAPTOKEN abc yyy #MAPTOKEN jkl zzz b v #MAPTOKEN v3 v5 c #DEFAULT #MAPTOKEN o4 ox"/>
+  <fifth rename="five" a="ArcContent I" b="v2" ren="b f #ARCCONT a">Content II</fifth>
+  <sixth rename="six" a="ArcContent II" b="v2" ren="g #CONTENT #ARCCONT a">Content III</sixth>
+</doc>

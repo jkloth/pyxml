@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <?test where="before"?>
-<?IS10744:arch name ="biblio" renamer-att="bren" suppressor-att="bsup" ignore-data-att="bign"
-               bridge-form="bibbrid"?>
+<?IS10744:arch name ="biblio" renamer-att="bren" suppressor-att="bsup" ignore-data-att="bign" bridge-form="bibbrid"?>
 <?IS10744:arch name ="html" suppressor-att="hsup" auto="ArcAuto" form-att="ht"?>
 <?test where="after"?>
 
@@ -11,6 +10,7 @@
 <!ATTLIST last    ht     CDATA  #FIXED   "#IMPLIED" >
 <!ATTLIST test    ht     CDATA  #FIXED   "#IMPLIED" >
 <!ATTLIST creator ht     CDATA  #FIXED   "#IMPLIED" >
+<!ELEMENT init ANY >
 <!ATTLIST init    id     ID     #REQUIRED           >
 <!ATTLIST comment 
                   biblio CDATA  #FIXED   "note"

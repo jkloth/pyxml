@@ -47,10 +47,10 @@ parser.setErrorHandler(saxutils.ErrorPrinter())
 parser.setDocumentHandler(arch_handler)
 
 # Register architecture document handlers
-#arch_handler.addArchDocumentHandler("html", xmlarch.Normalizer(open("htmlesi.out", "w")))
+#arch_handler.add_document_handler("html", xmlarch.Prettifier(open("htmlesi.out", "w")))
 
-arch_handler.addArchDocumentHandler(sys.argv[1], xmlarch.Normalizer(sys.stdout))
-#arch_handler.addArchDocumentHandler(sys.argv[1], xmlarch.Normalizer(open("htmlesi.out", "w")))
+arch_handler.add_document_handler(sys.argv[1], xmlarch.Prettifier(sys.stdout))
+#arch_handler.add_document_handler(sys.argv[1], xmlarch.Prettifier(open("htmlesi.out", "w")))
 
 # Parse an architectural document
 #parser.parseFile(sys.stdin)

@@ -14,6 +14,7 @@ def usage(message = ""):
     print "A utility for testing architectural from processing with xmlarch.py."
     print "Usage: archtest.py --options* archname file.xml"
     print "Parameters: --debug    : write debug information to stdout"
+    print "            --validate : use a validating parser"
     print message
     sys.exit(1)
 
@@ -32,14 +33,8 @@ def create_hash(optlist):
 
 try:
     # Read options from command line
-    optlist, args = getopt.getopt(sys.argv[1:], "", ["debug"])
+    optlist, args = getopt.getopt(sys.argv[1:], "", ["debug", "validate"])
     opts = create_hash(optlist)
-
-    # Get debug flag setting
-    if opts.has_key("--debug"):
-	debug = 1
-    else:
-	debug = 0
 
     if len(args) != 2:
 	usage("Please give me two arguments.")
@@ -49,15 +44,20 @@ except getopt.error, e:
 	usage(e)
 
 # Create Parser factory
-pf=saxexts.ParserFactory([
-    "xml.sax.drivers.drv_xmlproc",
-    "xml.sax.drivers.drv_xmlproc_val",
-    "xml.sax.drivers.drv_pyexpat",
-    "xml.sax.drivers.drv_sgmlop", 
-    "xml.sax.drivers.drv_xmllib", 
-    "xml.sax.drivers.drv_xmltok",
-    "xml.sax.drivers.drv_xmltoolkit",
-    "drv_xmldc.py"])
+
+if opts.has_key("--validate"):
+    pf=saxexts.ParserFactory([
+        "xml.sax.drivers.drv_xmlproc_val"])
+
+else:
+    pf=saxexts.ParserFactory([
+        "xml.sax.drivers.drv_xmlproc",
+        "xml.sax.drivers.drv_pyexpat",
+        "xml.sax.drivers.drv_sgmlop", 
+        "xml.sax.drivers.drv_xmllib", 
+        "xml.sax.drivers.drv_xmltok",
+        "xml.sax.drivers.drv_xmltoolkit",
+        "drv_xmldc.py"])
 
 # Create parser
 parser = pf.make_parser()
@@ -66,16 +66,16 @@ parser = pf.make_parser()
 arch_handler = xmlarch.ArchDocHandler()
 
 parser.setDocumentHandler(arch_handler)
-parser.setErrorHandler(saxutils.ErrorPrinter())
+#parser.setErrorHandler(saxutils.ErrorPrinter())
 # parser.setLocale("no")
 
 # Set the debug flag
-if debug: arch_handler.set_debug(debug, sys.stderr)
+if opts.has_key("--debug"): arch_handler.set_debug_level(1, sys.stderr)
 
 # Register architecture document handlers
-arch_handler.addArchDocumentHandler(args[0], xmlarch.Normalizer(sys.stdout))
+arch_handler.add_document_handler(args[0], xmlarch.Prettifier(sys.stdout))
 
-if debug:
+if opts.has_key("--debug"):
     print "Parsing with:", parser.get_parser_name(), parser.get_parser_version()
     print "Starting architectual parsing..."
 
@@ -85,7 +85,7 @@ try:
 except xmlarch.ArchException, e:
     sys.stderr.write("ArchException: " + str(e) + "\n")
 
-if debug: print "Finished architectual parsing..."
+if opts.has_key("--debug"): print "Finished architectual parsing..."
 
 
 
