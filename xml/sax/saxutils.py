@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.13 2000/09/29 20:57:48 loewis Exp $
+$Id: saxutils.py,v 1.14 2000/09/30 21:04:10 loewis Exp $
 """
 
 import types, handler, _exceptions, sys, urllib, os, xmlreader, string
@@ -20,7 +20,7 @@ def escape(data, entities={}):
     strings; each key will be replaced with its corresponding value.
     """
     data = string.replace(data, "&", "&amp;")
-    data = string.replace(date, "<", "&lt;")
+    data = string.replace(data, "<", "&lt;")
     data = string.replace(data, ">", "&gt;")
     for chars, entity in entities.items():
         data = string.replace(data, chars, entity)        
