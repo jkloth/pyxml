@@ -18,10 +18,10 @@ dom = implementation._4dom_fileImport('')
 Node = implementation._4dom_fileImport('Node').Node
 
 DOMException = dom.DOMException
-NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
-NOT_FOUND_ERR = dom.NOT_FOUND_ERR
-WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
-INUSE_ATTRIBUTE_ERR = dom.INUSE_ATTRIBUTE_ERR
+NoModificationAllowedErr = dom.NoModificationAllowedErr
+NotFoundErr = dom.NotFoundErr
+WrongDocumentErr = dom.WrongDocumentErr
+InuseAttributeErr = dom.InuseAttributeErr
 
 import UserDict
 import string
@@ -43,7 +43,7 @@ class NamedNodeMap(UserDict.UserDict):
 
     def __setattr__(self, name, value):
         if name == 'length':
-            raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+            raise NoModificationAllowedErr()
         self.__dict__[name] = value
 
     def _get_length(self):
@@ -67,18 +67,18 @@ class NamedNodeMap(UserDict.UserDict):
 
     def setNamedItem(self, arg):
         if self._ownerDocument != arg.ownerDocument:
-            raise DOMException(WRONG_DOCUMENT_ERR)
+            raise WrongDocumentErr()
         if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
-            raise DOMException(INUSE_ATTRIBUTE_ERR)
+            raise InuseAttributeErr()
         retval = self.get(arg.nodeName)
         self[arg.nodeName] = arg
         return retval
 
     def setNamedItemNS(self, arg):
         if self._ownerDocument != arg.ownerDocument:
-            raise DOMException(WRONG_DOCUMENT_ERR)
+            raise WrongDocumentErr()
         if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
-            raise DOMException(INUSE_ATTRIBUTE_ERR)
+            raise InuseAttributeErr()
         retval = self.get((arg.namespaceURI, arg.localName))
         self[(arg.namespaceURI, arg.localName)] = arg
         return retval
@@ -86,7 +86,7 @@ class NamedNodeMap(UserDict.UserDict):
     def removeNamedItem(self, name):
         oldNode = self.get(name)
         if not oldNode:
-            raise DOMException(NOT_FOUND_ERR)
+            raise NotFoundErr()
         del self[name]
         return oldNode
 
@@ -95,7 +95,7 @@ class NamedNodeMap(UserDict.UserDict):
             namespaceURI = ''
         oldNode = self.get((namespaceURI, localName))
         if not oldNode:
-            raise DOMException(NOT_FOUND_ERR)
+            raise NotFoundErr()
         del self[(namespaceURI, localName)]
         return oldNode
 

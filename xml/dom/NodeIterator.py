@@ -20,8 +20,8 @@ Node = implementation._4dom_fileImport('Node').Node
 NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
 
 DOMException = dom.DOMException
-NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
-INVALID_STATE_ERR = dom.INVALID_STATE_ERR
+NoModificationAllowedErr = dom.NoModificationAllowedErr
+InvalidStateErr = dom.InvalidStateErr
 
 class NodeIterator:
     def __init__(self, root, whatToShow, filter, expandEntityReferences):
@@ -33,7 +33,7 @@ class NodeIterator:
         self.__dict__['__detached'] = 0
 
     def __setattr__(self,name,value):
-        raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+        raise NoModificationAllowedErr()
 
     def _get_root(self):
         return self.__dict__['__root']
@@ -49,7 +49,7 @@ class NodeIterator:
     
     def nextNode(self):
         if self.__dict__['__detached']:
-            raise DOMException(INVALID_STATE_ERR)
+            raise InvalidStateErr()
         next_node = self.__advance()
         while next_node and not (self.__checkWhatToShow(next_node) and self.__checkFilter(next_node) == NodeFilter.FILTER_ACCEPT):
             next_node = self.__advance()
@@ -57,7 +57,7 @@ class NodeIterator:
 
     def previousNode(self):
         if self.__dict__['__detached']:
-            raise DOMException(INVALID_STATE_ERR)
+            raise InvalidStateErr()
         prev_node = self.__regress()
         while prev_node and not (self.__checkWhatToShow(prev_node) and self.__checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT):
             prev_node = self.__regress()

@@ -19,7 +19,7 @@ dom = implementation._4dom_fileImport('')
 
 Node = implementation._4dom_fileImport('Node').Node
 DOMException = dom.DOMException
-NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
+NoModificationAllowedErr = dom.NoModificationAllowedErr
 
 
 class NodeList(UserList.UserList):
@@ -50,7 +50,7 @@ class NodeList(UserList.UserList):
         return self.__len__()
 
     def _set_length(self,value):
-        raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+        raise NoModificationAllowedErr()
 
     ### Methods ###
 

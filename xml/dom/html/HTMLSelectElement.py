@@ -12,8 +12,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom import implementation
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
+from xml.dom import IndexSizeErr
 from xml.dom.html.HTMLElement import HTMLElement
 import string
 
@@ -38,7 +37,7 @@ class HTMLSelectElement(HTMLElement):
     def _set_selectedIndex(self,index):
         options = self._get_options()
         if index < 0 or index >= len(options):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
 
         for ctr in range(len(options)):
             node = options.item(ctr)

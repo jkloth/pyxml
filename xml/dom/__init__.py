@@ -33,7 +33,73 @@ class DOMException(Exception):
 	if len(args) >= 1:
 	    self.code = args[0]
         self.args = args
-        Exception.__init__(self, g_errorMessages[self.code] % args)
+        Exception.__init__(self, g_errorMessages[self.code])
+
+    def _derived_init(self, *args):
+        """Initializer method that does not expect a code argument,
+        for use in derived classes."""
+        self.args = args
+        Exception.__init__(self, g_errorMessages[self.code])
+
+
+class IndexSizeErr(DOMException):
+    code = INDEX_SIZE_ERR
+    __init__ = DOMException._derived_init
+
+class DomstringSizeErr(DOMException):
+    code = DOMSTRING_SIZE_ERR
+    __init__ = DOMException._derived_init
+
+class HierarchyRequestErr(DOMException):
+    code = HIERARCHY_REQUEST_ERR
+    __init__ = DOMException._derived_init
+
+class WrongDocumentErr(DOMException):
+    code = WRONG_DOCUMENT_ERR
+
+class InvalidCharacterErr(DOMException):
+    code = INVALID_CHARACTER_ERR
+    __init__ = DOMException._derived_init
+
+class NoDataAllowedErr(DOMException):
+    code = NO_DATA_ALLOWED_ERR
+    __init__ = DOMException._derived_init
+
+class NoModificationAllowedErr(DOMException):
+    code = NO_MODIFICATION_ALLOWED_ERR
+    __init__ = DOMException._derived_init
+
+class NotFoundErr(DOMException):
+    code = NOT_FOUND_ERR
+    __init__ = DOMException._derived_init
+
+class NotSupportedErr(DOMException):
+    code = NOT_SUPPORTED_ERR
+    __init__ = DOMException._derived_init
+
+class InuseAttributeErr(DOMException):
+    code = INUSE_ATTRIBUTE_ERR
+    __init__ = DOMException._derived_init
+
+class InvalidStateErr(DOMException):
+    code = INVALID_STATE_ERR
+    __init__ = DOMException._derived_init
+
+class SyntaxErr(DOMException):
+    code = SYNTAX_ERR
+    __init__ = DOMException._derived_init
+
+class InvalidModificationErr(DOMException):
+    code = INVALID_MODIFICATION_ERR
+    __init__ = DOMException._derived_init
+
+class NamespaceErr(DOMException):
+    code = NAMESPACE_ERR
+    __init__ = DOMException._derived_init
+
+class InvalidAccessErr(DOMException):
+    code = INVALID_ACCESS_ERR
+    __init__ = DOMException._derived_init
 
 from xml.dom import DOMImplementation
 

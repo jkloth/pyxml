@@ -23,9 +23,6 @@ supportedEvents = [
     "DOMCharacterDataModified"
     ]
 
-#Event Exception code
-UNSPECIFIED_EVENT_TYPE_ERR = 0
-
 class EventException:
     def __init__(self, code):
         self.code = code

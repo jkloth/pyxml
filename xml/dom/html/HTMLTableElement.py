@@ -12,8 +12,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom.html.HTMLElement import HTMLElement
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
+from xml.dom import IndexSizeErr
 from xml.dom import implementation
 from xml.dom.NodeFilter import NodeFilter
 import string
@@ -208,7 +207,7 @@ class HTMLTableElement(HTMLElement):
     def deleteRow(self,index):
         rows = self._get_rows()
         if index < 0 or index >= len(rows):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         rows[index].parentNode.removeChild(rows[index])
 
     def deleteTHead(self):
@@ -224,7 +223,7 @@ class HTMLTableElement(HTMLElement):
     def insertRow(self,index):
         rows = self._get_rows()
         if index < 0 or index > len(rows):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         newRow = self.ownerDocument.createElement('TR')
         if not rows:
             # An empty table, create a body in which to insert the row

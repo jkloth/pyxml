@@ -20,7 +20,7 @@ Node = implementation._4dom_fileImport('Node').Node
 NodeFilter = implementation._4dom_fileImport('NodeFilter').NodeFilter
 
 DOMException = dom.DOMException
-NOT_SUPPORTED_ERR = dom.NOT_SUPPORTED_ERR
+NotSupportedErr = dom.NotSupportedErr
 
 class TreeWalker:
     def __init__(self, root, whatToShow, filter, expandEntityReferences):
@@ -40,7 +40,7 @@ class TreeWalker:
     def __setattr__(self, name, value):
         #Make sure attribute is not read-only
         if name in self.__class__._readOnlyAttrs:
-            raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+            raise NoModificationAllowedErr()
         #If it's computed execute that function
         attrFunc = self.__class__._writeComputedAttrs.get(name)
         if attrFunc:
@@ -68,7 +68,7 @@ class TreeWalker:
 
     def _set_currentNode(self, value):
         if value == None:
-            raise DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         self.__dict__['__currentNode'] = value
 
     ### Methods ###

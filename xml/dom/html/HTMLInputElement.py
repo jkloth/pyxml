@@ -13,9 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 from xml.dom.html.HTMLElement import HTMLElement
 from xml.dom.Node import Node
-from xml.dom import DOMException
-from xml.dom import NOT_SUPPORTED_ERR
-from xml.dom import INVALID_ACCESS_ERR
+from xml.dom import InvalidAccessErr
 import string
 
 class HTMLInputElement(HTMLElement):
@@ -51,7 +49,7 @@ class HTMLInputElement(HTMLElement):
         if self._get_type() in ['Radio', 'Checkbox']:
             return self.hasAttribute('CHECKED')
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _set_checked(self,checked):
         if self._get_type() in ['Radio','Checkbox']:
@@ -60,7 +58,7 @@ class HTMLInputElement(HTMLElement):
             else:
                 self.removeAttribute('CHECKED')
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _get_defaultChecked(self):
         return self._get_checked()
@@ -96,13 +94,13 @@ class HTMLInputElement(HTMLElement):
             rt = self.getAttribute('MAXLENGTH')
             if rt:
                 return int(rt)
-        raise DOMException(INVALID_ACCESS_ERR)
+        raise InvalidAccessErr()
 
     def _set_maxLength(self,maxLength):
         if self._get_type() in ['Text','Password']:
             self.setAttribute('MAXLENGTH',str(maxLength))
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _get_name(self):
         return self.getAttribute('NAME')
@@ -113,7 +111,7 @@ class HTMLInputElement(HTMLElement):
     def _get_readOnly(self):
         if self._get_type() in ['Text','Password']:
             return self.hasAttribute('READONLY')
-        raise DOMException(INVALID_ACCESS_ERR)
+        raise InvalidAccessErr()
 
     def _set_readOnly(self,readOnly):
         if self._get_type() in ['Text','Password']:
@@ -122,7 +120,7 @@ class HTMLInputElement(HTMLElement):
             else:
                 self.removeAttribute('READONLY')
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _get_size(self):
         return self.getAttribute('SIZE')
@@ -134,13 +132,13 @@ class HTMLInputElement(HTMLElement):
         if self._get_type() == 'Image':
             return self.getAttribute('SRC')
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _set_src(self,src):
         if self._get_type() == 'Image':
             self.setAttribute('SRC',src)
         else:
-            raise DOMException(INVALID_ACCESS_ERR)
+            raise InvalidAccessErr()
 
     def _get_tabIndex(self):
         rt = self.getAttribute('TABINDEX')

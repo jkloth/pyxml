@@ -17,9 +17,8 @@ dom = implementation._4dom_fileImport('')
 
 Node = implementation._4dom_fileImport('Node').Node
 
-DOMException = dom.DOMException
-INDEX_SIZE_ERR = dom.INDEX_SIZE_ERR
-SYNTAX_ERR = dom.SYNTAX_ERR
+IndexSizeErr = dom.IndexSizeErr
+SyntaxErr = dom.SyntaxErr
 
 import types
 try:
@@ -40,7 +39,7 @@ class CharacterData(Node):
 
     def _set_data(self, data):
         if data != None and type(data) not in g_stringTypes:
-            raise DOMException(SYNTAX_ERR)
+            raise SyntaxErr()
         old_value = self.__dict__['__nodeValue']
         self.__dict__['__nodeValue'] = data
         self.__dict__['__length'] = len(data)
@@ -55,12 +54,12 @@ class CharacterData(Node):
 
     def substringData(self, offset, count):
         if count < 0 or offset < 0 or offset >= self.__dict__['__length']:
-            raise DOMException(INDEX_SIZE_ERR);
+            raise IndexSizeErr()
         return self.data[int(offset):int(offset+count)]
 
     def appendData(self, arg):
         if type(arg) not in g_stringTypes:
-            raise DOMException(SYNTAX_ERR)
+            raise SyntaxErr()
         old_value = self.__dict__['__nodeValue']
         self._set_data(self.data + arg)
         self._4dom_fireMutationEvent('DOMCharacterDataModified',
@@ -71,9 +70,9 @@ class CharacterData(Node):
         
     def insertData(self, offset, arg):
         if type(arg) not in g_stringTypes:
-            raise DOMException(SYNTAX_ERR)
+            raise SyntaxErr()
         if offset < 0 or offset >= self.__dict__['__length']:
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         st = self.__dict__['__nodeValue']
         old_value = st
         st = st[:int(offset)] + arg + st[int(offset):]
@@ -86,7 +85,7 @@ class CharacterData(Node):
 
     def deleteData(self, offset, count):
         if count < 0 or offset < 0 or offset >= self.__dict__['__length']:
-            raise DOMException(INDEX_SIZE_ERR);
+            raise IndexSizeErr()
         old_value = self.__dict__['__nodeValue']
         st = self.data[:int(offset)] + self.data[int(offset+count):]
         self._set_data(st);
@@ -98,7 +97,7 @@ class CharacterData(Node):
 
     def replaceData(self, offset, count, arg):  
         if type(arg) not in g_stringTypes:
-            raise DOMException(SYNTAX_ERR)
+            raise SyntaxErr()
         #Really a delete, then an insert
         self.deleteData(offset, count)
         if (offset+count) >= self.__dict__['__length']:

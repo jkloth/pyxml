@@ -18,7 +18,7 @@ dom = implementation._4dom_fileImport('')
 Node = implementation._4dom_fileImport('Node').Node
 CharacterData = implementation._4dom_fileImport('CharacterData').CharacterData
 DOMException = dom.DOMException
-INDEX_SIZE_ERR = dom.INDEX_SIZE_ERR
+IndexSizeErr = dom.IndexSizeErr
 
 
 class Text(CharacterData):
@@ -33,7 +33,7 @@ class Text(CharacterData):
     def splitText(self, offset):
         offset = int(offset)
         if offset >= self.length or offset < 0:
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         cur = self.data
         next = cur[offset:]
         cur = cur[:offset]

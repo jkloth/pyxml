@@ -24,13 +24,12 @@ Text = implementation._4dom_fileImport('Text')
 Event = implementation._4dom_fileImport('Event')
 SplitQName = implementation._4dom_fileImport('ext').SplitQName
 
-DOMException = dom.DOMException
-HIERARCHY_REQUEST_ERR = dom.HIERARCHY_REQUEST_ERR
-INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
-NOT_SUPPORTED_ERR = dom.NOT_SUPPORTED_ERR
+HierarchyRequestErr = dom.HierarchyRequestErr
+InvalidCharacterErr = dom.InvalidCharacterErr
+NotSupportedErr = dom.NotSupportedErr
 XMLNS_NAMESPACE = dom.XMLNS_NAMESPACE
 XML_NAMESPACE = dom.XML_NAMESPACE
-NAMESPACE_ERR = dom.NAMESPACE_ERR
+NamespaceErr = dom.NamespaceErr
 
 #FIXME: should allow combining characters: fix when Python gets Unicode
 g_namePattern = re.compile('[a-zA-Z_:][\w\.\-_:]*\Z')
@@ -81,7 +80,7 @@ class Document(Node):
         Element = implementation._4dom_fileImport('Element').Element
         if self.isHtml(): tagname = string.upper(tagname)
         if not g_namePattern.match(tagname):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         e = Element(self,tagname,'','',tagname)
         return e
 
@@ -102,20 +101,20 @@ class Document(Node):
     def createCDATASection(self, data):
         CDATASection = implementation._4dom_fileImport('CDATASection').CDATASection
         if not self.isXml():
-            raise DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         c = CDATASection(self,data)
         return c
 
     def createProcessingInstruction(self, target, data):
         ProcessingInstruction = implementation._4dom_fileImport('ProcessingInstruction').ProcessingInstruction
         if not self.isXml():
-            raise DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         #FIXME: Technically, chacters from the unicode surrogate blocks are illegal.  Fix when Python gets unicode
         #for c in target:
         #    if c in unicode_surrogate_blocks:
-        #        raise DOMException(INVALID_CHARACTER_ERR);
+        #        raise InvalidCharacterErr()
         if not g_namePattern.match(target):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
 
 
         newPI = ProcessingInstruction(self, target, data);
@@ -124,30 +123,30 @@ class Document(Node):
     def createAttribute(self, name):
         Attr = implementation._4dom_fileImport('Attr').Attr
         if not g_namePattern.match(name):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         a = Attr(self,name, '', '', '')
         return a
 
     def createEntityReference(self, name):
         EntityReference = implementation._4dom_fileImport('EntityReference').EntityReference
         if not self.isXml():
-            raise dom.DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         if not g_namePattern.match(name):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         e = EntityReference(self, name)
         return e
 
     def _4dom_createEntity(self, publicId, systemId, notationName):
         Entity = implementation._4dom_fileImport('Entity').Entity
         if not self.isXml():
-            raise dom.DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         e = Entity(self, publicId, systemId, notationName)
         return e
 
     def _4dom_createNotation(self, publicId, systemId, name):
         Notation = implementation._4dom_fileImport('Notation').Notation
         if not self.isXml():
-            raise dom.DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
         n = Notation(self, publicId, systemId, name)
         return n
 
@@ -173,7 +172,7 @@ class Document(Node):
 
         # No import allow per spec
         if importType in [Node.DOCUMENT_NODE, Node.DOCUMENT_TYPE_NODE]:
-            raise DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
 
         # Only the EntRef itself is copied since the source and destination
         # documents might have defined the entity differently
@@ -189,30 +188,30 @@ class Document(Node):
         Element = implementation._4dom_fileImport('Element').Element
         (prefix, localName) = SplitQName(qualifiedName)
         if not g_namePattern.match(qualifiedName):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         if prefix == 'xml':
             if namespaceURI and namespaceURI != XML_NAMESPACE:
-                raise DOMException(NAMESPACE_ERR)
+                raise NamespaceErr()
         if (not namespaceURI and prefix):
-            raise DOMException(NAMESPACE_ERR)
+            raise NamespaceErr()
         e = Element(self, qualifiedName, namespaceURI, prefix, localName)
         return e
 
     def createAttributeNS(self, namespaceURI, qualifiedName):
         if not g_namePattern.match(qualifiedName):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         Attr = implementation._4dom_fileImport('Attr').Attr
         (prefix, localName) = SplitQName(qualifiedName)
         if prefix == 'xml':
             if namespaceURI and namespaceURI != XML_NAMESPACE:
-                raise DOMException(NAMESPACE_ERR)
+                raise NamespaceErr()
         if localName == 'xmlns':
             if namespaceURI != XMLNS_NAMESPACE:
-                raise DOMException(NAMESPACE_ERR)
+                raise NamespaceErr()
             a = Attr(self, qualifiedName, XMLNS_NAMESPACE, 'xmlns', prefix)
         else:
             if (not namespaceURI and prefix) or (not prefix and namespaceURI):
-                raise DOMException(NAMESPACE_ERR)
+                raise NamespaceErr()
             a = Attr(self, qualifiedName, namespaceURI, prefix, localName)
         return a
 
@@ -253,7 +252,7 @@ class Document(Node):
             if node.parentNode != None:
                 node.parentNode.removeChild(node)
             if self.__dict__['__documentElement']:
-                raise DOMException(HIERARCHY_REQUEST_ERR)
+                raise HierarchyRequestErr()
             self.__dict__['__documentElement'] = node
 
     def appendChild(self, newChild):
@@ -270,7 +269,7 @@ class Document(Node):
             if root in [oldChild, newChild]:
                 self.__dict__['__documentElement'] = None
             else:
-                raise DOMException(HIERARCHY_REQUEST_ERR)
+                raise HierarchyRequestErr()
         replaced = Node.replaceChild(self, newChild, oldChild)
         if newChild.nodeType == Node.ELEMENT_NODE:
             self.__dict__['__documentElement'] = newChild
@@ -290,7 +289,7 @@ class Document(Node):
             #Only mutation events are supported
             return Event.MutationEvent(eventType)
         else:
-            raise DOMException(NOT_SUPPORTED_ERR)
+            raise NotSupportedErr()
 
     def __repr__(self):
         return "<%s Document at %s>" % (

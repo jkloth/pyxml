@@ -11,9 +11,8 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
-from xml.dom import NO_MODIFICATION_ALLOWED_ERR
+from xml.dom import IndexSizeErr
+from xml.dom import NoModificationAllowedErr
 from xml.dom.Node import Node
 from xml.dom.html import HTML_NAME_ALLOWED
 import UserList
@@ -43,7 +42,7 @@ class HTMLCollection(UserList.UserList):
         return self.__len__()
 
     def _set_length(self, value):
-        raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+        raise NoModificationAllowedErr()
 
     ### Methods ###
 

@@ -19,14 +19,11 @@ Node = implementation._4dom_fileImport('Node').Node
 
 ext = implementation._4dom_fileImport('ext')
 Event = implementation._4dom_fileImport('Event')
-INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
-WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
-NAMESPACE_ERR = dom.NAMESPACE_ERR
-INUSE_ATTRIBUTE_ERR = dom.INUSE_ATTRIBUTE_ERR
-NOT_FOUND_ERR = dom.NOT_FOUND_ERR
-DOMException = dom.DOMException
+InvalidCharacterErr = dom.InvalidCharacterErr
+WrongDocumentErr = dom.WrongDocumentErr()
+InuseAttributeErr = dom.InuseAttributeErr
+NotFoundErr = dom.NotFoundErr
 XML_NAMESPACE = dom.XML_NAMESPACE
-NAMESPACE_ERR = dom.NAMESPACE_ERR
 
 import re, string
 #FIXME: should allow combining characters: fix when Python gets Unicode
@@ -76,9 +73,7 @@ class Element(Node):
     def removeAttribute(self, name):
         try:
             old = self.attributes.removeNamedItem(name)
-        except DOMException, err:
-            if err.code != NOT_FOUND_ERR:
-                raise err
+        except NotFoundErr:
             return
         old._4dom_setOwnerElement(None)
         self._4dom_fireMutationEvent('DOMAttrModified',
@@ -95,9 +90,9 @@ class Element(Node):
         nodeOwner = node.ownerDocument
         if ourOwner != None and nodeOwner != None:
             if (ourOwner.isXml() != nodeOwner.isXml()) or (ourOwner.isHtml() != nodeOwner.isHtml()):
-                raise DOMException(WRONG_DOCUMENT_ERR)
+                raise WrongDocumentErr()
         if node.ownerElement != None:
-            raise DOMException(INUSE_ATTRIBUTE_ERR)
+            raise InuseAttributeErr()
 
         old_att = None
         if self.hasAttribute(node.name):
@@ -132,7 +127,7 @@ class Element(Node):
                 self.removeAttributeNS(node.namespaceURI, node.localName)
                 name = node.localName
             else:
-                raise DOMException(NOT_FOUND_ERR)
+                raise NotFoundErr()
         self._4dom_fireMutationEvent('DOMAttrModified',
                                      relatedNode=node,
                                      attrName=name,
@@ -166,7 +161,7 @@ class Element(Node):
             att.value = value
         else:
             if not g_namePattern.match(qualifiedName):
-                raise DOMException(INVALID_CHARACTER_ERR)
+                raise InvalidCharacterErr()
             att = self.ownerDocument.createAttributeNS(namespaceURI, qualifiedName)
             att.value = value
             self.setAttributeNodeNS(att)
@@ -193,9 +188,9 @@ class Element(Node):
         ourOwner = self.ownerDocument
         nodeOwner = node.ownerDocument
         if ourOwner != nodeOwner:
-            raise DOMException(WRONG_DOCUMENT_ERR)
+            raise WrongDocumentErr()
         if node.ownerElement != None:
-            raise DOMException(INUSE_ATTRIBUTE_ERR)
+            raise InuseAttributeErr()
 
         old_att = None
         if self.hasAttribute(node.name):

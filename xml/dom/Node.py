@@ -18,11 +18,11 @@ dom = implementation._4dom_fileImport('')
 Event = implementation._4dom_fileImport('Event')
 
 DOMException = dom.DOMException
-NO_MODIFICATION_ALLOWED_ERR = dom.NO_MODIFICATION_ALLOWED_ERR
-NOT_FOUND_ERR = dom.NOT_FOUND_ERR
-HIERARCHY_REQUEST_ERR = dom.HIERARCHY_REQUEST_ERR
-WRONG_DOCUMENT_ERR = dom.WRONG_DOCUMENT_ERR
-INVALID_CHARACTER_ERR = dom.INVALID_CHARACTER_ERR
+NoModificationAllowedErr = dom.NoModificationAllowedErr
+NotFoundErr = dom.NotFoundErr
+HierarchyRequestErr = dom.HierarchyRequestErr
+WrongDocumentErr = dom.WrongDocumentErr
+InvalidCharacterErr = dom.InvalidCharacterErr
 
 import re, copy, sys
 #FIXME: should allow combining characters: fix when Python gets Unicode
@@ -92,7 +92,7 @@ class Node(Event.EventTarget):
     def __setattr__(self, name, value):
         #Make sure attribute is not read-only
         if name in self.__class__._readOnlyAttrs:
-            raise DOMException(NO_MODIFICATION_ALLOWED_ERR)
+            raise NoModificationAllowedErr()
         #If it's computed execute that function
         attrFunc = self.__class__._writeComputedAttrs.get(name)
         if attrFunc:
@@ -148,7 +148,7 @@ class Node(Event.EventTarget):
     def _set_prefix(self, value):
         # Check for invalid characters
         if not g_namePattern.match(value):
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         #FIXME: Check for NAMESPACE_ERR
         self.__dict__['__prefix'] = value
 
@@ -169,7 +169,7 @@ class Node(Event.EventTarget):
             #Make sure the refChild is indeed our child
             index = self._4dom_getChildIndex(refChild)
             if index == -1:
-                raise DOMException(NOT_FOUND_ERR)
+                raise NotFoundErr()
 
             #Remove from old parent
             if newChild.parentNode != None:
@@ -206,7 +206,7 @@ class Node(Event.EventTarget):
             #Make sure the oldChild is indeed our child
             index = self._4dom_getChildIndex(oldChild)
             if index == -1:
-                raise DOMException(NOT_FOUND_ERR)
+                raise NotFoundErr()
 
             self.__dict__['__childNodes'][index] = newChild
             if newChild.parentNode is not None:
@@ -240,7 +240,7 @@ class Node(Event.EventTarget):
         #FIXME: more efficient using list.remove()
         index = self._4dom_getChildIndex(childNode)
         if index == -1:
-            raise DOMException(NOT_FOUND_ERR)
+            raise NotFoundErr()
         childNode._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
         self._4dom_fireMutationEvent('DOMSubtreeModified')
         del self.childNodes[index]
@@ -449,13 +449,13 @@ class Node(Event.EventTarget):
 
     def _4dom_validateNode(self, newNode):
         if not newNode.nodeType in self.__class__._allowedChildren:
-            raise DOMException(HIERARCHY_REQUEST_ERR)
+            raise HierarchyRequestErr()
         if self.ownerDocument != newNode.ownerDocument:
-            raise DOMException(WRONG_DOCUMENT_ERR)
+            raise WrongDocumentErr()
 
     def _4dom_validateString(self, value):
         if type(value) not in StringTypes:
-            raise DOMException(INVALID_CHARACTER_ERR)
+            raise InvalidCharacterErr()
         return value
 
     def _4dom_getChildIndex(self,child):

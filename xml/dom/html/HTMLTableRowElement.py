@@ -13,8 +13,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string
 from xml.dom import implementation
-from xml.dom import DOMException
-from xml.dom import INDEX_SIZE_ERR
+from xml.dom import IndexSizeErr()
 from xml.dom.html.HTMLElement import HTMLElement
 
 class HTMLTableRowElement(HTMLElement):
@@ -84,7 +83,7 @@ class HTMLTableRowElement(HTMLElement):
     def insertCell(self, index):
         cells = self._get_cells()
         if index < 0 or index > len(cells):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         cell = self.ownerDocument.createElement('TD')
         length = cells.length
         if index == len(cells):
@@ -96,7 +95,7 @@ class HTMLTableRowElement(HTMLElement):
     def deleteCell(self,index):
         cells = self._get_cells()
         if index < 0 or index >= len(cells):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         self.removeChild(cells[index])
 
     ### Attribute Access Mappings ###

@@ -58,13 +58,13 @@ class HTMLTableSectionElement(HTMLElement):
     def deleteRow(self,index):
         rows = self._get_rows()
         if index < 0 or index > len(rows):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         rows[index].parentNode.removeChild(rows[index])
 
     def insertRow(self,index):
         rows = self._get_rows()
         if index < 0 or index > len(rows):
-            raise DOMException(INDEX_SIZE_ERR)
+            raise IndexSizeErr()
         rows = self._get_rows()
         newRow = self.ownerDocument.createElement('TR')
         if index == len(rows):
