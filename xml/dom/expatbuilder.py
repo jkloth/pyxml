@@ -757,7 +757,7 @@ class Namespaces:
         def end_element_handler(self, name):
             curNode = self.curNode
             if ' ' in name:
-                uri, localname, prefix, qname = _parse_ns_name(name)
+                uri, localname, prefix, qname = _parse_ns_name(self, name)
                 assert (curNode.namespaceURI == uri
                         and curNode.localName == localname
                         and curNode.prefix == prefix), \
