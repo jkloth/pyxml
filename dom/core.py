@@ -48,7 +48,9 @@ INUSE_ATTRIBUTE_ERR         = 10
 class DOMException:
     def __init__(self, msg):
         self.msg = msg
-        
+    def __repr__(self):
+        return self.msg
+    
 class IndexSizeException(DOMException):
     code = INDEX_SIZE_ERR
 class DOMStringSizeException(DOMException):
@@ -150,16 +152,31 @@ class Node:
 
     def __init__(self, node, parent = None, document = None):
         self._node = node
-        self._parent = parent
+        self.parentNode = parent
         self._document = document
 
     def _index(self):
         "Return the index of this child in its parent's child list"
-        if self._parent:
-            return self._parent._node.children._index(self)
+        if self.parentNode:
+            return self.parentNode._node.children._index(self)
         else:
             return -1
 
+    def _checkChild(self, child, parent):
+        "Raise HierarchyRequestException if the child can't be added"
+        for klass in self.childClasses:
+            if isinstance(child, klass): break
+        else:
+            raise HierarchyRequestException, \
+                  "%s cannot be child of %s" % (repr(child), repr(self) )
+
+        cn = child._node ; p=self
+        while p is not None:
+            if p._node is cn: 
+                raise HierarchyRequestException, \
+                      "%s is an ancestor of %s" % (repr(child), repr(parent) )
+            p = p.parentNode
+        
     # get/set attributes
 
     def get_nodeName(self):
@@ -174,7 +191,7 @@ class Node:
         return self._node.type
 
     def get_parentNode(self):
-        return self._parent
+        return self.parentNode
 
     def get_childNodes(self):
         L = self._node.children[:]
@@ -199,17 +216,17 @@ class Node:
             return None
 
     def get_previousSibling(self):
-        if self._parent is None: return None
+        if self.parentNode is None: return None
         i = self._index()
         if i <= 0:
             return None
         else:
-            n = self._parent._node.children[i - 1]
+            n = self.parentNode._node.children[i - 1]
             return NODE_CLASS[ n.type ] (n, self, self._document)
 
     def get_nextSibling(self):
-        if self._parent is None: return None
-        L = self._parent._node.children
+        if self.parentNode is None: return None
+        L = self.parentNode._node.children
         i = self._index()
         if i == -1 or i == len(L) - 1:
             return None
@@ -225,15 +242,14 @@ class Node:
     # Methods
 
     def insertBefore(self, newChild, refChild):
-        # XXX should check if newChild is a legal child,
-        # and raise HIERARCHY_REQUEST_ERR if it isn't
-
+        self._checkChild(newChild, self)
         if newChild._document != self._document:
-            raise WrongDocumentException("newChild created from a different document")
+            raise WrongDocumentException("newChild %s created from a "
+                                         "different document" % (repr(s),) )
 
         # If newChild is already in the tree, remove it
-        if newChild._parent != None:
-            newChild._parent.removeChild( newChild )
+        if newChild.parentNode != None:
+            newChild.parentNode.removeChild( newChild )
 
         if refChild == None:
             self.appendChild(newChild)
@@ -243,42 +259,44 @@ class Node:
         for i in range(len(L)):
             if L[i] == n:
                 L[i:i] = [newChild._node]
-                newChild._parent = self
+                newChild.parentNode = self
                 return newChild
         raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
+        self._checkChild(newChild, self)
         o = oldChild._node ; L = self._node.children
         for i in range(len(L)):
             if L[i] == o:
                 # If newChild is already in the tree, remove it
-                if newChild._parent != None:
-                    newChild._parent.removeChild( newChild )
+                if newChild.parentNode != None:
+                    newChild.parentNode.removeChild( newChild )
 
                 L[i] = newChild._node
-                newChild._parent = self
-                oldChild._parent = None
+                newChild.parentNode = self
+                oldChild.parentNode = None
                 return oldChild
         raise NotFoundException("oldChild not a child of this node")
 
     def removeChild(self, oldChild):
         try:
             self._node.children.remove(oldChild._node)
-            oldChild._parent = None
+            oldChild.parentNode = None
             return oldChild
         except ValueError:
             raise NotFoundException("oldChild is not a child of this node")
 
     def appendChild(self, newChild):
+        self._checkChild(newChild, self)
         if newChild._document != self._document:
             raise WrongDocumentException("newChild created from a different document")
 
         # If newChild is already in the tree, remove it
-        if newChild._parent != None:
-            newChild._parent.removeChild( newChild )
+        if newChild.parentNode != None:
+            newChild.parentNode.removeChild( newChild )
 
         self._node.children.append( newChild._node )
-        newChild._parent = self
+        newChild.parentNode = self
         return newChild
 
     def hasChildNodes(self):
@@ -367,8 +385,8 @@ class Attr(Node):
         Node.__init__(self, node, parent, None)
 
     def __repr__(self):
-        return '<Attribute node "%s", "%s">' % (self._node.name,
-                                                self._node.value)
+        return '<Attribute node %s, %s>' % (repr(self._node.name),
+                                            repr(self._node.value))
 
     def get_name(self):
         return self._node.name
@@ -489,14 +507,14 @@ class Text(CharacterData):
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
-        return '<Text node "%s">' % (s,)
+        return '<Text node %s>' % (repr(s),)
         
     def splitText(self, offset):
         n1 = _nodeData(TEXT_NODE) ; n2 = _nodeData(TEXT_NODE)
         n1.name = "#text" ; n2.name = "#text"
         n1.value = self.substringData(0, offset)
         n2.value = self.substringData(offset, len(self) - offset)
-        parent = self._parent
+        parent = self.parentNode
         n1 = Text(n1, None, self._document)
         n2 = Text(n2, None, self._document)
 
@@ -508,7 +526,7 @@ class Comment(CharacterData):
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
-        return '<Comment node "%s">' % (s,)
+        return '<Comment node %s>' % (repr(s),)
     
     def toxml(self):
         return '<-- %s -->' % self._node.value
@@ -519,7 +537,7 @@ class CDATASection(Text):
     def __repr__(self):
         if len(self._node.value)<20: s=self._node.value
         else: s=self._node.value[:17] + '...'
-        return '<CDATASection node "%s">' % (s,)
+        return '<CDATASection node %s>' % (repr(s),)
 
     def toxml(self):
         return self._node.value
@@ -574,6 +592,7 @@ class Document(Node):
     def __init__(self, node, parent = None, document = None):
         Node.__init__(self, node, parent = None, document = None)
         self.documentType = None
+        self.documentElement = None
         self.DOMImplementation = __import__(__name__)
 
     def toxml(self):
@@ -632,7 +651,11 @@ class Document(Node):
         return EntityReference(d, None, self)
 
     def getElementsByTagName(self, tagname):
-        return self.get_documentElement().getElementsByTagName(tagname)
+        if self.documentElement == None: return []
+        L = []
+        if self.documentElement._node.name == tagname:
+            L.append( self.documentElement )
+        return L + self.documentElement.getElementsByTagName(tagname)
 
     # Attributes
     def get_doctype(self):
@@ -640,9 +663,64 @@ class Document(Node):
     def get_implementation(self):
         return self.DOMImplementation
     def get_documentElement(self):
-        n = self._node.children[0]
-        return NODE_CLASS[ n.type ] (n, self, self._document)
+        return self.documentElement
 
+    # Override the Node mutation methods in order to check that
+    # there's at most a single Element child, and to update
+    # self.documentElement.
+
+    def insertBefore(self, newChild, refChild):
+        retval = Node.insertBefore(self, newChild, refChild)
+        doc = None
+        for elem in self._node.children:
+            if elem.type == ELEMENT_NODE:
+                if doc is None:
+                    doc = Element(elem, self, self)
+                else:
+                    raise HierarchyRequestException, \
+                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+        self.documentElement = doc
+        
+        return retval
+
+    def replaceChild(self, newChild, oldChild):
+        retval = Node.replaceChild(self, newChild, oldChild)
+        doc = None
+        for elem in self._node.children:
+            if elem.type == ELEMENT_NODE:
+                if doc is None:
+                    doc = Element(elem, self, self)
+                else:
+                    raise HierarchyRequestException, \
+                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+        self.documentElement = doc
+        return retval
+
+    def removeChild(self, oldChild):
+        retval = Node.removeChild(self, oldChild)
+        doc = None
+        for elem in self._node.children:
+            if elem.type == ELEMENT_NODE:
+                if doc is None:
+                    doc = Element(elem, self, self)
+                else:
+                    raise HierarchyRequestException, \
+                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+        self.documentElement = doc
+        return retval
+
+    def appendChild(self, newChild):
+        retval = Node.appendChild(self, newChild)
+        doc = None
+        for elem in self._node.children:
+            if elem.type == ELEMENT_NODE:
+                if doc is None:
+                    doc = Element(elem, self, self)
+                else:
+                    raise HierarchyRequestException, \
+                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+        self.documentElement = doc
+        return retval
     
 class DocumentFragment(Node):
     pass
@@ -663,5 +741,25 @@ DOCUMENT_TYPE_NODE          : DocumentType,
 DOCUMENT_FRAGMENT_NODE      : DocumentFragment,
 NOTATION_NODE               : Notation
 }
+
+# Set the childClasses attributes; we need to do this at the end once
+# all the classes have been defined.
+
+Document.childClasses = [Element, ProcessingInstruction, Comment, DocumentType]
+DocumentFragment.childClasses = [Element, ProcessingInstruction, Comment,
+                                 Text, CDATASection, EntityReference]
+DocumentType.childClasses = []
+EntityReference.childClasses = [Element, ProcessingInstruction, Comment,
+                                Text, CDATASection, EntityReference]
+Element.childClasses = [Element, ProcessingInstruction, Comment,
+                        Text, CDATASection, EntityReference]
+Attr.childClasses = [Text, EntityReference]
+ProcessingInstruction.childClasses = []
+Comment.childClasses = []
+Text.childClasses = []
+CDATASection.childClasses = []
+Entity.childClasses = [Element, ProcessingInstruction, Comment,
+                       Text, CDATASection, EntityReference]
+Notation.childClasses = []
 
 # vim:ts=2:ai
