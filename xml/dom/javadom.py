@@ -3,20 +3,84 @@
 # access them through the same interface as the Python DOM
 # implementation.
 #
-# $Id: javadom.py,v 1.1 2000/05/17 14:09:01 lars Exp $
+# $Id: javadom.py,v 1.2 2000/05/17 20:02:34 lars Exp $
 
-# For now based on Sun's Java Project X.
+# Supports:
+# - Sun's Java Project X
+# - Xerces
+# - David Brownell's SAX 2.0 Utilities / DOM2
 
 # Todo:
+# - start using _set_up_attributes, or give up as too slow?
 # - implement remaining Python parts of NodeList and NamedNodeMap
 # - more 4DOM-like interface? support _get_* ?
 # - make a test suite
 # - support more DOM implementations
-#   - find a scheme for doing this
+#   - Sun's JAXP
+#   - find more
 # - support level 2
 # - get rid of FIXMEs
 
 import string
+
+# --- Supported Java DOM implementations
+
+class BaseDomImplementation:
+    """An abstract DomImplementation with some reusable implementations
+    of build* methods that depend on a lower-level _parse_from_source
+    method."""
+    
+    def buildDocumentString(self, string):
+        from java.io import StringReader
+        from org.xml.sax import InputSource
+        return _parse_from_source(InputSource(StringReader(string)))
+
+    def buildDocumentUrl(self, url):
+        return _parse_from_source(url)
+
+    def buildDocumentFile(self, filename):
+        return buildDocumentUrl(filetourl(filename))    
+
+class SunDomImplementation:
+
+    def createDocument(self):
+        from com.sun.xml.tree import XmlDocument
+        return Document(XmlDocument())
+
+    def buildDocumentString(self, string):
+        from com.sun.xml.tree import XmlDocumentBuilder
+        return Document(XmlDocumentBuilder.createXmlDocument(string))    
+
+    def buildDocumentUrl(self, url):
+        from com.sun.xml.tree import XmlDocument
+        return Document(XmlDocument.createXmlDocument(url))
+
+    def buildDocumentFile(self, filename):
+        return buildDocumentUrl(filetourl(filename))
+
+class XercesDomImplementation:
+
+    def createDocument(self):
+        from org.apache.xerces.dom import DocumentImpl
+        return Document(DocumentImpl())
+
+    def _parse_from_source(self, source):
+        from org.apache.xerces.parsers import DOMParser
+        p = DOMParser()
+        p.parse(source)
+        return Document(p.getDocument())
+
+class BrownellDomImplementation:
+
+    def createDocument(self):
+        from org.brownell.xml.dom import DomDocument
+        return Document(DomDocument())
+
+    def _parse_from_source(self, source):
+        from org.brownell.xml import DomBuilder
+        return Document(DomBuilder.createDocument(source))
+    
+# ===== Utilities
 
 def filetourl(file):
     # A Python port of James Clark's fileToURL from XMLTest.java.
@@ -34,23 +98,6 @@ def filetourl(file):
         file = '/' + file
 
     return URL('file', None, file).toString()
-
-def createDocument():
-    from com.sun.xml.tree import XmlDocument
-    return Document(XmlDocument())
-
-def buildDocumentString(string):
-    from com.sun.xml.tree import XmlDocumentBuilder
-    return Document(XmlDocumentBuilder.createXmlDocument(string))    
-
-def buildDocumentUrl(url):
-    from com.sun.xml.tree import XmlDocument
-    return Document(XmlDocument.createXmlDocument(url))
-
-def buildDocumentFile(filename):
-    return buildDocumentUrl(filetourl(filename))
-
-# ===== Utilities
 
 def _wrap_node(node):
     if node == None:
@@ -99,41 +146,41 @@ class Node:
 
     # attributes
         
-    def get_nodeName(self):
+    def _get_nodeName(self):
         return self._impl.getNodeName()
 
-    def get_nodeValue(self):
+    def _get_nodeValue(self):
         return self._impl.getNodeValue()
 
-    def get_nodeType(self):
+    def _get_nodeType(self):
         return self._impl.getNodeType()
 
-    def get_parentNode(self):
+    def _get_parentNode(self):
         return _wrap_node(self._impl.getParentNode())
 
-    def get_childNodes(self):
+    def _get_childNodes(self):
         children = self._impl.getChildNodes()
         if children is None:
             return children
         else:
             return NodeList(children)
 
-    def get_firstChild(self):
+    def _get_firstChild(self):
         return _wrap_node(self._impl.getFirstChild())
 
-    def get_lastChild(self):
+    def _get_lastChild(self):
         return _wrap_node(self._impl.getLastChild())
         
-    def get_previousSibling(self):
+    def _get_previousSibling(self):
         return _wrap_node(self._impl.getPreviousSibling())
         
-    def get_nextSibling(self):
+    def _get_nextSibling(self):
         return _wrap_node(self._impl.getNextSibling())
         
-    def get_ownerDocument(self):
+    def _get_ownerDocument(self):
         return _wrap_node(self._impl.getOwnerDocument())
 
-    def get_attributes(self):
+    def _get_attributes(self):
         atts = self._impl.getAttributes()
         if atts is None:
             return None
@@ -162,24 +209,20 @@ class Node:
     def cloneNode(self):
         return _wrap_node(self._impl.cloneNode())
 
-    # attribute access
+    # internal methods
 
-    def __getattr__(self, name):
-        if name[ :4] != "get_" and hasattr(self, "get_" + name):
-            return getattr(self, "get_" + name) ()
-        else:
-            raise AttributeError(name)
-
-    def __setattr__(self, name, value):
-        if name[ :4] != "set_" and hasattr(self, "set_" + name):
-            getattr(self, "set_" + name) (value)
-        else:
-            raise AttributeError(name)
-        
+    def _set_up_attributes(self, namelist):
+        for name in namelist:
+            setattr(self, name,
+                    lambda obj = self, attr = name: getattr(obj, name))
+    
 # ===== Document
 
 class Document(Node):
-        
+
+    def __init__(self, impl):
+        Node.__init__(self, impl)
+    
     # methods
 
     def createTextNode(self, data):
@@ -211,15 +254,17 @@ class Document(Node):
         
     # attributes
 
-    def get_doctype(self):
+    def _get_doctype(self):
         return self._impl.getDoctype()
 
-    def get_implementation(self):
+    def _get_implementation(self):
         return DOMImplementation(self._impl.getImplementation())
 
-    def get_documentElement(self):
+    def _get_documentElement(self):
         return _wrap_node(self._impl.getDocumentElement())
 
+    # python
+    
     def __repr__(self):
         docelm = self._impl.getDocumentElement()
         if docelm:
@@ -234,12 +279,14 @@ class Element(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_tagName     = self._impl.getTagName
+        self._get_tagName    = self._impl.getTagName
         self.getAttribute    = self._impl.getAttribute
         self.setAttribute    = self._impl.setAttribute
         self.removeAttribute = self._impl.removeAttribute
         self.normalize       = self._impl.normalize
 
+    # methods
+        
     def getAttributeNode(self, name):
         return Attr(self._impl.getAttributeNode(name))
 
@@ -252,6 +299,8 @@ class Element(Node):
     def getElementsByTagName(self, name):
         return NodeList(self._impl.getElementsByTagName(name))
 
+    # python
+    
     def __repr__(self):
         return "<Element '%s' with %d attributes and %d children>" % \
                (self._impl.getTagName(),
@@ -265,9 +314,9 @@ class CharacterData(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
         
-        self.get_data      = self._impl.getData
-        self.set_data      = self._impl.setData
-        self.get_length    = self._impl.getLength
+        self._get_data     = self._impl.getData
+        self._set_data     = self._impl.setData
+        self._get_length   = self._impl.getLength
         
         self.substringData = self._impl.substringData
         self.appendData    = self._impl.appendData
@@ -289,9 +338,9 @@ class ProcessingInstruction(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_target = self._impl.getTarget
-        self.get_data   = self._impl.getData
-        self.set_data   = self._impl.setData
+        self._get_target = self._impl.getTarget
+        self._get_data   = self._impl.getData
+        self._set_data   = self._impl.setData
 
     def __repr__(self):
         return "<PI with target '%s'>" % self._impl.getTarget()
@@ -320,10 +369,10 @@ class Attr(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_name      = self._impl.getName
-        self.get_specified = self._impl.getSpecified
-        self.get_value     = self._impl.setValue
-        self.set_value     = self._impl.setValue
+        self._get_name      = self._impl.getName
+        self._get_specified = self._impl.getSpecified
+        self._get_value     = self._impl.setValue
+        self._set_value     = self._impl.setValue
 
     def __repr__(self):
         return "<Attr '%s'>" % self._impl.getName()
@@ -342,12 +391,12 @@ class DocumentType(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_name = self._impl.getName
+        self._get_name = self._impl.getName
 
-    def get_entities(self):
+    def _get_entities(self):
         return NamedNodeMap(self._impl.getEntities())
 
-    def get_notations(self):
+    def _get_notations(self):
         return NamedNodeMap(self._impl.getNotations())
 
     def __repr__(self):
@@ -360,8 +409,8 @@ class Notation(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_publicId = self._impl.getPublicId
-        self.get_systemId = self._impl.getSystemId
+        self._get_publicId = self._impl.getPublicId
+        self._get_systemId = self._impl.getSystemId
 
     def __repr__(self):
         return "<Notation '%s'>" % self._impl.getNodeName()
@@ -373,9 +422,9 @@ class Entity(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self.get_publicId = self._impl.getPublicId
-        self.get_systemId = self._impl.getSystemId
-        self.get_notationName = self._impl.getNotationName
+        self._get_publicId = self._impl.getPublicId
+        self._get_systemId = self._impl.getSystemId
+        self._get_notationName = self._impl.getNotationName
 
     def __repr__(self):
         return "<Entity '%s'>" % self._impl.getNodeName()
@@ -394,9 +443,9 @@ class NodeList:
     def __init__(self, impl):
         self._impl = impl
 
-        self.__len__    = self._impl.getLength
-        self.get_length = self._impl.getLength
-        self.item       = self._impl.item
+        self.__len__     = self._impl.getLength
+        self._get_length = self._impl.getLength
+        self._item       = self._impl.item
 
     # Python list methods
         
@@ -449,9 +498,11 @@ class NamedNodeMap:
     def __init__(self, impl):
         self._impl = impl
 
-        self.get_length = self._impl.getLength
-        self.__len__    = self._impl.getLength
+        self._get_length = self._impl.getLength
+        self.__len__     = self._impl.getLength
 
+    # methods
+        
     def getNamedItem(self, name):
         return _wrap_node(self._impl.getNamedItem(name))
 
@@ -530,9 +581,10 @@ NODE_CLASS_MAP = {
 # ===== Self-test
 
 if __name__ == "__main__":
-    doc2 = createDocument()
+    impl = BrownellDomImplementation() #XercesDomImplementation()  #SunDomImplementation()
+    doc2 = impl.createDocument()
     print doc2
-    print doc2.get_implementation()
+    print doc2._get_implementation()
     root = doc2.createElement("doc")
     print root
     doc2.appendChild(root)
@@ -540,9 +592,9 @@ if __name__ == "__main__":
     print txt
     root.appendChild(txt)
 
-    print root.get_childNodes()[0]
-    print root.get_childNodes()    
+    print root._get_childNodes()[0]
+    print root._get_childNodes()    
 
     root.setAttribute("huba", "haba")
     print root
-    print root.get_attributes()
+    print root._get_attributes()
