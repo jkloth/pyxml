@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.32 2002/08/13 09:28:51 afayolle Exp $
+$Id: saxutils.py,v 1.33 2002/10/22 15:51:34 loewis Exp $
 """
 
 import os, urlparse, urllib2, types
@@ -149,14 +149,45 @@ class ErrorRaiser:
 from xmlreader import AttributesImpl
 
 # --- XMLGenerator is the SAX2 ContentHandler for writing back XML
-try:
-    import codecs
-    def _outputwrapper(stream,encoding):
-        writerclass = codecs.lookup(encoding)[3]
-        return writerclass(stream)
-except ImportError: # 1.5 compatibility: fall back to do-nothing
-    def _outputwrapper(stream,encoding):
-        return stream
+import codecs
+
+def _outputwrapper(stream,encoding):
+    writerclass = codecs.lookup(encoding)[3]
+    return writerclass(stream)
+
+if hasattr(codecs, "register_error"):
+    def writetext(stream, text, entities={}):
+        stream.errors = "xmlcharrefreplace"
+        stream.write(escape(text, entities))
+        stream.errors = "strict"
+else:
+    def writetext(stream, text, entities={}):
+        text = escape(text, entities)
+        try:
+            stream.write(text)
+        except UnicodeError:
+            for c in text:
+                try:
+                    stream.write(c)
+                except UnicodeError:
+                    stream.write(u"&#%d;" % ord(c))
+
+def writeattr(stream, text):
+    countdouble = text.count('"')
+    if countdouble:
+        countsingle = text.count("'")
+        if countdouble <= countsingle:
+            entities = {'"': "&quot;"}
+            quote = '"'
+        else:
+            entities = {"'": "&apos;"}
+            quote = "'"
+    else:
+        entities = {}
+        quote = '"'
+    stream.write(quote)
+    writetext(stream, text, entities)
+    stream.write(quote)
 
 
 class XMLGenerator(handler.ContentHandler):
@@ -193,7 +224,8 @@ class XMLGenerator(handler.ContentHandler):
     def startElement(self, name, attrs):
         self._out.write('<' + name)
         for (name, value) in attrs.items():
-            self._out.write(' %s=%s' % (name, quoteattr(value)))
+            self._out.write(' %s=' % name)
+            writeattr(self._out, value)
         self._out.write('>')
 
     def endElement(self, name):
@@ -230,7 +262,8 @@ class XMLGenerator(handler.ContentHandler):
                 self._current_context[name[0]] = prefix
             else:
                 name = self._current_context[name[0]] + ":" + name[1]
-            self._out.write(' %s=%s' % (name, quoteattr(value)))
+            self._out.write(' %s=' % name)
+            writeattr(self._out, value)
         self._out.write('>')
 
     def endElementNS(self, name, qname):
@@ -246,7 +279,7 @@ class XMLGenerator(handler.ContentHandler):
         self._out.write('</%s>' % qname)
 
     def characters(self, content):
-        self._out.write(escape(content))
+        writetext(self._out, content)
 
     def ignorableWhitespace(self, content):
         self._out.write(content)

@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax.py,v 1.9 2002/09/10 21:34:56 fdrake Exp $
+# $Id: test_sax.py,v 1.10 2002/10/22 15:51:34 loewis Exp $
 
 from xml.sax import make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -126,6 +126,29 @@ def test_xmlgen_content():
 
     return result.getvalue() == start + "<doc>huhei</doc>"
 
+def test_xmlgen_escaped_content():
+    result = StringIO()
+    gen = XMLGenerator(result)
+
+    gen.startDocument()
+    gen.startElement("doc", {})
+    gen.characters(unicode("\xa0\\u3042", "unicode-escape"))
+    gen.endElement("doc")
+    gen.endDocument()
+
+    return result.getvalue() == start + "<doc>\xa0&#12354;</doc>"
+
+def test_xmlgen_escaped_attr():
+    result = StringIO()
+    gen = XMLGenerator(result)
+    
+    gen.startDocument()
+    gen.startElement("doc", {"x": unicode("\\u3042", "unicode-escape")})
+    gen.endElement("doc")
+    gen.endDocument()
+
+    return result.getvalue() == start + '<doc x="&#12354;"></doc>'
+
 def test_xmlgen_pi():
     result = StringIO()
     gen = XMLGenerator(result)
@@ -165,6 +188,28 @@ def test_xmlgen_attr_escape():
 
     return result.getvalue() == start \
            + "<doc a='\"'><e a=\"'\"></e><e a=\"'&quot;\"></e></doc>"
+
+def test_xmlgen_attr_escape_manydouble():
+    result = StringIO()
+    gen = XMLGenerator(result)
+
+    gen.startDocument()
+    gen.startElement("doc", {"a": '"\'"'})
+    gen.endElement("doc")
+    gen.endDocument()
+
+    return result.getvalue() == start + "<doc a='\"&apos;\"'></doc>"
+
+def test_xmlgen_attr_escape_manysingle():
+    result = StringIO()
+    gen = XMLGenerator(result)
+
+    gen.startDocument()
+    gen.startElement("doc", {"a": "'\"'"})
+    gen.endElement("doc")
+    gen.endDocument()
+
+    return result.getvalue() == start + '<doc a="\'&quot;\'"></doc>'
 
 def test_xmlgen_ignorable():
     result = StringIO()
