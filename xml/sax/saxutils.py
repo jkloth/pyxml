@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.28 2001/11/25 22:45:58 jhermann Exp $
+$Id: saxutils.py,v 1.29 2001/12/16 09:35:08 loewis Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -41,7 +41,7 @@ def quoteattr(data, entities={}):
     data = escape(data, entities)
     if '"' in data:
         if "'" in data:
-            data = '"%s"' % data.replace('"', "&quot;")
+            data = '"%s"' % string.replace(data, '"', "&quot;")
         else:
             data = "'%s'" % data
     else:
