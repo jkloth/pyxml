@@ -11,7 +11,8 @@ class Bookmarks:
     def __init__(self):
         self.folders=[]
         self.folder_stack=[]
-
+        self.owner = "Anonymous Bookmark File"
+        
     def add_folder(self,name,created,visited):
         nf=Folder(name,created,visited)
         if self.folder_stack==[]:
@@ -34,13 +35,12 @@ class Bookmarks:
             del self.folder_stack[-1]
 
     def dump_xbel(self,out=sys.stdout):
-        out.write("""<?xml version="1.0"?>
-        <!DOCTYPE xbel SYSTEM "xbel.dtd">
-        <XBEL>\n""")
-        if hasattr(self, 'owner'):
-            out.write('  <INFO>\n')
-            out.write('    <OWNER>%s</OWNER>\n' % (self.owner,) )
-            out.write('  </INFO>\n')
+        out.write('<?xml version="1.0"?>\n'
+                  '<!DOCTYPE xbel SYSTEM "xbel.dtd">\n'
+                  '<XBEL>\n')
+        out.write('  <INFO>\n')
+        out.write('    <OWNER>%s</OWNER>\n' % (self.owner,) )
+        out.write('  </INFO>\n')
 
         for folder in self.folders:
             folder.dump_xbel(out)
@@ -56,10 +56,8 @@ class Bookmarks:
         out.write("<!-- This is an automatically generated file.\n")
         out.write("It will be read and overwritten.\n")
         out.write("Do Not Edit! -->\n")
-        if hasattr(self, 'owner'): owner=self.owner
-        else: owner="Anonymous Bookmark File"
-        out.write("<TITLE>" + owner + "</TITLE>\n")
-        out.write("<H1>" + owner + "</H1>\n\n")
+        out.write("<TITLE>" + self.owner + "</TITLE>\n")
+        out.write("<H1>" + self.owner + "</H1>\n\n")
 
         out.write("<DL><p>\n")
         for folder in self.folders:
@@ -87,11 +85,11 @@ class Folder(Node):
         self.children.append(child)
 
     def dump_xbel(self,out):
-        out.write("  <NODE>\n")
+        out.write("  <FOLDER>\n")
         out.write("    <NAME>%s</NAME>\n" % self.name)
         for child in self.children:
             child.dump_xbel(out)
-        out.write("  </NODE>\n")
+        out.write("  </FOLDER>\n")
 
     def dump_adr(self,out):
         out.write("#FOLDER\n")

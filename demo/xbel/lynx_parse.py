@@ -53,7 +53,3 @@ if __name__ == '__main__':
         parse_lynx_file(bms, input)
 
     bms.dump_xbel()
-    
-
-
-
