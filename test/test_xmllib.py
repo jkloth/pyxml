@@ -4,7 +4,7 @@
 
 # Copied from the Python 1.5.1 test suite.
 
-from test_support import verbose
+from test.test_support import verbose
 
 testdoc = """\
 <?xml version="1.0" encoding="UTF-8" standalone='yes' ?>

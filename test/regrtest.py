@@ -28,7 +28,7 @@ import os
 import getopt
 import traceback
 
-import test_support
+from test import test_support
 
 def main( tests = None, testdir = None ):
     """Execute a test suite.
