@@ -36,8 +36,7 @@ else:
                        'xml.unicode', 'xml.utils'
                        ],
 
-           ext_modules = [('xml.parsers.sgmlop', { 'sources' : ['extensions/sgmlop.c']
-                                       }),
+           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c'] }),
                           ('xml.unicode.wstrop', { 'sources' : ['extensions/wstrop.c']
                                        }),
                           ('xml.parsers.pyexpat', { 'define': [('XML_NS', None)],

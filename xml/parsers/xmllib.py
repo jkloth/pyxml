@@ -7,7 +7,7 @@ import re
 import string
 
 try:
-    import sgmlop
+    from xml.parsers import sgmlop
 except ImportError:
     sgmlop = None
 
