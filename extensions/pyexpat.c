@@ -83,7 +83,7 @@ typedef struct {
 
 staticforward PyTypeObject Xmlparsetype;
 
-typedef void (*xmlhandlersetter)(XML_Parser *self, void *meth);
+typedef void (*xmlhandlersetter)(XML_Parser self, void *meth);
 typedef void* xmlhandler;
 
 struct HandlerInfo {
@@ -1719,7 +1719,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.65 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.66 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
@@ -1746,6 +1746,35 @@ MODULE_INITFUNC(void)
     if (errors_module == NULL || model_module == NULL)
         /* Don't core dump later! */
         return;
+    
+    {
+        const XML_Feature *features = XML_GetFeatureList();
+        PyObject *list = PyList_New(0);
+        if (list == NULL)
+            /* just ignore it */
+            PyErr_Clear();
+        else {
+            int i = 0;
+            for (; features[i].feature != XML_FEATURE_END; ++i) {
+                int ok;
+                PyObject *item = Py_BuildValue("si", features[i].name,
+                                               features[i].value);
+                if (item == NULL) {
+                    Py_DECREF(list);
+                    list = NULL;
+                    break;
+                }
+                ok = PyList_Append(list, item);
+                Py_DECREF(item);
+                if (ok < 0) {
+                    PyErr_Clear();
+                    break;
+                }
+            }
+            if (list != NULL)
+                PyModule_AddObject(m, "features", list);
+        }
+    }
 
 #define MYCONST(name) \
     PyModule_AddStringConstant(errors_module, #name, \
