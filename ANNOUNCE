@@ -3,52 +3,60 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
 	       other suggestions?
 
 ================== 
-Version 0.7.1 of the Python/XML distribution is now available.  It
+Version 0.8 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.tar.gz
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.win32-py1.5.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.win32-py2.1.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.win32-py2.2.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1-1.5.2.i386.rpm
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1-2.2.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.tar.gz
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.win32-py2.1.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.win32-py2.2.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8-2.2.i386.rpm
 
 
-Changes in this version, compared to 0.7:
+Changes in this version, compared to 0.7.1:
 
-	* sgmlop offers the XMLUnicodeParser (contributed by Walter Dörwald).
+	* Python 1.5 is not supported anymore; Python 2.0 or higher
+	  is required.
 
-	* setup.py now supports the option --with(out)-pyexpat.
+	* Expat has been updated to 1.95.4.
 
-	* On Mac OS X, -flat_namespace is used to build extensions.
+	* pyexpat is now always built.
 
-	* XBEL support for parsing Opera, MSIE, and Netscape bookmarks
-	  was improved.
+	* pyexpat now reports skipped entities.
 
-	* c14n is now documented in the reference manual.
+	* pyexpat now combines subsequent character data events into
+	  a single callback invocation.
 
-	* Support for older expat versions is dropped from pyexpat.
+	* pyexpat can now report namespace prefixes.
 
-	* pyexpat can intern strings found during parsing in a dictionary.
+	* Various bugs in sgmlop have been fixed.
 
-	* xml.ns now provides XLINK and RNG namespaces.
+	* Various DOM Level 3 symbolic constants have been added;
+          DOMStringSizeErr can now be spelled as DomstringSizeErr again.
 
-	* 4DOM supports now arbitrary Unicode element and attribute names.
+	* Various DOM L1, L2 and L3 features have been added to minidom:
+	userdata, isSupported, getInterface, wholeText, Entity, Notation
 
-	* pulldom supports the iterator protocol.
+	* minidom's .toxml now allows the caller to specify an encoding.
 
-	* Spanish xmlproc messages have been added.
+	* The new module xml.dom.xmlbuilder implements the load part
+	  of the DOM L3 Load/Store spec.
 
-	* xml.sax.expatreader has a feature to intern strings, and a
-	  property to access the interning dictionary.
+	* The new module xml.dom.expatbuilder allows to create minidom
+	  trees more efficiently, by using expat directly (rather than 
+	  using SAX).
 
-	* Construction of Unicode regular expressions in
-	  xml.utils.characters happens lazily through accessor functions.
+	* Bugs in c14n namespace processing have been fixed.
 
-	* Various bugs have been fixed (4DOM, minidom, c14n,
-	  marshal.generic, xmlproc, sax.expatreader, sax.writer,
-	  xml.utils.iso8601)
+	* Minor bugs in xmlproc have been fixed.
+
+	* xml.sax.expatreader now invokes resolveEntity properly.
+
+	* The sgmlop SAX driver now invokes skippedEntity.
+
+	* The xml-howto has been updated.
+
+	* Bugs in the MSIE, ADR, and NS XBEL parsers have been fixed.
 
 
 The Python/XML distribution contains the basic tools required for

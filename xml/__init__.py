@@ -31,5 +31,5 @@ xpath -- XPath parsing and evaluation.  Implemented by Fourthought, Inc.
 __all__ = ['dom', 'marshal', 'parsers', 'sax', 'schema', 'utils', 'xpath', 'xslt']
 
 # Needs to synchronize with setup.py
-version_info = (0,7,1)
-__version__ = "0.7.1"
+version_info = (0,8)
+__version__ = "0.8"
