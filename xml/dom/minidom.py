@@ -179,14 +179,23 @@ class Node(xml.dom.Node, GetattrMagic):
         self.childNodes[:] = L
 
     def cloneNode(self, deep):
+        clone = self._cloneNode(deep)
+        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
+                                     self, clone)
+        return clone
+
+    def _cloneNode(self, deep):
         import new
         clone = new.instance(self.__class__, self.__dict__.copy())
+        if hasattr(clone, "_user_data"):
+            del clone._user_data
         if self._makeParentNodes:
             clone.parentNode = None
-        clone.childNodes = NodeList()
-        if deep:
-            for child in self.childNodes:
-                clone.appendChild(child.cloneNode(1))
+        if self.childNodes is not None:
+            clone.childNodes = NodeList()
+            if deep:
+                for child in self.childNodes:
+                    clone.appendChild(child.cloneNode(1))
         return clone
 
     def isSupported(self, feature, version):
@@ -230,6 +239,12 @@ class Node(xml.dom.Node, GetattrMagic):
         else:
             d[key] = (data, handler)
         return old
+
+    def _call_user_data_handler(self, operation, src, dst):
+        if hasattr(self, "_user_data"):
+            for key, (data, handler) in self._user_data.items():
+                if handler is not None:
+                    handler.handle(operation, key, data, src, dst)
 
     # minidom-specific API:
 
@@ -326,9 +341,11 @@ class Attr(Node):
             d[name] = value
 
     def cloneNode(self, deep):
-        clone = Node.cloneNode(self, deep)
+        clone = self._cloneNode(self, deep)
         if clone.__dict__.has_key("ownerElement"):
             del clone.ownerElement
+        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
+                                     self, clone)
         return clone
 
 defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
@@ -462,15 +479,17 @@ class Element(Node):
     def _get_localName(self):
         return self.tagName.split(":", 1)[-1]
 
-    def cloneNode(self, deep):
-        clone = Node.cloneNode(self, deep)
+    def _cloneNode(self, deep):
+        clone = Node._cloneNode(self, deep)
         clone._attrs = {}
         clone._attrsNS = {}
         for attr in self._attrs.values():
-            node = attr.cloneNode(1)
+            node = attr._cloneNode(1)
             clone._attrs[node.name] = node
             clone._attrsNS[(node.namespaceURI, node.localName)] = node
             node.ownerElement = clone
+            attr._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
+                                         attr, node)
         return clone
 
     def unlink(self):
