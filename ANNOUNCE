@@ -25,9 +25,11 @@ Changes in this version, compared to 0.6.6:
 	* xmlproc has been updated to produce Unicode strings in
 	  Python 2.x using the Python codecs to convert the input.
 
-	* 4XPath from the 4Suite package has been integrated as 
-	  xml.xpath. Integrating 4XSLT is still in progress, xml.xslt
-	  is not included in this release.
+	* 4XPath and 4XSLT from the 4Suite package have been
+	  integrated as xml.xpath and xml.xslt. Both packages are a
+	  few releases behind 4Suite. In case of conflicts with
+	  a 4Suite installation, passing --without-{xpath,xslt}
+	  to setup.py is recommended.
 
 	* XBEL has been updated to revision 1.1.
 
