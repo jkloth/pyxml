@@ -167,8 +167,8 @@ class T_HandlerBase(HandlerBase):
     def __init__(self, parser, parent, atts):
         HandlerBase.__init__(self, parser, parent, atts)
         if atts != None:
-            if atts.has_key(u"ns"):
-                self.ns_attr = atts[u"ns"]
+            if atts.has_key("ns"):
+                self.ns_attr = atts["ns"]
             else: 
                 self.ns_attr = parent.ns_attr
         else: # must be root
@@ -327,8 +327,8 @@ class T_ElementHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
         self.product = T_Element()
-        if atts.has_key(u"name"):
-            name = atts[u"name"]
+        if atts.has_key("name"):
+            name = atts["name"]
             if ":" in name:
                 # QName
                 from string import split
@@ -365,16 +365,16 @@ class T_AttributeHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
         self.product = T_Attribute()
-        if atts.has_key(u"ns"):
-            local_ns = atts[u"ns"]
+        if atts.has_key("ns"):
+            local_ns = atts["ns"]
         else:
             local_ns = ""
-        if atts.has_key(u"global") and atts[u"global"] == "true":
+        if atts.has_key("global") and atts["global"] == "true":
             ns = self.ns_attr
         else:
             ns = local_ns
-        if atts.has_key(u"name"):
-            name = atts[u"name"]
+        if atts.has_key("name"):
+            name = atts["name"]
             if ":" in name:
                 # QName
                 from string import split
@@ -503,7 +503,7 @@ class T_StringHandler(T_HandlerBase):
         T_HandlerBase.__init__(self, parser, parent, atts)
         self.chardata = ""
         self.whitespace_normalize = 1
-        if atts.has_key(u"whiteSpace"):
+        if atts.has_key("whiteSpace"):
             if atts["whiteSpace"]=="normalize":
                 self.whitespace_normalize = 1
             elif atts["whiteSpace"]=="preserve":
@@ -555,7 +555,7 @@ class T_DataHandler(T_HandlerBase):
 class T_IncludeHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
-        if atts.has_key(u"href"):
+        if atts.has_key("href"):
             self.product = parse_TREX(atts["href"])
         else:
             raise TREXError, "include must have href attribute"
@@ -838,7 +838,7 @@ class T_GrammarHandler(T_HandlerBase):
 class T_IncludeGrammarHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
-        if atts.has_key(u"href"):
+        if atts.has_key("href"):
             self.product = parse_TREX(atts["href"])
         else:
             raise TREXError, "include must have href attribute"
@@ -859,12 +859,12 @@ class T_StartHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
         self.product = None
-        if atts.has_key(u"name"):
-            self.name = atts[u"name"]
+        if atts.has_key("name"):
+            self.name = atts["name"]
         else:
             self.name = None
-        if atts.has_key(u"combine"):
-            self.combine = atts[u"combine"]
+        if atts.has_key("combine"):
+            self.combine = atts["combine"]
         else:
             self.combine = None
     
@@ -885,17 +885,17 @@ class T_StartHandler(T_HandlerBase):
 class T_RefHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
-        if atts.has_key(u"name"):
-            name = atts[u"name"]
+        if atts.has_key("name"):
+            name = atts["name"]
         else:
             raise TREXError, "ref must have name attribute"
-        if atts.has_key(u"parent"):
-            if atts[u"parent"] == "true":
+        if atts.has_key("parent"):
+            if atts["parent"] == "true":
                 parent = 1
-            elif atts[u"parent"] == "false":
+            elif atts["parent"] == "false":
                 parent = 0
             else:
-                raise TREXError, "ref parent attribute must be 'true' or 'false', not '%s'" % atts[u"parent"]
+                raise TREXError, "ref parent attribute must be 'true' or 'false', not '%s'" % atts["parent"]
         else:
             parent = 0
         self.product = T_Ref(name, parent)
@@ -914,12 +914,12 @@ class T_DefineHandler(T_HandlerBase):
     def __init__(self, parser, parent, atts):
         T_HandlerBase.__init__(self, parser, parent, atts)
         self.pattern = None
-        if atts.has_key(u"name"):
-            self.name = atts[u"name"]
+        if atts.has_key("name"):
+            self.name = atts["name"]
         else:
             raise TREXError, "define must have a name"
-        if atts.has_key(u"combine"):
-            self.combine = atts[u"combine"]
+        if atts.has_key("combine"):
+            self.combine = atts["combine"]
         else:
             self.combine = None
 
@@ -1864,7 +1864,7 @@ def parse_Instance(location, baseURI=None):
         parser.ParseFile(f)
     except xml.parsers.expat.error:
         import sys
-        sys.stderr.write(u"Error parsing file at line '%s' and column '%s'\n" % (parser.ErrorLineNumber, parser.ErrorColumnNumber) )
+        sys.stderr.write("Error parsing file at line '%s' and column '%s'\n" % (parser.ErrorLineNumber, parser.ErrorColumnNumber) )
         sys.stderr.flush()
     f.close()
 
