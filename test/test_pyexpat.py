@@ -74,6 +74,9 @@ class Outputter:
         print 'External entity ref:', args[1:]
         return 1
 
+    def SkippedEntityHandler(self, *args):
+        print 'Skipped entity ref:', args
+
     def DefaultHandler(self, userData):
         pass
 
@@ -117,7 +120,7 @@ HANDLER_NAMES = [
     'EndCdataSectionHandler',
     'DefaultHandler', 'DefaultHandlerExpand',
     #'NotStandaloneHandler',
-    'ExternalEntityRefHandler'
+    'ExternalEntityRefHandler', 'SkippedEntityHandler',
     ]
 for name in HANDLER_NAMES:
     setattr(parser, name, getattr(out, name))
@@ -348,3 +351,49 @@ parser.Parse("<a>1<b/>2<c></c>3<!--abc-->4<!--def-->5</a> ", 1)
 handler.check(["<a>", "1", "<b>", "</b>", "2", "<c>", "</c>", "3",
                "<!--abc-->", "4", "<!--def-->", "5", "</a>"],
               "buffered text not properly split")
+
+
+# Tests of namespace_triplets support.
+text = '''\
+<doc xmlns:foo="http://xml.python.org/x"
+     xmlns:bar="http://xml.python.org/x">
+  <foo:e foo:a1="a1" bar:a2="a2"/>
+  <bar:e foo:a1="a1" bar:a2="a2"/>
+  <e ugh:a1="a1" a2="a2" xmlns="http://xml.python.org/e"/>
+</doc>
+'''
+
+expected_info = [
+    ("doc", {}),
+    ("http://xml.python.org/x e foo",
+     {"http://xml.python.org/x a1 foo": "a1",
+      "http://xml.python.org/x a2 bar": "a2"}),
+    "http://xml.python.org/x e foo",
+    ("http://xml.python.org/x e bar",
+     {"http://xml.python.org/x a1 foo": "a1",
+      "http://xml.python.org/x a2 bar": "a2"}),
+    "http://xml.python.org/x e bar",
+    ("http://xml.python.org/e e", {"ugh:a1": "a1", "a2": "a2"}),
+    "http://xml.python.org/e e",
+    "doc"
+    ]
+
+class Handler:
+    def __init__(self, parser):
+        self.info = []
+        parser.StartElementHandler = self.StartElementHandler
+        parser.EndElementHandler = self.EndElementHandler
+
+    def StartElementHandler(self, name, attrs):
+        self.info.append((name, attrs))
+
+    def EndElementHandler(self, name):
+        self.info.append(name)
+
+p = expat.ParserCreate(namespace_separator=" ")
+p.namespace_prefixes = 1
+h = Handler(p)
+p.Parse(text, 1)
+if h.info != expected_info:
+    raise ValueError, ("got bad element information:\n  "
+                       + `h.info`)

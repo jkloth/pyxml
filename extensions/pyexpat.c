@@ -61,6 +61,7 @@ typedef struct {
     int ordered_attributes;     /* Return attributes as a list. */
     int specified_attributes;   /* Report only specified attributes. */
     int in_callback;            /* Is a callback active? */
+    int ns_prefixes;            /* Namespace-triplets mode? */
     XML_Char *buffer;           /* Buffer used when accumulating characters */
                                 /* NULL if not enabled */
     int buffer_size;            /* Size of buffer, in XML_Char units */
@@ -997,6 +998,7 @@ xmlparse_ExternalEntityParserCreate(xmlparseobject *self, PyObject *args)
     new_parser->ordered_attributes = self->ordered_attributes;
     new_parser->specified_attributes = self->specified_attributes;
     new_parser->in_callback = 0;
+    new_parser->ns_prefixes = self->ns_prefixes;
     new_parser->itself = XML_ExternalEntityParserCreate(self->itself, context,
 							encoding);
     new_parser->handlers = 0;
@@ -1158,6 +1160,7 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     self->ordered_attributes = 0;
     self->specified_attributes = 0;
     self->in_callback = 0;
+    self->ns_prefixes = 0;
     self->handlers = NULL;
     if (namespace_separator != NULL) {
         self->itself = XML_ParserCreateNS(encoding, *namespace_separator);
@@ -1289,6 +1292,8 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         if (strcmp(name, "buffer_used") == 0)
             return PyInt_FromLong((long) self->buffer_used);
     }
+    if (strcmp(name, "namespace_prefixes") == 0)
+        return get_pybool(self->ns_prefixes);
     if (strcmp(name, "ordered_attributes") == 0)
         return get_pybool(self->ordered_attributes);
     if (strcmp(name, "returns_unicode") == 0)
@@ -1319,6 +1324,7 @@ xmlparse_getattr(xmlparseobject *self, char *name)
         PyList_Append(rc, PyString_FromString("buffer_size"));
         PyList_Append(rc, PyString_FromString("buffer_text"));
         PyList_Append(rc, PyString_FromString("buffer_used"));
+        PyList_Append(rc, PyString_FromString("namespace_prefixes"));
         PyList_Append(rc, PyString_FromString("ordered_attributes"));
         PyList_Append(rc, PyString_FromString("returns_unicode"));
         PyList_Append(rc, PyString_FromString("specified_attributes"));
@@ -1376,6 +1382,14 @@ xmlparse_setattr(xmlparseobject *self, char *name, PyObject *v)
             free(self->buffer);
             self->buffer = NULL;
         }
+        return 0;
+    }
+    if (strcmp(name, "namespace_prefixes") == 0) {
+        if (PyObject_IsTrue(v))
+            self->ns_prefixes = 1;
+        else
+            self->ns_prefixes = 0;
+        XML_SetReturnNSTriplet(self->itself, self->ns_prefixes);
         return 0;
     }
     if (strcmp(name, "ordered_attributes") == 0) {
@@ -1476,7 +1490,7 @@ static PyTypeObject Xmlparsetype = {
 #else
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_GC, /*tp_flags*/
 #endif
-	Xmlparsetype__doc__, /* Documentation string */
+	Xmlparsetype__doc__, /* tp_doc - Documentation string */
 #ifdef WITH_CYCLE_GC
 	(traverseproc)xmlparse_traverse,	/* tp_traverse */
 	(inquiry)xmlparse_clear		/* tp_clear */
