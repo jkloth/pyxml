@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.5 2001/01/15 21:10:21 jkloth Exp $
+ * $Id: sgmlop.c,v 1.6 2001/01/22 15:17:43 fdrake Exp $
  *
  * The sgmlop accelerator module
  *
@@ -84,7 +84,7 @@ do { memory -= size; printf("%8d - %s\n", memory, comment); } while (0)
 #define RELEASE(size, comment)
 #endif
 
-/* ====================================================================
+/* ==================================================================== */
 /* parser data type */
 
 /* state flags */
@@ -366,7 +366,7 @@ statichere PyTypeObject FastSGMLParser_Type = {
     0 /* tp_setattr */
 };
 
-/* ====================================================================
+/* ==================================================================== */
 /* element data type */
 
 typedef struct {
@@ -703,7 +703,7 @@ statichere PyTypeObject Element_Type = {
 };
 
 
-/* ====================================================================
+/* ==================================================================== */
 /* tree builder (not yet implemented) */
 
 typedef struct {
@@ -848,7 +848,7 @@ void
 #ifdef WIN32
 __declspec(dllexport)
 #endif
-initsgmlop()
+initsgmlop(void)
 {
     /* Patch object type */
     FastSGMLParser_Type.ob_type =
