@@ -11,6 +11,9 @@ qtfmt.py		Program to read a file marked up using the language
 			specified in quotations.dtd, and output the 
 			list in HTML, text, or fortune format.
 
+The qtfmt.py script requires Python 2.0, since it assumes UTF-8 output
+and uses the codecs module to convert its output to Latin-1.
+
 Contact amk1@bigfoot.com if you have questions or comments about the
 contents of this directory.  For the author's complete quotation
 collections, please go to http://starship.python.net/crew/amk/quotations/

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # 
-# qtfmt.py v1.00
+# qtfmt.py v1.10
+# v1.10 : Updated to use Python 2.0 Unicode type.
 #
 # Read a document in the quotation DTD, converting it to a list of Quotation
 # objects.  The list can then be output in several formats.
@@ -16,6 +17,9 @@ Available options:
 """
 
 import string, re, cgi, types
+import codecs
+
+from xml.sax import saxlib, saxexts
     
 def simplify(t, indent="", width=79):
     """Strip out redundant spaces, and insert newlines to 
@@ -80,7 +84,7 @@ class Quotation:
         # Flatten the list of instances into a list of paragraphs
 	paralist = flatten(self.text) 
 	if len(paralist) > 1: 
-	    indent = 4*" "
+	    indent = 2*" "
 	else: 
 	    indent = ""
 
@@ -99,7 +103,7 @@ class Quotation:
 		    text = string.lower(text[:1]) + text[1:]
 		attr = attr + text
 	attr=simplify(attr, width = 79 - 4 - 3)
-	if attr: output = output + '    -- '+re.sub('\n', '\n       ', attr)
+	if attr: output = output + '  -- '+re.sub('\n', '\n   ', attr)
 	return output + '\n'
 
     def as_fortune(self):
@@ -196,8 +200,6 @@ class Break(Text):
 # convert a marked-up document using the quotations DTD into a list of
 # quotation objects.
 
-from xml.sax import saxlib, saxexts
-
 class QuotationDocHandler(saxlib.HandlerBase):
     def __init__(self, process_func):
 	self.process_func = process_func
@@ -206,8 +208,8 @@ class QuotationDocHandler(saxlib.HandlerBase):
     # Errors should be signaled, so we'll output a message and raise
     # the exception to stop processing 
     def fatalError(self, exception):
-	sys.stderr.write('ERROR: '+exception.msg+'\n')
-	raise exception
+	sys.stderr.write('ERROR: '+ str(exception)+'\n')
+	sys.exit(1)
     error = fatalError
     warning = fatalError
 
@@ -217,18 +219,20 @@ class QuotationDocHandler(saxlib.HandlerBase):
 
             # Undo the UTF-8 encoding, converting to ISO Latin1, which
             # is the default character set used for HTML.
-            if type(s) == types.StringType:
-                s = unicode(s,'utf-8')
-            s = s.encode('latin-1')
+            latin1_encode = codecs.lookup('iso-8859-1') [0]
+            unicode_str = s
+            s, consumed = latin1_encode( unicode_str )
+            assert consumed == len( unicode_str )
 
             self.newqt.stack[-1] = self.newqt.stack[-1] + s
 
     def startDocument(self):
 	self.quote_list = []
 
-    def startElement(self, name, attrs):	
-	if hasattr(self, 'start_'+name):
-	    method = getattr(self, 'start_'+name)
+    def startElement(self, name, attrs):
+        methname = 'start_'+str(name)
+	if hasattr(self, methname):
+	    method = getattr(self, methname)
 	    method(attrs)
 	else:
 	    sys.stderr.write('unknown start tag: <' + name + ' ')
@@ -237,8 +241,9 @@ class QuotationDocHandler(saxlib.HandlerBase):
 	    sys.stderr.write('>\n')
 
     def endElement(self, name):
-	if hasattr(self, 'end_'+name):
-	    method = getattr(self, 'end_'+name)
+        methname = 'end_'+str(name)
+	if hasattr(self, methname):
+	    method = getattr(self, methname)
 	    method()
 	else:
 	    sys.stderr.write('unknown end tag: </' + name + '>\n')
@@ -369,7 +374,7 @@ if __name__ == '__main__':
 
         # Enforce the use of the Expat parser, because the code needs to be
         # sure that the output will be UTF-8 encoded.
-	p=saxexts.XMLParserFactory.make_parser("xml.sax.drivers.drv_pyexpat")
+	p=saxexts.XMLParserFactory.make_parser(["xml.sax.drivers.drv_pyexpat"])
 	dh = QuotationDocHandler(process_func)
 	p.setDocumentHandler(dh)
 	p.setErrorHandler(dh)

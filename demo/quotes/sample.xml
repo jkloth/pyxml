@@ -14,14 +14,6 @@ Statements", Computing Surveys, Vol 6 No 4, Dec. 1974</source>
 </quotation>
 
 <quotation>
-One of the things that makes it interesting, is exactly how much Guido
-has managed to exploit that <em>one</em> implementation trick of
-'namespaces'.
-<source>Steven D. Majewski, 17 Sep 1993
-</source>
-</quotation>
-
-<quotation>
 I don't know a lot about this artificial life stuff
 -- but I'm suspicious of anything Newsweek gets goofy about
 -- and I suspect its primary use is as another money extraction tool
@@ -53,15 +45,6 @@ to it.
 </quotation>
 
 <quotation>
-BTW, a member of the ANSI C committee once told me that the only
-thing rand is used for in C code is to decide whether to pick up the
-axe or throw the dwarf, and if that's true I guess "the typical libc
-rand" is adequate for all but the most fanatic of gamers &lt;wink&gt;.  
-<source>Tim Peters, 21 June 1997.
-</source>
-</quotation>
-
-<quotation>
 This is not a technical issue so much as a human issue; we 
 are limited and so is our time.  (Is this a bug or a feature of time?
 Careful; trick question!)
@@ -69,13 +52,12 @@ Careful; trick question!)
 </quotation>
 
 <quotation>
-There are also some surprises [in the late Miocene Australia]
-some small mammals totally unknown and not obviously related
-to any known marsupial (appropriately awarded names such as
-<foreign>Thingodonta</foreign> and <foreign>Weirdodonta</foreign>) and a giant
-python immortalized as <foreign>Montypythonoides</foreign>.
-<source><cite>The Book of Life</cite>, found by Aaron Watters
-</source> 
+Counting is the most simple and primitive of narratives -- 1 2 3 4 5 6
+7 8 9 10 --  a tale with a beginning, a middle and an end and a sense
+of progression -- arriving at a finish of two digits -- a goal
+attained, a denouement reached.
+<author>Peter Greenaway</author>
+<source><cite>Fear of Drowning By Numbers</cite> (1988)</source>
 </quotation>
 
 </quotations>
