@@ -6,7 +6,7 @@
 import sys, os
 
 try:
-    from distutils.core import setup
+    from distutils.core import setup, Extension
 except ImportError:
     pass
 else:
@@ -38,7 +38,7 @@ else:
                         ]
                          
     setup (name = "PyXML",
-           version = "0.5.4",
+           version = "0.5.6",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
@@ -50,23 +50,22 @@ else:
                        'xml.unicode', 'xml.utils'
                        ],
 
-           ext_modules = wstr_modules +
-                         [('xml.parsers.pyexpat',
-                           { 'define': [('XML_NS', None)],
-                             'include_dirs': [ 'extensions/expat/xmltok',
-                                               'extensions/expat/xmlparse' ], 
-                             'sources' :
-                             [
-        'extensions/pyexpat.c',
-        'extensions/expat/xmltok/xmltok.c',
-        'extensions/expat/xmltok/xmlrole.c',
-        'extensions/expat/xmlwf/xmlfile.c',
-        'extensions/expat/xmlwf/xmlwf.c',
-        'extensions/expat/xmlwf/codepage.c',
-        'extensions/expat/xmlparse/xmlparse.c',
-        'extensions/expat/xmlparse/hashtable.c',
-        FILEMAP_SRC,
-        ] }),
+           ext_modules = #wstr_modules +
+	                 [Extension('xml.parsers.pyexpat',
+			 define_macros = [('XML_NS', None)],
+			 include_dirs = [ 'extensions/expat/xmltok',
+			                  'extensions/expat/xmlparse' ], 
+                         sources = [
+                                      'extensions/pyexpat.c',
+                                      'extensions/expat/xmltok/xmltok.c',
+                                      'extensions/expat/xmltok/xmlrole.c',
+                                      'extensions/expat/xmlwf/xmlfile.c',
+                                      'extensions/expat/xmlwf/xmlwf.c',
+                                      'extensions/expat/xmlwf/codepage.c',
+                                      'extensions/expat/xmlparse/xmlparse.c',
+                                      'extensions/expat/xmlparse/hashtable.c',
+                                      FILEMAP_SRC,
+                                      ] )
                           ]
            )
     
