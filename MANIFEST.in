@@ -13,7 +13,7 @@ recursive-include extensions Makefile.pre.in Setup.in *.c *.h
 
 recursive-include extensions/expat *.html *Makefile  expat.* *.dsp
 
-recursive-include test *.py *.xml *.html
+recursive-include test *.py *.xml *.html *.dtd
 include test/test.xml.out
 recursive-include test/output test_*
 
