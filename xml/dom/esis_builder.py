@@ -57,10 +57,14 @@ class EsisBuilder(Builder):
             elif event == '-':
                 text = self.document.createText(ESISDecode(text))
                 self.push(text)
+
             elif event == '?':
-                text = string.split( text[:-1] )
-                pi = self.document.createProcessingInstruction(text[0],
-                                           string.join(text[1:]) )
+                text = string.split(text[:-1], None, 1)
+                try:
+                    data = text[1]
+                except IndexError:
+                    data = ''
+                pi = self.document.createProcessingInstruction(text[0], data)
                 self.push( pi )
                 
             elif event == 'C':
@@ -87,6 +91,10 @@ class EsisBuilder(Builder):
                                     pubId,
                                     sysId)
                 self.id_store = {}
+
+            elif event == '&':
+                eref = self.document.createEntityReference(text)
+                self.push(eref)
             
             else:
                 sys.stderr.write('Unknown event: ' + `line` + '\n')
