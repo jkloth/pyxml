@@ -4,7 +4,7 @@ It is intended for use by 4Suite only; do not use it in your own code."""
 import string
 import utf8_iso
 
-_trans = string.maketrans("_-:","-- ")
+_trans = string.maketrans("_:","- ")
 def _normalize(codeset):
     codeset = string.lower(codeset)
     codeset = string.translate(codeset, _trans)
