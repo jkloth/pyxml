@@ -1,0 +1,11 @@
+. ANNOUNCE CREDITS LICENCE MANIFEST README* TODO setup.py
+xml *.py 
+windows *.dll *.mak 
+mac *.prj *.prj.exp
+
+Wise *.py *.WSM *.wse
+doc *.html *.tex *.txt *.gif *.css
+extensions Makefile.pre.in Setup.in *.c *.h 
+extensions/expat *.html *Makefile expat.* *.dsp
+test *.py test_* *.xml
+demo README *.py *.xml
