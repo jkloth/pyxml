@@ -4,7 +4,7 @@
    This is a partial credits-file of people who have contributed to
    the Python/XML package.  It is sorted by name, and written as
    well-formed XML, though no DTD exists for it.  The subelements of a
-   <hacker> element are: <name>, <email>, <home-page>, <public-key>,
+   <xml-hacker> element are: <name>, <email>, <home-page>, <public-key>,
    <task>, and <snail-mail>.
 
    This list is not complete; if you've been left out, or if you're
@@ -20,7 +20,9 @@
   </xml-hacker>
   
   <xml-hacker>
-    <name> Fred L. Drake </name>
+    <name> Fred L. Drake, Jr. </name>
+    <email> fdrake@acm.org </email>
+    <home-page> http://python.starship.net/crew/fdrake/ </home-page>
     <task> XBEL maintainer. </task>
   </xml-hacker>
   
