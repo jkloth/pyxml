@@ -235,6 +235,27 @@ for entry in L:
         print "L =", `L`
         break
 
+
+# Weird public ID bug reported by Martijn Faassen; he was only able to
+# tickle this under Zope with ParsedXML and PyXML 0.7 installed.
+text = '''\
+<?xml version="1.0" ?>
+<!DOCTYPE foo SYSTEM "foo">
+<doc>Test</doc>
+'''
+
+def start_doctype_decl_handler(doctypeName, systemId, publicId,
+                               has_internal_subset):
+    if publicId is not None:
+        print "Unexpect publicId: " + `publicId`
+    if systemId != "foo":
+        print "Unexpect systemId: " + `systemId`
+
+p = expat.ParserCreate()
+p.StartDoctypeDeclHandler = start_doctype_decl_handler
+p.Parse(text, 1)
+
+
 # Tests of the buffer_text attribute.
 import sys
 
