@@ -1,16 +1,23 @@
 """
 Some utilities for use with xmlproc.
 
-$Id: utils.py,v 1.5 2001/12/30 12:09:14 loewis Exp $
+$Id: utils.py,v 1.6 2002/04/13 19:11:53 larsga Exp $
 """
 
-import xmlapp,sys,string,types
+import xmlapp, sys, string, types
 
 replace = string.replace
 
 if sys.platform[ : 4] == "java":
     from java.lang import Exception
 
+try:
+    from codecs import EncodedFile
+except ImportError, e:
+    # if we are on Python 1.5
+    def EncodedFile(file, encoding):
+        return file
+    
 # --- XMLParseException
 
 class XMLParseException(Exception):
@@ -162,9 +169,12 @@ def escape_attval(str):
 
 class DocGenerator(xmlapp.Application):
 
-    def __init__(self, out = sys.stdout):
-        self.out = out
-
+    def __init__(self, out = None):
+        if not out:
+            self.out = EncodedFile(sys.stdout, "utf-8")
+        else:
+            self.out = out
+    
     def handle_pi(self, target, remainder):
         self.out.write("<?%s %s?>" % (target, remainder))
 
@@ -201,7 +211,28 @@ class DictResolver(xmlapp.PubIdResolver):
 
     def resolve_entity_pubid(self, pubid, sysid):
         return self.mapping.get(pubid, sysid)
+    
+# --- Location
 
+class Location:
+
+    def __init__(self, locator):
+        self._sysid = locator.get_current_sysid()
+        self._line = locator.get_line()
+        self._column = locator.get_column()
+
+    def get_sysid(self):
+        return self._sysid
+
+    def get_line(self):
+        return self._line
+
+    def get_column(self):
+        return self._column
+
+    def __str__(self):
+        return "%s:%s:%s" % (self._sysid, self._line, self._column)
+    
 # --- Various DTD and validation tools
 
 def load_dtd(sysid):
