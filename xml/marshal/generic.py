@@ -348,7 +348,8 @@ class Unmarshaller(saxlib.HandlerBase):
     
     def um_end_string(self, name):
         ds = self.data_stack
-        ds[-1] = string.join(ds[-1], "")
+        # might need to convert unicode string to byte string
+        ds[-1] = str(string.join(ds[-1], ""))
 
     def um_end_int(self, name):
         ds = self.data_stack
@@ -493,7 +494,7 @@ def test(load, loads, dump, dumps, test_values,
 
     for item in test_values:
         s = dumps(item)
-        print item, s
+        print format(item), s
         output = loads(s)
         # Try it from a file
         file = StringIO.StringIO()
