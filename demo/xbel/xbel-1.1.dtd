@@ -6,7 +6,7 @@
      One valid system identifier at which this DTD will remain
      available is:
 
-        http://www.python.org/topics/xml/dtds/xbel-1.1.dtd
+        http://pyxml.sourceforge.net/topics/dtds/xbel-1.1.dtd
 
      More information the on the DTD, including reference
      documentation, is available at:
