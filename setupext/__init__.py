@@ -7,7 +7,7 @@ from distutils.command.bdist_wininst import bdist_wininst
 # When building a windows installer, put some more text into
 # the long description
 class wininst_request_delete(bdist_wininst):
-    add_text = "\nIf you have installed earlier versions of this package, please remove them manually before installing this release."
+    add_text = "\nIf you have installed earlier versions of this package, please remove them through 'Add/Remove Programs' before installing this release."
 
     def get_inidata(self):
         m = self.distribution.metadata

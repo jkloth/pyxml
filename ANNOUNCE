@@ -3,45 +3,17 @@ To be sent to: c.l.py.announce, xml-dev, www-dom, comp.text.xml,
                other suggestions?
 
 ================== 
-Version 0.8.1 of the Python/XML distribution is now available.  It
+Version 0.8.2 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.1.tar.gz
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.1.win32-py2.1.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.1.win32-py2.2.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.1-2.2.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.tar.gz
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.win32-py2.1.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.win32-py2.2.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2-2.2.i386.rpm
 
 
-Changes in this version, compared to 0.8:
-
-  * Various bug fixes:
-    - tracing works now with pyexpat
-    - fix registry key for MSIE XBEL support
-    - correct ill-formedness of xmlproc.dtd2schema
-    - avoid adding comments and PIs in the internal subset as Document
-      children when building minidom trees
-    - properly close files in xml.dom.ext.reader.*
-
-  * XSLT is not installed anymore by default, specify --with-xslt
-    if desired
-
-  * Update Expat to 1.95.5
-
-  * Add features to xml.parsers.expat:
-    - new method "UseForeignDTD"
-    - new attribute "features"
-
-  * Update to 25 July 2002 LS spec for xml.dom.xmlbuilder.  Use
-    expatbuilder if no parser is given to
-    xml.dom.minidom.parse[String].
-
-  * Fix many obscure DOM bugs
-
-  * Define and document the implementation-defined behaviors of
-    cloneNode() for xml.dom.minidom.
-
-  * Use urllib2 instead of urllib throughout.
+Changes in this version, compared to 0.8.1:
 
 
 The Python/XML distribution contains the basic tools required for
