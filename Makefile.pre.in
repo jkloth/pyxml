@@ -348,11 +348,11 @@ libinstall:
 	PYTHONPATH=$(LIBDEST) \
 		$(BINDIR)/$(PYTHON) -O $(LIBDEST)/compileall.py $(LIBXML)
 
+test: default
+	cd test ; PYTHONPATH=.. python testxml.py
+
 pyexpat$(SO) : expat/libexpat.a
 
 expat/libexpat.a:
 	cd expat ; make libexpat.a CC="$(CC)" CFLAGS="$(CCSHARED) $(CFLAGS) -Ixmltok -Ixmlparse"
 
-# XXX
-test: default
-	cd test ; PYTHONPATH=.. python testxml.py
