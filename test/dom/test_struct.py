@@ -41,17 +41,19 @@ def test(tester):
     dt = implementation.createDocumentType('dt1', '', '')
     doc = implementation.createDocument('', None, dt)
     df = doc.createDocumentFragment()
+    element = doc.createElement('TestElement')
 
-    Nodes = {}
-    Nodes['Document'] = implementation.createDocument('','ROOT2', dt)
-    Nodes['DocType'] = implementation.createDocumentType('dt2', '', '')
-    Nodes['Element'] = doc.createElement('tagName1')
-    Nodes['Text'] = doc.createTextNode('data')
-    Nodes['Comment'] = doc.createComment('data')
-    Nodes['CDATA'] = doc.createCDATASection('data')
-    Nodes['ProcInstruct'] = doc.createProcessingInstruction('target', 'data')
-    Nodes['Attr'] = doc.createAttribute('name')
-    Nodes['EntityRef'] = doc.createEntityReference('name')
+    Nodes = {
+        'Document' : implementation.createDocument('','ROOT2', dt),
+        'DocType' : implementation.createDocumentType('dt2', '', ''),
+        'Element' : doc.createElement('tagName1'),
+        'Text' : doc.createTextNode('data'),
+        'Comment' : doc.createComment('data'),
+        'CDATA' : doc.createCDATASection('data'),
+        'ProcInstruct' : doc.createProcessingInstruction('target', 'data'),
+        'Attr' : doc.createAttribute('name'),
+        'EntityRef' : doc.createEntityReference('name'),
+        }
     tester.testDone()
 
 
@@ -114,7 +116,7 @@ def test(tester):
             'EntityRef',
             ]
 
-    testRestriction(tester, doc, Nodes, Nodes['Element'], good)
+    testRestriction(tester, doc, Nodes, element, good)
     tester.testDone()
 
 

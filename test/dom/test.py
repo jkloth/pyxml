@@ -42,7 +42,6 @@ if __name__ == '__main__':
         'Notation',
         'ProcessingInstruction',
         'Struct',
-#        'HTML',
 #        'Demo',
 #        'Pythonic'
          ]
@@ -135,6 +134,6 @@ Options:
                 print '  %s' % t
         sys.exit(command_line_error)
 
-    testSuite = TestSuite.TestSuite(haltOnError, 1)
+    testSuite = TestSuite.TestSuite(haltOnError)
     runTests(tests, testSuite)
 

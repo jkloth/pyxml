@@ -48,13 +48,6 @@ def test(tester):
     tester.testDone()
 
 
-    tester.startTest('Testing _4dom_joinText()')
-    t = t._4dom_joinText(t,t2)
-    if t.data != 'ONETWO':
-        tester.error('joinText did not join');
-    tester.testDone()
-
-
     tester.startTest('Testing cloneNode()')
     t3 = t.cloneNode(0)
     if t3.data != t.data:
