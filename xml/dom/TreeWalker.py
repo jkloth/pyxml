@@ -142,14 +142,17 @@ class TreeWalker:
             return self.__dict__['__currentNode']
         if self.nextSibling():
             return self.__dict__['__currentNode']
-        if self.parentNode():
-            return self.nextSibling()
+        while self.parentNode():
+            tmpnode =  self.nextSibling()
+            if tmpnode:
+                return tmpnode
         return None
 
 
     def __regress(self):
         if self.previousSibling():
-            self.lastChild()
+            while self.lastChild():
+                pass
             return self.__dict__['__currentNode']
         if self.parentNode():
             return self.__dict__['__currentNode']
