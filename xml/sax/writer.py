@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.3 $'
+__version__ = '$Revision: 1.4 $'
 
 import string
 
@@ -237,8 +237,8 @@ class XmlWriter:
     def startDocument(self):
         if self.__syntax.pic == "?>":
             lit = self.__syntax.lit
-            s = '%sxml encoding%s%siso-8859-1%s' % (
-                self.__syntax.pio, self.__syntax.vi, lit, lit)
+            s = '%sxml version=%s1.0%s encoding%s%siso-8859-1%s' % (
+                self.__syntax.pio, lit, lit, self.__syntax.vi, lit, lit)
             if self.__standalone:
                 s = '%s standalone%s%s%s%s' % (
                     s, self.__syntax.vi, lit, self.__standalone, lit)
