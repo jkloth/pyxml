@@ -40,7 +40,6 @@ class EventTarget:
         for etype in supportedEvents:
             self.listeners[etype] = []
             self.capture_listeners[etype] = []
-        return
 
     def addEventListener(self, etype, listener, useCapture):
         if useCapture:
@@ -50,11 +49,12 @@ class EventTarget:
             if listener not in self.listeners[etype]:
                 self.listeners[etype].append(listener)
 
-        return
-
     def removeEventListener(self, etype, listener, useCapture):
-        self.listeners[etype].remove(listener)
-        return
+        if useCapture:
+           self.capture_listeners[etype].remove(listener)
+        else:
+           self.listeners[etype].remove(listener)
+
 
     def dispatchEvent(self, evt):
         # The actual work is done in the implementing class
@@ -81,7 +81,6 @@ class Event:
         self.eventPhase = Event.CAPTURING_PHASE
         self.type = eventType
         self.timeStamp = 0
-        return
 
     def stopPropagation(self):
         self._4dom_propagate = 0
@@ -95,7 +94,6 @@ class Event:
         self.cancelable = cancelableArg
         self._4dom_preventDefaultCalled = 0
         self._4dom_propagate = 1
-        return
 
 
 class MutationEvent(Event):
@@ -127,4 +125,3 @@ class MutationEvent(Event):
         self.attrName = attrNameArg
         #No mutation events are cancelable
         self.cancelable = 0
-        return
