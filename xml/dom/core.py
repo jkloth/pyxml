@@ -157,9 +157,9 @@ class NodeList(UserList.UserList):
         return NODE_CLASS[ n.type ](n, self._document)
 
     def __setitem__(self, i, item):
-    	raise TypeError, "NodeList instances don't support item assignment"
+        raise TypeError, "NodeList instances don't support item assignment"
     def __delitem__(self, i, item):
-    	raise TypeError, "NodeList instances don't support item deletion"
+        raise TypeError, "NodeList instances don't support item deletion"
 
     def __getslice__(self, i, j):
         userlist = NodeList([], self._document)
@@ -167,34 +167,34 @@ class NodeList(UserList.UserList):
         return userlist
 
     def __setslice__(self, i, j, list):
-	raise TypeError, "NodeList instances don't support slice assignment"
+        raise TypeError, "NodeList instances don't support slice assignment"
     def __delslice__(self, i, j):
-	raise TypeError, "NodeList instances don't support slice deletion"
+        raise TypeError, "NodeList instances don't support slice deletion"
 
     def __add__(self, list):
-	if type(list) == type(self.data):
-  	    return self.__class__(self.data + list, self._document)
-	else:
-	    return self.__class__(self.data + list.data, 
-			          self._document)
+        if type(list) == type(self.data):
+            return self.__class__(self.data + list, self._document)
+        else:
+            return self.__class__(self.data + list.data, 
+                                  self._document)
     def __radd__(self, list):
-	if type(list) == type(self.data):
-	    return self.__class__(list + self.data, self._document)
-	else:
-	    return self.__class__(list.data + self.data, 
-					      self._document)
+        if type(list) == type(self.data):
+            return self.__class__(list + self.data, self._document)
+        else:
+            return self.__class__(list.data + self.data, 
+                                              self._document)
     def __mul__(self, n):
-	return self.__class__(self.data*n, self._document)
+        return self.__class__(self.data*n, self._document)
     __rmul__ = __mul__
 
     def append(self, item): 
         raise TypeError, "NodeList instances don't support .append()"
     def insert(self, i, item):
-	raise TypeError, "NodeList instances don't support .insert()"
+        raise TypeError, "NodeList instances don't support .insert()"
     def pop(self, i=-1): 
-	raise TypeError, "NodeList instances don't support .pop()"
+        raise TypeError, "NodeList instances don't support .pop()"
     def remove(self, item): 
-	raise TypeError, "NodeList instances don't support .remove()"
+        raise TypeError, "NodeList instances don't support .remove()"
     def count(self, item): return self.data.count(item._node)
     def index(self, item): return self.data.index(item._node)
     def reverse(self): 
@@ -224,8 +224,8 @@ class NamedNodeMap(UserDict.UserDict):
         return n
 
     def __setitem__(self, key, item):
-	if item.type != ATTRIBUTE_NODE:
-	    raise TypeError, "NamedNodeMap instances only accept Attr nodes as values"
+        if item.type != ATTRIBUTE_NODE:
+            raise TypeError, "NamedNodeMap instances only accept Attr nodes as values"
         self.data[key] = item._node
 
     def items(self):
@@ -247,7 +247,7 @@ class NamedNodeMap(UserDict.UserDict):
     def update(self, other):
         if not isinstance(other, NamedNodeMap):
              raise TypeError, "Can only use .update() with another NamedNodeMap"
-	for k, v in other.data.items():
+        for k, v in other.data.items():
             self.data[k] = v
 
     def get(self, key, default=None):
@@ -281,10 +281,10 @@ class _nodeData:
         self.name = self.value = self.attributes = None
         ##_nodeData.Node_counter = _nodeData.Node_counter + 1
 
-	if self.type == DOCUMENT_NODE:
-  	    # Dictionary mapping id(_nodeData instance) to parent
-	    # _nodeData instance 
-	    self._parent_relation = {}
+        if self.type == DOCUMENT_NODE:
+            # Dictionary mapping id(_nodeData instance) to parent
+            # _nodeData instance 
+            self._parent_relation = {}
 
     def __getinitargs__(self):
         return (self.type,)
@@ -293,8 +293,8 @@ class _nodeData:
 ##        _nodeData.Node_counter = _nodeData.Node_counter -1
 
     def __repr__(self):
-	return ("<_nodeData: type=%i name=%s value=%s att=%s>" %
-	        (self.type, self.name, self.value, self.attributes) )
+        return ("<_nodeData: type=%i name=%s value=%s att=%s>" %
+                (self.type, self.name, self.value, self.attributes) )
 
 class Node:
     """Base class for tree nodes in DOM model."""
@@ -304,11 +304,11 @@ class Node:
 
     def __init__(self, node, document = None):
         self._node = node
-	assert isinstance(node, _nodeData)
-	assert isinstance(document, _nodeData) or (document is None)
+        assert isinstance(node, _nodeData)
+        assert isinstance(document, _nodeData) or (document is None)
 
-	if document is not None: self._document = document
-	else: self._document = None
+        if document is not None: self._document = document
+        else: self._document = None
 ##        Node.Node_counter = Node.Node_counter + 1
 
 ##    def __del__(self):
@@ -335,13 +335,13 @@ class Node:
         self.__dict__[key] = value
 
     def __cmp__(self, other):
-	if isinstance(other, Node):
+        if isinstance(other, Node):
             # Compare the underlying _nodeData instances.
-	    return cmp(self._node, other._node)
-	else:
+            return cmp(self._node, other._node)
+        else:
             # If the other object isn't a Node, then we'll do an
-	    # arbitrary comparison that will at least be consistent.
-	    return cmp(self._node, other)        
+            # arbitrary comparison that will at least be consistent.
+            return cmp(self._node, other)        
 
     # Methods to get/set the DOM-specified attributes of a node: name, value,
     # attributes.
@@ -416,7 +416,7 @@ class Node:
         """The Document object associated with this node. This is also
         the Document object used to create new nodes. When this node
         is a Document this is None."""
-	return Document(self._document, None)
+        return Document(self._document, None)
 
     # Methods
 
@@ -458,7 +458,7 @@ class Node:
 
             for node in nodelist:
                 self._node.children.append( node )
-	        self._set_parentdict( id(node), self._node)
+                self._set_parentdict( id(node), self._node)
                             
             return newChild
 
@@ -474,7 +474,7 @@ class Node:
                     newChild._node.children = []
                 else:
                     for node in nodelist:
-	                self._set_parentdict(id(node), self._node)
+                        self._set_parentdict(id(node), self._node)
                 return newChild
 
         raise NotFoundException("refChild not a child in insertBefore()")
@@ -504,12 +504,12 @@ class Node:
 
                 if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
                     L[i:i+1] = newChild._node.children
-	            for child in newChild._node.children:
-	                self._set_parentdict(id(child), self._node)
+                    for child in newChild._node.children:
+                        self._set_parentdict(id(child), self._node)
                     newChild._node.children = []
                 else:
                     L[i] = newChild._node
-	            self._set_parentdict(id(newChild._node), self._node)
+                    self._set_parentdict(id(newChild._node), self._node)
                 self._del_parentdict( id(oldChild._node) )
                 return oldChild
 
@@ -527,7 +527,7 @@ class Node:
         except ValueError:
             raise NotFoundException("oldChild is not a child of this node")
 
-	self._del_parentdict( id(oldChild._node) )
+        self._del_parentdict( id(oldChild._node) )
         return oldChild
 
     def appendChild(self, newChild):
@@ -557,8 +557,8 @@ class Node:
             else:
                 setattr(d, key, copy.deepcopy(value) )
 
-	if self._node.type == DOCUMENT_NODE: document = d
-	else: document = self._document
+        if self._node.type == DOCUMENT_NODE: document = d
+        else: document = self._document
         node = NODE_CLASS[ d.type ] ( d, document )
         if deep:
             d.children = copy.deepcopy(self._node.children)
@@ -574,49 +574,49 @@ class Node:
 
     def get_parentNode(self):
         # If self._document is None, this must be the Document node,
-	# which doesn't have a parent.
-	if self._document is None: return None
+        # which doesn't have a parent.
+        if self._document is None: return None
 
-	# Check if the id() of this node is a key in the dictionary;
-	# if so, the corresponding value is the _nodeData instance 
-	# that's the parent node.  
-	pr = self._get_parentdict()
+        # Check if the id() of this node is a key in the dictionary;
+        # if so, the corresponding value is the _nodeData instance 
+        # that's the parent node.  
+        pr = self._get_parentdict()
         parent = pr.get( id(self._node), None)
         if parent is not None: 
-	    return NODE_CLASS[ parent.type ] (parent, self._document)
+            return NODE_CLASS[ parent.type ] (parent, self._document)
         else:
             # The children of the Document node can't be added to the
-	    # parentdict, because that would lead to a cycle; the
-	    # Document _nodeData instance would contain a dictionary which
-	    # contained the Document node as a value.  Therefore, if
-	    # there's no key for id(self._node), we have to check 
-	    # the children of the Document element before concluding 
-	    # that this node is parentless.
-	
+            # parentdict, because that would lead to a cycle; the
+            # Document _nodeData instance would contain a dictionary which
+            # contained the Document node as a value.  Therefore, if
+            # there's no key for id(self._node), we have to check 
+            # the children of the Document element before concluding 
+            # that this node is parentless.
+        
             if self._node in self._document.children:
                 return Document(self._document, None)
-	    return None
+            return None
 
     # Private methods        
 
     def _get_parentdict(self):
         if self._node.type == DOCUMENT_NODE:
-	    return self._node._parent_relation
-	else:
-	    return self._document._parent_relation
+            return self._node._parent_relation
+        else:
+            return self._document._parent_relation
 
     def _set_parentdict(self, key, node):
-	d = self._get_parentdict()
+        d = self._get_parentdict()
         # Don't insert the document node, in order to avoid a cycle
         if node == self._document: 
             # If this node is already represented in the dictionary,
-	    # we have to delete it.
-	    if d.has_key( key ): del d[key]
-	    return
+            # we have to delete it.
+            if d.has_key( key ): del d[key]
+            return
         d[key] = node
 
     def _del_parentdict(self, key):
-	d = self._get_parentdict()
+        d = self._get_parentdict()
         if d.has_key(key): del d[key]
 
     def _index(self):
@@ -796,7 +796,7 @@ class Element(Node):
     
     def __init__(self, node, document = None):
         Node.__init__(self, node, document)
-	self.ns_prefix = {}         # Dictionary for namespaces
+        self.ns_prefix = {}         # Dictionary for namespaces
         
     def __repr__(self):
         return "<Element '%s'>" % (self._node.name)
@@ -864,11 +864,11 @@ class Element(Node):
         a.children.append( t )
         self._node.attributes[name] = a
 
-	# Update the namespace prefixes, if required
-	if name[0:5] == 'xmlns':
-	    prefix = name[6:]
-	    uri = value
-	    self.ns_prefix[prefix] = uri
+        # Update the namespace prefixes, if required
+        if name[0:5] == 'xmlns':
+            prefix = name[6:]
+            uri = value
+            self.ns_prefix[prefix] = uri
 
     def removeAttribute(self, name):
         "Removes an attribute by name."
@@ -876,11 +876,11 @@ class Element(Node):
         if self._node.attributes.has_key(name):
             del self._node.attributes[name]
 
-	# Update the namespace prefixes, if required
-	if name[0:5] == 'xmlns':
-	    prefix = name[6:]
-	    assert self.ns_prefix.has_key( prefix )
-	    del self.ns_prefix[prefix]
+        # Update the namespace prefixes, if required
+        if name[0:5] == 'xmlns':
+            prefix = name[6:]
+            assert self.ns_prefix.has_key( prefix )
+            del self.ns_prefix[prefix]
 
     def getAttributeNode(self, name):
         "Retrieves an Attr node by name."
@@ -907,11 +907,11 @@ class Element(Node):
 
         self._node.attributes[ name ] = newAttr._node
 
-	# Update the namespace prefixes, if required
-	if name[0:5] == 'xmlns':
-	    prefix = name[6:]
-	    uri = newAttr.get_nodeValue()
-	    self.ns_prefix[prefix] = uri
+        # Update the namespace prefixes, if required
+        if name[0:5] == 'xmlns':
+            prefix = name[6:]
+            uri = newAttr.get_nodeValue()
+            self.ns_prefix[prefix] = uri
 
         return retval
 
@@ -920,11 +920,11 @@ class Element(Node):
         # XXX this needs to know about DTDs to restore a default value
         name = oldAttr._node.name
 
-	# Update the namespace prefixes, if required
-	if name[0:5] == 'xmlns':
-	    prefix = name[6:]
-	    assert self.ns_prefix.has_key( prefix )
-	    del self.ns_prefix[prefix]
+        # Update the namespace prefixes, if required
+        if name[0:5] == 'xmlns':
+            prefix = name[6:]
+            assert self.ns_prefix.has_key( prefix )
+            del self.ns_prefix[prefix]
 
         if self._node.attributes.has_key( name ):
             retval = Attr(self._node.attributes[name], self._document )
@@ -964,7 +964,7 @@ class Element(Node):
                 # _nodeData instance will find themselves
                 # disconnected from the tree; this is not a bug, I think.
                 L[i-1].value = L[i-1].value + L[i].value
-	        self._del_parentdict( id(L[i]) ) # Mark the node as parentless
+                self._del_parentdict( id(L[i]) ) # Mark the node as parentless
                 del L[i:i+1]
                 
         for i in range(len(L)):
@@ -993,7 +993,7 @@ class Text(CharacterData):
         n2.value = self.substringData(offset, len(self) - offset)
         n1 = Text(n1, self._document)
         n2 = Text(n2, self._document)
-	parent = self.get_parentNode()
+        parent = self.get_parentNode()
 
         # Insert n1 and n2, and delete this node
         parent.insertBefore(n1, self)
@@ -1115,7 +1115,7 @@ class Document(Node):
         Node.__init__(self, node, None)
         self.documentType = None
         self.DOMImplementation = __import__(__name__)
-	self._document = node
+        self._document = node
 
     def toxml(self):
         L = ['<?xml version="1.0"?>\n']
@@ -1215,11 +1215,11 @@ class Document(Node):
         in the order in which they would be encountered in a preorder
         traversal of the Document tree."""
         
-	# This function could be optimized by doing it in a private function
+        # This function could be optimized by doing it in a private function
         # and dealing with _nodeData instances directly.  This would save 
-	# the overhead of creating Node instances only to take their ._node
-	# attribute and append it to a list.  Haven't bothered to code that
-	# yet...
+        # the overhead of creating Node instances only to take their ._node
+        # attribute and append it to a list.  Haven't bothered to code that
+        # yet...
 
         elem = self.get_documentElement()
         if elem is None: return NodeList([], self._node)
@@ -1262,7 +1262,7 @@ class Document(Node):
     # Override the Node mutation methods in order to check that
     # there's at most a single Element child, and to update
     # self.documentElement.  
-	
+        
     def insertBefore(self, newChild, refChild):
         """Inserts the node newChild before the existing child node
         refChild. If refChild is None, insert newChild at the end of
@@ -1272,58 +1272,58 @@ class Document(Node):
         are inserted, in the same order, before refChild. If the
         newChild is already in the tree, it is first removed."""
 
-	# Check that this operation wouldn't result in the Document node
-	# having more than one children that are Element nodes.
-	# This is done by counting the number of unique element nodes
-	# in both the Document's children, and the nodes to be inserted.
-	if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
-	    nodelist = newChild._node.children
-	else:
-	    nodelist = [newChild._node]
+        # Check that this operation wouldn't result in the Document node
+        # having more than one children that are Element nodes.
+        # This is done by counting the number of unique element nodes
+        # in both the Document's children, and the nodes to be inserted.
+        if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+            nodelist = newChild._node.children
+        else:
+            nodelist = [newChild._node]
 
-	d = {}                         # Dictionary for counting
-	for c in nodelist:
+        d = {}                         # Dictionary for counting
+        for c in nodelist:
             if c.type == ELEMENT_NODE: d[ id(c) ] = None
         for c in self._node.children:
             if c.type == ELEMENT_NODE: d[ id(c) ] = None
-	if len(d) > 1:
-	    raise HierarchyRequestException, \
+        if len(d) > 1:
+            raise HierarchyRequestException, \
                "insertBefore() would result in more than one root document element"
          
-	# Call the original version of insertBefore
-	Node.insertBefore(self, newChild, refChild)
+        # Call the original version of insertBefore
+        Node.insertBefore(self, newChild, refChild)
         
     def replaceChild(self, newChild, oldChild):
         """Replaces the child node oldChild with newChild in the list of
         children, and returns the oldChild node. If the newChild is
         already in the tree, it is first removed."""
 
-	# Check that this operation wouldn't result in the Document node
-	# having more than one children that are Element nodes.
-	# This is as in insertBefore, with one change; if the old node being
-	# replaced is an element, it shouldn't be counted.
-	if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
-	    nodelist = newChild._node.children
-	else:
-	    nodelist = [newChild._node]
+        # Check that this operation wouldn't result in the Document node
+        # having more than one children that are Element nodes.
+        # This is as in insertBefore, with one change; if the old node being
+        # replaced is an element, it shouldn't be counted.
+        if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+            nodelist = newChild._node.children
+        else:
+            nodelist = [newChild._node]
 
-	d = {}                         # Dictionary for counting
-	for c in nodelist:
+        d = {}                         # Dictionary for counting
+        for c in nodelist:
             if c.type == ELEMENT_NODE: d[ id(c) ] = None
         for c in self._node.children:
             if c.type == ELEMENT_NODE: d[ id(c) ] = None
 
-	# For a correct count, we should not count the oldChild node, in case
-	# it's a
-	ocn = oldChild._node
+        # For a correct count, we should not count the oldChild node, in case
+        # it's a
+        ocn = oldChild._node
         if ocn.type == ELEMENT_NODE and d.has_key( id(ocn) ):
-	    del d[ id(ocn) ]
+            del d[ id(ocn) ]
 
-	if len(d) > 1:
-	    raise HierarchyRequestException, \
+        if len(d) > 1:
+            raise HierarchyRequestException, \
               "replaceChild() would result in more than one root document element" 
 
-	Node.replaceChild(self, newChild, oldChild)
+        Node.replaceChild(self, newChild, oldChild)
 
 class DocumentFragment(Node):
     childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
@@ -1333,7 +1333,7 @@ class DocumentFragment(Node):
     def get_parentNode(self): 
         # DocumentFragments can never be part of a tree themselves; when added,
         # their children are added instead.
-	return None    
+        return None    
 
     def toxml(self):
         L = []

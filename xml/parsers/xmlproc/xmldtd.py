@@ -4,7 +4,7 @@ DTD event consumers for the DTD parser as well as the objects that
 store DTD information for retrieval by clients (including the
 validating parser).
 
-$Id: xmldtd.py,v 1.7 1999/04/22 01:38:19 amk Exp $
+$Id: xmldtd.py,v 1.8 1999/08/15 23:53:07 amk Exp $
 """
 
 import types
@@ -20,40 +20,40 @@ class WFCDTD(DTDConsumer):
     "DTD-representing class for the WFC parser."
 
     def __init__(self,parser):
-	DTDConsumer.__init__(self,parser)
+        DTDConsumer.__init__(self,parser)
         self.dtd_listener=DTDConsumer(parser)        
         self.reset()
 
     def reset(self):
         "Clears all DTD information."
-	self.gen_ents={}
-	self.param_ents={}
-	self.elems={}
+        self.gen_ents={}
+        self.param_ents={}
+        self.elems={}
         self.attrinfo={}
         self.used_notations={} # Notations used by NOTATION attrs
 
-	# Adding predefined entities
-	for name in predef_ents.keys():
-	    self.new_general_entity(name,predef_ents[name])        
+        # Adding predefined entities
+        for name in predef_ents.keys():
+            self.new_general_entity(name,predef_ents[name])        
             
     def set_dtd_listener(self,listener):
         "Registers an object that listens for DTD parse events."
         self.dtd_listener=listener
             
     def resolve_pe(self,name):
-	"""Returns the entitiy object associated with this parameter entity
+        """Returns the entitiy object associated with this parameter entity
         name. Throws KeyError if the entity is not declared."""
         return self.param_ents[name]
 
     def resolve_ge(self,name):
-	"""Returns the entitiy object associated with this general entity
+        """Returns the entitiy object associated with this general entity
         name. Throws KeyError if the entity is not declared."""
         return self.gen_ents[name]
 
     def get_elem(self,name):
-	"""Returns the declaration of this element. Throws KeyError if the
-	element does not exist."""
-	return self.elems[name]
+        """Returns the declaration of this element. Throws KeyError if the
+        element does not exist."""
+        return self.elems[name]
 
     def get_elements(self):
         "Returns a list of all declared element names."
@@ -86,11 +86,11 @@ class WFCDTD(DTDConsumer):
     # --- Parse events
     
     def new_attribute(self,elem,attr,a_type,a_decl,a_def):
-	"Receives the declaration of a new attribute."
+        "Receives the declaration of a new attribute."
         self.dtd_listener.new_attribute(elem,attr,a_type,a_decl,a_def)
         
         if not self.elems.has_key(elem):
-	    self.elems[elem]=ElementTypeAny(elem) # Adding dummy
+            self.elems[elem]=ElementTypeAny(elem) # Adding dummy
 
         self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
         
@@ -102,7 +102,7 @@ class WFCDTD(DTDConsumer):
             return # Keep first decl
         
         ent=InternalEntity(name,val)
-	self.gen_ents[name]=ent
+        self.gen_ents[name]=ent
         self.dtd_listener.new_general_entity(name,val)
 
     def new_parameter_entity(self,name,val):
@@ -111,7 +111,7 @@ class WFCDTD(DTDConsumer):
             return # Keep first decl
         
         ent=InternalEntity(name,val)
-	self.param_ents[name]=ent
+        self.param_ents[name]=ent
         self.dtd_listener.new_parameter_entity(name,val)
 
     def new_external_entity(self,ent_name,pubid,sysid,ndata):
@@ -120,7 +120,7 @@ class WFCDTD(DTDConsumer):
             return # Keep first decl
         
         ent=ExternalEntity(ent_name,pubid,sysid,ndata)
-	self.gen_ents[ent_name]=ent
+        self.gen_ents[ent_name]=ent
         self.dtd_listener.new_external_entity(ent_name,pubid,sysid,ndata)
 
     def new_external_pe(self,name,pubid,sysid):
@@ -129,9 +129,9 @@ class WFCDTD(DTDConsumer):
             return # Keep first decl
         
         ent=ExternalEntity(name,pubid,sysid,"")
-	self.param_ents[name]=ent
+        self.param_ents[name]=ent
         self.dtd_listener.new_external_pe(name,pubid,sysid)
-	
+        
     def new_comment(self,contents):
         self.dtd_listener.new_comment(contents)
 
@@ -152,22 +152,22 @@ class CompleteDTD(WFCDTD):
     "Complete DTD handler for the validating parser."
 
     def __init__(self,parser):
-	WFCDTD.__init__(self,parser)
+        WFCDTD.__init__(self,parser)
 
     def reset(self):
         "Clears all DTD information."
         WFCDTD.reset(self)
-	self.notations={}
-	self.attlists={}  # Attribute lists of elements not yet declared
+        self.notations={}
+        self.attlists={}  # Attribute lists of elements not yet declared
         self.root_elem=None
         self.cmhash={}
         
     def get_root_elem(self):
-	"Returns the name of the declared root element."
-	return self.root_elem
+        "Returns the name of the declared root element."
+        return self.root_elem
 
     def get_notation(self,name):
-	"""Returns the declaration of the notation. Throws KeyError if the
+        """Returns the declaration of the notation. Throws KeyError if the
         notation does not exist."""
         return self.notations[name]
 
@@ -177,9 +177,9 @@ class CompleteDTD(WFCDTD):
         WFCDTD.dtd_end(self)
         self.cmhash={}
         
-	for elem in self.attlists.keys():
-	    self.parser.report_error(1006,elem)
-	self.attlists={}  # Not needed any more, can free this memory
+        for elem in self.attlists.keys():
+            self.parser.report_error(1006,elem)
+        self.attlists={}  # Not needed any more, can free this memory
 
         for notation in self.used_notations.keys():
             try:
@@ -188,45 +188,45 @@ class CompleteDTD(WFCDTD):
                 self.parser.report_error(2022,(self.used_notations[notation],
                                                notation))
         self.used_notations={} # Not needed, save memory
-	
+        
     def new_notation(self,name,pubid,sysid):
-	self.notations[name]=(pubid,sysid)
+        self.notations[name]=(pubid,sysid)
         self.dtd_listener.new_notation(name,pubid,sysid)
 
     def new_element_type(self,elem_name,elem_cont):       
-	if self.elems.has_key(elem_name):
-	    self.parser.report_error(2012,elem_name)
+        if self.elems.has_key(elem_name):
+            self.parser.report_error(2012,elem_name)
             return  # Keeping first declaration
 
-	if elem_cont=="EMPTY":
-	    model=make_empty_model()
+        if elem_cont=="EMPTY":
+            model=make_empty_model()
             elem_cont=("",[],"")
-	elif elem_cont!="ANY":
+        elif elem_cont!="ANY":
             model=make_model(self.cmhash,elem_cont,self.parser)
 
-	if elem_cont=="ANY":
-	    self.elems[elem_name]=ElementTypeAny(elem_name)
-	else:
-	    self.elems[elem_name]=ElementType(elem_name,model,elem_cont)
+        if elem_cont=="ANY":
+            self.elems[elem_name]=ElementTypeAny(elem_name)
+        else:
+            self.elems[elem_name]=ElementType(elem_name,model,elem_cont)
 
-	if self.attlists.has_key(elem_name):
-	    for (attr,a_type,a_decl,a_def) in self.attlists[elem_name]:
-		self.elems[elem_name].add_attr(attr,a_type,a_decl,a_def,\
-					       self.parser)
-	    del self.attlists[elem_name]
+        if self.attlists.has_key(elem_name):
+            for (attr,a_type,a_decl,a_def) in self.attlists[elem_name]:
+                self.elems[elem_name].add_attr(attr,a_type,a_decl,a_def,\
+                                               self.parser)
+            del self.attlists[elem_name]
             
         self.dtd_listener.new_element_type(elem_name,elem_cont)
-	        
+                
     def new_attribute(self,elem,attr,a_type,a_decl,a_def):
-	"Receives the declaration of a new attribute."
+        "Receives the declaration of a new attribute."
         self.dtd_listener.new_attribute(elem,attr,a_type,a_decl,a_def)
-	try:
-	    self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
-	except KeyError,e:
-	    try:
-		self.attlists[elem].append((attr,a_type,a_decl,a_def))
-	    except KeyError,e:
-		self.attlists[elem]=[(attr,a_type,a_decl,a_def)]
+        try:
+            self.elems[elem].add_attr(attr,a_type,a_decl,a_def,self.parser)
+        except KeyError,e:
+            try:
+                self.attlists[elem].append((attr,a_type,a_decl,a_def))
+            except KeyError,e:
+                self.attlists[elem]=[(attr,a_type,a_decl,a_def)]
                 
 # ==============================
 # Represents an XML element type
@@ -236,55 +236,55 @@ class ElementType:
     "Represents an element type."
 
     def __init__(self,name,compiled,original):
-	self.name=name
-	self.attrhash={}
-	self.content_model=compiled
+        self.name=name
+        self.attrhash={}
+        self.content_model=compiled
         self.content_model_structure=original
 
     def get_name(self):
-	"Returns the name of the element type."
-	return self.name
-	
+        "Returns the name of the element type."
+        return self.name
+        
     def get_attr_list(self):
-	"Returns a list of the declared attribute names."
-	return self.attrhash.keys()
-	
+        "Returns a list of the declared attribute names."
+        return self.attrhash.keys()
+        
     def get_attr(self,name):
-	"Returns the attribute or throws a KeyError if it's not declared."
-	return self.attrhash[name]
-	
+        "Returns the attribute or throws a KeyError if it's not declared."
+        return self.attrhash[name]
+        
     def add_attr(self,attr,a_type,a_decl,a_def,parser):
-	"Adds a new attribute to the element."
-	if self.attrhash.has_key(attr):
-	    parser.report_error(1007,attr)
+        "Adds a new attribute to the element."
+        if self.attrhash.has_key(attr):
+            parser.report_error(1007,attr)
             return  # Keep first declaration
 
-	if a_type=="ID":
-	    for attr_name in self.attrhash.keys():
-		if self.attrhash[attr_name].type=="ID":
-		    parser.report_error(2013)
+        if a_type=="ID":
+            for attr_name in self.attrhash.keys():
+                if self.attrhash[attr_name].type=="ID":
+                    parser.report_error(2013)
 
-	    if a_decl!="#REQUIRED" and a_decl!="#IMPLIED":
-		parser.report_error(2014)
+            if a_decl!="#REQUIRED" and a_decl!="#IMPLIED":
+                parser.report_error(2014)
         elif type(a_type)==types.TupleType and a_type[0]=="NOTATION":
             for notation in a_type[1]:
                 parser.dtd.used_notations[notation]=attr
             
-	self.attrhash[attr]=Attribute(attr,a_type,a_decl,a_def,parser)
+        self.attrhash[attr]=Attribute(attr,a_type,a_decl,a_def,parser)
 
         if a_def!=None:
             self.attrhash[attr].validate(self.attrhash[attr].default,parser)
-	
+        
     def get_start_state(self):
-	"Return the start state of this content model."
-	return self.content_model["start"]
-	
+        "Return the start state of this content model."
+        return self.content_model["start"]
+        
     def final_state(self,state):
-	"True if 'state' is a final state."
-	return self.content_model["final"] & state
-	
+        "True if 'state' is a final state."
+        return self.content_model["final"] & state
+        
     def next_state(self,state,elem_name):
-	"""Returns the next state of the content model from the given one
+        """Returns the next state of the content model from the given one
         when elem_name is encountered. Character data is represented as
         '#PCDATA'. If 0 is returned the element is not allowed here or if
         the state is unknown."""
@@ -330,16 +330,16 @@ class ElementType:
 class ElementTypeAny(ElementType):
 
     def __init__(self,name):
-	ElementType.__init__(self,name,None,None)
+        ElementType.__init__(self,name,None,None)
 
     def get_start_state(self):
-	return 1
+        return 1
 
     def final_state(self,state):
-	return 1
+        return 1
 
     def next_state(self,state,elem_name):
-	return 1
+        return 1
     
 # ==============================
 # Attribute
@@ -349,9 +349,9 @@ class Attribute:
     "Represents a declared attribute."
 
     def __init__(self,name,attrtype,decl,default,parser):
-	self.name=name
-	self.type=attrtype
-	self.decl=decl
+        self.name=name
+        self.type=attrtype
+        self.decl=decl
 
         # Normalize the default value before setting it
         if default!=None and self.type!="CDATA":
@@ -378,23 +378,23 @@ class Attribute:
             if error: parser.report_error(2016)                            
             
     def validate(self,value,parser):
-	"Validates given value for correctness."
+        "Validates given value for correctness."
 
-	if type(self.type)!=types.StringType:
-	    for val in self.type:
-		if val==value: return
-	    parser.report_error(2017,(value,self.name))
-	elif self.type=="CDATA":
-	    return
-	elif self.type=="ID" or self.type=="IDREF" or self.type=="ENTITIY":
-	    if not matches(reg_name,value):
-		parser.report_error(2018,self.name)
-	elif self.type=="NMTOKEN":
-	    if not matches(reg_nmtoken,value):
-		parser.report_error(2019,self.name)
-	elif self.type=="NMTOKENS":
-	    if not matches(reg_nmtokens,value):
-		parser.report_error(2020,self.name)
+        if type(self.type)!=types.StringType:
+            for val in self.type:
+                if val==value: return
+            parser.report_error(2017,(value,self.name))
+        elif self.type=="CDATA":
+            return
+        elif self.type=="ID" or self.type=="IDREF" or self.type=="ENTITIY":
+            if not matches(reg_name,value):
+                parser.report_error(2018,self.name)
+        elif self.type=="NMTOKEN":
+            if not matches(reg_nmtoken,value):
+                parser.report_error(2019,self.name)
+        elif self.type=="NMTOKENS":
+            if not matches(reg_nmtokens,value):
+                parser.report_error(2020,self.name)
         elif self.type=="IDREFS" or self.type=="ENTITIES":
             for token in string.split(value):
                 if not matches(reg_name,token):
@@ -424,26 +424,26 @@ class Attribute:
 class InternalEntity:
 
     def __init__(self,name,value):
-	self.name=name
-	self.value=value
+        self.name=name
+        self.value=value
 
     def is_internal(self):
-	return 1
+        return 1
 
 class ExternalEntity:
 
     def __init__(self,name,pubid,sysid,notation):
-	self.name=name
-	self.pubid=pubid
-	self.sysid=sysid
-	self.notation=notation
+        self.name=name
+        self.pubid=pubid
+        self.sysid=sysid
+        self.notation=notation
 
     def is_parsed(self):
         "True if this is a parsed entity."
-	return self.notation==""
-	
+        return self.notation==""
+        
     def is_internal(self):
-	return 0
+        return 0
 
     def get_pubid(self):
         "Returns the public identifier of the entity."
@@ -529,8 +529,8 @@ class ContentModel:
     "Represents a singleton content model. (Internal.)"
 
     def __init__(self,contents,modifier):
-	self.contents=contents
-	self.modifier=modifier
+        self.contents=contents
+        self.modifier=modifier
         
     def add_states(self,builder):
         "Builds the part of the automaton corresponding to this model part."
@@ -623,9 +623,9 @@ def hash(included):
     no=0
     exp=1L
     for state in included:
-	if state:
-	    no=no+exp
-	exp=exp*2L
+        if state:
+            no=no+exp
+        exp=exp*2L
 
     return no
 
@@ -660,9 +660,9 @@ def fnda2fda(transitions,final_state,parser):
     #print_states(new_states,2)
     
     for state in states:
-	if state % 2==1:
-	    new_states["start"]=state
-	    break
+        if state % 2==1:
+            new_states["start"]=state
+            break
 
     new_states["final"]=pow(2L,final_state)
     return new_states
@@ -679,15 +679,15 @@ def add_transitions(ix,transitions,new_states,cur_state_list,state_key,parser,
     
     no=0
     for old_state in cur_state_list:
-	if old_state:
-	    for (to,what) in transitions[no]:
-		if what!="":
+        if old_state:
+            for (to,what) in transitions[no]:
+                if what!="":
                     if new_trans.has_key(what):
                         new_trans[what].append(to)
                     else:
                         new_trans[what]=[to]
 
-	no=no+1
+        no=no+1
 
     # Go through the list of transitions, creating new transitions and
     # destination states in the model
@@ -737,13 +737,13 @@ def print_states(states,stop=0):
     assert not (states.has_key("start") or states.has_key("final"))
     
     for trans_key in states.keys():
-	trans=states[trans_key]
-	print "State: "+`trans_key`
-	for (to,what) in trans:
-	    try:
-		print "  To: "+`to`+" over: "+what
-	    except TypeError,e:
-		print "ERROR: "+`what`
+        trans=states[trans_key]
+        print "State: "+`trans_key`
+        for (to,what) in trans:
+            try:
+                print "  To: "+`to`+" over: "+what
+            except TypeError,e:
+                print "ERROR: "+`what`
 
         if stop>1:
             raw_input()

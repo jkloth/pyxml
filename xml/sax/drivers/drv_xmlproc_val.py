@@ -1,7 +1,7 @@
 """
 A SAX driver for xmlproc with validation and DTD information.
 
-$Id: drv_xmlproc_val.py,v 1.4 1999/02/10 01:46:03 amk Exp $
+$Id: drv_xmlproc_val.py,v 1.5 1999/08/15 23:53:07 amk Exp $
 """
 
 version="0.92"
@@ -20,7 +20,7 @@ class SAX_XPValParser(SAX_XPParser):
         SAX_XPParser.__init__(self)
     
     def _create_parser(self):
-	return xmlval.XMLValidator()
+        return xmlval.XMLValidator()
 
     def handle_start_tag(self, name, attrs):
         try:
@@ -56,7 +56,7 @@ class XPAttributes(saxutils.AttributeMap):
         return "CDATA"        # Used for undeclared elements
         
     def getType(self, i):
-	if type(i)==types.IntType:
+        if type(i)==types.IntType:
             try:
                 i=self.map.keys()[i]
             except KeyError,e:

@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.9 1999/06/22 17:11:34 lars Exp $
+# $Id: xmlproc.py,v 1.10 1999/08/15 23:53:07 amk Exp $
    
 import re,string,sys,urllib,urlparse,types
 
@@ -23,19 +23,19 @@ class XMLProcessor(XMLCommonParser):
     "A parser that performs a complete well-formedness check."
 
     def __init__(self):        
-	EntityParser.__init__(self)
+        EntityParser.__init__(self)
 
-	# Various handlers
-	self.app=Application()
-	self.dtd=WFCDTD(self)
-	self.ent=self.dtd
+        # Various handlers
+        self.app=Application()
+        self.dtd=WFCDTD(self)
+        self.ent=self.dtd
         self.dtd_listener=None  # Only used to give to DTDParser
         self.stop_on_wf=1
         
     def set_application(self,app):
-	"Sets the object to send data events to."
-	self.app=app
-	app.set_locator(self)
+        "Sets the object to send data events to."
+        self.app=app
+        app.set_locator(self)
         
     def set_dtd_listener(self,listener):
         "Registers an object that listens for DTD parse events."
@@ -58,11 +58,11 @@ class XMLProcessor(XMLCommonParser):
         if hasattr(self,"dtd"):
             self.dtd.reset()
 
-	# State vars
-	self.stack=[]
-	self.seen_root=0
-	self.seen_doctype=0
-	self.seen_xmldecl=0
+        # State vars
+        self.stack=[]
+        self.seen_root=0
+        self.seen_doctype=0
+        self.seen_xmldecl=0
         self.stop_on_wf=1
 
     def deref(self):
@@ -70,12 +70,12 @@ class XMLProcessor(XMLCommonParser):
         self.dtd = self.ent = self.err = self.app = self.pubres = None
 
     def do_parse(self):
-	"Does the actual parsing."
-	try:
-	    while self.pos+1<self.datasize:
-		prepos=self.pos
+        "Does the actual parsing."
+        try:
+            while self.pos+1<self.datasize:
+                prepos=self.pos
 
-		if self.data[self.pos]=="<":
+                if self.data[self.pos]=="<":
                     t=self.data[self.pos+1] # Optimization
                     if t=="/":
                         self.parse_end_tag()
@@ -107,35 +107,35 @@ class XMLProcessor(XMLCommonParser):
             # changes, but this loop is rather time-critical, so we do
             # raw compares anyway.
             
-	    if self.final:
-		raise OutOfDataException()
-	    else:
-		self.pos=prepos  # Didn't complete the construct            
-	except OutOfDataException,e:
-	    if self.final:
-		raise e
-	    else:
-		self.pos=prepos  # Didn't complete the construct
+            if self.final:
+                raise OutOfDataException()
+            else:
+                self.pos=prepos  # Didn't complete the construct            
+        except OutOfDataException,e:
+            if self.final:
+                raise e
+            else:
+                self.pos=prepos  # Didn't complete the construct
 
     def parseStart(self):
-	"Must be called before parsing starts. (Notifies application.)"
-	self.app.doc_start()
+        "Must be called before parsing starts. (Notifies application.)"
+        self.app.doc_start()
 
     def parseEnd(self):
-	"""Must be called when parsing is finished. (Does some checks and "
-	"notifies the application.)"""	    
-	if self.stack!=[] and self.ent_stack==[]:
-	    self.report_error(3014,self.stack[-1])
-	elif not self.seen_root:
-	    self.report_error(3015)
+        """Must be called when parsing is finished. (Does some checks and "
+        "notifies the application.)"""      
+        if self.stack!=[] and self.ent_stack==[]:
+            self.report_error(3014,self.stack[-1])
+        elif not self.seen_root:
+            self.report_error(3015)
 
-	self.app.doc_end()
-	    
+        self.app.doc_end()
+            
     def parse_start_tag(self):
-	"Parses the start tag."
-	self.pos=self.pos+1 # Skips the '<'
+        "Parses the start tag."
+        self.pos=self.pos+1 # Skips the '<'
         name=self._get_name()
-	self.skip_ws()
+        self.skip_ws()
 
         try:
             (attrs,fixeds)=self.dtd.attrinfo[name]
@@ -174,26 +174,26 @@ class XMLProcessor(XMLCommonParser):
                     self.report_error(2000,a_name)
                 self.skip_ws()
 
-	# --- Take care of the tag
-	    
-	if self.stack==[] and self.seen_root:
-	    self.report_error(3017)
-	    
-	self.seen_root=1
+        # --- Take care of the tag
+            
+        if self.stack==[] and self.seen_root:
+            self.report_error(3017)
+            
+        self.seen_root=1
         
-	if self.now_at(">"):
-	    self.app.handle_start_tag(name,attrs)
+        if self.now_at(">"):
+            self.app.handle_start_tag(name,attrs)
             self.stack.append(name)
-	elif self.now_at("/>"):
-	    self.app.handle_start_tag(name,attrs)
-	    self.app.handle_end_tag(name)
+        elif self.now_at("/>"):
+            self.app.handle_start_tag(name,attrs)
+            self.app.handle_end_tag(name)
         else:
             self.report_error(3004,("'>'","/>"))
 
     def parse_att_val(self):
-	"Parses an attribute value and resolves all entity references in it."
+        "Parses an attribute value and resolves all entity references in it."
 
-	val=""
+        val=""
         if self.now_at('"'):
             delim='"'
             reg_attval_stop=reg_attval_stop_quote
@@ -204,17 +204,17 @@ class XMLProcessor(XMLCommonParser):
             self.report_error(3004,("'","\""))
             self.scan_to(">")
             return -1 # FIXME: Ugly. Should throw an exception instead       
-	        
+                
         while 1:
             piece=self.find_reg(reg_attval_stop)
             val=val+string.translate(piece,ws_trans)
 
-	    if self.now_at(delim):
+            if self.now_at(delim):
                 break
 
-	    if self.now_at("&#"):
+            if self.now_at("&#"):
                 val=val+self._read_char_ref()
-	    elif self.now_at("&"):
+            elif self.now_at("&"):
                 name=self._get_name()
 
                 if name in self.open_ents:
@@ -247,22 +247,22 @@ class XMLProcessor(XMLCommonParser):
             elif self.now_at("<"):
                 self.report_error(3022)
                 continue
-	    else:
-		self.report_error(4001)
+            else:
+                self.report_error(4001)
                 self.pos=self.pos+1    # Avoid endless loop
                 continue
-		
-	    if not self.now_at(";"):
-		self.report_error(3005,";")
+                
+            if not self.now_at(";"):
+                self.report_error(3005,";")
             
         return val
 
     def parse_literal_entval(self):
-	"Parses a literal entity value for insertion in an attribute value."
+        "Parses a literal entity value for insertion in an attribute value."
 
-	val=""
+        val=""
         reg_stop=re.compile("&")
-	        
+                
         while 1:
             try:
                 piece=self.find_reg(reg_stop)
@@ -274,10 +274,10 @@ class XMLProcessor(XMLCommonParser):
             
             val=val+string.translate(piece,ws_trans)
 
-	    if self.now_at("&#"):
-                val=val+self._read_char_ref()		
-	    elif self.now_at("&"):
-		#name=self.get_match(reg_name)
+            if self.now_at("&#"):
+                val=val+self._read_char_ref()           
+            elif self.now_at("&"):
+                #name=self.get_match(reg_name)
                 name=self._get_name()
 
                 if name in self.open_ents:
@@ -303,49 +303,49 @@ class XMLProcessor(XMLCommonParser):
                     else:
                         self.report_error(3020)
                 except KeyError,e:
-                    self.report_error(3021,name)	       
+                    self.report_error(3021,name)               
 
                 del self.open_ents[-1]
                     
-	    else:
-		self.report_error(4001)
-		
-	    if not self.now_at(";"):
-		self.report_error(3005,";")
-		self.scan_to(">")
+            else:
+                self.report_error(4001)
+                
+            if not self.now_at(";"):
+                self.report_error(3005,";")
+                self.scan_to(">")
                             
-	return val
+        return val
     
     def parse_end_tag(self):
-	"Parses the end tag from after the '</' and beyond '>'."
+        "Parses the end tag from after the '</' and beyond '>'."
         self.pos=self.pos+2 # Skips the '</'
         name=self._get_name()
         
-	if self.data[self.pos]!=">":
+        if self.data[self.pos]!=">":
             self.skip_ws() # Probably rare to find whitespace here
             if not self.now_at(">"): self.report_error(3005,">")
         else:
             self.pos=self.pos+1
 
-	try:
+        try:
             elem=self.stack[-1]
             del self.stack[-1]
             if name!=elem:
-		self.report_error(3023,(name,elem))
+                self.report_error(3023,(name,elem))
 
-		# Let's do some guessing in case we continue
-		if len(self.stack)>0 and self.stack[-1]==name:
+                # Let's do some guessing in case we continue
+                if len(self.stack)>0 and self.stack[-1]==name:
                     del self.stack[-1]
                 else:
                     self.stack.append(elem) # Put it back
 
-	except IndexError,e:
-	    self.report_error(3024,name)
+        except IndexError,e:
+            self.report_error(3024,name)
 
-	self.app.handle_end_tag(name)
+        self.app.handle_end_tag(name)
 
     def parse_data(self):
-	"Parses character data."
+        "Parses character data."
 
         start=self.pos
         end=string.find(self.data,"<",self.pos)
@@ -364,84 +364,84 @@ class XMLProcessor(XMLCommonParser):
 
         self.pos=end
         
-	if string.find(self.data,"]]>",start,end)!=-1:
-	    self.pos=string.find(self.data,"]]>",start,end)
-	    self.report_error(3025)
+        if string.find(self.data,"]]>",start,end)!=-1:
+            self.pos=string.find(self.data,"]]>",start,end)
+            self.report_error(3025)
             self.pos=self.pos+3 # Skipping over it
 
-	if self.stack==[]:
-	    res=reg_ws.match(self.data,start)                
-	    if res==None or res.end(0)!=end:
-		self.report_error(3026)
+        if self.stack==[]:
+            res=reg_ws.match(self.data,start)                
+            if res==None or res.end(0)!=end:
+                self.report_error(3026)
             self.app.handle_ignorable_data(self.data,start,end)
         else:
             self.app.handle_data(self.data,start,end)
 
     def parse_charref(self):
-	"Parses a character reference."
-	if self.now_at("x"):
-	    digs=unhex(self.get_match(reg_hex_digits))
-	else:
+        "Parses a character reference."
+        if self.now_at("x"):
+            digs=unhex(self.get_match(reg_hex_digits))
+        else:
             try:
                 digs=string.atoi(self.get_match(reg_digits))
             except ValueError,e:
                 self.report_error(3027)
                 digs=None
 
-	if not self.now_at(";"): self.report_error(3005,";")
+        if not self.now_at(";"): self.report_error(3005,";")
         if digs==None: return
-	    
-	if not (digs==9 or digs==10 or digs==13 or \
-		(digs>=32 and digs<=255)):
-	    if digs>255:
-		self.report_error(1005,digs)
-	    else:
-		self.report_error(3018,digs)
-	else:
-	    if self.stack==[]:
-		self.report_error(3028)
-	    self.app.handle_data(chr(digs),0,1)
+            
+        if not (digs==9 or digs==10 or digs==13 or \
+                (digs>=32 and digs<=255)):
+            if digs>255:
+                self.report_error(1005,digs)
+            else:
+                self.report_error(3018,digs)
+        else:
+            if self.stack==[]:
+                self.report_error(3028)
+            self.app.handle_data(chr(digs),0,1)
 
     def parse_cdata(self):
-	"Parses a CDATA marked section from after the '<![CDATA['."
-	new_pos=self.get_index("]]>")
-	if self.stack==[]:
-	    self.report_error(3029)
-	self.app.handle_data(self.data,self.pos,new_pos)
-	self.pos=new_pos+3
+        "Parses a CDATA marked section from after the '<![CDATA['."
+        new_pos=self.get_index("]]>")
+        if self.stack==[]:
+            self.report_error(3029)
+        self.app.handle_data(self.data,self.pos,new_pos)
+        self.pos=new_pos+3
 
     def parse_ent_ref(self):
-	"Parses a general entity reference from after the '&'."
-	#name=self.get_match(reg_name)
+        "Parses a general entity reference from after the '&'."
+        #name=self.get_match(reg_name)
         name=self._get_name()
-	if not self.now_at(";"): self.report_error(3005,";")
+        if not self.now_at(";"): self.report_error(3005,";")
 
         try:
             ent=self.ent.resolve_ge(name)
-	except KeyError,e:
-	    self.report_error(3021,name)
+        except KeyError,e:
+            self.report_error(3021,name)
             return
 
-	if ent.name in self.open_ents:
-	    self.report_error(3019)
-	    return
-	else:
-	    self.open_ents.append(ent.name)
+        if ent.name in self.open_ents:
+            self.report_error(3019)
+            return
+        else:
+            self.open_ents.append(ent.name)
 
-	if self.stack==[]:
-	    self.report_error(3030)
+        if self.stack==[]:
+            self.report_error(3030)
 
         # Storing size of current element stack
         stack_size=len(self.stack)
             
-	if ent.is_internal():
-	    self.push_entity(self.get_current_sysid(),ent.value)
-	    self.do_parse()
-	    self.flush()
-	    self.pop_entity()
-	else:
-	    if ent.notation!="":
-		self.report_error(3031)
+        if ent.is_internal():
+            self.push_entity(self.get_current_sysid(),ent.value)
+            self.do_parse()
+            self.flush()
+            self.pop_entity()
+        else:
+            if ent.notation!="":
+                self.report_error(3031)
 
             tmp=self.seen_xmldecl
             self.seen_xmldecl=0 # Avoid complaints
@@ -455,85 +455,85 @@ class XMLProcessor(XMLCommonParser):
         if stack_size!=len(self.stack):
             self.report_error(3042)
             
-	del self.open_ents[-1]
-	
+        del self.open_ents[-1]
+        
     def parse_doctype(self):
-	"Parses the document type declaration."
+        "Parses the document type declaration."
 
-	if self.seen_doctype:
-	    self.report_error(3032)
-	if self.seen_root:
-	    self.report_error(3033)
-	
-	self.skip_ws(1)
+        if self.seen_doctype:
+            self.report_error(3032)
+        if self.seen_root:
+            self.report_error(3033)
+        
+        self.skip_ws(1)
         rootname=self._get_name()
-	self.skip_ws(1)
+        self.skip_ws(1)
 
         (pub_id,sys_id)=self.parse_external_id()
-	self.skip_ws()
-	
-	if self.now_at("["):
-	    self.parse_internal_dtd()    
-	elif not self.now_at(">"):
+        self.skip_ws()
+        
+        if self.now_at("["):
+            self.parse_internal_dtd()    
+        elif not self.now_at(">"):
             self.report_error(3005,">")
 
         # External subset must be parsed _after_ the internal one
-	if pub_id!=None or sys_id!=None: # Was there an external id at all?
+        if pub_id!=None or sys_id!=None: # Was there an external id at all?
             sys_id=self.pubres.resolve_doctype_pubid(pub_id,sys_id)
-	    self.app.handle_doctype(rootname,pub_id,sys_id)
+            self.app.handle_doctype(rootname,pub_id,sys_id)
             
         self.dtd.dtd_end()
-	self.seen_doctype=1 # Has to be at the end to avoid block trouble
+        self.seen_doctype=1 # Has to be at the end to avoid block trouble
     
     def parse_internal_dtd(self):
-	"Parse the internal DTD beyond the '['."
+        "Parse the internal DTD beyond the '['."
 
-	self.set_start_point() # Record start of int_subset, preserve data
-	self.update_pos()
-	line=self.line
-	lb=self.last_break
+        self.set_start_point() # Record start of int_subset, preserve data
+        self.update_pos()
+        line=self.line
+        lb=self.last_break
         last_part_size=0
-	
-	while 1:
-	    self.find_reg(reg_int_dtd)
+        
+        while 1:
+            self.find_reg(reg_int_dtd)
 
-	    if self.now_at("\""): self.scan_to("\"")
-	    elif self.now_at("'"): self.scan_to("'")
-	    elif self.now_at("<?"): self.scan_to("?>")
-	    elif self.now_at("<!--"): self.scan_to("-->")
-	    elif self.now_at("<!["): self.scan_to("]]>")
-	    elif self.now_at("]"):
+            if self.now_at("\""): self.scan_to("\"")
+            elif self.now_at("'"): self.scan_to("'")
+            elif self.now_at("<?"): self.scan_to("?>")
+            elif self.now_at("<!--"): self.scan_to("-->")
+            elif self.now_at("<!["): self.scan_to("]]>")
+            elif self.now_at("]"):
                 p=self.pos
                 self.skip_ws()
                 if self.now_at(">"):
                     last_part_size=(self.pos-p)+1
                     break                
 
-	# [:lps] cuts off the "]\s+>" at the end
-	self.handle_internal_dtd(line,lb,self.get_region()[:-last_part_size])
-	
+        # [:lps] cuts off the "]\s+>" at the end
+        self.handle_internal_dtd(line,lb,self.get_region()[:-last_part_size])
+        
     def handle_internal_dtd(self,doctype_line,doctype_lb,int_dtd):
-	"Handles the internal DTD."
-	p=DTDParser()
-	p.set_error_handler(self.err)
-	p.set_dtd_consumer(self.dtd)
+        "Handles the internal DTD."
+        p=DTDParser()
+        p.set_error_handler(self.err)
+        p.set_dtd_consumer(self.dtd)
         p.set_error_language(self.err_lang)
         p.set_dtd_object(self.dtd)
         if self.dtd_listener!=None:
             self.dtd.set_dtd_listener(self.dtd_listener)
-	p.set_internal(1)
-	self.err.set_locator(p)
+        p.set_internal(1)
+        self.err.set_locator(p)
 
-	try:
-	    try:		
-		p.line=doctype_line
-		p.last_break=doctype_lb
-		
-		p.set_sysid(self.get_current_sysid())
+        try:
+            try:                
+                p.line=doctype_line
+                p.last_break=doctype_lb
+                
+                p.set_sysid(self.get_current_sysid())
                 p.final=1
-		p.feed(int_dtd)
-	    except OutOfDataException,e:
-		self.report_error(3034)
-	finally:
+                p.feed(int_dtd)
+            except OutOfDataException,e:
+                self.report_error(3034)
+        finally:
             p.deref()
-	    self.err.set_locator(self)
+            self.err.set_locator(self)
