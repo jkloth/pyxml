@@ -763,7 +763,7 @@ class Element(Node):
                 d = Element(child, self, self._document)
                 if tagname == '*' or child.name == tagname:
                     nodes.append( child )
-                    parents.append( self.parentNode )
+                    parents.append( self )
                 nl = d.getElementsByTagName(tagname)
                 nodes = nodes + nl.data
                 parents = parents + nl._parent
@@ -1002,7 +1002,7 @@ class Document(Node):
         if elem == None: return NodeList([], self, None)
         nodes = [] ; parents = []
         if tagname == '*' or tagname == elem._node.name:
-            nodes.append( elem._node ) ; parents.append( self.parentNode )
+            nodes.append( elem._node ) ; parents.append( self )
         nl = elem.getElementsByTagName(tagname)
         nodes = nodes + nl.data
         parents = parents + nl._parent
