@@ -39,7 +39,16 @@ def parse_lynx_file(bms, input):
     bms.leave_folder()
 
 if __name__ == '__main__':
-    import sys
+    import sys, glob
+
+    if len(sys.argv)<2 or len(sys.argv)>3:
+        print
+        print "A simple utility to convert Lynx bookmarks to XBEL."
+        print
+        print "Usage: "        
+        print "  lynx_parse.py <lynx-directory> [<xbel-file>]"
+        sys.exit(1)        
+
     bms = bookmark.Bookmarks()
 
     # Determine the owner on Unix platforms
@@ -48,8 +57,17 @@ if __name__ == '__main__':
     t = pwd.getpwuid( uid )
     bms.owner = t[4]
 
-    for file in sys.argv[1:]:
+    glob_pattern = os.path.join(sys.argv[1], '*.html')
+    file_list = glob.glob( glob_pattern )
+    for file in file_list:
         input = open(file)
         parse_lynx_file(bms, input)
 
-    bms.dump_xbel()
+    if len(sys.argv)==3:
+        out=open(sys.argv[2],"w")
+        bms.dump_xbel(out)
+        out.close()
+    else:
+        bms.dump_xbel()
+        
+    # Done
