@@ -7,6 +7,8 @@ recursive-include mac *.prj *.prj.exp
 
 recursive-include doc *.html *.tex *.txt *.gif *.css *.api *.web
 
+recursive-include doc/man *.1
+
 recursive-include extensions *.c *.h 
 
 recursive-include extensions/expat *.html *Makefile  expat.* *.dsp
