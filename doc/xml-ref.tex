@@ -35,7 +35,8 @@ has to be filled in later, or rewritten, or verified, or something.
 
 \tableofcontents
 
-\section{xml.parsers.xmllib}
+\section{\module{xml.parsers.xmllib} ---
+         Augmented version of \module{xmllib}}
 
 This is a version of the \module{xmllib} module from Python 1.5,
 modified to use the \module{sgmlop} C extension when it's available.
@@ -44,9 +45,10 @@ The interface is unchanged from the original \module{xmllib} module;
 consult the Python Library Reference documentation for that module.
 
 
-%\section{{xml.dom}}
+%\section{\module{xml.dom}}
 
-\section{xml.dom.ext.c14n}
+\section{\module{xml.dom.ext.c14n} ---
+         Canonical XML generation}
 
 This module takes a DOM element node (and all its children) and generates
 canonical XML as defined by the W3C candidate recommendation
@@ -94,21 +96,221 @@ prefixes will be used.
 %\section{walker}
 %\section{writer}
 
-%\section{{xml.marshal}}
+%\section{\module{xml.marshal}}
 
-%\section{{xml.sax.drivers}}
+
+\section{\module{xml.ns} ---
+         XML Namespace constants}
+
+\declaremodule{}{xml.ns}
+\modulesynopsis{Constants giving the URIs for common namespaces.}
+\moduleauthor{Rich Salz}{rsalz@zolera.com}
+\sectionauthor{Rich Salz}{rsalz@zolera.com}
+\sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
+
+This module contains the definitions of namespaces (and sometimes
+other URI's) used by a variety of XML standards.  Each class has a
+short all-uppercase name, which should follow any (emerging)
+convention for how that standard is commonly used.  For example,
+\samp{ds} is almost always used as the namespace prefixes for items in
+XML Signature, so \samp{DS} is the class name.  Attributes within that
+class define symbolic names (hopefully evocative) for ``constants''
+used in that standard.
+
+\begin{classdesc*}{XMLNS}
+  The \citetitle[http://www.w3.org/TR/REC-xml-names]{Namespaces in
+  XML} recommendation defines the concept and syntactic constructs
+  relating to XML namespaces.
+
+  \begin{memberdesc}{BASE}
+    The namespace URI assigned to namespace declarations.  This is
+    assigned to attributes named \code{xmlns} and attributes which
+    have a namespace prefix of \code{xmlns}.
+  \end{memberdesc}
+
+  \begin{memberdesc}{XML}
+    The namespace bound to this URI is used for all elements and
+    attributes which start with the letters \samp{xml}, regardless of
+    case.  No other elements or attributes are allowed to use this
+    namespace.
+  \end{memberdesc}
+
+  \begin{memberdesc}{HTML}
+    This namespace is recommended for use with HTML 4.0.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+\begin{classdesc*}{SOAP}
+  \citetitle[http://www.w3.org/TR/SOAP]{Simple Object Access Protocol}
+  defines a means of communicating with objects on servers. It can be
+  used as a remote procedure call (RPC) mechanism, or as a basis for
+  message passing systems.
+
+  \begin{memberdesc}{ENV}
+    This URI is used for the namespace of the ``envelope'' which
+    contains the message.  Elements in this namespace provide for
+    destination identification and other information needed to route
+    and decode the message.
+  \end{memberdesc}
+
+  \begin{memberdesc}{ENC}
+    The namespace URI used for the optional payload encoding defined
+    in section 5 of the SOAP specification.
+  \end{memberdesc}
+
+  \begin{memberdesc}{ACTOR_NEXT}
+    The URI specified in section 4.2.2 of the SOAP specification which
+    is used to indicate the destination of a SOAP message.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+\begin{classdesc*}{DSIG}
+  The namespace URIs given here are defined by the XML digital
+  signature specification.
+
+  \begin{memberdesc}{BASE}
+    The basic namespace defined by the specification.
+  \end{memberdesc}
+
+  The specification also assigns URIs to specific methods of computing
+  message digests and signatures, and other encoding techniques used
+  in the specification.
+
+  \begin{memberdesc}{DIGEST_SHA1}
+    The URI for the SHA-1 digest method.
+  \end{memberdesc}
+
+  \begin{memberdesc}{DIGEST_MD2}
+    The URI for the MD2 digest method.
+  \end{memberdesc}
+
+  \begin{memberdesc}{DIGEST_MD5}
+    The URI for the MD5 digest method.
+  \end{memberdesc}
+
+  \begin{memberdesc}{SIG_DSA_SHA1}
+    The URI used to specify the Digital Signature Algorithm (DSA) with
+    the SHA-1 hash algorithm.  DSA is specified in FIPS PUB 186-2,
+    \citetitle
+      [http://csrc.nist.gov/publications/fips/fips186-2/fips186-2.pdf]
+      {Digital Signature Standard (DSS)}.
+  \end{memberdesc}
+
+  \begin{memberdesc}{SIG_RSA_SHA1}
+    The URI indicating the RSA signature algorithm using SHA-1 for the
+    secure hash.
+  \end{memberdesc}
+
+  \begin{memberdesc}{HMAC_SHA1}
+    URI for the SHA-1 HMAC algorithm.
+  \end{memberdesc}
+
+  \begin{memberdesc}{ENC_BASE64}
+    URI used to denote the base64 encoding.
+  \end{memberdesc}
+
+  % Why are these not in a separate class?
+  \begin{memberdesc}{C14N}
+    URI used to denote canonical XML, without comments.
+  \end{memberdesc}
+
+  \begin{memberdesc}{C14N_COMM}
+    URI used to denote canonical XML, with comments.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+\begin{classdesc*}{SCHEMA}
+
+  \begin{memberdesc}{BASE}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSD1}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSD2}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSD3}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSI1}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSI2}
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSI3}
+  \end{memberdesc}
+
+  Two additional convenience attributes are defined:
+
+  \begin{memberdesc}{XSD_LIST}
+    A sequence of all ... namespaces.
+  \end{memberdesc}
+
+  \begin{memberdesc}{XSI_LIST}
+    A sequence of all ... namespaces.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+\begin{classdesc*}{XSLT}
+  XSLT, defined in \citetitle[http://www.w3.org/TR/]{XML Stylesheet
+  Language --- Transformations}, defines a single namespace:
+
+  \begin{memberdesc}{BASE}
+    This URI is used as the namespace for all XSLT elements and for
+    XSLT attributes attached to non-XSLT elements.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+%\begin{classdesc*}{XPATH}
+  % Why does this class even exist if there are no namespaces?
+%\end{classdesc*}
+
+
+\begin{classdesc*}{WSDL}
+  The Web Services Description Language (WSDL) defines a language to
+  specify the logical interactions with applications that use Web
+  technologies as their access mechanism; this can be thought of as an
+  IDL for servers that speak HTTP instead of XDR or IIOP.
+
+  \begin{memberdesc}{BASE}
+    The basic namespace defined in this specification.
+  \end{memberdesc}
+
+  \begin{memberdesc}{BIND_SOAP}
+    The URI of the SOAP binding for WSDL.
+  \end{memberdesc}
+
+  \begin{memberdesc}{BIND_HTTP}
+    HTTP bindings for WSDL using the \code{GET} and \code{POST}
+    methods.
+  \end{memberdesc}
+
+  \begin{memberdesc}{BIND_MIME}
+    The URI of the namespace for MIME-type bindings for WSDL.
+  \end{memberdesc}
+\end{classdesc*}
+
+
+%\section{\module{xml.sax.drivers}}
 
 %XXX Should all the driver modules be documented, or should they be
 %treated as internal modules, whose details will be handled by a parser
 %Factory function?
 
-%\section{{xml.sax.drivers.drv_xmllib}}
-%\section{{xml.sax.drivers.drv_xmlproc}}
-%\section{{xml.sax.drivers.drv_xmlproc_val}}
-%\section{{xml.sax.drivers.drv_xmltok}}
-%\section{{xml.sax.drivers.drv_xmltoolkit}}
+%\section{\module{xml.sax.drivers.drv_xmllib}}
+%\section{\module{xml.sax.drivers.drv_xmlproc}}
+%\section{\module{xml.sax.drivers.drv_xmlproc_val}}
+%\section{\module{xml.sax.drivers.drv_xmltok}}
+%\section{\module{xml.sax.drivers.drv_xmltoolkit}}
 
-\section{{xml.sax.saxexts}}
+\section{\module{xml.sax.saxexts}}
 
 \begin{funcdesc}{make_parser}{\optional{parser}}
 A utility function that returns a \class{Parser} object for a
@@ -210,7 +412,7 @@ Sets the driver list to \var{list}.
 \end{methoddesc}
 
 
-\section{{xml.sax.saxlib}}
+\section{\module{xml.sax.saxlib}}
 
 \begin{classdesc}{AttributeList}{}
 Interface for an attribute list. This interface provides
@@ -494,7 +696,7 @@ Return the system identifier of the entity where the exception occurred.
 \end{methoddesc}
 
 
-\section{{xml.sax.saxutils}}
+\section{\module{xml.sax.saxutils}}
 
 \begin{classdesc}{Canonizer}{writer}
 A SAX document handler that produces canonicalized XML output.
