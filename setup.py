@@ -2,8 +2,29 @@
 # Setup script for the XML tools
 #
 # Targets: build test install help
-    
+
 import sys, os
+
+try:
+    from distutils.core import setup
+except ImportError:
+    pass
+else:
+    setup (name = "PyXML",
+           version = "0.5.2",
+           description = "Python/XML package",
+           author = "XML-SIG",
+           author_email = "xml-sig@python.org",
+           url = "http://www.python.org/sigs/xml-sig/",
+           
+           packages = ['xml'],
+           ext_modules = [('pyexpat', { 'sources' : ['extensions/pyexpat.c'] }),
+                          ('sgmlop', { 'sources' : ['extensions/sgmlop.c'] }),
+                          ]
+           )
+    
+    sys.exit(0)
+    
 import shutil, compileall
 
 if (len(sys.argv) == 1 or sys.argv[1] == 'help' or
