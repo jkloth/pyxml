@@ -5,9 +5,10 @@
 from string import *
 import re
 
-class SyntaxError:
+class SyntaxError(Exception):
     "When we run into an unexpected token, this is the exception to use"
     def __init__(self, pos=-1, msg="Bad Token"):
+	Exception.__init__(self, msg)
 	self.pos = pos
 	self.msg = msg
     def __repr__(self):

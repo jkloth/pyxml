@@ -260,8 +260,7 @@ factory = FtFactory()
 import yappsrt
 class SyntaxError(yappsrt.SyntaxError):
     def __init__(self, pos, msg, str):
-        self.pos = pos
-        self.msg = msg
+	yappsrt.SyntaxError.__init__(self, pos, msg)
         self.str = str
 
     def __repr__(self):
