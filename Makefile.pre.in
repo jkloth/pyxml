@@ -321,7 +321,7 @@ LIBSUBDIRS = arch dom marshal parsers parsers/xmlproc \
 	     sax sax/drivers unicode utils
 
 libinstall:	
-	# Create directories, if required
+# Create directories, if required
 	if test ! -d $(DESTSHARED) ; then \
 		mkdir $(DESTSHARED) ; else true ; fi
 	if test ! -d $(LIBXML) ; then \
