@@ -1,0 +1,52 @@
+Overview of modules in PyXML
+============================
+
+by Alexandre Fayolle <Alexandre.Fayolle@logilab.fr>
+
+
+ * the xml.parsers module contains 4 parsers (pyexpat, sgmllib, sgmlop,
+xmlproc), each of which has its own API
+
+ * xml.sax.drivers contains SAX wrappers for the 4 parsers above, plus
+wrappers for some other parsers
+
+ * xml.sax.drivers2 contains SAX 2.0 wrappers for pyxexpat and xmlproc
+
+ * xml.sax.expatreader really belongs to xml.sax.drivers2 but is there for
+backwards compatibility. One should preferably use
+xml.sax.drivers2.drv_pyexpat
+
+ * a SAX 2.0 parser should implement the interface defined in
+xml.sax.xmlreader.XmlReader
+
+ * xml.sax.handler defines the interface that should be implemented by
+someone willing to use a SAX2.0 parser. A parser making callback to
+methods not defined in there is not SAX 2.0 compatible.
+
+ * xml.sax.saxlib defines the interfaces of objects manipulated by a SAX
+2.0 parser.
+
+ * xml.sax.saxutils provides basic implementations of some of the
+interfaces defined in handler and saxlib
+
+ * xml.dom.ext.reader.Sax contains a DOM generator that uses a SAX parser,
+with the Reader interface
+
+ * xml.dom.ext.reader.Sax2 contains a DOM generator that uses a SAX 2.0
+parser with the Reader interface
+
+ * xml.dom.ext.reader.Sgmlop contains a DOM generator that uses the raw
+Sgmlop reader to generate either a DOM or an HTML DOM.
+
+ * xml.dom.ext.reader.HtmlLib is a wrapper around
+xml.dom.ext.reader.Sgmlop wich provides the Reader interface
+
+ * xml.dom.ext.reader.HtmlSax is an HTML DOM generator which uses a SAX
+parser as the input (is this SAX 1 or SAX 2?)
+
+ * xml.dom.ext.reader.PyExpat is a DOM generator that uses the raw Expat
+reader together with the Reader interface
+
+ * xml.dom.ext.reader.Sax2Lib is redundant with xml.sax.handler
+
+
