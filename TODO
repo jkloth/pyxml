@@ -4,6 +4,7 @@ TODO list:
 	* Make more passes over the documentation
 	* More demo programs 
 	* Add READMEs to existing demo programs
+	* Lots of docstrings!
         * Re-indent everything to 4-space indents
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite, especially the DOM portion
@@ -19,7 +20,8 @@ dom/
 reference to the second one.  Call .normalize() on the parent.  The
 second Text node has now vanished, so calls using it will now crash.
 How to fix?  (Replace w/ empty Text node?)
-	* Add indentation & pretty-printing to .toxml()
+	* Add helper function that inserts pretty-printing Text nodes
+to a tree  
 	* Implement reading of SGML documents for FileReader
 	* Should check that Document node has only one Element child
 before changing anything (DocumentFragments complicate this)
