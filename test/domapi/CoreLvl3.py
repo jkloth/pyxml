@@ -15,7 +15,7 @@ class WhitespaceInElementContentTestCase(Base.TestCaseBase):
           <foo/>
         </doc>"""
         doc = self.parse(TEXT)
-        for node in doc.documentNode.childNodes:
+        for node in doc.documentElement.childNodes:
             if node.nodeType == xml.dom.Node.TEXT_NODE:
                 if not node.isWhitespaceInElementContent:
                     self.fail("founc whitespace node not identified"
@@ -27,7 +27,7 @@ class WhitespaceInElementContentTestCase(Base.TestCaseBase):
           <foo/>
         </doc>""" % subset
         doc = self.parse(TEXT)
-        for node in doc.documentNode.childNodes:
+        for node in doc.documentElement.childNodes:
             if node.nodeType == xml.dom.Node.TEXT_NODE:
                 if node.isWhitespaceInElementContent:
                     self.fail("founc whitespace node in mixed content marked"
