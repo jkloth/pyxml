@@ -30,7 +30,7 @@ This avoids all the overhead of SAX and pulldom to gain performance.
 from xml.dom import xmlbuilder, minidom, Node
 from xml.dom import EMPTY_NAMESPACE, XMLNS_NAMESPACE
 from xml.parsers import expat
-from xml.dom.minidom import _appendChild, _setAttributeNode
+from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
 
 from xml.dom.minicompat import *   # True, False
@@ -192,7 +192,7 @@ class ExpatBuilder:
             self._pre_doc_events.append(("pi", target, data))
         else:
             node = self.document.createProcessingInstruction(target, data)
-            _appendChild(self.curNode, node)
+            _append_child(self.curNode, node)
             if (  self._filter and
                   self._filter.acceptNode(node) == FILTER_REJECT):
                 curNode.removeChild(node)
@@ -214,7 +214,7 @@ class ExpatBuilder:
             node = minidom.Text()
             node.data = data
             node.ownerDocument = self.document
-        _appendChild(self.curNode, node)
+        _append_child(self.curNode, node)
 
     def character_data_handler(self, data):
         childNodes = self.curNode.childNodes
@@ -225,7 +225,7 @@ class ExpatBuilder:
         node = minidom.Text()
         node.data = data
         node.ownerDocument = self.document
-        _appendChild(self.curNode, node)
+        _append_child(self.curNode, node)
 
     def entity_decl_handler(self, entityName, is_parameter_entity, value,
                             base, systemId, publicId, notationName):
@@ -261,7 +261,7 @@ class ExpatBuilder:
             self._pre_doc_events.append(("comment", data))
         else:
             node = self.document.createComment(data)
-            _appendChild(self.curNode, node)
+            _append_child(self.curNode, node)
             if (  self._filter and
                   self._filter.acceptNode(node) == FILTER_REJECT):
                 curNode.removeChild(node)
@@ -291,7 +291,7 @@ class ExpatBuilder:
             node = doc.documentElement
         else:
             node = self.document.createElement(name)
-            _appendChild(self.curNode, node)
+            _append_child(self.curNode, node)
         self.curNode = node
 
         if attributes:
@@ -300,7 +300,7 @@ class ExpatBuilder:
                 d = a.__dict__
                 d['value'] = d['nodeValue'] = attributes[i+1]
                 d['ownerDocument'] = self.document
-                _setAttributeNode(node, a)
+                _set_attribute_node(node, a)
 
         self._finish_start_element(node)
 
@@ -717,7 +717,7 @@ class Namespaces:
         else:
             node = minidom.Element(qname, uri, prefix, localname)
             node.ownerDocument = self.document
-            _appendChild(self.curNode, node)
+            _append_child(self.curNode, node)
         self.curNode = node
 
         if self._ns_ordered_prefixes and self._options.namespace_declarations:
@@ -731,7 +731,7 @@ class Namespaces:
                 d = a.__dict__
                 d['value'] = d['nodeValue'] = uri
                 d['ownerDocument'] = self.document
-                _setAttributeNode(node, a)
+                _set_attribute_node(node, a)
             del self._ns_ordered_prefixes[:]
 
         if attributes:
