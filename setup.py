@@ -38,7 +38,7 @@ else:
                         ]
                          
     setup (name = "PyXML",
-           version = "0.5.3",
+           version = "0.5.4",
            description = "Python/XML package",
            author = "XML-SIG",
            author_email = "xml-sig@python.org",
