@@ -144,6 +144,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(document.documentElement.namespaceURI,
                          'http://xml.python.org/namespace/x')
 
+    def test_isId(self):
+        source = self.makeSource(
+            "<!DOCTYPE doc [\n"
+            "  <!ATTLIST doc id ID #IMPLIED>\n"
+            "]><doc id='name' notid='name'/>")
+        document = self.builder.parse(source)
+        elem = document.documentElement
+        a1 = elem.getAttributeNode("id")
+        a2 = elem.getAttributeNode("notid")
+        self.failUnless(a1.isId)
+        self.failIf(a2.isId)
+
 
 DUMMY_URL = "http://xml.python.org/dummy.xml"
 

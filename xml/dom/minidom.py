@@ -262,7 +262,7 @@ class Node(xml.dom.Node, GetattrMagic):
 
 defproperty(Node, "firstChild", doc="First child node, or None.")
 defproperty(Node, "lastChild",  doc="Last child node, or None.")
-defproperty(Node, "localName", doc="Namespace-local name of this node.")
+defproperty(Node, "localName",  doc="Namespace-local name of this node.")
 
 
 def _append_child(self, node):
@@ -377,6 +377,21 @@ class Attr(Node):
         d['value'] = d['nodeValue'] = value
         self.childNodes[0].data = value
 
+    def _get_isId(self):
+        doc = self.ownerDocument
+        elem = self.ownerElement
+        if doc is None or elem is None:
+            return False
+
+        info = doc._get_elem_info(elem)
+        if info is None:
+            return False
+        if self.namespaceURI:
+            return info.isIdNS(self.namespaceURI, self.localName)
+        else:
+            return info.isId(self.nodeName)
+
+defproperty(Attr, "isId",      doc="True if this attribute is an ID.")
 defproperty(Attr, "localName", doc="Namespace-local name of this attribute.")
 
 
@@ -1269,8 +1284,16 @@ class Document(Node, DocumentLS):
 
     def __init__(self):
         self.childNodes = NodeList()
-        # mapping of (namespaceURI, tagName) -> ElementInfo
+        # mapping of (namespaceURI, localName) -> ElementInfo
+        #        and tagName -> ElementInfo
         self._elem_info = {}
+
+    def _get_elem_info(self, element):
+        if element.namespaceURI:
+            key = element.namespaceURI, element.localName
+        else:
+            key = element.tagName
+        return self._elem_info.get(key)
 
     def _get_actualEncoding(self):
         return self.actualEncoding
@@ -1428,11 +1451,7 @@ class Document(Node, DocumentLS):
         while stack:
             node = stack.pop()
             # check this node
-            if node.namespaceURI:
-                key = node.namespaceURI, node.localName
-            else:
-                key = node.tagName
-            info = self._elem_info.get(key)
+            info = self._get_elem_info(node)
             if info:
                 for attr in node.attributes.values():
                     if attr.namespaceURI:
