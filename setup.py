@@ -2,7 +2,7 @@
 
 # Setup script for the XML tools
 #
-# Targets: build test install help
+# Targets: build install help
 
 import sys, os, string
 
