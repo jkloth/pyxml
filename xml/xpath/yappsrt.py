@@ -9,11 +9,13 @@ import re
 class SyntaxError(Exception):
     """When we run into an unexpected token, this is the exception to use"""
     def __init__(self, pos=-1, msg="Bad Token"):
+        Exception.__init__(self)
 	self.pos = pos
 	self.msg = msg
     def __repr__(self):
 	if self.pos < 0: return "#<syntax-error>"
 	else: return "SyntaxError[@ char " + `self.pos` + ": " + self.msg + "]"
+    __str__ = __repr__
 
 class NoMoreTokens(Exception):
     """Another exception object, for when we run out of tokens"""
