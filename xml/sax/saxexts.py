@@ -1,7 +1,7 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.4 2000/05/15 20:21:48 lars Exp $
+$Id: saxexts.py,v 1.5 2000/09/16 06:18:37 loewis Exp $
 """
 
 import saxlib,sys,string
@@ -13,10 +13,27 @@ except ImportError:
 
 # --- Internal utility methods
 
-def rec_find_module(module):
-    "Improvement over imp.find_module which finds submodules."
+def rec_load_module(module):
+    """Improvement over imp.find_module which loads submodules.
+     It takes sys.modules into account, so renaming of xml to _xmlplus
+     is honored."""
     path=""
+    lastmod = None
     for mod in string.split(module,"."):
+        if not lastmod:
+            if sys.modules.has_key(mod):
+                lastmod = sys.modules[mod]
+                continue
+        else:
+            if hasattr(lastmod,mod):
+                lastmod = getattr(lastmod,mod)
+                continue
+            else:
+                try:
+                    path=lastmod.__path__[0]
+                except AttributeError,e:
+                    pass
+                
         if path=="":
             info=(mod,)+imp.find_module(mod)
         else:
@@ -24,12 +41,7 @@ def rec_find_module(module):
             
         lastmod=apply(imp.load_module,info)
 
-        try:
-            path=lastmod.__path__[0]
-        except AttributeError,e:
-            pass
-
-    return info
+    return lastmod
 
 # --- Parser factory
 
@@ -75,8 +87,7 @@ class ParserFactory:
 	    else:
 		import imp
 	        try:
-		    info=rec_find_module(parser_name)
-                    drv_module=apply(imp.load_module,info)
+		    drv_module=rec_load_module(parser_name)
 	            return drv_module.create_parser()
                 except ImportError,e:
                     pass
