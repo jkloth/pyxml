@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.14 2001/03/27 13:39:06 loewis Exp $
+# $Id: xmlproc.py,v 1.15 2001/03/27 19:16:29 larsga Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -22,7 +22,7 @@ else:
     _chr = chr
 
 version="0.70"
-revision="$Revision: 1.14 $"
+revision="$Revision: 1.15 $"
         
 # ==============================
 # A full well-formedness parser
@@ -452,15 +452,15 @@ class XMLProcessor(XMLCommonParser):
 	else:
 	    if ent.notation!="":
 		self.report_error(3031)
-
-            tmp=self.seen_xmldecl
-            self.seen_xmldecl=0 # Avoid complaints
-            self.seen_root=0    # Haven't seen root in the new entity yet
-            self.open_entity(self.pubres.resolve_entity_pubid(ent.get_pubid(),
-                                                              ent.get_sysid()),
-                             name)
-            self.seen_root=1 # Entity references only allowed inside elements
-            self.seen_xmldecl=tmp
+            else:
+                tmp=self.seen_xmldecl
+                self.seen_xmldecl=0 # Avoid complaints
+                self.seen_root=0    # Haven't seen root in the new entity yet
+                self.open_entity(self.pubres.resolve_entity_pubid(ent.get_pubid(),
+                                                                  ent.get_sysid()),
+                                 name)
+                self.seen_root=1 # Entity references only allowed inside elements
+                self.seen_xmldecl=tmp
 
         # Did any elements cross the entity boundary?
         if stack_size!=len(self.stack):
