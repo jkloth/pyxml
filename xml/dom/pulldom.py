@@ -1,5 +1,11 @@
 import minidom
 import xml.sax,xml.sax.handler
+import types
+
+try:
+  _StringTypes = [types.StringType, types.UnicodeType]
+except AttributeError:
+  _StringTypes = [types.StringType]
 
 START_ELEMENT = "START_ELEMENT"
 END_ELEMENT = "END_ELEMENT"
@@ -217,7 +223,7 @@ class SAX2DOM(PullDOM):
 default_bufsize = (2 ** 14) - 20
 
 def parse(stream_or_string, parser=None, bufsize=default_bufsize):
-    if type(stream_or_string) is type(""):
+    if type(stream_or_string) in _StringTypes:
         stream = open(stream_or_string)
     else:
         stream = stream_or_string
