@@ -7,6 +7,7 @@ import xml.parsers.expat
 import os.path
 import sys
 import traceback
+from StringIO import StringIO
 from test.test_support import verbose
 
 if __name__ == "__main__":
@@ -23,10 +24,7 @@ def confirm(test, testname = "Test"):
         print "Failed " + testname
         raise Exception
 
-Node._debug = 1
-
 def testParseFromFile():
-    from StringIO import StringIO
     dom = parse(StringIO(open(tstfile).read()))
     dom.unlink()
     confirm(isinstance(dom,Document))
@@ -277,7 +275,6 @@ def _testElementReprAndStrUnicodeNS():
     confirm(string1 == string2)
     confirm(string1.find("slash:abc") != -1)
     dom.unlink()
-    confirm(len(Node.allnodes) == 0)
 
 def testAttributeRepr():
     dom = Document()
@@ -285,7 +282,6 @@ def testAttributeRepr():
     node = el.setAttribute("abc", "def")
     confirm(str(node) == repr(node))
     dom.unlink()
-    confirm(len(Node.allnodes) == 0)
 
 def testTextNodeRepr(): pass
 
@@ -295,7 +291,6 @@ def testWriteXML():
     domstr = dom.toxml()
     dom.unlink()
     confirm(str == domstr)
-    confirm(len(Node.allnodes) == 0)
 
 def testProcessingInstruction(): pass
 
@@ -525,25 +520,20 @@ for name in names:
         func = globals()[name]
         try:
             func()
-            print "Test Succeeded", name
-            confirm(len(Node.allnodes) == 0,
-                    "assertion: len(Node.allnodes) == 0")
-            if len(Node.allnodes):
-                print "Garbage left over:"
-                if verbose:
-                    print Node.allnodes.items()[0:10]
-                else:
-                    # Don't print specific nodes if repeatable results
-                    # are needed
-                    print len(Node.allnodes)
-            Node.allnodes = {}
+            print "Test Succeeded " + name
         except:
             failed.append(name)
-            print "Test Failed: ", name
-            sys.stdout.flush()
-            traceback.print_exc()
-            print `sys.exc_info()[1]`
-            Node.allnodes = {}
+            oldstdout = sys.stdout
+            sys.stdout = StringIO()
+            try:
+                print "Test Failed: " + name
+                sys.stdout.flush()
+                traceback.print_exc()
+                print `sys.exc_info()[1]`
+                oldstdout.write(sys.stdout.getvalue())
+            finally:
+                sys.stdout = oldstdout
+            raise
 
 if failed:
     print "\n\n\n**** Check for failures in these tests:"
@@ -552,6 +542,3 @@ if failed:
     print
 else:
     print "All tests succeeded"
-
-Node.debug = None # Delete debug output collected in a StringIO object
-Node._debug = 0   # And reset debug mode
