@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.12 2001/01/11 12:50:44 loewis Exp $
+$Id: drv_pyexpat.py,v 1.13 2001/03/17 18:01:11 akuchling Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -11,7 +11,7 @@ $Id: drv_pyexpat.py,v 1.12 2001/01/11 12:50:44 loewis Exp $
 
 version="0.13"
 
-from xml.sax import saxlib,saxutils
+from xml.sax import saxlib, saxutils, SAXReaderNotAvailable
 
 try:
     from xml.parsers import expat
