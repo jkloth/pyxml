@@ -58,9 +58,9 @@ class XmlWriter(Walker):
 
 		s = '<%s' % self.map_tag(element.get_nodeName() )
 		
-		# XXX use DOM interface here.
-		for name, value in element.get_attributes().items() :
-			s = s + ' %s="%s"' % (self.map_attr(name), escape(value))
+		for name, value in element.get_attributes().items():
+			s = s + ' %s="%s"' % (self.map_attr(name),
+					      escape(value.get_nodeValue() ))
 
 		if self.xml_style_endtags and not element.get_childNodes():
 			s = s + '/>'
