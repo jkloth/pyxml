@@ -1,7 +1,7 @@
 """Tests of the extended features of xml.dom.expatbuilder."""
 
 import pprint
-import sys
+import unittest
 
 from cStringIO import StringIO
 
@@ -20,54 +20,60 @@ DOCUMENT_SOURCE = (
 ''')
 
 
-def check_attrs(atts, expected):
-    assert atts.length == len(expected)
-    info = atts.itemsNS()
-    info.sort()
-    if info != expected:
-        raise AssertionError, "\n" + pprint.pformat(info)
+class Tests(unittest.TestCase):
 
-def run_checks(document, attributes):
-    source = xmlbuilder.DOMInputSource()
-    source.byteStream = StringIO(DOCUMENT_SOURCE)
-    document = builder.parse(source)
+    def setUp(self):
+        self.builder = xmlbuilder.DOMBuilder()
 
-    if document.doctype.internalSubset != INTERNAL_SUBSET:
-        raise ValueError, ("internalSubset not properly initialized; found:\n"
-                           + repr(document.doctype.internalSubset))
-    if document.doctype.entities.length != 1:
-        raise ValueError, "entity not stored in doctype"
-    node = document.doctype.entities['e']
-    if (  node.notationName is not None
-          or node.publicId is not None
-          or node.systemId != 'http://xml.python.org/entity/e'):
-        raise ValueError, "bad entity information"
-    if document.doctype.notations.length != 1:
-        raise ValueError, "notation not stored in doctype"
-    node = document.doctype.notations['x']
-    if (  node.publicId is not None
-          or node.systemId != 'http://xml.python.org/notation/x'):
-        raise ValueError, "bad notation information"
-    check_attrs(document.documentElement.attributes, attributes)
+    def check_attrs(self, atts, expected):
+        self.assertEqual(atts.length, len(expected))
+        info = atts.itemsNS()
+        info.sort()
+        if info != expected:
+            raise AssertionError, "\n" + pprint.pformat(info)
+
+    def run_checks(self, attributes):
+        source = xmlbuilder.DOMInputSource()
+        source.byteStream = StringIO(DOCUMENT_SOURCE)
+        document = self.builder.parse(source)
+
+        if document.doctype.internalSubset != INTERNAL_SUBSET:
+            raise ValueError, (
+                "internalSubset not properly initialized; found:\n"
+                + repr(document.doctype.internalSubset))
+        if document.doctype.entities.length != 1:
+            raise ValueError, "entity not stored in doctype"
+        node = document.doctype.entities['e']
+        if (  node.notationName is not None
+              or node.publicId is not None
+              or node.systemId != 'http://xml.python.org/entity/e'):
+            raise ValueError, "bad entity information"
+        if document.doctype.notations.length != 1:
+            raise ValueError, "notation not stored in doctype"
+        node = document.doctype.notations['x']
+        if (  node.publicId is not None
+              or node.systemId != 'http://xml.python.org/notation/x'):
+            raise ValueError, "bad notation information"
+        self.check_attrs(document.documentElement.attributes, attributes)
+
+    def test_namespace_decls_on(self):
+        self.builder.setFeature("namespace_declarations", 1)
+        self.run_checks(#((nsuri, localName), value),
+                        [((XMLNS_NAMESPACE, "A"), "http://xml.python.org/a"),
+                         ((XMLNS_NAMESPACE, "a"), "http://xml.python.org/a"),
+                         ((XMLNS_NAMESPACE, "b"), "http://xml.python.org/b"),
+                         (("http://xml.python.org/a", "a"), "a"),
+                         (("http://xml.python.org/b", "b"), "b"),
+                         ])
+
+    def test_namespace_decls_off(self):
+        self.builder.setFeature("namespace_declarations", 0)
+        self.run_checks(#((nsuri, localName), value),
+                        [(("http://xml.python.org/a", "a"), "a"),
+                         (("http://xml.python.org/b", "b"), "b"),
+                         ])
 
 
-builder = xmlbuilder.DOMBuilder()
-builder.setFeature("namespace_declarations", 1)
-
-run_checks(builder,
-           #((nsuri, localName), value),
-           [((XMLNS_NAMESPACE, "A"), "http://xml.python.org/a"),
-            ((XMLNS_NAMESPACE, "a"), "http://xml.python.org/a"),
-            ((XMLNS_NAMESPACE, "b"), "http://xml.python.org/b"),
-            (("http://xml.python.org/a", "a"), "a"),
-            (("http://xml.python.org/b", "b"), "b"),
-            ])
-
-
-builder.setFeature("namespace_declarations", 0)
-
-run_checks(builder,
-           #((nsuri, localName), value),
-           [(("http://xml.python.org/a", "a"), "a"),
-            (("http://xml.python.org/b", "b"), "b"),
-            ])
+def test_main():
+    import test_support
+    test_support.run_suite(unittest.makeSuite(Tests))
