@@ -319,7 +319,13 @@ def testWriteXML():
     dom.unlink()
     confirm(str == domstr)
 
-def testProcessingInstruction(): pass
+def testProcessingInstruction():
+    dom = parseString('<e><?mypi \t\n data \t\n ?></e>')
+    pi = dom.documentElement.firstChild
+    confirm(pi.target == "mypi"
+            and pi.data == "data \t\n "
+            and pi.nodeName == "mypi"
+            and pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE)
 
 def testProcessingInstructionRepr(): pass
 
