@@ -1104,6 +1104,22 @@ class Entity(Identified, Node):
     def _get_version(self):
         return self.version
 
+    def appendChild(self, newChild):
+        raise xml.dom.HierarchyRequestErr(
+            "cannot append children to an entity node")
+
+    def insertBefore(self, newChild, refChild):
+        raise xml.dom.HierarchyRequestErr(
+            "cannot insert children below an entity node")
+
+    def removeChild(self, oldChild):
+        raise xml.dom.HierarchyRequestErr(
+            "cannot remove children from an entity node")
+
+    def replaceChild(self, newChild, oldChild):
+        raise xml.dom.HierarchyRequestErr(
+            "cannot replace children of an entity node")
+
 class Notation(Identified, Childless, Node):
     nodeType = Node.NOTATION_NODE
     nodeValue = None
