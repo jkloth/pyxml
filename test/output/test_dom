@@ -1,14 +1,1 @@
 test_dom
-<HTML>
-<HEAD>
-<TITLE>
-This is a test
-</TITLE>
-</HEAD>
-<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
-<H1>Don't panic</H1>
-<H2>We can handle it</H2>
-<H3>Yes we can</H3>
-<H3>Or maybe not</H3>
-</BODY>
-</HTML>

@@ -1,0 +1,6 @@
+test_utils
+Testing utils.escape
+These pairs of strings should all be identical
+&amp;&lt;&gt; &amp;&lt;&gt;
+foo&amp;amp;bar foo&amp;amp;bar
+&lt; &myentity; &gt; &amp; &lt; &myentity; &gt; &amp;
