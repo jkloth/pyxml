@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.8 1999/08/15 23:53:07 amk Exp $
+# $Id: xmlutils.py,v 1.9 2000/02/28 20:35:29 fdrake Exp $
    
 import string,re,urlparse,os
 
@@ -406,9 +406,9 @@ class EntityParser:
     # --- Internal methods
 
     def _push_ent_stack(self):
-        self.ent_stack.append(self.get_current_sysid(),self.data,self.pos,\
-                              self.line,self.last_break,self.datasize,\
-                              self.last_upd_pos,self.block_offset,self.final)
+        self.ent_stack.append((self.get_current_sysid(),self.data,self.pos,\
+                               self.line,self.last_break,self.datasize,\
+                               self.last_upd_pos,self.block_offset,self.final))
 
     def _pop_ent_stack(self):
         (self.current_sysID,self.data,self.pos,self.line,self.last_break,\
