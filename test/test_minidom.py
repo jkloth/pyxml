@@ -239,12 +239,12 @@ def testGetAttributeNS(): pass
 def testGetAttributeNode(): pass
 
 def testGetElementsByTagNameNS():
-    d="""<foo xmlns:minidom="http://pyxml.sf.net/minidom">
+    d="""<foo xmlns:minidom='http://pyxml.sf.net/minidom'>
     <minidom:myelem/>
     </foo>"""
     dom = parseString(d)
-    elem = dom.getElementsByTagNameNS("http://pyxml.sf.net/minidom","myelem")
-    confirm(len(elem) == 1)
+    elems = dom.getElementsByTagNameNS("http://pyxml.sf.net/minidom", "myelem")
+    confirm(len(elems) == 1)
     dom.unlink()
 
 def testGetEmptyNodeListFromElementsByTagNameNS(): pass
@@ -536,6 +536,9 @@ def testUserData():
     confirm(handler.called
             and n.getUserData("bar") is None
             and c.getUserData("bar") == 13)
+    n.unlink()
+    c.unlink()
+    dom.unlink()
 
 def testRenameAttribute():
     doc = parseString("<doc a='v'/>")
@@ -617,6 +620,7 @@ def testRenameAttribute():
         print "expected NamespaceErr"
 
     checkRenameNodeSharedConstraints(doc, attr)
+    doc.unlink()
 
 def testRenameElement():
     doc = parseString("<doc/>")
@@ -659,6 +663,7 @@ def testRenameElement():
             and elem.ownerDocument.isSameNode(doc))
 
     checkRenameNodeSharedConstraints(doc, elem)
+    doc.unlink()
 
 def checkRenameNodeSharedConstraints(doc, node):
     # Make sure illegal NS usage is detected:
@@ -689,6 +694,7 @@ def testRenameOther():
         pass
     else:
         print "expected NotSupportedErr when renaming comment node"
+    doc.unlink()
 
 def checkWholeText(node, s):
     t = node.wholeText
