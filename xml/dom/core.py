@@ -325,6 +325,8 @@ class CharacterData(Node):
         return self._node.value
     
     def set_data(self, data):
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
         self._node.value = data
         
     def __len__(self):
@@ -408,6 +410,8 @@ class Attr(Node):
         return self._node.value
 
     def set_value(self, value):
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
         self._node.value = value
         self._node.specified = 1
 
@@ -489,6 +493,8 @@ class Element(Node):
 
     def getElementsByTagName(self, tagname):
         L = []
+        if self._node.name == tagname:
+            L.append(self)
         for child in self._node.children:
             if child.type == ELEMENT:
                 d = Element(child, self, self._document)
@@ -602,6 +608,8 @@ class ProcessingInstruction(Node):
         return self._node.target
 
     def set_data(self, data):
+        if self.readonly:
+            raise NoModificationAllowedException("Read-only object")
         self._node.target = data
 
 
@@ -626,7 +634,10 @@ class Document(Node):
         d.name = tagName
         d.value = None
         d.attributes = NamedNodeMap()
-        return Element(d, None, self)
+        elem = Element(d, None, self)
+#        for name, value in kwdict.items():
+#            elem.setAttribute(name, value)
+        return elem
 
     def createDocumentFragment(self):
         pass #XXX
@@ -669,10 +680,7 @@ class Document(Node):
 
     def getElementsByTagName(self, tagname):
         if self.documentElement == None: return []
-        L = []
-        if self.documentElement._node.name == tagname:
-            L.append( self.documentElement )
-        return L + self.documentElement.getElementsByTagName(tagname)
+        return self.documentElement.getElementsByTagName(tagname)
 
     # Attributes
     def get_doctype(self):
