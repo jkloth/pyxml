@@ -213,8 +213,11 @@ $(TARGET):	$(ADDOBJS) lib.a $(PYTHONLIBS) Makefile $(BASELIB)
 install:	sharedmods libinstall
 		if test ! -d $(LIBXML) ; then \
 			mkdir $(LIBXML) ; else true ; fi
-		-for i in sgmlop$(SO) ; do \
+		-for i in sgmlop$(SO) wstrop$(SO) intl$(SO) ; do \
 			$(INSTALL_SHARED) $$i $(DESTSHARED)/$$i; \
+		done
+		-cd unicode ; for i in *.py ; do \
+			$(INSTALL_DATA) $$i $(DESTSHARED)/$$i; \
 		done
 		-for i in pyexpat$(SO) ; do \
 			$(INSTALL_SHARED) $$i $(LIBXML)/parsers/$$i; \
