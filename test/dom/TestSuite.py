@@ -39,7 +39,7 @@ class TestItem:
         spaces = self.suite.columns - 9
         spaces = spaces - len(self.title)
         title = self.title + ' '*spaces + msg
-
+        print title
         for msg in self.messages:
             print msg[0]
         return retVal
@@ -103,8 +103,9 @@ class TestGroup:
 
     def testDone(self):
         if self.tests:
-            self.retVal = self.retVal | self.tests[-1].finish()
+            retVal = self.tests[-1].finish()
             del self.tests[-1]
+            self.retVal = self.retVal or retVal
             return self.retVal
 
 
@@ -115,7 +116,6 @@ class TestSuite:
         else:
             self.useColor = useColor
         self.stopOnError = stopOnError
-        self.useColor = useColor
         self.columns = cols
         self.groups = []
         self.retVal = OK
