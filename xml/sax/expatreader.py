@@ -30,8 +30,6 @@ from xml.sax import xmlreader, saxutils, handler
 AttributesImpl = xmlreader.AttributesImpl
 AttributesNSImpl = xmlreader.AttributesNSImpl
 
-import string
-
 # If we're using a sufficiently recent version of Python, we can use
 # weak references to avoid cycles between the parser and content
 # handler, otherwise we'll just have to pretend.
@@ -281,7 +279,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._cont_handler.endElement(name)
 
     def start_element_ns(self, name, attrs):
-        pair = string.split(name)
+        pair = name.split()
         if len(pair) == 1:
             pair = (None, name)
         else:
@@ -289,7 +287,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
         newattrs = {}
         for (aname, value) in attrs.items():
-            apair = string.split(aname)
+            apair = aname.split()
             if len(apair) == 1:
                 apair = (None, aname)
             else:
@@ -301,7 +299,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
                                           AttributesNSImpl(newattrs, {}))
 
     def end_element_ns(self, name):
-        pair = string.split(name)
+        pair = name.split()
         if len(pair) == 1:
             pair = (None, name)
         else:
