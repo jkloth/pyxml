@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.9 2001/03/28 10:45:05 loewis Exp $
+$Id: drv_xmlproc.py,v 1.10 2001/04/16 10:44:51 larsga Exp $
 """
 
 import types, string
@@ -40,6 +40,7 @@ class XmlprocDriver(IncrementalParser):
         self.__parsing = 0
         self.__validate = 0
         self.__namespaces = 1
+        self.__ext_pes = 0
 
         self.__locator = 0
 
@@ -78,6 +79,9 @@ class XmlprocDriver(IncrementalParser):
             parser.set_dtd_listener(self)
         # FIXME: set other handlers
 
+        if self.__ext_pes:
+            parser.set_read_external_subset(1)
+        
         self._parser = parser # make it available for callbacks
         #parser.parse_resource(source.getSystemId()) # FIXME: rest!
         parser.set_sysid(source.getSystemId())
@@ -99,9 +103,10 @@ class XmlprocDriver(IncrementalParser):
 
     def getFeature(self, name):
         if name == saxlib.feature_string_interning or \
-           name == saxlib.feature_external_ges or \
-           name == saxlib.feature_external_pes:
+           name == saxlib.feature_external_ges:
             return 1
+        elif name == saxlib.feature_external_pes:
+            return self.__ext_pes
         elif name == saxlib.feature_validation:
             return self.__validate
         elif name == saxlib.feature_namespaces:
@@ -118,12 +123,15 @@ class XmlprocDriver(IncrementalParser):
             pass
         elif name == saxlib.feature_validation:
             self.__validate = state
+            if self.__validate:
+                self.__ext_pes = 1
         elif name == saxlib.feature_namespaces:
             self.__namespaces = state
-        elif name == saxlib.feature_external_ges or \
-             name == saxlib.feature_external_pes:
+        elif name == saxlib.feature_external_ges:
             if not state:
                 raise saxlib.SAXNotSupportedException("This feature cannot be turned off with xmlproc.")
+        elif name == saxlib.feature_external_pes:
+            self.__ext_pes = state
         else:
             raise saxlib.SAXNotRecognizedException("Feature '%s' not recognized" %
                                             name)
