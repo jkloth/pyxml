@@ -1,74 +1,106 @@
-<!-- DTD for XBEL - XML Bookmark Exchange Language -->
+<!-- This is the XML Bookmarks Exchange Language, version 1.0.  It should
+     be used with the formal public identifier:
 
-<!ENTITY lt "&#38;#60;">
-<!ENTITY gt "&#62;">
-<!ENTITY amp "&#38;#38;">
-<!ENTITY apos "&#39;">
-<!ENTITY quot "&#34;">
+	-//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML
 
-<!ENTITY % NODES 'bookmark|folder|url|alias|separator'>
+     One valid system identifier at which this DTD will remain
+     available is:
 
-<!ELEMENT xbel     (title?, info?, desc?, (%NODES;)*)>
+	http://www.python.org/topics/xml/dtds/xbel-1.0.dtd
+
+     More information the on the DTD, including reference
+     documentation, is available at:
+
+	http://www.python.org/topics/xml/xbel/
+
+    Attributes which take date/time values should encode the value
+    according to the W3C NOTE on date/time formats:
+
+	http://www.w3.org/TR/NOTE-datetime
+  -->
+
+
+<!ENTITY % common.attrs	"">
+<!ENTITY % node.attrs	"added	  CDATA	#IMPLIED">
+<!ENTITY % url.attrs	"id	  ID	#IMPLIED
+			 href	  CDATA	#REQUIRED
+                         visited  CDATA	#IMPLIED
+                         modified CDATA	#IMPLIED">
+
+<!ENTITY % nodes	"bookmark|folder|alias|separator">
+
+
+<!ELEMENT xbel (title?, info?, desc?, (%nodes;)*)>
 <!ATTLIST xbel
-            version CDATA   #FIXED "1.0"
+            version  CDATA	#FIXED "1.0"
+>
+<!ELEMENT title	     (#PCDATA)>
+<!ATTLIST title
+	    %common.attrs;
 >
 
-<!ELEMENT title	  (#PCDATA)>
-
-<!--=================== Info blocks ===============================-->
+<!--=================== Info ======================================-->
 
 <!ELEMENT info (metadata*)>
+<!ATTLIST info
+	    %common.attrs;
+>
+
+<!-- The "scheme" attribute should be a URI that points to some form -->
+<!-- of specification.  The referenced spec. may be for either human -->
+<!-- or machine consumption, based on the application requirements.  -->
 
 <!ELEMENT metadata (meta*)>
 <!ATTLIST metadata
-	    id		ID    #IMPLIED
-	    scheme	CDATA #IMPLIED
-	    lang	CDATA #IMPLIED
+	    %common.attrs;
+	    scheme   CDATA	#IMPLIED
 >
 <!ELEMENT meta (#PCDATA)>
 <!ATTLIST meta
-	    name	CDATA #REQUIRED
+	    %common.attrs;
+	    name     CDATA	#REQUIRED
 >
 
 <!--=================== Folder ====================================-->
 
-<!ELEMENT folder   (title?,info?,desc?,(%NODES;)*)>
+<!ELEMENT folder   (title?, info?, desc?,(%nodes;)*)>
 <!ATTLIST folder
-            id	     ID	      #IMPLIED
-	    added     CDATA   #IMPLIED
-            folded   (yes|no) 'yes'   
->
-
-<!--=================== URL ======================================-->
-
-<!ELEMENT url        (#PCDATA)>
-<!ATTLIST url
-            id	     ID	      #IMPLIED
-	    added    CDATA    #IMPLIED
-            href     CDATA    #REQUIRED
-            visited  CDATA    #IMPLIED
-            modified CDATA    #IMPLIED
-            response CDATA    #IMPLIED	-- HTTP response code? --
-            checked  CDATA    #IMPLIED
+	    %common.attrs;
+            %node.attrs;
+            folded   (yes|no)	'yes'   
 >
 
 <!--=================== Bookmark ==================================-->
 
-<!-- a wrapper around an url when it has to contain extra info
-     like a description and info blocks
-  -->
-
-<!ELEMENT bookmark (url, info?, desc?)>
+<!ELEMENT bookmark (title?, info?, desc?)>
+<!ATTLIST bookmark
+	    %common.attrs;
+	    %node.attrs;
+            %url.attrs;
+>
 
 <!ELEMENT desc       (#PCDATA)>
+<!ATTLIST desc
+	    %common.attrs;
+>
 
 <!--=================== Separator =================================-->
 
 <!ELEMENT separator EMPTY>
+<!ATTLIST separator
+	    %common.attrs;
+>
 
 <!--=================== Alias =====================================-->
 
+<!-- <alias> elements correspond to Netscape bookmark aliases.  The -->
+<!-- required "ref" attribute must refer to a <bookmark> element.   -->
+<!-- Note that Netscape aliases cannot refer to folders, so that is -->
+<!-- not supported in XBEL, though it had been proposed at one      -->
+<!-- point.                                                         -->
+
 <!ELEMENT alias EMPTY>
 <!ATTLIST alias
-            ref       IDREF    #REQUIRED
+	    %common.attrs;
+            ref       IDREF	#REQUIRED
 >
