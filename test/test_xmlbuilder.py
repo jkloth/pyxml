@@ -112,6 +112,21 @@ class Tests(unittest.TestCase):
         self.assertEqual(e.getAttribute("id"), "")
         self.assert_(doc.getElementById("no-longer-new") is None)
 
+        # check that modifying e.attributes works as well
+        attrs = e.attributes
+        e.setAttributeNode(a)
+        self.assert_(e.isSameNode(doc.getElementById("no-longer-new")))
+        attrs.removeNamedItem("id")
+        self.assert_(doc.getElementById("no-longer-new") is None)
+
+        a2 = doc.createAttribute("id")
+        a2.value = "alternate-id"
+        attrs.setNamedItem(a)
+        self.assert_(e.isSameNode(doc.getElementById("no-longer-new")))
+        attrs.setNamedItem(a2)
+        self.assert_(doc.getElementById("no-longer-new") is None)
+        self.assert_(e.isSameNode(doc.getElementById("alternate-id")))
+
         # make sure nodes with an ID in a fragment are not located.
         f = doc.createDocumentFragment()
         e = doc.createElement("e")
