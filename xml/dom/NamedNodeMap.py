@@ -13,6 +13,21 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import UserDict
 
+class _NamedNodeMapIter:
+    """Iterator class for Python 2.2. The iterator function
+    is .next, the stop-iterator element is the iterator itself."""
+    def __init__(self,map):
+        self.pos = 0
+        self.map = map
+
+    def next(self):
+        try:
+            res = self.map[self.pos]
+            self.pos = self.pos + 1
+            return res
+        except IndexError:
+            return self
+
 from xml.dom import Node
 from xml.dom import NoModificationAllowedErr
 from xml.dom import NotFoundErr
@@ -106,6 +121,10 @@ class NamedNodeMap(UserDict.UserDict):
 
     def __setitem__(self, index, item):
         raise NotSupportedErr()
+
+    def __iter__(self):
+        i = _NamedNodeMapIter(self)
+        return iter(i.next, i)
 
     def __repr__(self):
         st = "<NamedNodeMap at %x: {" % (id(self))
