@@ -1,6 +1,5 @@
 # Very simple test - Parse a file and print what happens
 import sys
-import sys
 import os
 
 try:
