@@ -66,3 +66,4 @@ class DOMImplementation:
         return NamedNodeMap.NamedNodeMap(owner)
 
 implementation = DOMImplementation()
+getDOMImplementation = DOMImplementation
