@@ -39,18 +39,26 @@ import yappsrt
 SyntaxException = yappsrt.SyntaxError
 InternalException = SyntaxError # not used
 
-class GeneralException:
-    def __init__(self, errorCode):
+class RuntimeException(Exception):
+    def __init__(self, errorCode, *args):
+        import MessageSource
+        self.args = args
         self.errorCode = errorCode
+        self._message = MessageSource.g_errorMessages[errorCode]%args
+        return
 
+    def __str__(self):
+        return self._message
 
 class Error:
-    LEXICAL_ERROR = 1
-    SYNTAX_ERROR = 2
-    INTERNAL_ERROR = 3
-    PROCESSING_ERROR = 4
-    NO_CONTEXT_ERROR = 5
+    INTERNAL_ERROR = 1
+    PROCESSING = 2
 
+    LEXICAL = 10
+    SYNTAX = 11
+
+    NO_CONTEXT = 100
+    UNDEFINED_VARIABLE = 110
 
 def Evaluate(expr, contextNode=None, context=None):
     import pyxpath
@@ -63,7 +71,7 @@ def Evaluate(expr, contextNode=None, context=None):
     elif contextNode:
         con = Context.Context(contextNode, 0, 0)
     else:
-        raise GeneralException(Error.NO_CONTEXT_ERROR)
+        raise RuntimeException(Error.NO_CONTEXT)
     retval = pyxpath.Compile(expr).evaluate(con)
     return retval
 

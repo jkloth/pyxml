@@ -55,6 +55,7 @@ BuiltInExtElements.py
 TextWriter.py
 TextSax.py
 _4xslt.py
+RtfWriter.py
 
 The following files were adjusted for use with the Yapps parser:
 
@@ -81,7 +82,6 @@ The following files where ported to use minidom:
 
 Processor.py
 XsltContext.py
-RtfWriter.py
 StylesheetReader.py
 LiteralText.py
 StyleSheet.py
