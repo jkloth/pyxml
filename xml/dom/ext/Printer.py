@@ -6,12 +6,16 @@
 #
 # History:
 # $Log: Printer.py,v $
-# Revision 1.2  2000/06/06 01:44:07  amkcvs
-# Fix syntax error
+# Revision 1.3  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
 #
-# Revision 1.1  2000/06/06 01:36:07  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.8  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
+#
+# Revision 1.7  2000/06/05 14:56:45  uogbuji
+# Improve XSLT stage test
+# Add proper UTF-8 and ISO-8859-1 encoding support
+# Improve XPath stringvalue for number
 #
 # Revision 1.6  2000/05/24 18:39:20  jkloth
 # Added default single-line element support to (Pretty)Print
@@ -146,7 +150,7 @@
 The printing sub-system.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 FourThought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -158,8 +162,7 @@ from xml.dom import ext
 from xml.dom.html import HTML_4_TRANSITIONAL_INLINE, HTML_FORBIDDEN_END
 
 g_xmlIllegalCharPattern = re.compile('[\x01-\x08\x0B-\x0D\x0E-\x1F\x80-\xFF]')
-#g_undoUtf8Pattern = re.compile('\xC2([^\xC2])')
-g_undoUtf8Pattern = re.compile('\xC2(.)')
+g_utf8TwoBytePattern = re.compile('([\xC0-\xC3])([\x80-\xBF])')
 g_cdataCharPattern = re.compile('[&<\'\"]')
 g_textCharPattern = re.compile('[&<]')
 g_charToEntity = {
@@ -169,19 +172,32 @@ g_charToEntity = {
         '"': '&quot;'
         }
 
-def TranslateCdata(text):
-    new_string, num_subst = re.subn(g_undoUtf8Pattern, lambda m: m.group(2), text)
-    new_string, num_subst = re.subn(g_cdataCharPattern, lambda m, d=g_charToEntity: d[m.group()], new_string)
-    #Note: use decimal char entity rep because some browsers are broken
-    new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#%i;'%ord(m.group()), new_string)
+
+def TranslateCdata(text, encoding='UTF-8'):
+    encoding = string.upper(encoding)
+    new_string, num_subst = re.subn(g_cdataCharPattern, lambda m, d=g_charToEntity: d[m.group()], text)
     #Convert attribute new-lines to character entity
     new_string = re.sub('\n', '&#10;', new_string)
+    if encoding == 'UTF-8':
+        pass
+    elif encoding == 'ISO-8859-1':
+        new_string, num_subst = re.subn(g_utf8TwoBytePattern, lambda m: chr(((int(ord(m.group(1))) & 0x03) << 6) | (int(ord(m.group(2))) & 0x3F)), new_string)
+    else:
+        raise Exception('Unsupported output encoding')
+    #Note: use decimal char entity rep because some browsers are broken
+    new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#%i;'%ord(m.group()), new_string)
     return new_string
 
 
-def TranslateText(text):
-    new_string, num_subst = re.subn(g_undoUtf8Pattern, lambda m: m.group(2), text)
-    new_string, num_subst = re.subn(g_textCharPattern, lambda m, d=g_charToEntity: d[m.group()], new_string)
+def TranslateText(text, encoding='UTF-8'):
+    encoding = string.upper(encoding)
+    new_string, num_subst = re.subn(g_textCharPattern, lambda m, d=g_charToEntity: d[m.group()], text)
+    if encoding == 'UTF-8':
+        pass
+    elif encoding == 'ISO-8859-1':
+        new_string, num_subst = re.subn(g_utf8TwoBytePattern, lambda m: chr(((int(ord(m.group(1))) & 0x03) << 6) | (int(ord(m.group(2))) & 0x3F)), new_string)
+    else:
+        raise Exception('Unsupported output encoding')
     #Note: use decimal char entity rep because some browsers are broken
     new_string, num_subst = re.subn(g_xmlIllegalCharPattern, lambda m: '&#%i;'%ord(m.group()), new_string)
     return new_string
@@ -224,8 +240,8 @@ class PrintVisitor(Visitor):
         name_parts = ext.SplitQName(node.nodeName)
         if name_parts == ('', 'xmlns') or name_parts[0] == 'xmlns':
             return ''
-        if node.childNodes.length == 0:
-            st = "%s" % node.nodeName
+        if node.ownerDocument.isHtml() and len(node.childNodes) == 0:
+            st = node.nodeName
         else:
             st = "%s='%s'" % (node.nodeName, TranslateCdata(node.value))
         return st
@@ -266,7 +282,7 @@ class PrintVisitor(Visitor):
         elif node.ownerDocument.isXml():
             st = st + '/>'
         elif node.tagName not in HTML_FORBIDDEN_END:
-            st = st + '></%s>' % node.tagName
+            st = st + '></%s>' % (node.tagName)
         else:
             st = st + '>'
         del self.__namespaces[-1]
@@ -368,7 +384,7 @@ class PrettyPrintVisitor(Visitor):
         name_parts = ext.SplitQName(node.nodeName)
         if name_parts == ('', 'xmlns') or name_parts[0] == 'xmlns':
             return ''
-        if node.childNodes.length == 0:
+        if node.ownerDocument.isHtml() and len(node.childNodes) == 0:
             st = node.nodeName
         else:
             st = "%s='%s'" % (node.nodeName, TranslateCdata(node.value))
@@ -425,7 +441,7 @@ class PrettyPrintVisitor(Visitor):
         elif node.ownerDocument.isXml():
             st = st + '/>'
         elif node.tagName not in HTML_FORBIDDEN_END:
-            st = st + '></%s>' % node.tagName
+            st = st + '></%s>' % (node.tagName)
         else:
             st = st + '>'
         del self.__namespaces[-1]
@@ -446,18 +462,17 @@ class PrettyPrintVisitor(Visitor):
             self.__depth = self.__depth + 1
             st = st + self.visitNode(node)
             self.__depth = self.__depth - 1
-            if node.ownerDocument.isXml() or (node.tagName not in HTML_FORBIDDEN_END):
-                if self.__prevNodeIsText:
-                    self.__prevNodeIsText = 0
-                    st = st + '</%s>' % (node.tagName)
-                else:
-                    st = st + '\n%s</%s>' % (self.__depth*self.__indent, node.tagName)
-            elif node.ownerDocument.isXml():
-                st = st + '/>'
-            elif node.tagName not in HTML_FORBIDDEN_END:
-                st = st + '></%s>' % node.tagName
+            if self.__prevNodeIsText:
+                self.__prevNodeIsText = 0
+                st = st + '</%s>' % (node.tagName)
             else:
-                st = st + '>'
+                st = st + '\n%s</%s>' % (self.__depth*self.__indent, node.tagName)
+        elif node.ownerDocument.isXml():
+            st = st + '/>'
+        elif node.tagName not in HTML_FORBIDDEN_END:
+            st = st + '></%s>' % (node.tagName)
+        else:
+            st = st + '>'
         self.__printPlain = 0
         return st
 

@@ -1,9 +1,0 @@
--- Add mutation event support
--- Consider xml:include
--- Consider xml:base
--- Consider xml:lang
--- Fix Attr defaultValue and specified
--- Consider Node List and Node Iterator fix-ups
--- More optimization?
--- Complete document on 4TH interpretations of the DOM
--- Convert string to DOMString

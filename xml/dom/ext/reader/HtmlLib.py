@@ -6,9 +6,11 @@
 #
 # History:
 # $Log: HtmlLib.py,v $
-# Revision 1.1  2000/06/06 01:36:07  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.10  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
 #
 # Revision 1.9  2000/05/24 18:03:39  uogbuji
 # Fix bugs and name inconsistencies
@@ -184,10 +186,10 @@ def FromHtml(str, ownerDocument=None):
         toDoc = ownerDocument
     else:
         children = d.childNodes
-    for child in children:
-        if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
-            toDoc = p.ownerDoc
-            break
+        for child in children:
+            if child.nodeType == Node.ELEMENT_NODE and child.tagName == 'HTML':
+                toDoc = p.ownerDoc
+                break
     if toDoc:
         #Convert to a document
         for child in d.childNodes:

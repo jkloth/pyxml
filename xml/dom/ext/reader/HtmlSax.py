@@ -9,7 +9,7 @@
 Components for reading HTML files from a SAX-like producer.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 FourThought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 

@@ -6,9 +6,11 @@
 #
 # History:
 # $Log: NodeList.py,v $
-# Revision 1.1  2000/06/06 01:36:05  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.34  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
 #
 # Revision 1.33  2000/05/22 16:29:33  uogbuji
 # Kill tabs
@@ -59,10 +61,9 @@
 #
 #
 """
-
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 FourThought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -99,11 +100,11 @@ class NodeList(UserList.UserList):
 
     ### Methods ###
 
-    def item(self,index):
-        try:
-            return self[int(index)]
-        except IndexError:
+    def item(self, index):
+        if index >= self.__len__():
             return None
+        else:
+            return self[int(index)]
 
     #Not defined in the standard
     def contains(self, node):
@@ -111,8 +112,9 @@ class NodeList(UserList.UserList):
 
     def __repr__(self):
         st = "<NodeList at %s: ["%(id(self))
-        for i in self:
-            st = st + repr(i) + ', '
         if len(self):
-            st = st[:-2]
-        return st + ']>'
+            for i in self[:-1]:
+                st = st + repr(i) + ', '
+            st = st + repr(self[-1])
+        st = st + ']>'
+        return st

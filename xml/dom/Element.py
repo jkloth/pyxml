@@ -6,9 +6,11 @@
 #
 # History:
 # $Log: Element.py,v $
-# Revision 1.1  2000/06/06 01:36:05  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.53  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
 #
 # Revision 1.52  2000/05/22 16:29:33  uogbuji
 # Kill tabs
@@ -107,13 +109,11 @@
 #
 #
 """
-
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 FourThought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 
 import xml.dom.ext
@@ -209,8 +209,6 @@ class Element(Node):
         for cur_node in self.childNodes:
             if cur_node.nodeType == Node.ELEMENT_NODE:
                 if tagName == '*':
-                    py.append(cur_node)
-                elif self.ownerDocument.isHtml() and string.upper(cur_node.tagName) == tagName:
                     py.append(cur_node)
                 elif cur_node.tagName == tagName:
                     py.append(cur_node)
@@ -309,7 +307,5 @@ class Element(Node):
                                 })
 
     # Create the read-only list of attributes
-    _readOnlyAttrs = Node._readOnlyAttrs
-    for attr in _readComputedAttrs.keys():
-        if not _writeComputedAttrs.has_key(attr):
-            _readOnlyAttrs.append(attr)
+    _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
+                            Node._readOnlyAttrs + _readComputedAttrs.keys())

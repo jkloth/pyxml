@@ -6,6 +6,20 @@ HTML_FORBIDDEN_END = ['AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'FRAME', 'HR', 'I
 
 HTML_OPT_END = ['BODY', 'COLGROUP', 'DD', 'DT', 'HEAD', 'HTML', 'LI', 'OPTION', 'P', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR']
 
+HTML_NAME_ALLOWED = ['A',
+                     'APPLET',
+                     'BUTTON',
+                     'FORM',
+                     'FRAME',
+                     'IFRAME',
+                     'IMG',
+                     'INPUT',
+                     'MAP',
+                     'META',
+                     'OBJECT',
+                     'PARAM',
+                     'SELECT',
+                     'TEXTAREA']
 
 from xml.dom.html import HTMLDOMImplementation
 

@@ -6,9 +6,16 @@
 #
 # History:
 # $Log: Sax2.py,v $
-# Revision 1.1  2000/06/06 01:36:07  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.6  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
+#
+# Revision 1.5  2000/06/06 21:21:53  uogbuji
+# Test and fix demos
+# Improve parse error handling in XSLT
+# Packaging and documentation
 #
 # Revision 1.4  2000/05/25 02:35:00  jkloth
 # Moved Sax2Lib to eader directory
@@ -103,7 +110,7 @@
 Components for reading XML files from a SAX2 producer.
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 FourThought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -323,6 +330,7 @@ class XmlDomGenerator(saxlib.HandlerBase,
 
 
 def FromXmlStream(stream,
+                  ownerDocument=None,
                   validate=0,
                   keepAllWs=0,
                   catName=None,
@@ -334,41 +342,43 @@ def FromXmlStream(stream,
         from xml.parsers.xmlproc import catalog
         cat_handler = catalog.SAX_catalog(catName, catalog.CatParserFactory())
         parser.setEntityResolver(cat_handler)
-    handler = saxHandlerClass(keepAllWs)
+    handler = saxHandlerClass(ownerDocument, keepAllWs)
     parser.setDocumentHandler(handler)
     parser.setDTDHandler(handler)
     parser.setErrorHandler(handler)
-
     parser.parseFile(stream)
     return handler.getRootNode()
 
 def FromXml(str,
+            ownerDocument=None,
             validate=0,
             keepAllWs=0,
             catName=None,
             saxHandlerClass=XmlDomGenerator):
     fp = cStringIO.StringIO(str)
-    rv = FromXmlStream(fp, validate, keepAllWs, catName, saxHandlerClass)
+    rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName, saxHandlerClass)
     return rv
 
 def FromXmlFile(fileName,
+                ownerDocument=None,
                 validate=0,
                 keepAllWs=0,
                 catName=None,
                 saxHandlerClass=XmlDomGenerator):
     fp = open(fileName, 'r')
-    rv = FromXmlStream(fp, validate, keepAllWs, catName, saxHandlerClass)
+    rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName, saxHandlerClass)
     fp.close()
     return rv
 
 def FromXmlUrl(url,
+               ownerDocument=None,
                validate=0,
                keepAllWs=0,
                catName=None,
                saxHandlerClass=XmlDomGenerator):
     import urllib
     fp = urllib.urlopen(url)
-    rv = FromXmlStream(fp, validate, keepAllWs, catName, saxHandlerClass)
+    rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName, saxHandlerClass)
     fp.close()
     return rv
 

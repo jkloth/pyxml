@@ -6,9 +6,11 @@
 #
 # History:
 # $Log: __init__.py,v $
-# Revision 1.1  2000/06/06 01:36:07  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.11  2000/06/09 01:37:43  jkloth
+# Fixed copyright to Fourthought, Inc
 #
 # Revision 1.10  2000/05/24 18:03:39  uogbuji
 # Fix bugs and name inconsistencies
@@ -129,13 +131,11 @@
 #
 #
 """
-
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 1999 FourThought LLC, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
-
 
 
 """Some Helper functions: 4DOM-specific Extensions to the DOM"""

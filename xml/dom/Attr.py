@@ -6,9 +6,12 @@
 #
 # History:
 # $Log: Attr.py,v $
-# Revision 1.1  2000/06/06 01:36:04  amkcvs
-# Added 4DOM code as provided; I haven't tested it to see if something
-#    broke in the process.
+# Revision 1.2  2000/06/20 15:51:29  uche
+# first stumblings through 4Suite integration
+#
+# Revision 1.31  2000/06/09 01:37:23  jkloth
+# Updated copyright
+# Fixed return value for nodeValue
 #
 # Revision 1.30  2000/05/22 16:29:33  uogbuji
 # Kill tabs
@@ -64,10 +67,10 @@
 #
 #
 """
-DOM Level 1&2 Attribute Node
+DOM Level 2 Attribute Node
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 1999 FourThought LLC, USA.   All Rights Reserved.
+Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -102,13 +105,19 @@ class Attr(Node):
         return str
 
     def _set_value(self, value):
-        t = self.ownerDocument.createTextNode(value)
-        self.__dict__['__childNodes'] = xml.dom.implementation._4dom_createNodeList([t])
+        if value is not None:
+            nl = [self.ownerDocument.createTextNode(value)]
+        else:
+            nl = []
+        self.__dict__['__childNodes'] = xml.dom.implementation._4dom_createNodeList(nl)
 
     def _get_ownerElement(self):
         return self.__dict__['__ownerElement']
 
     ### Overridden Methods ###
+
+    def _get_nodeValue(self):
+        return self._get_value()
 
     def cloneNode(self, deep, node=None, newOwner=None):
         if node == None:
@@ -122,9 +131,9 @@ class Attr(Node):
 
     def __repr__(self):
          return '<Attribute Node at %s: Name = "%s", Value = "%s">' % (
-             id(self)
-             ,self.name
-             ,self.value
+             id(self),
+             self.name,
+             self.value
              )
 
     ### Internal Methods ###
@@ -135,18 +144,20 @@ class Attr(Node):
     ### Attribute Access Mappings ###
 
     _readComputedAttrs = Node._readComputedAttrs.copy()
-    _readComputedAttrs.update({'name':_get_name,
-                       'specified':_get_specified,
-                       'ownerElement':_get_ownerElement,
-                       'value':_get_value
-                       })
+    _readComputedAttrs.update({
+        'name':_get_name,
+        'specified':_get_specified,
+        'ownerElement':_get_ownerElement,
+        'value':_get_value,
+        'nodeValue':_get_value
+        })
 
     _writeComputedAttrs = Node._writeComputedAttrs.copy()
-    _writeComputedAttrs.update({'value':_set_value
-                                })
+    _writeComputedAttrs.update({
+        'value':_set_value,
+        'nodeValue':_set_value
+        })
 
     # Create the read-only list of attributes
-    _readOnlyAttrs = Node._readOnlyAttrs
-    for attr in _readComputedAttrs.keys():
-        if not _writeComputedAttrs.has_key(attr):
-            _readOnlyAttrs.append(attr)
+    _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
+                            Node._readOnlyAttrs + _readComputedAttrs.keys())

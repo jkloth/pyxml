@@ -1,5 +1,13 @@
+Changes in 0.10.1 (R20000606)
+-----------------------------
+
+ - Fix nasty character-encoding bugs in Printer
+ - Fixed many bugs in demos
+ - Fix Sax2 support for passed-in documents
+ - Other bug-fixes
+
 Changes in 0.10.0 (R20000524)
-----------------------------
+-----------------------------
 
  - Moved all static variables to class variables
  - Fixed printing to work with empty elements
