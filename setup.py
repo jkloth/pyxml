@@ -30,6 +30,7 @@ LIBEXPAT = None
 LDFLAGS = []
 
 args = sys.argv[:]
+extra_packages = []
 for arg in args:
     if string.find(arg, '--with-libexpat=') == 0:
         LIBEXPAT = string.split(arg, '=')[1]
@@ -37,6 +38,12 @@ for arg in args:
     elif string.find(arg, '--ldflags=') == 0:
         LDFLAGS = string.split(string.split(arg, '=')[1])
         sys.argv.remove(arg)
+    elif arg == '--with-xpath':
+	extra_packages.append(xml('.xpath'))
+	sys.argv.remove(arg)
+    elif arg == '--with-xslt':
+	extra_packages.append(xml('.xslt'))
+	sys.argv.remove(arg)
 
 def should_build_pyexpat():
     try:
@@ -196,7 +203,7 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
                    xml('.sax'), xml('.sax.drivers'),
                    xml('.sax.drivers2'), xml('.utils'), xml('.schema'),
                    #xml('.xpath'), xml('.xslt')
-                   ],
+                   ] + extra_packages,
 
        ext_modules = ext_modules,
 
