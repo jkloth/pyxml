@@ -84,7 +84,7 @@ def get_expat_prefix():
 
 
 # Don't build pyexpat if the Python installation provides one.
-# FIXME: It should be build for binary distributions even if the core has it.
+# FIXME: It should be built for binary distributions even if the core has it.
 build_pyexpat = should_build_pyexpat()
 if build_pyexpat:
     expat_prefix = get_expat_prefix()
