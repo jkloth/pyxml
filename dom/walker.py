@@ -18,6 +18,8 @@ class Walker:
             self.endElement(node)
         elif type == COMMENT_NODE:
             self.doComment(node)
+        elif type == TEXT_NODE:
+            self.doText(node)
         else:
             self.doOtherNode( node )
 
