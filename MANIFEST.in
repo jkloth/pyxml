@@ -34,3 +34,5 @@ include setupext/*.py
 
 include scripts/xmlproc_parse
 include scripts/xmlproc_val
+
+global-exclude */CVS/*

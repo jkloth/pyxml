@@ -190,6 +190,8 @@ include test/test.xml.out
 graft test/output
 
 include ANNOUNCE CREDITS LICENCE README* TODO
+
+global-exclude */CVS/*
 """
 
 if doc2xmldoc:
