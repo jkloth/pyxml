@@ -29,11 +29,13 @@ class _NamedNodeMapIter:
             return self
 
 from xml.dom import Node
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom import NoModificationAllowedErr
 from xml.dom import NotFoundErr
 from xml.dom import NotSupportedErr
 from xml.dom import WrongDocumentErr
 from xml.dom import InuseAttributeErr
+from xml.dom import NamespaceErr
 
 class NamedNodeMap(UserDict.UserDict):
     def __init__(self, ownerDoc=None):
@@ -66,29 +68,17 @@ class NamedNodeMap(UserDict.UserDict):
         return None
 
     def getNamedItem(self, name):
-        return self.get(name)
+        return self.getNamedItemNS(EMPTY_NAMESPACE,name)
 
     def removeNamedItem(self, name):
-        old = self.get(name)
-        if not old:
-            raise NotFoundErr()
-        del self[name]
-        self._positions.remove(name)
-        return old
+        return self.removeNamedItemNS(EMPTY_NAMESPACE,name)
 
     def setNamedItem(self, arg):
-        if self._ownerDocument != arg.ownerDocument:
-            raise WrongDocumentErr()
-        if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
-            raise InuseAttributeErr()
-        name = arg.nodeName
-        retval = self.get(name)
-        UserDict.UserDict.__setitem__(self, name, arg)
-        if not retval:
-            self._positions.append(name)
-        return retval
+        return self.setNamedItemNS(arg)
 
     def getNamedItemNS(self, namespaceURI, localName):
+        if namespaceURI == '':
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         return self.get((namespaceURI, localName))
 
     def setNamedItemNS(self, arg):
@@ -96,6 +86,8 @@ class NamedNodeMap(UserDict.UserDict):
             raise WrongDocumentErr()
         if arg.nodeType == Node.ATTRIBUTE_NODE and arg.ownerElement != None:
             raise InuseAttributeErr()
+        if arg.namespaceURI == '':
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         name = (arg.namespaceURI, arg.localName)
         retval = self.get(name)
         UserDict.UserDict.__setitem__(self, name, arg)
@@ -104,6 +96,8 @@ class NamedNodeMap(UserDict.UserDict):
         return retval
 
     def removeNamedItemNS(self, namespaceURI, localName):
+        if namespaceURI == '':
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         name = (namespaceURI, localName)
         old = self.get(name)
         if not old:

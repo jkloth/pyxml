@@ -17,11 +17,13 @@ from FtNode import FtNode
 import Event
 from xml.dom import Node
 from xml.dom import XML_NAMESPACE
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom import InvalidCharacterErr
 from xml.dom import WrongDocumentErr
 from xml.dom import InuseAttributeErr
 from xml.dom import NotFoundErr
 from xml.dom import SyntaxErr
+from xml.dom import NamespaceErr
 
 from ext import SplitQName, IsDOMString
 
@@ -53,38 +55,22 @@ class Element(FtNode):
     ### Methods ###
 
     def getAttribute(self, name):
-        att = self.attributes.getNamedItem(name)
-        return att and att.value or ''
+        return self.getAttributeNS(EMPTY_NAMESPACE,name)
 
     def getAttributeNode(self, name):
-        return self.attributes.getNamedItem(name)
+        return self.getAttributeNodeNS(EMPTY_NAMESPACE,name)
 
     def getElementsByTagName(self, tagName):
-        nodeList = implementation._4dom_createNodeList()
-        elements = filter(lambda node, type=Node.ELEMENT_NODE:
-                          node.nodeType == type,
-                          self.childNodes)
-        for element in elements:
-            if tagName == '*' or element.tagName == tagName:
-                nodeList.append(element)
-            nodeList.extend(list(element.getElementsByTagName(tagName)))
-        return nodeList
-
+        return self.getElementsByTagNameNS(EMPTY_NAMESPACE,tagName)
+    
     def hasAttribute(self, name):
-        return self.attributes.getNamedItem(name) is not None
+        return self.hasAttributeNS(EMPTY_NAMESPACE,name)
 
     def removeAttribute(self, name):
-        # Return silently if no node
-        node = self.attributes.getNamedItem(name)
-        if node:
-            self.removeAttributeNode(node)
+        self.removeAttributeNS(EMPTY_NAMESPACE,name)
 
     def removeAttributeNode(self, node):
-        # NamedNodeMap will raise exception if needed
-        if node.namespaceURI is None:
-            self.attributes.removeNamedItem(node.name)
-        else:
-            self.attributes.removeNamedItemNS(node.namespaceURI, node.localName)
+        self.attributes.removeNamedItemNS(node.namespaceURI, node.localName)
         node._4dom_setOwnerElement(None)
         self._4dom_fireMutationEvent('DOMAttrModified',
                                      relatedNode=node,
@@ -94,41 +80,10 @@ class Element(FtNode):
         return node
 
     def setAttribute(self, name, value):
-        if not IsDOMString(value):
-            raise SyntaxErr()
-        if not g_namePattern.match(name):
-            raise InvalidCharacterErr()
-        attr = self.attributes.getNamedItem(name)
-        if attr:
-            attr.value = value
-        else:
-            attr = self.ownerDocument.createAttribute(name)
-            attr.value = value
-            self.setAttributeNode(attr)
-            # the mutation event is fired in Attr.py
+        self.setAttributeNS(EMPTY_NAMESPACE,name,value)
 
     def setAttributeNode(self, node):
-        if node.ownerDocument != self.ownerDocument:
-            raise WrongDocumentErr()
-        if node.ownerElement != None:
-            raise InuseAttributeErr()
-
-        old = self.attributes.getNamedItem(node.name)
-        if old:
-            self._4dom_fireMutationEvent('DOMAttrModified',
-                                         relatedNode=old,
-                                         prevValue=old.value,
-                                         attrName=old.name,
-                                         attrChange=Event.MutationEvent.REMOVAL)
-        self.attributes.setNamedItem(node)
-        node._4dom_setOwnerElement(self)
-        self._4dom_fireMutationEvent('DOMAttrModified',
-                                     relatedNode=node,
-                                     newValue=node.value,
-                                     attrName=node.name,
-                                     attrChange=Event.MutationEvent.ADDITION)
-        self._4dom_fireMutationEvent('DOMSubtreeModified')
-        return old
+        return self.setAttributeNodeNS(node)
 
     ### DOM Level 2 Methods ###
 
@@ -140,6 +95,8 @@ class Element(FtNode):
         return self.attributes.getNamedItemNS(namespaceURI, localName)
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
+        if namespaceURI == '':
+            raise NamespaceErr("Use None instead of '' for empty namespace")
         nodeList = implementation._4dom_createNodeList()
         elements = filter(lambda node, type=Node.ELEMENT_NODE:
                           node.nodeType == type,
@@ -153,7 +110,7 @@ class Element(FtNode):
         return nodeList
 
     def hasAttributeNS(self, namespaceURI, localName):
-        return self.attributes.getNamedItemNS(namespaceURI, localName) != None
+        return self.attributes.getNamedItemNS(namespaceURI, localName) is not None
 
     def removeAttributeNS(self, namespaceURI, localName):
         # Silently return if not attribute

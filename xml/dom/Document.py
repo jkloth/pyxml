@@ -22,6 +22,7 @@ from ext import SplitQName
 from xml.dom import Node
 from xml.dom import XML_NAMESPACE
 from xml.dom import XMLNS_NAMESPACE
+from xml.dom import EMPTY_NAMESPACE
 from xml.dom import HierarchyRequestErr
 from xml.dom import InvalidCharacterErr
 from xml.dom import NotSupportedErr
@@ -69,10 +70,7 @@ class Document(FtNode):
     ### Methods ###
 
     def createAttribute(self, name):
-        if not g_namePattern.match(name):
-            raise InvalidCharacterErr()
-        import Attr
-        return Attr.Attr(self, name, None, None, None)
+        return self.createAttributeNS(EMPTY_NAMESPACE,name)
 
     def createCDATASection(self, data):
         from CDATASection import CDATASection
@@ -87,11 +85,8 @@ class Document(FtNode):
         return DocumentFragment(self)
 
     def createElement(self, tagname):
-        if not g_namePattern.match(tagname):
-            raise InvalidCharacterErr()
-        from Element import Element
-        return Element(self, tagname, None, None, None)
-
+        return self.createElementNS(EMPTY_NAMESPACE,tagname)
+    
     def createEntityReference(self, name):
         if not g_namePattern.match(name):
             raise InvalidCharacterErr()
@@ -120,14 +115,7 @@ class Document(FtNode):
         return None
 
     def getElementsByTagName(self, tagName):
-        nodeList = implementation._4dom_createNodeList([])
-        root = self.documentElement
-        if root:
-            if tagName == '*' or root.tagName == tagName:
-                nodeList.append(root)
-            nodeList.extend(list(root.getElementsByTagName(tagName)))
-        return nodeList
-
+        return self.getElementsByTagNameNS(EMPTY_NAMESPACE,tagname)
 
     ### DOM Level 2 Methods ###
 
@@ -142,6 +130,8 @@ class Document(FtNode):
             if namespaceURI != XMLNS_NAMESPACE:
                 raise NamespaceErr()
             return Attr(self, qualifiedName, XMLNS_NAMESPACE, 'xmlns', prefix)
+        elif namespaceURI == '':
+            raise NamespaceErr("Use None instead of ''for empty namespace")
         else:
             if (not namespaceURI and prefix) or (not prefix and namespaceURI):
                 raise NamespaceErr()
@@ -173,9 +163,13 @@ class Document(FtNode):
             raise NamespaceErr()
         if prefix and not namespaceURI:
             raise NamespaceErr()
+        elif namespaceURI == '':
+            raise NamespaceErr("Use None instead of ''for empty namespace")
         return Element(self, qualifiedName, namespaceURI, prefix, localName)
 
     def getElementsByTagNameNS(self,namespaceURI,localName):
+        if namespaceURI == '':
+            raise NamespaceErr("Use None instead of ''for empty namespace")
         nodeList = implementation._4dom_createNodeList([])
         root = self.documentElement
         if root:
