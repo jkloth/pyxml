@@ -61,7 +61,9 @@ class PullDOM(xml.sax.ContentHandler):
             attr.value = value
             node.setAttributeNode(attr)
 
-        node.parentNode = self.curNode
+##        print self.curNode, self.curNode.childNodes, node, node.parentNode
+        self.curNode.appendChild(node)
+#        node.parentNode = self.curNode
         self.curNode = node
 
         self.lastEvent[1] = [(START_ELEMENT, node), None]
@@ -83,7 +85,8 @@ class PullDOM(xml.sax.ContentHandler):
             attr.value = value
             node.setAttributeNode(attr)
 
-        node.parentNode = self.curNode
+        #node.parentNode = self.curNode
+        self.curNode.appendChild(node)
         self.curNode = node
 
         self.lastEvent[1] = [(START_ELEMENT, node), None]
@@ -99,8 +102,9 @@ class PullDOM(xml.sax.ContentHandler):
 
     def comment(self, s):
         node = self.document.createComment(s)
-        parent = self.curNode
-        node.parentNode = parent
+        self.curNode.appendChild(node)
+#        parent = self.curNode
+#        node.parentNode = parent
         self.lastEvent[1] = [(COMMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((COMMENT, node))
@@ -108,24 +112,27 @@ class PullDOM(xml.sax.ContentHandler):
     def processingInstruction(self, target, data):
         node = self.document.createProcessingInstruction(target, data)
 
-        parent = self.curNode
-        node.parentNode = parent
+        self.curNode.appendChild(node)
+#        parent = self.curNode
+#        node.parentNode = parent
         self.lastEvent[1] = [(PROCESSING_INSTRUCTION, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((PROCESSING_INSTRUCTION, node))
 
     def ignorableWhitespace(self, chars):
         node = self.document.createTextNode(chars)
-        parent = self.curNode
-        node.parentNode = parent
+        self.curNode.appendChild(node)
+#        parent = self.curNode
+#        node.parentNode = parent
         self.lastEvent[1] = [(IGNORABLE_WHITESPACE, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((IGNORABLE_WHITESPACE, node))
 
     def characters(self, chars):
         node = self.document.createTextNode(chars)
-        parent = self.curNode
-        node.parentNode = parent
+        self.curNode.appendChild(node)
+#        parent = self.curNode
+#        node.parentNode = parent
         self.lastEvent[1] = [(CHARACTERS, node), None]
         self.lastEvent = self.lastEvent[1]
 
