@@ -367,9 +367,19 @@ class Node:
         return len(self._node.children) > 0
 
     def cloneNode(self, deep):
-        pass # XXX I don't understand the exact definition of cloneNode()
+        import copy
+        d = _nodeData( self._node.type )
+        for key, value in self._node.__dict__.items():
+            if key == 'children' or key[0:2] == '__':
+                continue
+            else:
+                setattr(d, key, copy.deepcopy(value) )
 
-			
+        node = NODE_CLASS[ d.type ] (d, None, self)
+        if deep:
+            d.children = copy.deepcopy(self._node.children)
+        return node
+
 class CharacterData(Node):
     # Attributes
     def get_data(self):

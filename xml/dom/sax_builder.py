@@ -20,14 +20,14 @@ class SaxBuilder(Builder, HandlerBase):
 	
 # Test.
 if __name__ == '__main__':
-#    while 1:
+    while 1:
 	from xml.sax import saxexts
 	import sys, writer
 
 	if len(sys.argv) == 1:
 		print 'sax_builder.py usage: python sax_builder.py <xml_file>.'
 
-	p = saxexts.make_parser()
+	p = saxexts.make_parser('xmlproc')	
 	dh = SaxBuilder()
 	p.setDocumentHandler(dh)
 	p.parse(sys.argv[1])
