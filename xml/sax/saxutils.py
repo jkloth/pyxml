@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.35 2004/03/20 07:46:04 fdrake Exp $
+$Id: saxutils.py,v 1.36 2005/01/29 14:20:07 uche Exp $
 """
 
 import os, urlparse, urllib2, types
@@ -437,7 +437,7 @@ class XMLFilterBase(saxlib.XMLFilter):
     # EntityResolver methods
 
     def resolveEntity(self, publicId, systemId):
-        self._ent_handler.resolveEntity(publicId, systemId)
+        return self._ent_handler.resolveEntity(publicId, systemId)
 
     # XMLReader methods
 
