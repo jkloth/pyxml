@@ -102,3 +102,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+else:
+    import sys
+    print >>sys.__stderr__, \
+          "The", __name__, "tests are not run under regrtest."
