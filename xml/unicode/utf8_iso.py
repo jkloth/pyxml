@@ -36,6 +36,11 @@ class ConvertError(ValueError):
 # Keys are encoding number (x), then the code point
 uni_to_code=[None]*20
 
+def utf8chr(c):
+    if c < 0x800:
+        return chr(0xc0 | (c>>6)) + chr(0x80 | (c & 0x3f))
+    return chr(0xe0 | (c>>12)) + chr(0x80 | ((c>>6) & 0x3f)) + chr(0x80 | (c & 0x3f))
+
 def code_to_utf8(encoding, c):
     """code_to_utf8(encoding, char) -> string
     Convert c from encoding to utf8; return UTF-8 string."""
@@ -44,10 +49,7 @@ def code_to_utf8(encoding, c):
         return chr(c)
     if code_to_uni[encoding] is None:
         raise ConvertError("unknown encoding ISO-8859-%d" % encoding)
-    c = code_to_uni[encoding][c-128]
-    if c < 0x800:
-        return chr(0xc0 | (c>>6)) + chr(0x80 | (c & 0x3f))
-    return chr(0xe0 | (c>>12)) + chr(0x80 | ((c>>6) & 0x3f)) + chr(0x80 | (c & 0x3f))
+    return utf8chr(code_to_uni[encoding][c-128])
 
 def utf8_to_code(encoding, str):
     """utf8_to_code(encoding, str) -> char,rest

@@ -33,6 +33,9 @@ class _Wstringmod:
     def decode(self, encoding, string):
         return UTF8String(string, encoding)
 
+    def chr(self, ch):
+        return UTF8String(utf8_iso.utf8chr(ch))
+
 wstring = _Wstringmod()
 
 class UTF8String:
