@@ -346,6 +346,12 @@ class Element(Node):
         node.unlink()
         del self._attrs[node.name]
         del self._attrsNS[(node.namespaceURI, node.localName)]
+
+    def hasAttribute(self, name):
+        return self._attrs.has_key(name)
+                     
+    def hasAttributeNS(self, namespaceURI, localName):
+        return self._attrsNS.has_key((namespaceURI, localName))    
         
     def getElementsByTagName(self, name):
         return _getElementsByTagNameHelper(self, name, [])
