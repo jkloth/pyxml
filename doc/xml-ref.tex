@@ -193,26 +193,28 @@ prefixes will be used.
 
 \section{\module{xml.dom.minidom} Extensions}
 
-The implementation of the \module{xml.dom.minidom} in PyXML contains
+The implementation of \module{xml.dom.minidom} in PyXML contains
 support for more of the DOM Level~2 Core specification than the
 version packaged in Python, and incorporates partial support for the
 draft DOM Level~3 Core and Load/Save specifications.  This additional
 support includes the interfaces documented for the
 \refmodule{xml.dom.xmlbuilder} module.
 
-This section describes the major extensions beyond what's document for
-this module in the \citetitle
+This section describes the major extensions beyond what's documented
+for this module in the \citetitle
 [http://www.python.org/doc/2.2.1/lib/module-xml.dom.minidom.html]
 {Python Library Reference} for Python 2.2.1.
 
-These additional \class{Node} atttributes have been implemented or
+The \class{Entity} and \class{Notation} node types are now supported.
+
+These additional \class{Node} attributes have been implemented or
 changed:
 
 \begin{methoddesc}[Node]{toxml}{\optional{encoding}}
   The optional \var{encoding} argument has been added to the
   \method{toxml()} method.  When specified and not \code{None}, the
   output document uses the given encoding.
-  \versionadded{0.8}
+  \versionchanged[the \var{encoding} argument was added]{0.8}
 \end{methoddesc}
 
 \begin{methoddesc}[Node]{isSupported}{feature, version}
@@ -228,13 +230,13 @@ changed:
   that Python DOM implementations will normally need this, but a DOM
   implementation that adds substantial new functionality may want to
   require the use of this method to provide access to a helper object
-  that implements extension-specific methods
+  that implements extension-specific methods.
   Added in DOM Level~3.
 \end{methoddesc}
 
 \begin{methoddesc}[Node]{getUserData}{key}
   Retrieve the data registered with the node for the key \var{key}
-  using \method{setUserData()}.  Returns None if no data was
+  using \method{setUserData()}.  Returns \code{None} if no data was
   registered for \var{key}.
   Added in DOM Level~3.
 \end{methoddesc}
@@ -352,7 +354,7 @@ new, empty \class{NamedNodeMap} objects.
 \begin{notice}[warning]
   The \module{xml.dom.xmlbuilder} represents the DOM Level~3 Load/Save
   interface, which is only defined in a W3C working draft at this
-  time.  The Python API presented here is modelled on the 9 April 2002
+  time.  The Python API presented here is modelled on the 25 July 2002
   version of the working draft, and is expected to change as new
   drafts are released.  Backward compatibility to support older
   versions of this interface will not be preserved.
@@ -954,7 +956,7 @@ instances when done with them.
 
 The \module{xml.parsers.sgmlop} module is a C implementation of a
 parser similar in interface to the \class{xmllib.XMLParser} and
-\class{sgmllib.SGMLParser} from the \ulink{Python standard
+\class{sgmllib.SGMLParser} classes from the \ulink{Python standard
 library}{http://www.python.org/doc/current/lib/lib.html}.  Additional
 support is provided for a basic tree-constructor which is intended to
 be used in conjunction with the parsers implemented by this module.
