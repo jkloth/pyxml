@@ -13,7 +13,6 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string, types
-import urlparse, urllib
 from xml.dom import EMPTY_NAMESPACE
 import xml.dom.ext
 from xml import xpath, xslt

@@ -1,7 +1,7 @@
 """
 SAX driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.9 2001/12/30 12:13:44 loewis Exp $
+$Id: drv_sgmlop.py,v 1.10 2002/08/13 09:28:52 afayolle Exp $
 """
 
 version="0.12"
@@ -9,7 +9,7 @@ version="0.12"
 from xml.parsers import sgmlop
 from xml.sax import saxlib,saxutils
 from xml.sax import SAXException
-import urllib,string
+import urllib2,string
 
 # --- Driver
 
@@ -24,7 +24,7 @@ class Parser(saxlib.Parser):
         self.doc_handler=dh
 
     def parse(self, url):
-        self.parseFile(urllib.urlopen(url))
+        self.parseFile(urllib2.urlopen(url))
 
     def parseFile(self, file):
         self._parsing = 1

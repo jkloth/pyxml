@@ -4,7 +4,7 @@ SAX driver for Dan Connollys XML scanner. Should work with Python 1.4.
 
 version="0.10"
 
-import sys,urllib,re,string
+import sys,urllib2,re,string
 
 if sys.version[:3]<"1.5":
     import saxlib
@@ -30,7 +30,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
     def parse(self, systemId):
         try:
             self.current_sysid=systemId
-            infile=urllib.urlopen(systemId)
+            infile=urllib2.urlopen(systemId)
             self.parseFile(infile)
         finally:
             self.current_sysid=""

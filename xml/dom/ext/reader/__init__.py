@@ -12,7 +12,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-import string, urllib, urlparse, cStringIO, os
+import string, urllib2, urlparse, cStringIO, os
 from xml.dom.ext import ReleaseNode
 
 try:
@@ -26,8 +26,6 @@ try:
 except ImportError:
     StrStream = lambda x: cStringIO.StringIO(x)
 
-import string, urlparse, urllib, os
-
 
 class BaseUriResolver:
     def resolve(self, uri, base=''):
@@ -39,7 +37,7 @@ class BaseUriResolver:
             #Hack because urllib breaks on Windows paths
             stream = open(uri)
         else:
-            stream = urllib.urlopen(uri)
+            stream = urllib2.urlopen(uri)
         return stream
 
 BASIC_RESOLVER = BaseUriResolver()

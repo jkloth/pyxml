@@ -5,10 +5,10 @@ imitated) by clients that want to handle these functions themselves.
 Application is the class that receives document data from the parser,
 and is probably the one most people want.
 
-$Id: xmlapp.py,v 1.11 2001/12/30 12:09:14 loewis Exp $
+$Id: xmlapp.py,v 1.12 2002/08/13 09:28:51 afayolle Exp $
 """
 
-import sys,urllib
+import sys,urllib2,urlparse
 
 from xmlutils import *
 
@@ -221,7 +221,7 @@ class InputSourceFactory:
     "A class that creates file-like objects from system identifiers."
 
     def create_input_source(self,sysid):
-        if sysid[1:3]==":\\":
+        if sysid[1:3]==":\\" or urlparse.urlparse(sysid)[0] == '':
             return open(sysid)
         else:
-            return urllib.urlopen(sysid)
+            return urllib2.urlopen(sysid)

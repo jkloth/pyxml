@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.17 2002/05/29 17:41:58 akuchling Exp $
+% $Id: xml-howto.tex,v 1.18 2002/08/13 09:28:50 afayolle Exp $
 
 % TODO:
 %    XXX not covered: DOM extensions, scripts
@@ -1030,8 +1030,9 @@ in the \module{xml.dom} package is named \module{Sax2}, and contains a
 events.  \class{Reader} instances provide a \method{fromStream()}
 method that constructs a DOM tree from an input stream; the input can
 be a file-like object or a string.  In the second case, it will be
-assumed to be a URL and will be opened with the \module{urllib}
-module.
+assumed to be a URL and will be opened with the \module{urllib2}
+module. The advantage of using \module{urllib2} over \module{urllib} is that
+HTTP errors will be reported as exceptions. 
 
 \begin{verbatim}
 import sys

@@ -192,8 +192,8 @@ class DOMBuilder:
         options.errorHandler = self.errorHandler
         fp = input.byteStream
         if fp is None and options.systemId:
-            import urllib
-            fp = urllib.urlopen(input.systemId)
+            import urllib2
+            fp = urllib2.urlopen(input.systemId)
         return self._parse_bytestream(fp, options)
 
     def parseWithContext(self, input, cnode, action):
@@ -217,8 +217,8 @@ class DOMEntityResolver:
         source.publicId = publicId
         source.systemId = systemId
         if systemId:
-            import urllib
-            self.byteStream = urllib.urlopen(systemId)
+            import urllib2
+            self.byteStream = urllib2.urlopen(systemId)
             # Should parse out the content-type: header to
             # get charset information so that we can set the
             # encoding attribute on the DOMInputSource.

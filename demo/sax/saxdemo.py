@@ -3,13 +3,14 @@
 
 from xml.sax import saxexts, saxlib, saxutils
 
-import sys,urllib,getopt
+import sys,urllib2,getopt
 
 ### Interpreting arguments (rather crudely)
 
 try:
     (args,trail)=getopt.getopt(sys.argv[1:],"sed:")
-except getopt.error,e:
+    assert trail, "No argument provided"
+except Exception,e:
     print "ERROR: %s" % e
     print
     print "Usage: python saxdemo.py [-e] [-d drv] filename [outfilename]"
@@ -45,7 +46,7 @@ if out_sysID=="":
     out=sys.stdout
 else:
     try:
-        out=urllib.urlopen(out_sysID)
+        out=urllib2.urlopen(out_sysID)
     except IOError,e:
         print out_sysID+": "+str(e)
 

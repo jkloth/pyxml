@@ -137,7 +137,7 @@ def parse_TREX(location, baseURI=None):
 
     r = T_RootHandler(parser)
 
-    from urllib import urlopen
+    from urllib2 import urlopen
     # TODO: doesn't catch well-formedness errors in TREX
     try:
         f = urlopen(location)
@@ -1858,7 +1858,7 @@ def parse_Instance(location, baseURI=None):
 
     i = I_RootHandler(parser)
 
-    from urllib import urlopen
+    from urllib2 import urlopen
     f = urlopen(location)
     try:
         parser.ParseFile(f)

@@ -13,7 +13,7 @@ Copyright (c) 1999-2001 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.org/COPYRIGHT  for license and copyright information
 """
 
-import string, os, urllib, urlparse, cStringIO
+import string, os, urlparse, cStringIO
 try:
     from Ft.Lib.ReaderBase import DomletteReader
     _ReaderBase = DomletteReader
@@ -293,7 +293,7 @@ class StylesheetReader(_ReaderBase):
         return
 
     def fromUri(self, uri, baseUri='', ownerDoc=None, stripElements=None):
-        self._ssheetUri = urllib.basejoin(baseUri, uri)
+        self._ssheetUri = urlparse.urljoin(baseUri, uri)
         result = _ReaderBase.fromUri(self, uri, baseUri,
                                      ownerDoc, stripElements)
         return result

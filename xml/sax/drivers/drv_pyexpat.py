@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.14 2001/12/30 12:13:44 loewis Exp $
+$Id: drv_pyexpat.py,v 1.15 2002/08/13 09:28:52 afayolle Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -18,7 +18,7 @@ try:
 except ImportError:
     raise SAXReaderNotAvailable("expat not supported",None)
 
-import urllib,types
+import urllib2,types
 
 # --- SAX_expat
 
@@ -55,7 +55,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.doc_handler.processingInstruction(target,data)
 
     def parse(self,sysID):
-        self.parseFile(urllib.urlopen(sysID),sysID)
+        self.parseFile(urllib2.urlopen(sysID),sysID)
 
     def parseFile(self,fileobj,sysID=None):
         self.reset()

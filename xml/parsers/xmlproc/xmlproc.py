@@ -4,9 +4,9 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.24 2002/04/13 19:14:07 larsga Exp $
+# $Id: xmlproc.py,v 1.25 2002/08/13 09:28:51 afayolle Exp $
 
-import re,string,sys,urllib,urlparse
+import re,string,sys,urlparse
 
 string_translate=string.translate # optimization. made 10% difference!
 string_find     =string.find
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.24 $"
+revision="$Revision: 1.25 $"
 
 # ==============================
 # A full well-formedness parser

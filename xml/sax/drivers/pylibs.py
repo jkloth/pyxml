@@ -1,12 +1,12 @@
 """
 Common code for the sgmllib, htmllib and xmllib parser drivers.
 
-$Id: pylibs.py,v 1.5 2001/12/30 12:13:45 loewis Exp $
+$Id: pylibs.py,v 1.6 2002/08/13 09:28:52 afayolle Exp $
 """
 
 from xml.sax import saxlib,saxutils
 
-import urllib
+import urllib2
 
 # --- LibParser
 
@@ -19,7 +19,7 @@ class LibParser(saxlib.Parser,saxlib.Locator):
     def parse(self,sysID):
         "Parses the referenced document."
         self.sysID=sysID
-        self.parseFile(urllib.urlopen(sysID))
+        self.parseFile(urllib2.urlopen(sysID))
 
     def parseFile(self,fileobj):
         "Parses the given file."

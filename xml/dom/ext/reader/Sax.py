@@ -12,7 +12,7 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-import sys, string, cStringIO
+import sys, string, cStringIO, urllib2
 from xml.sax import saxlib, saxexts, drivers
 from xml.dom import Entity, DocumentType, Document
 from xml.dom import DocumentType, Document
@@ -163,8 +163,7 @@ def FromXmlFile(fileName, ownerDocument=None, validate=0, keepAllWs=0,
 
 def FromXmlUrl(url, ownerDocument=None, validate=0, keepAllWs=0,
                catName=None, saxHandlerClass=XmlDomGenerator, parser=None):
-    import urllib
-    fp = urllib.urlopen(url)
+    fp = urllib2.urlopen(url)
     rv = FromXmlStream(fp, ownerDocument, validate, keepAllWs, catName,
                        saxHandlerClass, parser)
     fp.close()

@@ -2,10 +2,10 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.31 2002/06/30 07:52:50 loewis Exp $
+$Id: saxutils.py,v 1.32 2002/08/13 09:28:51 afayolle Exp $
 """
 
-import os, urlparse, urllib, types
+import os, urlparse, urllib2, types
 import handler
 import xmlreader
 import sys, _exceptions, saxlib
@@ -460,7 +460,7 @@ def prepare_input_source(source, base = ""):
             f = open(sysid, "rb")
         else:
             source.setSystemId(urlparse.urljoin(base, sysid))
-            f = urllib.urlopen(source.getSystemId())
+            f = urllib2.urlopen(source.getSystemId())
 
         source.setByteStream(f)
 
