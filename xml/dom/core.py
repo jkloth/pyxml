@@ -258,9 +258,10 @@ class NamedNodeMap(UserDict.UserDict):
 
     # Additional methods specified in the DOM Recommendation
     def item(self, index):
-        return self.data.values[ index ]
+        n = self.data.values()[ index ]
+        return NODE_CLASS[ n.type ](n, self._document )
 
-    getNamedItem = UserDict.UserDict.__getitem__
+    getNamedItem = __getitem__
     removeNamedItem = UserDict.UserDict.__delitem__
     get_length = UserDict.UserDict.__len__
 
