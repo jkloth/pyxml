@@ -266,6 +266,11 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 #         self._parser.DefaultHandlerExpand =
 #         self._parser.NotStandaloneHandler =
         self._parser.ExternalEntityRefHandler = self.external_entity_ref
+        try:
+            self._parser.SkippedEntityHandler = self.skipped_entity_handler
+        except AttributeError:
+            # This pyexpat does not support SkippedEntity
+            pass
         self._parser.SetParamEntityParsing(
             expat.XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE)
 
@@ -386,6 +391,12 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         (self._parser, self._source) = self._entity_stack[-1]
         del self._entity_stack[-1]
         return 1
+
+    def skipped_entity_handler(self, name, is_pe):
+        if is_pe:
+            # The SAX spec requires to report skipped PEs with a '%'
+            name = '%'+name
+        self._cont_handler.skippedEntity(name)
 
 # ---
 
