@@ -31,7 +31,7 @@ class Builder:
         "Add node to current node and move to new node."
 
         nodetype = node.get_nodeType()
-        if self.current_element:
+        if self.current_element is not None:
             self.current_element.insertBefore(node, None)
         elif self.fragment or nodetype in _LEGAL_DOCUMENT_CHILDREN:
             if nodetype == TEXT_NODE:
@@ -63,7 +63,7 @@ class Builder:
         self.pop()
 
     def comment(self,s):
-        if self.current_element:
+        if self.current_element is not None:
             comment_node = self.document.createComment(s)
             self.current_element.insertBefore(comment_node, None)
     
@@ -76,9 +76,9 @@ class Builder:
         self.push(node)
 
     def text(self, s):
-        if self.current_element:
+        if self.current_element is not None:
             text_node = self.document.createTextNode(s)
-            if (self.current_element == self.document and
+            if (self.current_element is self.document and
                 string.strip(s) == ""):
                 return
 
