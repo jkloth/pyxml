@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.5 $'
+__version__ = '$Revision: 1.6 $'
 
 import string
 
@@ -205,13 +205,14 @@ class XmlWriter:
     """Basic XML output handler."""
 
     def __init__(self, fp, standalone=None, dtdinfo=None,
-                 syntax=None, linelength=None):
+                 syntax=None, linelength=None, encoding='iso-8859-1'):
         self._offset = 0
         self._packing = 1
         self._flowing = 1
         self._write = fp.write
         self._dtdflowing = None
         self._prefix = ''
+        self._encoding = encoding
         self.__stack = []
         self.__lang = None
         self.__pending_content = 0
@@ -237,8 +238,9 @@ class XmlWriter:
     def startDocument(self):
         if self.__syntax.pic == "?>":
             lit = self.__syntax.lit
-            s = '%sxml version=%s1.0%s encoding%s%siso-8859-1%s' % (
-                self.__syntax.pio, lit, lit, self.__syntax.vi, lit, lit)
+            s = '%sxml version=%s1.0%s encoding%s%s%s%s' % (
+                self.__syntax.pio, lit, lit, self.__syntax.vi, lit,
+                self._encoding, lit)
             if self.__standalone:
                 s = '%s standalone%s%s%s%s' % (
                     s, self.__syntax.vi, lit, self.__standalone, lit)
@@ -339,6 +341,7 @@ class XmlWriter:
                 self._offset = len(data) - (p + 1)
             else:
                 self._offset = self._offset + len(data)
+            self._check_pending_content()
             self._write(data)
 
     def comment(self, data, start, length):
