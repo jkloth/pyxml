@@ -119,7 +119,7 @@ if list is type([]):
             NL = NodeList()
             NL.extend(other)
             return NL
- 
+
         def __radd__(self, other):
             NL = NodeList()
             NL.extend(other)
