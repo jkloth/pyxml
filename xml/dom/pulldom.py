@@ -52,9 +52,6 @@ class PullDOM(xml.sax.ContentHandler):
         
         parent = self.curNode
         node.parentNode = parent
-        if parent.childNodes:
-            node.previousSibling = parent.childNodes[-1]
-            node.previousSibling.nextSibling = node
         self.curNode = node
 
         self.lastEvent[1] = [(START_ELEMENT, node), None]
@@ -68,26 +65,42 @@ class PullDOM(xml.sax.ContentHandler):
         #self.events.append((END_ELEMENT, node))
         self.curNode = node.parentNode
 
+    def startElement(self, name, attrs):
+        node = self.document.createElement(name)
+
+        for aname,value in attrs.items():
+            attr = self.document.createAttribute(aname)
+            attr.value = value
+            node.setAttributeNode(attr)
+        
+        parent = self.curNode
+        node.parentNode = parent
+        self.curNode = node
+
+        self.lastEvent[1] = [(START_ELEMENT, node), None]
+        self.lastEvent = self.lastEvent[1]
+        #self.events.append((START_ELEMENT, node))
+
+    def endElement(self, name):
+        node = self.curNode
+        self.lastEvent[1] = [(END_ELEMENT, node), None]
+        self.lastEvent = self.lastEvent[1]
+        #self.events.append((END_ELEMENT, node))
+        self.curNode = node.parentNode
+        
     def comment(self, s):
         node = self.document.createComment(s)
         parent = self.curNode
         node.parentNode = parent
-        if parent.childNodes:
-            node.previousSibling = parent.childNodes[-1]
-            node.previousSibling.nextSibling = node
         self.lastEvent[1] = [(COMMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((COMMENT, node))
 
     def processingInstruction(self, target, data):
         node = self.document.createProcessingInstruction(target, data)
-        #self.appendChild(node)
         
         parent = self.curNode
         node.parentNode = parent
-        if parent.childNodes:
-            node.previousSibling = parent.childNodes[-1]
-            node.previousSibling.nextSibling = node
         self.lastEvent[1] = [(PROCESSING_INSTRUCTION, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((PROCESSING_INSTRUCTION, node))
@@ -96,16 +109,14 @@ class PullDOM(xml.sax.ContentHandler):
         node = self.document.createTextNode(chars[start:start + length])
         parent = self.curNode
         node.parentNode = parent
-        if parent.childNodes:
-            node.previousSibling = parent.childNodes[-1]
-            node.previousSibling.nextSibling = node
         self.lastEvent[1] = [(IGNORABLE_WHITESPACE, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((IGNORABLE_WHITESPACE, node))
 
     def characters(self, chars):
         node = self.document.createTextNode(chars)
-        node.parentNode = self.curNode
+        parent = self.curNode
+        node.parentNode = parent
         self.lastEvent[1] = [(CHARACTERS, node), None]
         self.lastEvent = self.lastEvent[1]
 
@@ -178,9 +189,33 @@ class DOMEventStream:
         self.pulldom.firstEvent[1] = self.pulldom.firstEvent[1][1]
         return rc
 
+class SAX2DOM(PullDOM):
+
+    def startElementNS(self, name, tagName , attrs):
+        PullDOM.startElementNS(self, name, tagName, attrs)
+        self.curNode.parentNode.appendChild(self.curNode)
+
+    def startElement(self, name, attrs):
+        PullDOM.startElement(self, name, attrs)
+        self.curNode.parentNode.appendChild(self.curNode)
+
+    def processingInstruction(self, target, data):
+        PullDOM.processingInstruction(self, target, data)
+        node = self.lastEvent[0][1]
+        node.parentNode.appendChild(node)        
+
+    def ignorableWhitespace(self, chars):
+        PullDOM.ignorableWhitespace(self, chars)
+        node = self.lastEvent[0][1]
+        node.parentNode.appendChild(node)        
+
+    def characters(self, chars):
+        PullDOM.characters(self, chars)
+        node = self.lastEvent[0][1]
+        node.parentNode.appendChild(node)        
+    
 default_bufsize = (2 ** 14) - 20
 
-# FIXME: move into sax package for common usage
 def parse(stream_or_string, parser=None, bufsize=default_bufsize):
     if type(stream_or_string) is type(""):
         stream = open(stream_or_string)
