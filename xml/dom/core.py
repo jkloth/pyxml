@@ -635,8 +635,8 @@ class Document(Node):
         d.value = None
         d.attributes = NamedNodeMap()
         elem = Element(d, None, self)
-#        for name, value in kwdict.items():
-#            elem.setAttribute(name, value)
+        for name, value in kwdict.items():
+            elem.setAttribute(name, value)
         return elem
 
     def createDocumentFragment(self):
