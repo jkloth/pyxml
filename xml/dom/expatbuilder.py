@@ -142,19 +142,11 @@ class ExpatBuilder:
         node."""
         parser = self.getParser()
         first_buffer = 1
-        strip_newline = 0
         try:
             while 1:
                 buffer = file.read(16*1024)
                 if not buffer:
                     break
-                if strip_newline:
-                    if buffer[0] == "\n":
-                        buffer = buffer[1:]
-                    strip_newline = 0
-                if buffer and buffer[-1] == "\r":
-                    strip_newline = 1
-                buffer = _normalize_lines(buffer)
                 parser.Parse(buffer, 0)
                 if first_buffer and self.document:
                     if self.document.doctype:
@@ -170,7 +162,6 @@ class ExpatBuilder:
 
     def parseString(self, string):
         """Parse a document from a string, returning the document node."""
-        string = _normalize_lines(string)
         parser = self.getParser()
         try:
             parser.Parse(string, 1)
@@ -189,8 +180,7 @@ class ExpatBuilder:
             extractor.parseString(buffer)
             subset = extractor.getSubset()
             if subset is not None:
-                d = self.document.doctype.__dict__
-                d['internalSubset'] = subset
+                self.document.doctype.internalSubset = subset
 
     def start_doctype_decl_handler(self, doctypeName, systemId, publicId,
                                    has_internal_subset):
@@ -429,11 +419,6 @@ class ExpatBuilder:
             if (  self._filter and
                   self._filter.acceptNode(node) != FILTER_ACCEPT):
                 doc.removeChild(node)
-
-def _normalize_lines(s):
-    """Return a copy of 's' with line-endings normalized according to
-    XML 1.0 section 2.11."""
-    return s.replace("\r\n", "\n").replace("\r", "\n")
 
 
 # Don't include FILTER_INTERRUPT, since that's checked separately
@@ -847,7 +832,9 @@ class InternalSubsetExtractor(ExpatBuilder):
             del subset[0]
         if subset:
             x = subset.index("]")
-            return _nulljoin(subset[1:x])
+            subset = ''.join(subset[1:x])
+            subset = subset.replace("\r\n", "\n").replace("\r", "\n")
+            return subset
         else:
             return None
 
@@ -878,9 +865,6 @@ class InternalSubsetExtractor(ExpatBuilder):
 
     def start_element_handler(self, name, attrs):
         raise ParseEscape()
-
-
-_nulljoin = "".join
 
 
 def parse(file, namespaces=1):
