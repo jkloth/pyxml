@@ -24,6 +24,15 @@ else:
 
 ext_modules = []
 
+# Rename xml to _xmlplus for Python 2.0
+
+if sys.hexversion < 0x2000000:
+  def xml(s):
+    return "xml"+s
+else:
+  def xml(s):
+    return "_xmlplus"+s
+
 # Don't build pyexpat if the Python installation provides one.
 # FIXME: It should be build for binary distributions even if the core has it.
 build_pyexpat = 0
@@ -34,7 +43,7 @@ except ImportError:
 
 if build_pyexpat:
     ext_modules.append(
-        Extension('_xmlplus.parsers.pyexpat',
+        Extension(xml('.parsers.pyexpat'),
                   define_macros = [('XML_NS', None)],
                   include_dirs = [ 'extensions/expat/xmltok',
                                    'extensions/expat/xmlparse' ], 
@@ -63,15 +72,15 @@ This version of PyXML was tested with Python 2.0b1;
 it requires at least Python 1.6
 """,
        
-       package_dir = {'_xmlplus':'xml'},
+       package_dir = {xml(''):'xml'},
        
-       packages = ['_xmlplus', 
-                   '_xmlplus.dom', '_xmlplus.dom.html', '_xmlplus.dom.ext',
-                   '_xmlplus.dom.ext.reader',
-                   '_xmlplus.marshal',
-                   '_xmlplus.parsers', '_xmlplus.parsers.xmlproc', 
-                   '_xmlplus.sax', '_xmlplus.sax.drivers',
-                   '_xmlplus.sax.drivers2', '_xmlplus.utils'
+       packages = [xml(''), 
+                   xml('.dom'), xml('.dom.html'), xml('.dom.ext'),
+                   xml('.dom.ext.reader'),
+                   xml('.marshal'),
+                   xml('.parsers'), xml('.parsers.xmlproc'), 
+                   xml('.sax'), xml('.sax.drivers'),
+                   xml('.sax.drivers2'), xml('.utils')
                    ],
 
        ext_modules = ext_modules

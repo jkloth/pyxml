@@ -2,13 +2,16 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.11 2000/09/26 20:01:02 loewis Exp $
+$Id: saxutils.py,v 1.12 2000/09/28 06:50:17 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!
-import types, handler, _exceptions, sys, urllib, codecs, os, xmlreader
+import types, handler, _exceptions, sys, urllib, os, xmlreader
 
-_StringTypes = [types.StringType, types.UnicodeType]
+try:
+  _StringTypes = [types.StringType, types.UnicodeType]
+except AttributeError: # 1.5 compatibility:UnicodeType not defined
+  _StringTypes = [types.StringType]
 
 # --- DefaultHandler
 
@@ -103,6 +106,14 @@ class ErrorRaiser:
 from xmlreader import AttributesImpl
 
 # --- ContentGenerator, now called XMLGenerator in Python 2
+try:
+  import codecs
+  def _outputwrapper(stream,encoding):
+    writerclass = codecs.lookup(encoding)[3]
+    return writerclass(stream)
+except ImportError: # 1.5 compatibility: fall back to do-nothing
+  def _outputwrapper(stream,encoding):
+    return stream
     
 class XMLGenerator(handler.ContentHandler):
 
@@ -111,8 +122,7 @@ class XMLGenerator(handler.ContentHandler):
             import sys
             out = sys.stdout
         handler.ContentHandler.__init__(self)
-        writerclass = codecs.lookup(encoding)[3]
-        self._out = writerclass(out)
+        self._out = _outputwrapper(out,encoding)
         self._ns_contexts = [{}] # contains uri -> prefix dicts
         self._current_context = self._ns_contexts[-1]
         self._undeclared_ns_maps = []
@@ -121,7 +131,7 @@ class XMLGenerator(handler.ContentHandler):
     # ContentHandler methods
 
     def startDocument(self):
-        self._out.write(u'<?xml version="1.0" encoding="%s"?>\n' %
+        self._out.write('<?xml version="1.0" encoding="%s"?>\n' %
                         self._encoding)
 
     def startPrefixMapping(self, prefix, uri):
@@ -134,17 +144,17 @@ class XMLGenerator(handler.ContentHandler):
         del self._ns_contexts[-1]
 
     def startElement(self, name, attrs):
-        self._out.write(u'<' + name)
+        self._out.write('<' + name)
         for (name, value) in attrs.items():
-            self._out.write(u' %s="%s"' % (name, escape(value)))
-        self._out.write(u'>')
+            self._out.write(' %s="%s"' % (name, escape(value)))
+        self._out.write('>')
 
     def endElement(self, name):
-        self._out.write(u'</%s>' % name)
+        self._out.write('</%s>' % name)
 
     def startElementNS(self, name, qname, attrs):
         name = self._current_context[name[0]] + ":" + name[1]
-        self._out.write(u'<' + name)
+        self._out.write('<' + name)
 
         for pair in self._undeclared_ns_maps:
             self._out.write(' xmlns:%s="%s"' % pair)
@@ -152,15 +162,15 @@ class XMLGenerator(handler.ContentHandler):
         
         for (name, value) in attrs.items():
             name = self._current_context[name[0]] + ":" + name[1]
-            self._out.write(u' %s="%s"' % (name, escape(value)))
-        self._out.write(u'>')
+            self._out.write(' %s="%s"' % (name, escape(value)))
+        self._out.write('>')
 
     def endElementNS(self, name, qname):
         # XXX: if qname is not None, we better use it.
         # Python 2.0b2 requires us to use the recorded prefix for
         # name[0], though
         qname = self._current_context[name[0]] + ":" + name[1]
-        self._out.write(u'</%s>' % qname)
+        self._out.write('</%s>' % qname)
 
     def characters(self, content):
         self._out.write(escape(content))
@@ -169,7 +179,7 @@ class XMLGenerator(handler.ContentHandler):
         self._out.write(content)
 
     def processingInstruction(self, target, data):
-        self._out.write(u'<?%s %s?>' % (target, data))
+        self._out.write('<?%s %s?>' % (target, data))
 
 # --- FIXME: remove backwards compatibility name when not needed anymore
 ContentGenerator = XMLGenerator

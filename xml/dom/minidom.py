@@ -388,7 +388,8 @@ class Text(Node):
         _write_data(writer, self.data)
 
 def _nssplit(qualifiedName):
-    fields = qualifiedName.split(':', 1)
+    import string
+    fields = string.split(qualifiedName,':', 1) # 1.5 compatibility
     if len(fields) == 2:
         return fields
     elif len(fields) == 1:

@@ -862,6 +862,32 @@ static char pyexpat_module_documentation[] =
 
 void initpyexpat(void);  /* avoid compiler warnings */
 
+#if PY_HEX_VERSION < 0x2000000
+
+/* 1.5 compatibility: PyModule_AddObject */
+static int
+PyModule_AddObject(PyObject *m, char *name, PyObject *o)
+{
+	PyObject *dict;
+        if (!PyModule_Check(m) || o == NULL)
+                return -1;
+	dict = PyModule_GetDict(m);
+	if (dict == NULL)
+		return -1;
+        if (PyDict_SetItemString(dict, name, o))
+                return -1;
+        Py_DECREF(o);
+        return 0;
+}
+
+int 
+PyModule_AddStringConstant(PyObject *m, char *name, char *value)
+{
+	return PyModule_AddObject(m, name, PyString_FromString(value));
+}
+
+#endif
+
 DL_EXPORT(void)
 initpyexpat(void)
 {
