@@ -10,12 +10,11 @@ This software comes with no warranty. Use at your own risk.
 
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_WCHAR
-#include <wchar.h>
-#else
-#define unsigned int wchar_t;
-#endif
+
 #include "Python.h"
+
+/* unicode_t must be a 16-bit integer type */
+typedef unsigned short int unicode_t;
 
 static char PyWStrop_Doc[]=
 "Support for wide character strings\n"
@@ -46,7 +45,7 @@ static char PyWStrop_Doc[]=
 
 typedef struct{
   PyObject_VAR_HEAD
-  wchar_t string[1];
+  unicode_t string[1];
 } PyWString;
 
 staticforward PyTypeObject PyWString_Type;
@@ -68,8 +67,8 @@ static PyWString*
 PyWString_New(int len)
 {
   PyWString *wstr;
-  /* this gives len+1 wchar_t elements */
-  wstr = (PyWString*)malloc(sizeof(PyWString)+len*sizeof(wchar_t));
+  /* this gives len+1 unicode_t elements */
+  wstr = (PyWString*)malloc(sizeof(PyWString)+len*sizeof(unicode_t));
   if(!wstr)
     return (PyWString*)PyErr_NoMemory(); /* return value is 0, anyway */
   wstr->ob_type = &PyWString_Type;
@@ -90,7 +89,7 @@ PyWString_Free(PyWString *self)
 /* Converts a single wide character to a sequence of utf8 bytes.
    Returns the number of bytes, or 0 on error. */
 static int
-to_utf8(wchar_t c,unsigned char* buf)
+to_utf8(unicode_t c,unsigned char* buf)
 {
   if(c<0x80){
     if(buf)buf[0]=c;
@@ -149,7 +148,7 @@ to_utf8(wchar_t c,unsigned char* buf)
 /* Decodes a sequence of utf8 bytes into a single wide character.
    Returns the number of bytes consumed, or 0 on error */
 static int
-from_utf8(const unsigned char* str,wchar_t *c)
+from_utf8(const unsigned char* str,unicode_t *c)
 {
   int l=0,i;
   if(*str<0x80){
@@ -409,7 +408,7 @@ PyWString_FromUtf8(PyObject* self,PyObject *args)
   char *string;
   char *tmp;
   PyWString *wstr = 0;
-  wchar_t wtmp;
+  unicode_t wtmp;
   int len,i,l1,newlen;
 
   if(!PyArg_ParseTuple(args,"s#",&string,&len))
@@ -454,7 +453,7 @@ PyWString_Decode(PyObject* self,PyObject* args)
     int i;
     if(!result)return 0;
     for(i=0;i<len;i++){
-      result->string[i] = (wchar_t)string[i];
+      result->string[i] = (unicode_t)string[i];
     }
     return result;
   }
@@ -479,7 +478,7 @@ PyWString_Decode(PyObject* self,PyObject* args)
 	PyWString_Free(result);
 	return NULL;
       }
-      result->string[i] = (wchar_t)PyInt_AsLong(C);
+      result->string[i] = (unicode_t)PyInt_AsLong(C);
     }
     return result;
   }
@@ -653,7 +652,7 @@ PyWString_FromUcs2(PyObject* self,PyObject* args)
   result=PyWString_New(len/2);
   if(!result)return 0;
   for(i=0;i<len;i+=2){
-    wchar_t c = (string[i]<<8) | string[i+1];
+    unicode_t c = (string[i]<<8) | string[i+1];
     /* check for S-zone */
     if((c & 0xF800) != 0xD800){
       result->string[i/2-skipped]=c;
@@ -661,7 +660,7 @@ PyWString_FromUcs2(PyObject* self,PyObject* args)
     }
     /* check for UTF-16 support */
     if(flags & UCS2_DO_UTF16){
-      wchar_t next;
+      unicode_t next;
       /* not in high-half zone: coding error*/
       if((c & 0xFC00) != 0xD800)
 	if(flags & SKIP_INVALID){
@@ -728,7 +727,7 @@ PyWString_ToUcs2(PyWString* self,PyObject *args)
   int i;
   int flags=0;
   int newlen,newindex;
-  wchar_t tmp;
+  unicode_t tmp;
   char* error=0;
 
   if(!PyArg_ParseTuple(args,"|i",&flags))return 0;
@@ -862,8 +861,8 @@ PyWString_FromUcs4(PyWString *self,PyObject *args)
   result=PyWString_New(len/4);
   if(!result)return 0;
   for(i=0;i<len/4;i++){
-    wchar_t tmp;
-    tmp=(wchar_t)((string[4*i]<<24)|(string[4*i+1]<<16)|
+    unicode_t tmp;
+    tmp=(unicode_t)((string[4*i]<<24)|(string[4*i+1]<<16)|
 			 (string[4*i+2]<<8)|(string[4*i+3]));
     if(!(flags & SKIP_INVALID) && tmp>0xD8000 && tmp<0xE000){
       /* maybe we should consider UTF-16 processing in this case */
@@ -892,7 +891,7 @@ PyWString_ToUcs4(PyWString *self,PyObject* args)
   if(!result)return 0;
   s=PyString_AsString(result);
   for(i=0;i<self->ob_size;i++){
-    wchar_t tmp=self->string[i];
+    unicode_t tmp=self->string[i];
     s[4*i]=tmp>>24;
     s[4*i+1]=(tmp>>16) & 0xFF;
     s[4*i+2]=(tmp>>8) & 0xFF;
@@ -965,8 +964,8 @@ PyWString_Concat(PyWString* a,PyWString *b)
   }
   result=PyWString_New(a->ob_size+b->ob_size);
   if(!result)return 0;
-  memcpy(result->string,a->string,a->ob_size*sizeof(wchar_t));
-  memcpy(result->string+a->ob_size,b->string,b->ob_size*sizeof(wchar_t));
+  memcpy(result->string,a->string,a->ob_size*sizeof(unicode_t));
+  memcpy(result->string+a->ob_size,b->string,b->ob_size*sizeof(unicode_t));
   result->ob_size=a->ob_size+b->ob_size;
   /* New already set last field to 0 */
   return (PyObject*)result;
@@ -984,7 +983,7 @@ PyWString_Repeat(PyWString* a,int n)
     Py_INCREF(a);
     return (PyObject*)a;
   }
-  size=len*sizeof(wchar_t);
+  size=len*sizeof(unicode_t);
   result=PyWString_New(len);
   if(!result)return 0;
   for(n=0;n<len;n++)
@@ -1023,7 +1022,7 @@ PyWString_Slice(PyWString* a,int i,int j)
   if(j<i)j=i;
   result=PyWString_New(j-i);
   if(!result)return 0;
-  memcpy(result->string,a->string+i,(j-i)*sizeof(wchar_t));
+  memcpy(result->string,a->string+i,(j-i)*sizeof(unicode_t));
   return (PyObject*)result;
 }
 
@@ -1073,7 +1072,7 @@ PyWString_Hash(PyWString *a)
 {
   /* algorithm taken from stringobject.c */
   int len;
-  wchar_t *p;
+  unicode_t *p;
   long x;
 
   len = a->ob_size;
@@ -1152,7 +1151,7 @@ statichere PyTypeObject PyWString_Type = {
   0,                                /*ob_size*/
   "wstring",                        /*tp_name*/
   sizeof(PyWString),                /*tp_size*/
-  sizeof(wchar_t),                  /*tp_itemsize*/
+  sizeof(unicode_t),                  /*tp_itemsize*/
   (destructor)PyWString_Free,       /*tp_dealloc*/
   0,                                /*tp_print*/
   (getattrfunc)PyWString_GetAttr,   /*tp_getattr*/
