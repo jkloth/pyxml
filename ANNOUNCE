@@ -26,19 +26,20 @@ Changes in this version, compared to 0.8:
   * XSLT is not installed anymore by default, specify --with-xslt
     if desired
 
-  * Update Expat to 1.95.4
+  * Update Expat to 1.95.5
 
   * Add features to xml.parsers.expat:
     - new method "UseForeignDTD"
     - new attribute "features"
-  
-  * Update to latest LS spec for xml.dom.expatbuilder.
-    Use expatbuilder if no parser is given to xml.dom.minidom.parse[String].
 
-  * Add DOM features to minidom: specified, {get|remove}NamedItem[NS],
-    target, getElementById, actualEncoding
+  * Update to 25 July 2002 LS spec for xml.dom.xmlbuilder.  Use
+    expatbuilder if no parser is given to
+    xml.dom.minidom.parse[String].
 
-  * Add importNode and cloneNode for xml.dom.minidom.Document
+  * Fix many obscure DOM bugs
+
+  * Define and document the implementation-defined behaviors of
+    cloneNode() for xml.dom.minidom.
 
   * Use urllib2 instead of urllib throughout.
 
