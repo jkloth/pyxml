@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.12 2002/07/24 14:17:24 uche Exp $
+ * $Id: sgmlop.c,v 1.13 2002/07/24 18:55:30 fdrake Exp $
  *
  * The sgmlop accelerator module
  *
@@ -61,6 +61,7 @@
 #if (PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION > 5) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
 /* In Python 1.6, 2.0 and  2.1, disabling Unicode was not possible. */
 #define Py_USING_UNICODE
+#define PyUnicode_GetMax()  (0xffff)
 #endif
 
 #ifdef SGMLOP_UNICODE_SUPPORT
