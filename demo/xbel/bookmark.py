@@ -171,7 +171,8 @@ class Bookmark(Node):
         else:
             modified = ""
             
-        out.write('    <bookmark href="%s" %s%s%s>\n' % (self.href, added, visited, modified) )
+        out.write('    <bookmark href="%s" %s%s%s>\n' %
+                  ( escape(self.href), added, visited, modified) )
         out.write("      <title>%s</title>\n" % escape(self.title) )
         out.write("    </bookmark>\n")
 
