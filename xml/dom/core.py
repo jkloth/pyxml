@@ -169,7 +169,7 @@ class NodeList(UserList.UserList):
     get_length = UserList.UserList.__len__
 
 
-class NamedNodeMap(UserDict.UserDict):
+class NamedNodeMap:
     """Used to represent a collection of nodes that can be accessed by name.
     Equivalent to a Python dictionary, with various aliases added such as
     getNamedItem and removeNamedItem.
@@ -209,10 +209,18 @@ class NamedNodeMap(UserDict.UserDict):
     
     def values(self):
         L = self.data.values()
-        for i in range(L):
+        for i in range(len(L)):
             n = L[i]
             L[i] = NODE_CLASS[ n.type ](n, None, self._document )
         return L
+
+    def has_key(self, key): return self.data.has_key(key)
+
+    def get(self, key, default=None):
+        if self.data.has_key(key):
+            return self[key]
+        return default
+    
     
 class _nodeData:
     """Class used for storing the data for a single node.  Instances of
