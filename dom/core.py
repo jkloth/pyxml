@@ -475,6 +475,14 @@ class Node:
             d.children = copy.deepcopy(self._node.children)
         return node
 
+    def dump(self, stream = sys.stdout, indent = 0):
+        """Dump the XML subtree from this node, in a form that lets you
+        see the structure of the tree."""
+        stream.write( indent*' ' + repr(self) + '\n')
+        for c in self._node.children:
+            c = NODE_CLASS[ c.type ](c, self, self.get_ownerDocument() )
+            c.dump(stream, indent + 1)
+        
 class CharacterData(Node):
     # Attributes
     def get_data(self):
