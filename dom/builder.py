@@ -41,7 +41,7 @@ class Builder:
 		self.current_element = self.current_element.get_parentNode()
 		
 
-	def startElement(self, name, attrs):
+	def startElement(self, name, attrs = {}):
 		if hasattr(self, 'start_' + name):
 			getattr(self, 'start_' + name)(elm)
 		else:
