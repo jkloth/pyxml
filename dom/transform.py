@@ -22,7 +22,6 @@ def explode_node(node, condition):
 		
 		
 if __name__ == '__main__':
-	from xml.dom.pyhtml import *
 	from xml.dom.writer import HtmlWriter
 
 	tree = HTML(BODY(H1(A({'href':'blah'}, 'blah blah'))))
