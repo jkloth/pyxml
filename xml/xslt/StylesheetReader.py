@@ -287,7 +287,8 @@ from xml.parsers import expat
 
 class StylesheetReader(_ReaderBase):
     def __init__(self, force8Bit=0):
-        _ReaderBase.__init__(self, force8Bit)
+        _ReaderBase.__init__(self)
+        self.force8Bit = force8Bit
         self._ssheetUri = ''
         return
 
@@ -341,7 +342,7 @@ class StylesheetReader(_ReaderBase):
         return rt
 
     def initParser(self):
-        if self._force8Bit:
+        if self.force8Bit:
             self.handler = Utf8OnlyHandler(self)
         else:
             self.handler = self
