@@ -11,6 +11,26 @@ from xml.sax.drivers import pylibs
 # xmllib=xmllib2
 import xmllib
 
+# Make it generate Unicode if possible, UTF-8 else
+try:
+    unicode("")
+except NameError:
+    from xml.unicode.utf8_iso import code_to_utf8,ConvertError
+    from xml.unicode.iso8859 import _normalize
+    import string
+    def unicode(str, encoding):
+        encoding = _normalize(encoding)
+        if encoding == "utf 8":
+            return str
+        if encoding[:8] != "iso 8859":
+            raise ConvertError("unknown encoding")
+        encoding = string.atoi(encoding[8:])
+        result = []
+        changed = 0
+        for c in str:
+            result.append(code_to_utf8(encoding, c))
+        return string.join(result,"")
+
 # --- SAX_XLParser
 
 class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
@@ -22,14 +42,35 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
         self.standalone=0
         self.reset()
 
+    def _convert(self, str):
+        return unicode(str, self.encoding)
+
     def unknown_starttag(self,tag,attributes):
-	self.doc_handler.startElement(tag,saxutils.AttributeMap(attributes))
+        tag = unicode(tag, self.encoding)
+        newattr = {}
+        for k,v in attributes.items():
+            newattr[unicode(k,self.encoding)] = unicode(v,self.encoding)
+	self.doc_handler.startElement(tag,saxutils.AttributeMap(newattr))
         
     def handle_endtag(self,tag,method):
-        self.doc_handler.endElement(tag)
+        self.doc_handler.endElement(unicode(tag, self.encoding))
 
     def handle_proc(self,name,data):
         self.doc_handler.processingInstruction(name,data[1:])
+
+    def handle_xml(self, encoding, standalone):
+        self.standalone= standalone=="yes"
+        self.encoding = encoding
+
+    def handle_data(self,data):
+	"Handles PCDATA."
+        data = unicode(data, self.encoding)
+	self.doc_handler.characters(data,0,len(data))
+
+    def handle_cdata(self,data):
+	"Handles CDATA marked sections."
+        data = unicode(data, self.encoding)
+	self.doc_handler.characters(data,0,len(data))       
 
     def getLineNumber(self):
 	return self.lineno
@@ -60,7 +101,8 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
 
     def reset(self):
         xmllib.XMLParser.reset(self)
-        self.unfed_so_far=1 
+        self.unfed_so_far=1
+        self.encoding = "utf-8"
     
     def feed(self,data):
         if self.unfed_so_far:
