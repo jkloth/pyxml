@@ -16,7 +16,7 @@ testdoc = """\
 ]>
 
 <greeting>
-  <empty></empty>
+  <empty attribute="foo" other_attr='bar'></empty>
   Hello, world!
   <empty/>
 </greeting>

@@ -13,7 +13,7 @@ start tag: <>
 data: '>\012\012'
 start tag: <greeting>
 data: '\012  '
-start tag: <empty>
+start tag: <empty other_attr="bar" attribute="foo" >
 end tag: </empty>
 data: '\012  Hello, world!\012  '
 start tag: <empty>
