@@ -200,7 +200,7 @@ class HtmlParser(SgmlopParser):
         return
 
     def handle_data(self, data):
-        unidata = unicode(data)
+        unidata = unicode(data, self._charset)
         node = self._stack[-1]
         text_node = node.lastChild or node
         if text_node.nodeType == Node.TEXT_NODE:

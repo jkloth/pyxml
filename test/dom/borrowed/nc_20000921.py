@@ -16,7 +16,8 @@ def GetExceptionName(code):
 source_1 = """<xsltemplate match="email/headers[substring-after(subject,'address')]"/>"""
 
 
-expected_1 = """<xsltemplate match="email/headers[substring-after(subject,\'address\')]"/>"""
+expected_1 = """\
+<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE xsltemplate><xsltemplate match="email/headers[substring-after(subject,\'address\')]"/>"""
 
         
 def Test(tester):
