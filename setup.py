@@ -7,7 +7,7 @@
 import sys, os, string
 
 from distutils.core import setup, Extension
-from setupext import Data_Files, install_Data_Files
+from setupext import Data_Files, install_Data_Files, wininst_request_delete
 
 # I want to override the default build directory so the extension
 # modules are compiled and placed in the build/xml directory
@@ -173,7 +173,9 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
 """,
 
        # Override certain command classes with our own ones
-       cmdclass = {'install_data':install_Data_Files},
+       cmdclass = {'install_data':install_Data_Files,
+                   'bdist_wininst':wininst_request_delete
+                   },
 
        package_dir = {xml(''):'xml'},
 
