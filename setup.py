@@ -17,28 +17,19 @@ else:
     # this at the moment. 
     
     from distutils.command.build import Build
-    from distutils.command.install import Install
-#    from distutils.command.build_ext import BuildExt
-#    from distutils.command.install_ext import InstallExt
+    from distutils.command.install_ext import InstallExt
     
     class XMLBuild(Build):
         def set_default_options (self):
             Build.set_default_options( self )
-            self.build_platlib = 'lib/build/xml/parser' 
-#            self.build_dir = 'lib/build/xml/parser' 
+            self.build_platlib = 'build/lib/xml/parsers' 
 
-    class XMLInstall(Install):
+    class XMLInstallExt(InstallExt):
         def set_default_options (self):
-            Install.set_default_options( self )
-            self.build_platlib = 'lib/build/xml/parser' 
+            InstallExt.set_default_options( self )
+            self.build_dir = 'build/lib/xml/parsers' 
+            self.install_dir = 'build/lib/xml/parsers' 
 
-        def set_final_options(self):
-            set_platlib = (self.install_platlib is None)
-            Install.set_final_options(self)
-            if set_platlib:
-                self.install_platlib = os.path.join(
-                    self.platbase, 'xml/parsers')
-                    
     # XXX should detect whether to use the unixfilemap or readfilemap
     # depending on the platform
     FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
@@ -50,16 +41,15 @@ else:
            author_email = "xml-sig@python.org",
            url = "http://www.python.org/sigs/xml-sig/",
 
-#           cmdclass = {'build':XMLBuild,
-#                       'install':XMLInstall},
+           cmdclass = {'build':XMLBuild,
+                       'install_ext':XMLInstallExt},
            
            packages = ['xml', 'xml.arch', 'xml.dom', 'xml.marshal',
                        'xml.parsers', 'xml.parsers.xmlproc', 
                        'xml.sax', 'xml.sax.drivers',
                        'xml.unicode', 'xml.utils'
                        ],
-           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c'],
-                                       'build-dir': 'xml/parsers'
+           ext_modules = [('sgmlop', { 'sources' : ['extensions/sgmlop.c']
                                        }),
                           ('pyexpat', { 'define': [('XML_NS', None)],
                                         'include_dirs': [ 'extensions/expat/xmltok',
@@ -109,9 +99,6 @@ def copytree(src, dst, symlinks=0):
     source tree result in symbolic links in the destination tree; if
     it is false, the contents of the files pointed to by symbolic
     links are copied.
-
-    XXX Consider this example code rather than the ultimate tool.
-
     """
     names = os.listdir(src)
     if not os.path.exists(dst):
