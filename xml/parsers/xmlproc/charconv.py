@@ -3,7 +3,7 @@
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.
 #
-# $Id: charconv.py,v 1.5 2000/09/26 14:43:10 loewis Exp $
+# $Id: charconv.py,v 1.6 2001/03/27 13:39:06 loewis Exp $
 
 import string
 
@@ -195,9 +195,9 @@ convdb.add_converter("ISO-8859-1","WINDOWS-1252",id_conv)
 
 convdb.add_converter("US-ASCII","UTF-8",id_conv)
 
-# UTF-8 stuff disabled due to total lack of speed
+# these are slow, so you should use Python 2.x
 
-# convdb.add_converter("UTF-8","ISO-8859-1",utf8_to_iso8859)
-# convdb.add_converter("ISO-8859-1","UTF-8",iso8859_to_utf8)
-# convdb.add_converter("UTF-8","IBM850",utf8_to_cp850)
-# convdb.add_converter("IBM850","UTF-8",cp850_to_utf8)
+convdb.add_converter("UTF-8","ISO-8859-1",utf8_to_iso8859)
+convdb.add_converter("ISO-8859-1","UTF-8",iso8859_to_utf8)
+convdb.add_converter("UTF-8","IBM850",utf8_to_cp850)
+convdb.add_converter("IBM850","UTF-8",cp850_to_utf8)

@@ -69,6 +69,7 @@ english={
     3003: "Didn't match '%s'",   ## FIXME: This must be redone
     3004: "One of %s or '%s' expected",
     3005: "'%s' expected",
+    3047: "encoding '%s' conflicts with autodetected encoding",
 
     # From xmlproc.XMLCommonParser
     3006: "SYSTEM or PUBLIC expected",
@@ -115,7 +116,7 @@ english={
     3041: "Conditional sections not allowed in internal subset",
     3043: "Conditional section not closed",
     3044: "Token '%s' defined more than once",
-    # next: 3047
+    # next: 3048
     
     # From regular expressions that were not matched
     3900: "Not a valid name",
@@ -145,8 +146,8 @@ english={
     }
 
 # Errors in Norwegian
-
-norsk={
+norsk=english.copy()
+norsk.update({
 
     # --- Warnings: 1000-1999
     1000: "Navneroms-prefikset '%s' er ikke deklarert",
@@ -268,7 +269,7 @@ norsk={
      
     # --- SOCatalog errors: 5100-5199
     5100: "Ugyldig eller ikke støttet konstruksjon: %s.",
-    }
+    })
 
 # Updating the error hash
 

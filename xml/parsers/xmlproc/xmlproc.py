@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.13 2001/01/14 10:42:24 loewis Exp $
+# $Id: xmlproc.py,v 1.14 2001/03/27 13:39:06 loewis Exp $
    
 import re,string,sys,urllib,urlparse
 
@@ -16,8 +16,13 @@ from xmlutils import *
 from xmlapp import *
 from xmldtd import *
 
+if using_unicode:
+    _chr = unichr
+else:
+    _chr = chr
+
 version="0.70"
-revision="$Revision: 1.13 $"
+revision="$Revision: 1.14 $"
         
 # ==============================
 # A full well-formedness parser
@@ -393,13 +398,16 @@ class XMLProcessor(XMLCommonParser):
 	if not (digs==9 or digs==10 or digs==13 or \
 		(digs>=32 and digs<=255)):
 	    if digs>255:
-		self.report_error(1005,digs)
+                if using_unicode:
+                    self.app.handle_data(_chr(digs),0,1)
+                else:
+                    self.report_error(1005,digs)
 	    else:
 		self.report_error(3018,digs)
 	else:
 	    if self.stack==[]:
 		self.report_error(3028)
-	    self.app.handle_data(chr(digs),0,1)
+	    self.app.handle_data(_chr(digs),0,1)
 
     def parse_cdata(self):
 	"Parses a CDATA marked section from after the '<![CDATA['."

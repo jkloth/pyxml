@@ -2,11 +2,48 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.13 2001/03/15 00:14:48 larsga Exp $
+# $Id: xmlutils.py,v 1.14 2001/03/27 13:39:06 loewis Exp $
 
-import string,re,urlparse,os,sys
+import string,re,urlparse,os,sys,types
 
 import xmlapp,charconv,errors
+
+try:
+    import codecs
+    def mkconverter(parser,src,dest):
+        if src == dest:
+            return lambda s:s
+        try:
+            enc = src
+            decoder = codecs.lookup(src)[1]
+            # If the target is Unicode, we need no encoder
+            if dest is None:
+                # the decoder returns a string,length tuple,
+                # we only need the string
+                return lambda c,d = decoder:(d(c)[0])
+            enc = dest
+            encoder = codecs.lookup(dest)[0]
+            return lambda c,d=decoder,e=encode:e(d(c)[0])[0]
+        except LookupError:
+            parser.report_error(1002,enc)
+            return lambda s:s
+    _interned = {}
+    def string_intern(x):
+        if type(x) == types.StringType:
+            return intern(x)
+        return _interned.setdefault(x,x)
+    using_unicode = 1
+except ImportError:
+    def mkconverter(parser,src,dest):
+        if dest == None:
+            dest = "utf-8"
+        if charconv.convdb.can_convert(src,dest):
+            return charconv.convdb.get_converter(src,dest)
+        else:
+            parser.report_error(1002,src)
+            return lambda s:s
+    string_intern = intern
+    using_unicode = 0
 
 # Standard exceptions
 
@@ -29,8 +66,10 @@ class EntityParser:
         self.ent=xmlapp.EntityHandler(self.err)
         self.isf=xmlapp.InputSourceFactory()
         self.pubres=xmlapp.PubIdResolver()
-        self.data_charset="iso-8859-1"
-        self.charset_converter=charconv.id_conv # the identity transform
+        self.data_charset=None
+        # the default charset in XML is UTF-8
+        self.input_encoding=None           # not determined, yet
+        self.charset_converter=mkconverter(self,"utf-8",None)
         self.err_lang="en"
         self.errors=errors.get_error_list(self.err_lang)
         
@@ -59,7 +98,8 @@ class EntityParser:
 
     def set_data_charset(self,charset):
         """Tells the parser which character encoding to use when reporting data
-        to applications. [Currently not in use!]"""
+        to applications. The default is None, which means to return Unicode
+        string if supported and UTF-8 otherwise."""
         self.data_charset=charset
         
     def parse_resource(self,sysID,bufsize=16384):
@@ -157,6 +197,32 @@ class EntityParser:
         self.block_offset=0 # Offset from start of stream to start of cur block
         self.pos=0
         self.last_upd_pos=0
+
+    def autodetect_encoding(self, new_data):
+        if new_data[:4] == '\0\0\0\x3c':
+            enc = "ucs-4-be"
+        elif new_data[:4] == '\x3c\0\0\0':
+            enc = "ucs-4-le"
+        # ignore unusal byte orders 2143 and 3412
+        elif new_data[:2] == '\xfe\xff':
+            enc = "utf-16-be" # with BOM
+        elif new_data[:2] == '\xff\xfe':
+            enc = "utf-16-le" # with BOM
+        elif new_data[:4] == '\0\x3c\0\x3f':
+            enc = "utf-16-be"
+        elif new_data[:4] == '\0\x3f\0\x3c':
+            enc = "utf-16-be"
+        elif new_data[:5] == '<?xml':
+            # need to wait for encoding attribute, do not try
+            # to apply a codec until then.
+            self.charset_converter = lambda s:s
+            return
+        # ignore EBCDIC
+        else:
+            # Does not start with <?xml, so it must be UTF-8
+            enc = "utf-8"
+        self.input_encoding = enc
+        self.charset_converter = mkconverter(self,enc,self.data_charset)
             
     def feed(self,new_data):
         """Accepts more data from the data source. This method must
@@ -165,10 +231,12 @@ class EntityParser:
         if self.first_feed:
             self.first_feed=0                    
             self.parseStart()
-
+            if not self.input_encoding and len(new_data)>=5:
+                self.autodetect_encoding(new_data)
+            
         self.update_pos() # Update line/col count
 
-        new_data=self.charset_converter(new_data) # Character enc conversion
+        new_data=self.charset_converter(new_data)
         
         if self.start_point==-1:
             self.block_offset=self.block_offset+self.datasize
@@ -524,13 +592,19 @@ class XMLCommonParser(EntityParser):
             enc=self.__get_quoted_string()
             if reg_enc_name.match(enc)==None:
                 self.report_error(3902)
+            enc = string.lower(enc)
+            if self.input_encoding and self.input_encoding!=enc:
+                self.report_error(3047)
 
             # Setting up correct conversion
-            if charconv.convdb.can_convert(enc,self.data_charset):
-                self.charset_converter=\
-                    charconv.convdb.get_converter(enc,self.data_charset)
-            else:
-                self.report_error(1002,enc)
+            self.charset_converter = mkconverter(self, enc, self.data_charset)
+
+            # convert the rest of the data according to the encoding
+            # so far, we should have only seen proper ASCII characters,
+            # so the position should not have changed due to the recoding.
+            if not self.input_encoding:
+                self.data = self.charset_converter(self.data)
+                self.input_encoding = enc
 
             self.skip_ws()      
 
@@ -626,11 +700,11 @@ class XMLCommonParser(EntityParser):
                     pos=pos+1
 
                 self.pos=pos
-                return intern(data[start:pos])
+                return string_intern(data[start:pos])
             except IndexError:
                 self.pos=pos
                 if self.final:
-                    return intern(data[start:])
+                    return string_intern(data[start:])
                 else:
                     raise OutOfDataException()
         else:
@@ -690,9 +764,17 @@ else:
     
 # --- Some useful regexps
 
-namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
-          "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
-namechars=namestart+"0123456789.·-"
+if using_unicode:
+    # XXX need to deal with name characters differently if unicode
+    # is available. Just listing the Latin-1 letters will give codec
+    # errors
+    namestart = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"
+    namestart = unicode(namestart)
+    namechars = namestart + "0123456789.-"
+else:
+    namestart="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_:"+\
+               "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
+    namechars=namestart+"0123456789.·-"
 whitespace="\n\t \r"
 
 reg_ws=re.compile("[\n\t \r]+")
