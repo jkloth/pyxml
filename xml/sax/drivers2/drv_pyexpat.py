@@ -2,7 +2,7 @@
 SAX driver for the Pyexpat C module.  This driver works with
 pyexpat.__version__ == '1.5'.
 
-$Id: drv_pyexpat.py,v 1.2 2000/09/17 18:27:07 loewis Exp $
+$Id: drv_pyexpat.py,v 1.3 2000/09/20 06:15:22 loewis Exp $
 """
 
 # Todo on driver:
@@ -22,7 +22,10 @@ from xml.sax import saxlib, saxutils
 from string import split
 AttributesImpl = saxutils.AttributesImpl
 
-import pyexpat
+try:
+    import pyexpat
+except ImportError:
+    from xml.parsers import pyexpat
 
 # --- ExpatDriver
 
@@ -60,11 +63,19 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
         
     def getFeature(self, name):
         "Looks up and returns the state of a SAX2 feature."
+        if name == feature_namespaces:
+            return self._namespaces
         raise SAXNotRecognizedException("Feature '%s' not recognized" % name)
 
     def setFeature(self, name, state):
         "Sets the state of a SAX2 feature."
-        raise SAXNotRecognizedException("Feature '%s' not recognized" % name)
+        if self._parsing:
+            raise SAXNotSupportedException("Cannot set features while parsing")
+        if name == feature_namespaces:
+            self._namespaces = state
+        else:
+            raise SAXNotRecognizedException("Feature '%s' not recognized" %
+                                            name)
 
     def getProperty(self, name):
         "Looks up and returns the value of a SAX2 property."
@@ -132,11 +143,11 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
     # event handlers
 
     def start_element(self, name, attrs):
-        self._cont_handler.startElement(name, name,
+        self._cont_handler.startElement(name,
                                         AttributesImpl(attrs, attrs))
 
     def end_element(self, name):
-        self._cont_handler.endElement(name, name)
+        self._cont_handler.endElement(name)
 
     def start_element_ns(self, name, attrs):
         pair = split(name)
@@ -145,8 +156,8 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
         else:
             pair = tuple(pair)
 
-        self._cont_handler.startElement(pair, name,
-                                        AttributesImpl(attrs, None))        
+        self._cont_handler.startElementNS(pair, None,
+                                          AttributesImpl(attrs, None))        
 
     def end_element_ns(self, name):
         pair = split(name)
@@ -155,7 +166,7 @@ class ExpatDriver(saxutils.BaseIncrementalParser, saxlib.Locator):
         else:
             pair = tuple(pair)
             
-        self._cont_handler.endElement(pair, name)
+        self._cont_handler.endElementNS(pair, None)
 
     def processing_instruction(self, target, data):
         self._cont_handler.processingInstruction(target, data)

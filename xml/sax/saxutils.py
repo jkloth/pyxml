@@ -2,11 +2,11 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.7 2000/09/17 18:27:07 loewis Exp $
+$Id: saxutils.py,v 1.8 2000/09/20 06:15:21 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!
-import types, saxlib, string, sys, saxexts, urllib
+import types, saxlib, string, sys, saxexts, urllib, codecs
 
 # --- DefaultHandler
 
@@ -150,33 +150,53 @@ class AttributesImpl:
     def values(self):
         return self._attrs.values()
 
-# --- ContentGenerator
+# --- ContentGenerator, now called XMLGenerator in Python 2
     
-class ContentGenerator(saxlib.ContentHandler):
+class XMLGenerator(saxlib.ContentHandler):
 
-    def __init__(self, out = sys.stdout):
+    def __init__(self, out = sys.stdout, encoding = "iso-8859-1"):
         saxlib.ContentHandler.__init__(self)
-        self._out = out
+        writerclass = codecs.lookup(encoding)[3]
+        self._out = writerclass(out)
+        self._ns_contexts = [{}] # contains uri -> prefix dicts
+        self._current_context = self._ns_contexts[-1]
+        self._encoding = encoding
 
     # ContentHandler methods
         
     def startDocument(self):
-        self._out.write('<?xml version="1.0" encoding="iso-8859-1"?>\n')
+        self._out.write(u'<?xml version="1.0" encoding="%s"?>\n' %
+                        self._encoding)
 
     def startPrefixMapping(self, prefix, uri):
-        pass
+        self._ns_contexts.append(self._current_context.copy())
+        self._current_context[uri] = prefix
 
     def endPrefixMapping(self, prefix):
-        pass
+        del self._current_context[-1]
 
-    def startElement(self, name, rawname, attrs):
-        self._out.write('<' + rawname)
+    def startElement(self, name, attrs):
+        self._out.write(u'<' + name)
         for (name, value) in attrs.items():
-            self._out.write(' %s="%s"' % (name, escape(value)))
-        self._out.write('>')
+            self._out.write(u' %s="%s"' % (name, escape(value)))
+        self._out.write(u'>')
 
-    def endElement(self, name, rawname):
-        self._out.write('</%s>' % rawname)
+    def endElement(self, name):
+        self._out.write(u'</%s>' % name)
+
+    def startElementNS(self, name, qname, attrs):
+        if qname is None:
+            qname = self._current_context[name[0]] + ":" + name[1]
+        self._out.write(u'<' + qname)
+        for (name, value) in attrs.items():
+            name = self._current_context[name[0]] + ":" + name[1]
+            self._out.write(u' %s="%s"' % (name, escape(value)))
+        self._out.write(u'>')
+
+    def endElementNS(self, name, qname):
+        if qname is None:
+            qname = self._current_context[name[0]] + ":" + name[1]
+        self._out.write(u'</%s>' % qname)
 
     def characters(self, content):
         self._out.write(escape(content))
@@ -185,7 +205,10 @@ class ContentGenerator(saxlib.ContentHandler):
         self._out.write(content)
         
     def processingInstruction(self, target, data):
-        self._out.write('<?%s %s?>' % (target, data))
+        self._out.write(u'<?%s %s?>' % (target, data))
+
+# --- FIXME: remove backwards compatibility name when not needed anymore
+ContentGenerator = XMLGenerator
 
 # --- XMLFilterImpl
 
@@ -225,11 +248,17 @@ class XMLFilterBase(saxlib.XMLFilter):
     def endPrefixMapping(self, prefix):
         self._cont_handler.endPrefixMapping(prefix)
 
-    def startElement(self, name, qname, attrs):
-        self._cont_handler.startElement(name, qname, attrs)
+    def startElement(self, name, attrs):
+        self._cont_handler.startElement(name, attrs)
 
-    def endElement(self, name, qname):
-        self._cont_handler.endElement(name, qname)
+    def endElement(self, name):
+        self._cont_handler.endElement(name)
+
+    def startElementNS(self, name, qname, attrs):
+        self._cont_handler.startElementNS(name, qname, attrs)
+
+    def endElementNS(self, name, qname):
+        self._cont_handler.endElementNS(name, qname)
 
     def characters(self, content):
         self._cont_handler.characters(content)
@@ -619,40 +648,3 @@ class mllib:
 
         def fatalError(self, exception):
             raise RuntimeError(str(exception))
-
-# --- Python 2 compatibility
-class XMLGenerator(saxlib.ContentHandler):
-
-    def __init__(self, out = sys.stdout):
-        saxlib.ContentHandler.__init__(self)
-        self._out = out
-
-    # ContentHandler methods
-        
-    def startDocument(self):
-        self._out.write('<?xml version="1.0" encoding="iso-8859-1"?>\n')
-
-    def startPrefixMapping(self, prefix, uri):
-        pass
-
-    def endPrefixMapping(self, prefix):
-        pass
-
-    def startElement(self, name, qname, attrs):
-        self._out.write('<' + qname)
-        for (name, value) in attrs.items():
-            self._out.write(' %s="%s"' % (qname, escape(value)))
-        self._out.write('>')
-
-    def endElement(self, name, qname):
-        # FIXME: not namespace friendly yet
-        self._out.write('</%s>' % qname)
-
-    def characters(self, content):
-        self._out.write(escape(content))
-
-    def ignorableWhitespace(self, content):
-        self._out.write(content)
-        
-    def processingInstruction(self, target, data):
-        self._out.write('<?%s %s?>' % (target, data))

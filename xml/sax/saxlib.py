@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: saxlib.py,v 1.6 2000/05/15 20:21:48 lars Exp $
+$Id: saxlib.py,v 1.7 2000/09/20 06:15:21 loewis Exp $
 """
 
 version = '2.0beta'
@@ -524,8 +524,18 @@ class ContentHandler:
         occur after the corresponding endElement event, but the order
         of endPrefixMapping events is not otherwise guaranteed."""
 
-    def startElement(self, name, qname, attrs):
-        """Signals the start of an element.
+    def startElement(self, name, attrs):
+        """Signals the start of an element, if features_namespace is
+        not active.
+
+        The name parameter contains the name of the element type as
+        the raw XML 1.0 name used in the source document, and the
+        attrs parameter holds an instance of the Attributes class
+        containing the attributes of the element."""
+
+    def startElementNS(self, name, qname, attrs):
+        """Signals the start of an element, if features_namespace is
+        not active.
 
         The name parameter contains the name of the element type as a
         (uri ,localname) tuple, the qname parameter the raw XML 1.0
@@ -533,7 +543,13 @@ class ContentHandler:
         holds an instance of the Attributes class containing the
         attributes of the element."""
 
-    def endElement(self, name, qname):
+    def endElement(self, name):
+        """Signals the end of an element.
+
+        The name parameter contains the name of the element type, just
+        as with the startElement event."""
+
+    def endElementNS(self, name, qname):
         """Signals the end of an element.
 
         The name parameter contains the name of the element type, just

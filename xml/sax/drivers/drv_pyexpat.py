@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.8 2000/06/08 00:03:17 akuchling Exp $
+$Id: drv_pyexpat.py,v 1.9 2000/09/20 06:15:22 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -13,7 +13,13 @@ version="0.13"
 
 from xml.sax import saxlib,saxutils
 
-import pyexpat,urllib,types
+try:
+    import pyexpat
+except ImportError:
+    # pyexpat not built in core installation, use our own
+    from xml.drivers import pyexpat
+
+import urllib,types
 
 # --- SAX_expat
 

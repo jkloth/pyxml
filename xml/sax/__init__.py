@@ -17,7 +17,6 @@ parse, parseString     - parse a document, using a provided handler
 """
 
 from saxlib import ContentHandler, ErrorHandler
-from expatreader import ExpatParser
 from saxlib import SAXException, SAXNotRecognizedException,\
                    SAXParseException, SAXNotSupportedException
 
