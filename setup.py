@@ -107,7 +107,11 @@ if build_pyexpat:
 
 # Build sgmlop
 ext_modules.append(
-  Extension(xml('.parsers.sgmlop'), sources=['extensions/sgmlop.c']))
+    Extension(xml('.parsers.sgmlop'), sources=['extensions/sgmlop.c']))
+
+# Build boolean
+ext_modules.append(
+    Extension(xml('.utils.boolean'), sources=['extensions/boolean.c']))
 
 
 # On Windows, install the documentation into a directory xmldoc, along
