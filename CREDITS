@@ -15,6 +15,12 @@
 
 <xml-hackers>
   <xml-hacker>
+    <name> Evgeny Cherkashin </name>
+    <email> eugeneai@icc.ru </email>
+    <task> Expose Python codecs to pyexpat </task>
+  </xml-hacker>
+
+  <xml-hacker>
     <name> James Clark </name>
     <task> Expat parser </task>
   </xml-hacker>
@@ -124,6 +130,12 @@
   </xml-hacker>
 
   <xml-hacker>
+    <name> James Tauber </name>
+    <email> jtauber@bowstreet.com </email>
+    <task> PyTREX </task>
+  </xml-hacker>
+
+  <xml-hacker>
     <name> Robin Thomas </name>
     <task> Strict and loose marshalling for WDDX. </task>
     <task> Various fixes to the xml.marshal.generic module. </task>
@@ -136,12 +148,6 @@
   <xml-hacker>
     <name> Stephan Tolksdorf </name>
     <task> Add various minidom features </task>
-  </xml-hacker>
-
-  <xml-hacker>
-    <name> Evgeny Cherkashin </name>
-    <email> eugeneai@icc.ru </email>
-    <task> Expose Python codecs to pyexpat </task>
   </xml-hacker>
 
 </xml-hackers>
