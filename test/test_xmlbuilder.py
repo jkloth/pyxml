@@ -172,6 +172,9 @@ class FakeMessage:
         return "%s/%s" % (self.getmaintype(), self.getsubtype())
 
 
+def test_suite():
+    return unittest.makeSuite(Tests)
+
 def test_main():
     import test_support
-    test_support.run_suite(unittest.makeSuite(Tests))
+    test_support.run_suite(test_suite())
