@@ -21,12 +21,16 @@ class OperaParseException(Exception):
 # --- Methods
 
 def readfield(infile, fieldname, required = 1):
-    line = string.rstrip(infile.readline())
+    line = infile.readline()
+    linelength = len(line)
     pos = string.find(line,fieldname+"=")
     if pos == -1 and required:
         raise OperaParseException("Field '%s' missing" % fieldname)
 
-    return line[pos+len(fieldname)+1:]
+    if pos == -1 and required == 0:
+        infile.seek(-linelength, 1)
+
+    return string.rstrip(line[pos+len(fieldname)+1:])
 
 def swallow_rest(infile):
     "Reads input until first blank line."
