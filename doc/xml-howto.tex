@@ -1,12 +1,12 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.12 2002/05/12 23:33:43 akuchling Exp $
+% $Id: xml-howto.tex,v 1.13 2002/05/13 16:30:31 akuchling Exp $
 
 % TODO:
 %   Read over and update DOM section
 %   Write outline of entire document
 %   Explain namespaces somewhere
-% XXX not covered: c14n.py, xml.marshal, scripts, namespaces, TREX/schemas,
+% XXX not covered: xml.marshal, scripts, namespaces, TREX/schemas,
 % XSLT, XPath
 % XXX overview of parsers
 
@@ -157,7 +157,7 @@ it doesn't match the structure expected for a book:
   <chapter> ... </chapter>
   <abstract>  ... </abstract>
   <chapter> ... </chapter>
-  <preface> .... </preface>
+  <preface> ... </preface>
 </book>
 \end{verbatim}
 
@@ -382,7 +382,7 @@ one.
   The Python DOM interface.  The full interface
   support DOM Levels 1 and 2.  \module{xml.dom} contains
   the implementation for DOM trees built from XML documents.
-  (This implementation is called 4DOM, and was written by Fourthought LLC.)
+  (This implementation is called 4DOM, and was written by Fourthought Inc.)
   
 \item[\module{dom.html}]
   DOM trees built from HTML documents are also supported.
@@ -407,9 +407,6 @@ one.
 
 \item[\module{dom.ext.Dom2Sax}]
   A parser to generate SAX events from a DOM tree.
-
-\item[\module{dom.ext.Visitor}]
-  Classes for walking over a DOM tree.
 
 \item[\module{dom.ext.c14n}]
   Takes a DOM tree and outputs a text stream containing the
@@ -495,11 +492,11 @@ one.
 
 \item[\module{xml.xpath}]
   An XPath parser and evaluator.
-  (This implementation is called 4XPath, and was written by Fourthought LLC.)
+  (This implementation is called 4XPath, and was written by Fourthought Inc.)
 
 \item[\module{xml.xslt}] 
    An implementation of the XSLT transformation language.
-  (This implementation is called 4XSLT, and was written by Fourthought LLC.)
+  (This implementation is called 4XSLT, and was written by Fourthought Inc.)
 
 \end{itemize}
 
@@ -1022,9 +1019,9 @@ offers two alternative implementations of the DOM,
 \module{xml.dom.minidom} and \code{4DOM}. \module{xml.dom.minidom} is
 included in Python 2. It is a minimal implementation, which means it
 does not provide all interfaces and operations required by the DOM
-standard.  \code{4DOM} (XXX reference) is a complete implementation of
-DOM Level 2 (which is currently work in progress), so we will use that
-in the examples.
+standard.  \code{4DOM}, part of the 4Suite set of XML tools
+(\url{http://www.4suite.org), is a complete implementation of
+DOM Level 2 Core, so we will use that in the examples.
 
 The \module{xml.dom.ext.reader} package contains a number of classes
 that build a DOM tree from various input sources.  One of the modules
@@ -1103,12 +1100,11 @@ nodes.
 
 A DOM tree can be converted back to XML by using the
 \function{Print(\var{doc}, \var{stream})} or
-\function{PrettyPrint(\var{doc}, \var{stream})} functions in
-\module{xml.dom.ext}.  If \var{stream} isn't provided, the resulting
-XML will be printed to standard output.  \function{Print()} will
-simply render the DOM tree without any changes, while
-\function{PrettyPrint()} will add or remove whitespace in order to
-nicely indent the resulting XML.
+\function{PrettyPrint(\var{doc}, \var{stream})} functions in the
+\module{xml.dom.ext} module.  If \var{stream} isn't provided, the resulting
+XML will be printed to standard output.  \function{Print()} will simply
+render the DOM tree without any changes, while \function{PrettyPrint()} will
+add or remove whitespace in order to nicely indent the resulting XML.
 
 
 \subsection{Manipulating the Tree}
@@ -1264,17 +1260,25 @@ while 1:
 % XXX get a patch in and mention iterators
 
 
+%\subsection{More DOM Extensions}
+
+%XXX ext.c14n
+%XXX StripHtml, StripXml, GetElementById,
+%XmlSpaceState,  GetAllNs, SeekNSS, 
+
+
+
 \subsection{Related Links}
 
 The DOM Level 1 Recommendation is at
-\url{http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/}.  Unlike
-most standards, this one is actually pretty readable, particularly if
-you're only interested in the Core XML interfaces.
+\url{http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/}.  Unlike most
+standards, this one is actually pretty readable, particularly if you're only
+interested in the Core XML interfaces.
 
 Level 2 of the DOM has also been defined, adding more specialized
 features such as support for XML namespaces, events, and ranges.  DOM
 Level 3 is still being worked on, and will add yet more features.  The
-World Wide Web Consortium's DOM page at \url{http://www.w3.org/DOM/}
+World Wide Web Consortium's DOM page at \url{http://www.w3.org/DOM/DOMTR}
 has pointers to the specifications and current drafts for these higher
 DOM levels.
 
@@ -1310,11 +1314,14 @@ into a tree structure, and the stylesheet specifies the transformation
 you want to perform by selecting some elements from the tree and
 rearranging them.  
 
+
+%\subsection{Performing an XSL Transformation}
 % XXX finish this section
+
 
 \subsection{Related Links}
 
-The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and links
+The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and has links
 to the XSLT specifications and to friendlier tutorials.
 
 
@@ -1323,6 +1330,7 @@ to the XSLT specifications and to friendlier tutorials.
 
 The author would like to thank the following people for offering
 suggestions, corrections and assistance with various drafts of this
-article: Fred~L. Drake, Jr., Martin von L\"owis, Rich Salz.
+article: Fred~L. Drake, Jr., Martin von L\"owis, 
+Uche Ogbuji, Rich Salz.
 
 \end{document}
