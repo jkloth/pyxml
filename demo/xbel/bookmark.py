@@ -69,14 +69,21 @@ class Bookmarks:
     # Lynx uses multiple bookmark files; each folder will be written to a
     # different file.
     def dump_lynx(self, path):
+        import os
         for folder in self.folders:
             # First, figure out a reasonable filename for this folder
-            file = string.replace(folder.name, ' ', '_') + '.html'
+            filename = string.replace(folder.title, ' ', '_') + '.html'
+            
+            # Open a file for the top-level folders
             output = open( os.path.join(path, filename), 'w')
-            output.write('<head>\n<title>Bookmark file: %s</title>\n<head>\n'
-                         % (folder.name,) )
+            print 'folder title:', folder.title, filename
+            output.write('<head>\n<title>%s</title>\n<head>\n'
+                         % (folder.title,) )
             output.write('<p>\n<ol>\n')
-            folder.dump_lynx(path, output)
+
+            folder.dump_lynx(output)
+            
+            output.close()
             
 # --- Superclass for folder and bookmarks
         
@@ -92,7 +99,7 @@ class Node:
 class Folder(Node):
 
     def __init__(self,name,added=None):
-        Node.__init__(self,name, added=added)
+        Node.__init__(self, name, added=added)
         self.children=[]
 
     def add_child(self,child):
@@ -128,6 +135,17 @@ class Folder(Node):
 
         out.write("  </DL><p>\n")
 
+    def dump_lynx(self, out):
+        out.write("  <H3>%s</H3>\n" % self.title)
+        out.write("  <OL>\n")
+
+        for child in self.children:
+            child.dump_lynx(out)
+
+        # Mustn't write the closing </OL>, because Lynx will add it
+        # when it reads the bookmark file.
+        ##out.write("  </OL>\n")
+        
 # --- Class for bookmarks
         
 class Bookmark(Node):
@@ -169,7 +187,6 @@ class Bookmark(Node):
     def dump_netscape(self,out):
         out.write("    <DT><A HREF=\"%s\">%s</A>\n" % (self.href,self.title))
 
-
-
-
+    def dump_lynx(self, out):
+        out.write("<LI><A HREF=\"%s\">%s</A>\n" % (self.href, self.title) )
 
