@@ -240,6 +240,9 @@ class XMLProcessor(XMLCommonParser):
 	self.dtd=WFCDTD(self.err)
 	self.ent=self.dtd
         self.dtd_listener=None  # Only used to give to DTDParser
+
+    def close(self):
+        self.dtd_listener = self.ent = self.dtd = self.app = None
         
     def set_application(self,app):
 	"Sets the object to send data events to."
