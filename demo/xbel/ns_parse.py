@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Small utility that parses Netscape bookmarks.
 """

@@ -4,7 +4,9 @@
 # Read a list of Lynx bookmark files, specified on the command line,
 # and outputs the corresponding XBEL document.
 #
-# Sample usage: ./lynx_parse.py 
+# Sample usage: ./lynx_parse.py ~/bookmarks/
+#    (The script requires the path to the directory where your bookmark files
+#     are stored.)
 #
 
 import bookmark

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Small utility to convert MSIE favourites to an object structure.
 

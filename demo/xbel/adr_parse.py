@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Small utility to parse Opera bookmark files.
 Written by Lars Marius Garshol
