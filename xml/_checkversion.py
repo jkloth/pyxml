@@ -9,8 +9,8 @@ _VERSION="0.5.2"
 _URL="http://www.python.org/sigs/xml-sig/files/xmlpackageversion.txt"
 
 try:
-	_myverbose=VERBOSE
+    _myverbose=VERBOSE
 except NameError:
-	_myverbose=1
+    _myverbose=1
 	
 pyversioncheck.versioncheck(_PACKAGE, _URL, _VERSION, verbose=_myverbose)
