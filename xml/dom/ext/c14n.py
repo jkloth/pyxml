@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/12/30 12:12:07 $ by $Author: loewis $
+$Date: 2002/01/24 21:37:49 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -89,7 +89,7 @@ def _utilized(n, node, other_attrs, unsuppressedPrefixes):
         if n == attr.prefix: return 1
     return 0
 
-_in_subset = lambda subset, node: not subset or node in subset
+_in_subset = lambda subset, node: subset is None or node in subset
 
 class _implementation:
     '''Implementation class for C14N. This accompanies a node during it's
