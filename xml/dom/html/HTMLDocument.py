@@ -169,6 +169,9 @@ class HTMLDocument(Document):
     def createElement(self, tagName):
         return self._4dom_createHTMLElement(tagName)
 
+    def createElementNS(self, namespace, qname):
+        return self._4dom_createHTMLElement(qname)
+
     def createAttribute(self, name):
         return Document.createAttribute(self, string.upper(name))
 
