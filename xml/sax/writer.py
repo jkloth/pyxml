@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.7 $'
+__version__ = '$Revision: 1.8 $'
 
 import string
 
@@ -61,6 +61,7 @@ class Syntax:
     dsc = "]"                           # declaration subset close
     ero = "&"                           # entity reference open
     lit = '"'                           # literal start or end
+    lit_quoted = '&quot;'               # quoted literal
     lita = "'"                          # literal start or end (alternative)
     mdo = "<!"                          # markup declaration open
     mdc = ">"                           # markup declaration close
@@ -268,6 +269,7 @@ class XmlWriter:
         stag = "%s%s%s" % (prefix, self.__syntax.stago, tag)
         prefix = "%s %s" % (prefix, (len(tag) * " "))
         lit = self.__syntax.lit
+        lita = self.__syntax.lita
         vi = self.__syntax.vi
         a = ''
         if self._flowing != self.__stack[-1][0]:
@@ -285,7 +287,15 @@ class XmlWriter:
         for k, v in attrs.items():
             if v is None:
                 continue
-            a = ' %s%s%s%s%s' % (k, vi, lit, escape(str(v)), lit)
+            v = str(v)
+            if string.find(v, lit) == -1:
+                a = ' %s%s%s%s%s' % (k, vi, lit, escape(str(v)), lit)
+            elif string.find(v, lita) == -1:
+                a = ' %s%s%s%s%s' % (k, vi, lita, escape(str(v)), lita)
+            else:
+                a = ' %s%s%s%s%s' % (k, vi, lit,
+                                     escape(str(v), {lit:self.__syntax.lit_quoted}),
+                                     lita)
             if (self._offset + len(a)) > self.lineLength:
                 self._write(line + "\n")
                 line = prefix + a
