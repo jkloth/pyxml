@@ -20,47 +20,48 @@ import re
 from yappsrt import *
 
 class XPathScanner(Scanner):
+    patterns = [
+        ("'mod'", re.compile('mod')),
+        ("'div'", re.compile('div')),
+        ("'-'", re.compile('-')),
+        ("'>='", re.compile('>=')),
+        ("'>'", re.compile('>')),
+        ("'<='", re.compile('<=')),
+        ("'<'", re.compile('<')),
+        ("'!='", re.compile('!=')),
+        ("'='", re.compile('=')),
+        ("'and'", re.compile('and')),
+        ("'or'", re.compile('or')),
+        ("','", re.compile(',')),
+        ("'@'", re.compile('@')),
+        ("'::'", re.compile('::')),
+        ("'//'", re.compile('//')),
+        ("'/'", re.compile('/')),
+        ('Literal', re.compile('"[^"]*"|\'[^\']*')),
+        ('Number', re.compile('\\d+(.\\d*)?|.\\d+')),
+        ('VariableReference', re.compile('\\$[a-zA-Z_][:a-zA-Z0-9_.-]*')),
+        ('NodeType', re.compile('comment|text|processing-instruction|node')),
+        ('AxisName', re.compile('ancestor|ancestor-or-self|attribute|child|descendant|descendant-or-self|following|following-sibling|namespace|parent|preceding|preceding-sibling|self')),
+        ('NCName', re.compile('[a-zA-Z_][a-zA-Z0-9_.-]*')),
+        ('NCNameStar', re.compile('[a-zA-Z_][a-zA-Z0-9_.-]*:\\*')),
+        ('QName', re.compile('[a-zA-Z_][a-zA-Z0-9_.-]*(:[a-zA-Z_][a-zA-Z0-9_.-])?')),
+        ('MultiplyOperator', re.compile('\\*')),
+        ('LPAREN', re.compile('\\(')),
+        ('RPAREN', re.compile('\\)')),
+        ('STAR', re.compile('\\*')),
+        ('PLUS', re.compile('\\+')),
+        ('LBRACKET', re.compile('\\[')),
+        ('RBRACKET', re.compile('\\]')),
+        ('FunctionName', re.compile('[a-zA-Z_][a-zA-Z0-9_.-]*(:[a-zA-Z_][a-zA-Z0-9_.-]*)?')),
+        ('DOT', re.compile('\\.')),
+        ('DOTDOT', re.compile('\\.\\.')),
+        ('BAR', re.compile('\\|')),
+        ('END', re.compile('#')),
+        ('ID', re.compile('id')),
+        ('KEY', re.compile('key')),
+    ]
     def __init__(self, str):
-        Scanner.__init__(self,[
-            ("'mod'", 'mod'),
-            ("'div'", 'div'),
-            ("'-'", '-'),
-            ("'>='", '>='),
-            ("'>'", '>'),
-            ("'<='", '<='),
-            ("'<'", '<'),
-            ("'!='", '!='),
-            ("'='", '='),
-            ("'and'", 'and'),
-            ("'or'", 'or'),
-            ("','", ','),
-            ("'@'", '@'),
-            ("'::'", '::'),
-            ("'//'", '//'),
-            ("'/'", '/'),
-            ('Literal', '"[^"]*"|\'[^\']*'),
-            ('Number', '\\d+(.\\d*)?|.\\d+'),
-            ('VariableReference', '\\$[a-zA-Z_][:a-zA-Z0-9_.-]*'),
-            ('NodeType', 'comment|text|processing-instruction|node'),
-            ('AxisName', 'ancestor|ancestor-or-self|attribute|child|descendant|descendant-or-self|following|following-sibling|namespace|parent|preceding|preceding-sibling|self'),
-            ('NCName', '[a-zA-Z_][a-zA-Z0-9_.-]*'),
-            ('NCNameStar', '[a-zA-Z_][a-zA-Z0-9_.-]*:\\*'),
-            ('QName', '[a-zA-Z_][a-zA-Z0-9_.-]*(:[a-zA-Z_][a-zA-Z0-9_.-])?'),
-            ('MultiplyOperator', '\\*'),
-            ('LPAREN', '\\('),
-            ('RPAREN', '\\)'),
-            ('STAR', '\\*'),
-            ('PLUS', '\\+'),
-            ('LBRACKET', '\\['),
-            ('RBRACKET', '\\]'),
-            ('FunctionName', '[a-zA-Z_][a-zA-Z0-9_.-]*(:[a-zA-Z_][a-zA-Z0-9_.-]*)?'),
-            ('DOT', '\\.'),
-            ('DOTDOT', '\\.\\.'),
-            ('BAR', '\\|'),
-            ('END', '#'),
-            ('ID', 'id'),
-            ('KEY', 'key'),
-            ], [], str)
+        Scanner.__init__(self,None,[],str)
 
 class XPath(Parser):
     def Start(self):
@@ -372,8 +373,11 @@ class XPath(Parser):
             return v
         elif _token_ == 'LBRACKET':
             Predicate = self.Predicate()
-            FilterExprs = self.FilterExprs(self.filterExpr(v,Predicate))
-            return FilterExprs
+            e=[Predicate]
+            while self._peek() == 'LBRACKET':
+                Predicate = self.Predicate()
+                e.append(Predicate)
+            return self.filterExpr(v,e)
         else:
             raise SyntaxError(self._pos, 'Could not match FilterExprs')
 

@@ -178,7 +178,8 @@ class FtFactory:
     def createAbbreviatedPathExpr(self,left,right):
         return ParsedExpr.ParsedPathExpr(XPATH.DOUBLE_SLASH,left,right)
 
-    createFilterExpr = ParsedExpr.ParsedFilterExpr
+    def createFilterExpr(self, filter, predicates):
+        return ParsedExpr.ParsedFilterExpr(filter, ParsedPredicateList(predicates))
 
     def createVariableReference(self,prefix,localName):
         if prefix:

@@ -149,10 +149,10 @@ parser XPath:
         | '//' RelativeLocationPath   {{return self.abbreviatedPathExpr(v,RelativeLocationPath)}}
         
     rule FilterExpr:
-        PrimaryExpr FilterExprs<<PrimaryExpr>>   {{return FilterExprs}}
+        PrimaryExpr FilterExprs<<PrimaryExpr>>  {{return FilterExprs}}
     rule FilterExprs<<v>>:
           {{return v}}
-        | Predicate FilterExprs<<self.filterExpr(v,Predicate)>>   {{return FilterExprs}}
+        | Predicate {{e=[Predicate]}} (Predicate {{e.append(Predicate)}}) * {{return self.filterExpr(v,e)}}
 
     rule OrExpr:
         AndExpr OrExprs<<AndExpr>>   {{return OrExprs}}

@@ -82,7 +82,7 @@ def Compile(expr):
     except:
         import traceback, cStringIO
         stream = cStringIO.StringIO()
-        traceback.printexc(None, stream)
+        traceback.print_exc(None, stream)
         raise RuntimeException(RuntimeException.INTERNAL, stream.getvalue())
 
 
