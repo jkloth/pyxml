@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- 
+<!--
 
    This is a partial credits-file of people who have contributed to
    the Python/XML package.  It is sorted by name, and written as
@@ -24,7 +24,7 @@
     <name> James Clark </name>
     <task> Expat parser </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Fred L. Drake, Jr. </name>
     <email> fdrake@acm.org </email>
@@ -34,34 +34,39 @@
     <task> General minidom maintenance </task>
     <task> pyexpat maintenance </task>
   </xml-hacker>
-  
+
+  <xml-hacker>
+    <name> Karl Waclawek </name>
+    <task> Expat maintainer </task>
+  </xml-hacker>
+
   <xml-hacker>
     <name> Stefane Fermigier </name>
     <task> First version of the DOM code. </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Lars Marius Garshol </name>
     <task> saxlib SAX implementation </task>
     <task> xmlproc XML parser </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Geir Ove Grønmo </name>
     <task> xmlarch architectural forms code </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Jack Jansen </name>
     <task> PyExpat extension module </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Jeff Johnson </name>
     <task> xml.dom.utils.FileReader class </task>
     <task> Lots of DOM bug reports </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Jeremy Kloth </name>
     <name> 4DOM, and various other things. </name>
@@ -74,17 +79,17 @@
     <task> Packaging </task>
     <task> XML HOWTO </task>
     <task> XML topic guide (http://pyxml.sourceforge.net/topics/) </task>
-    <snail-mail> CNRI, 1895 Preston White Drive, Suite 100, Reston VA, 20191 
+    <snail-mail> CNRI, 1895 Preston White Drive, Suite 100, Reston VA, 20191
     </snail-mail>
     <public-key type="gpg">1024D/8BBD77F0 8A1A 67CB B3E5 3972 06DE  3D3B 913B DC5E 8BBD 77F0 </public-key>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Martin von Löwis </name>
     <task> Original unicode wide-string module </task>
     <task> Synchronization of Python 2 and PyXML </task>
   </xml-hacker>
-  
+
   <xml-hacker>
     <name> Fredrik Lundh </name>
     <task> sgmlop extension module </task>
