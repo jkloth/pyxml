@@ -83,6 +83,9 @@ class HtmlBuilder(SGMLParser, Builder):
 		#print `s`
 		Builder.text(self, s)
 
+        def handle_comment(self, s):
+                Builder.comment(self, s)
+
 
 # Test.
 if __name__ == '__main__':

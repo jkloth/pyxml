@@ -99,6 +99,9 @@ class XmlWriter(Walker):
 		data = text_node.get_nodeValue()
 		self.stream.write(escape(data))
 
+	def doComment(self, node):
+		self.stream.write(node.toxml())
+
 
 class XmlLineariser(XmlWriter):
 

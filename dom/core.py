@@ -833,7 +833,7 @@ class Comment(CharacterData):
         return '<Comment node %s>' % (repr(s),)
     
     def toxml(self):
-        return '<!-- %s -->' % self._node.value
+        return '<!--%s-->' % self._node.value
 
 class CDATASection(Text):
     """Represents CDATA sections, which are blocks of text that would

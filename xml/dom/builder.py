@@ -54,11 +54,14 @@ class Builder:
 		assert name == self.current_element.get_nodeName()
 		self.pop()
 
-
+	def comment(self,s):
+		if self.current_element:
+			comment_node = self.document.createComment(s)
+			self.current_element.insertBefore(comment_node, None)
+	
 	def processingInstruction(self, target, data):
 		node = self.document.createProcessingInstruction(target, data)
 		self.push(node)
-
 
 	def text(self, s):
 		if self.current_element:
