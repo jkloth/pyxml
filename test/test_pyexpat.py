@@ -192,16 +192,14 @@ print "Legal values tested o.k."
 try:
     expat.ParserCreate(namespace_separator=42)
 except TypeError, e:
-    print "Caught expected TypeError:"
-    print e
+    print "Caught expected TypeError."
 else:
     print "Failed to catch expected TypeError."
 
 try:
     expat.ParserCreate(namespace_separator='too long')
 except ValueError, e:
-    print "Caught expected ValueError:"
-    print e
+    print "Caught expected ValueError."
 else:
     print "Failed to catch expected ValueError."
 
