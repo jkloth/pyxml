@@ -3,7 +3,7 @@
 # access them through the same interface as the Python DOM
 # implementation.
 #
-# $Id: javadom.py,v 1.4 2000/06/01 13:14:58 lars Exp $
+# $Id: javadom.py,v 1.5 2000/06/03 11:04:24 lars Exp $
 
 # Supports:
 # - Sun's Java Project X
@@ -194,7 +194,7 @@ class DOMImplementation:
 class Node:
 
     def __init__(self, impl):
-        self._impl = impl
+        self.__dict__['_impl'] = impl
 
     # attributes
         
@@ -253,7 +253,7 @@ class Node:
         return old
 
     def appendChild(self, new):
-        self._impl.appendChild(new._impl)
+        return self._impl.appendChild(new._impl)
 
     def hasChildNodes(self):
         return self._impl.hasChildNodes()
@@ -261,13 +261,17 @@ class Node:
     def cloneNode(self):
         return _wrap_node(self._impl.cloneNode())
 
-    # internal methods
-
-    def _set_up_attributes(self, namelist):
-        for name in namelist:
-            setattr(self, name,
-                    lambda obj = self, attr = name: getattr(obj, name))
+    # python
     
+    def __getattr__(self, name):
+        if name[ : 5] != '_get_':
+            return getattr(self, '_get_' + name) ()
+
+        raise AttributeError, name
+
+    def __setattr__(self, name, value):
+        getattr(self, '_set_' + name) (value)
+            
 # ===== Document
 
 class Document(Node):
@@ -331,11 +335,11 @@ class Element(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_tagName    = self._impl.getTagName
-        self.getAttribute    = self._impl.getAttribute
-        self.setAttribute    = self._impl.setAttribute
-        self.removeAttribute = self._impl.removeAttribute
-        self.normalize       = self._impl.normalize
+        self.__dict__['_get_tagName']    = self._impl.getTagName
+        self.__dict__['getAttribute']    = self._impl.getAttribute
+        self.__dict__['setAttribute']    = self._impl.setAttribute
+        self.__dict__['removeAttribute'] = self._impl.removeAttribute
+        self.__dict__['normalize']       = self._impl.normalize
 
     # methods
         
@@ -370,15 +374,15 @@ class CharacterData(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
         
-        self._get_data     = self._impl.getData
-        self._set_data     = self._impl.setData
-        self._get_length   = self._impl.getLength
+        self.__dict__['_get_data']     = self._impl.getData
+        self.__dict__['_set_data']     = self._impl.setData
+        self.__dict__['_get_length']   = self._impl.getLength
         
-        self.substringData = self._impl.substringData
-        self.appendData    = self._impl.appendData
-        self.insertData    = self._impl.insertData
-        self.deleteData    = self._impl.deleteData
-        self.replaceData   = self._impl.replaceData
+        self.__dict__['substringData'] = self._impl.substringData
+        self.__dict__['appendData']    = self._impl.appendData
+        self.__dict__['insertData']    = self._impl.insertData
+        self.__dict__['deleteData']    = self._impl.deleteData
+        self.__dict__['replaceData']   = self._impl.replaceData
         
 # ===== Comment
 
@@ -394,9 +398,9 @@ class ProcessingInstruction(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_target = self._impl.getTarget
-        self._get_data   = self._impl.getData
-        self._set_data   = self._impl.setData
+        self.__dict__['_get_target'] = self._impl.getTarget
+        self.__dict__['_get_data']   = self._impl.getData
+        self.__dict__['_set_data']   = self._impl.setData
 
     def __repr__(self):
         return "<PI with target '%s'>" % self._impl.getTarget()
@@ -425,10 +429,10 @@ class Attr(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_name      = self._impl.getName
-        self._get_specified = self._impl.getSpecified
-        self._get_value     = self._impl.getValue
-        self._set_value     = self._impl.setValue
+        self.__dict__['_get_name']      = self._impl.getName
+        self.__dict__['_get_specified'] = self._impl.getSpecified
+        self.__dict__['_get_value']     = self._impl.getValue
+        self.__dict__['_set_value']     = self._impl.setValue
 
     def __repr__(self):
         return "<Attr '%s'>" % self._impl.getName()
@@ -447,7 +451,7 @@ class DocumentType(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_name = self._impl.getName
+        self.__dict__['_get_name'] = self._impl.getName
 
     def _get_entities(self):
         return NamedNodeMap(self._impl.getEntities())
@@ -465,8 +469,8 @@ class Notation(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_publicId = self._impl.getPublicId
-        self._get_systemId = self._impl.getSystemId
+        self.__dict__['_get_publicId'] = self._impl.getPublicId
+        self.__dict__['_get_systemId'] = self._impl.getSystemId
 
     def __repr__(self):
         return "<Notation '%s'>" % self._impl.getNodeName()
@@ -478,9 +482,9 @@ class Entity(Node):
     def __init__(self, impl):
         Node.__init__(self, impl)
 
-        self._get_publicId = self._impl.getPublicId
-        self._get_systemId = self._impl.getSystemId
-        self._get_notationName = self._impl.getNotationName
+        self.__dict__['_get_publicId']     = self._impl.getPublicId
+        self.__dict__['_get_systemId']     = self._impl.getSystemId
+        self.__dict__['_get_notationName'] = self._impl.getNotationName
 
     def __repr__(self):
         return "<Entity '%s'>" % self._impl.getNodeName()
@@ -499,14 +503,14 @@ class NodeList:
     def __init__(self, impl):
         self._impl = impl
 
-        self.__len__     = self._impl.getLength
-        self._get_length = self._impl.getLength
-        self.item        = self._impl.item
+        self.__dict__['__len__']     = self._impl.getLength
+        self.__dict__['_get_length'] = self._impl.getLength
+        self.__dict__['item']        = self._impl.item
 
     # Python list methods
         
     def __getitem__(self, ix):
-        if ix < len(self):
+        if ix < 0:
             ix = len(self) + ix
             
         node = self._impl.item(ix)
@@ -584,8 +588,8 @@ class NamedNodeMap:
     def __init__(self, impl):
         self._impl = impl
 
-        self._get_length = self._impl.getLength
-        self.__len__     = self._impl.getLength
+        self.__dict__['_get_length'] = self._impl.getLength
+        self.__dict__['__len__']     = self._impl.getLength
 
     # methods
         
@@ -625,7 +629,7 @@ class NamedNodeMap:
         list = []
         for ix in range(self._impl.getLength()):
             node = self._impl.item(ix)
-            list.append((node._get_nodeName(), _wrap_node(node)))
+            list.append((node.getNodeName(), _wrap_node(node)))
         return list
 
     def keys(self):
