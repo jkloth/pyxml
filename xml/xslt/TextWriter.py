@@ -37,6 +37,7 @@ class TextWriter:
         self._namespaces = [{'': '', 'xml': XML_NAMESPACE}]
         self._result = cStringIO.StringIO()
         self._outputParams = outputParams
+        self._outputParams.mediaType = outputParams.mediaType or 'text/plain'
         self._indent = ''
         self._nextNewLine = 0
         self._cdataSectionElement = 0

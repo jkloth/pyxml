@@ -36,6 +36,7 @@ class XmlWriter(NullWriter.NullWriter):
         NullWriter.NullWriter.__init__(self, outputParams, stream)
         self._outputParams.encoding = outputParams.encoding or 'UTF-8'
         self._outputParams.indent = outputParams.indent == 'yes'
+        self._outputParams.mediaType = outputParams.mediaType or 'text/xml'
         self._currElement = None
         self._namespaces = [{'': '', 'xml': XML_NAMESPACE}]
         self._indent = ''

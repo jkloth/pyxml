@@ -14,63 +14,29 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 import string, os
+import NullWriter
 from xml.xslt import XSL_NAMESPACE
 from xml.xpath import Util
-try:
-    from Ft.Lib import pDomlette
-    createElement = pDomlette.Element
-    createAttribute = pDomlette.Attribute
-    def createProcessingInstruction(doc, target, data):
-        pi = pDomlette.ProcessingInstruction(doc)
-        pi.target = target
-        pi.data = data
-        return pi
-    def createComment(doc, data):
-        comment = pDomlette.Comment(doc)
-        comment.data = data
-        return comment
-
-except ImportError:
-    from xml.dom import minidom
-    def createElement(doc, namespace, localName, prefix):
-        if prefix:
-            qname = prefix+':'+localName
-        else:
-            qname = localName
-        e = minidom.Element(qname, namespace, prefix, localName)
-        e.ownerDoc = doc
-        return e
-    def createAttribute(doc, namespace, localName, prefix):
-        if prefix:
-            qname = prefix+':'+localName
-        else:
-            qname = localName
-        return doc.createAttributeNS(namespace, qname)
-    def createProcessingInstruction(doc, target, data):
-        return doc.createProcessingInstruction(target,data)
-    def createComment(doc, data):
-        return doc.createComment(data)
-
 from xml.dom.ext import SplitQName
-from xml.dom import Node, XMLNS_NAMESPACE
+from xml.dom import XMLNS_NAMESPACE, Node
 
-class RtfWriter:
+class RtfWriter(NullWriter.NullWriter):
     def __init__(self, outputParams, ownerDoc):
-        self.__ownerDoc = ownerDoc
-        self.__root = ownerDoc.createDocumentFragment()
-        self.__nodeStack = [self.__root]
-        self.__currElement = None
-        self.__outputParams = outputParams
+        self._ownerDoc = ownerDoc
+        self._root = ownerDoc.createDocumentFragment()
+        self._root.stringValue = ""
+        self._nodeStack = [self._root]
+        self._currElement = None
+        self._outputParams = outputParams
 
     def getResult(self):
-        return self.__root
+        return self._root
 
     def startElement(self, name, namespace='', extraNss=None):
         extraNss = extraNss or {}
         prefix, localName = SplitQName(name)
-        new_element = createElement(self.__ownerDoc, namespace,
-                                    localName, prefix)
-        self.__nodeStack.append(new_element)
+        new_element = self._ownerDoc.createElementNS(namespace, name)
+        self._nodeStack.append(new_element)
         for prefix in extraNss.keys():
             if prefix:
                 new_element.setAttributeNS(XMLNS_NAMESPACE, 'xmlns:'+prefix,
@@ -78,39 +44,40 @@ class RtfWriter:
             else:
                 new_element.setAttributeNS(XMLNS_NAMESPACE, 'xmlns',
                                            extraNss[prefix])
+        new_element.stringValue = ""
         return
 
     def endElement(self, name):
-        new_element = self.__nodeStack[-1]
-        del self.__nodeStack[-1]
-        self.__nodeStack[-1].appendChild(new_element)
+        new_element = self._nodeStack[-1]
+        del self._nodeStack[-1]
+        self._nodeStack[-1].appendChild(new_element)
         return
 
     def text(self, text, escapeOutput=1):
-        new_text = self.__ownerDoc.createTextNode(text)
-        new_text.data = text
-        self.__nodeStack[-1].appendChild(new_text)
+        new_text = self._ownerDoc.createTextNode(text)
+        top_node = self._nodeStack[-1]
+        top_node.appendChild(new_text)
+        top_node.stringValue = top_node.stringValue + text
         return
 
     def attribute(self, name, value, namespace=''):
         prefix, localName = SplitQName(name)
-        attr = createAttribute(self.__ownerDoc, namespace, localName,
-                               prefix)
+        attr = self._ownerDoc.createAttributeNS(namespace, name)
         attr.value = value
-        if self.__nodeStack[-1].nodeType == Node.ELEMENT_NODE:
-            self.__nodeStack[-1].attributes[(namespace, localName)] = attr
+        if self._nodeStack[-1].nodeType == Node.ELEMENT_NODE:
+            self._nodeStack[-1].attributes[(namespace, localName)] = attr
         else:
             #Document-fragment parent
-            self.__nodeStack[-1].appendChild(attr)
+            self._nodeStack[-1].appendChild(attr)
         return
 
     def processingInstruction(self, target, data):
-        pi = createProcessingInstruction(self.__ownerDoc, target, data)
-        self.__nodeStack[-1].appendChild(pi)
+        pi = self._ownerDoc.createProcessingInstruction(target, data)
+        self._nodeStack[-1].appendChild(pi)
         return
 
     def comment(self, data):
-        comment = createComment(self.__ownerDoc, data)
-        self.__nodeStack[-1].appendChild(comment)
+        comment = self._ownerDoc.createComment(data)
+        self._nodeStack[-1].appendChild(comment)
         return
 

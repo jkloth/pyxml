@@ -82,7 +82,7 @@ class HtmlWriter(NullWriter.NullWriter):
         NullWriter.NullWriter.__init__(self, outputParams, stream)
         # Defaults
         self._outputParams.indent = outputParams.indent in [None, 'yes']
-        self._outputParams.encoding = outputParams.encoding or 'UTF-8'
+        self._outputParams.encoding = outputParams.encoding or 'iso-8859-1'
         self._outputParams.mediaType = outputParams.mediaType or 'text/html'
         # Process flags
         self._indentLevel = 0

@@ -53,7 +53,7 @@ from xml.xslt.OtherXslElement import ImportElement, IncludeElement, DecimalForma
 
 from xml.xslt.Stylesheet import StylesheetElement
 from xml.xslt import XSL_NAMESPACE, XsltElement
-from xml.xslt import XsltException, Error, ReleaseNode
+from xml.xslt import XsltException, Error, ReleaseNode, RegisterExtensionModules
 
 from xml import xslt
 
@@ -341,15 +341,28 @@ class StylesheetReader(_ReaderBase):
         rt = sheet or root
         return rt
 
-    def initState(self, ownerDoc, baseUri):
-        _ReaderBase.initState(self, ownerDoc, baseUri)
+    def initParser(self):
+        if self._force8Bit:
+            self.handler = Utf8OnlyHandler(self)
+        else:
+            self.handler = self
+        self.parser=expat.ParserCreate()
+        self.parser.StartElementHandler = self.handler.startElement
+        self.parser.EndElementHandler = self.handler.endElement
+        self.parser.CharacterDataHandler = self.handler.characters
+        self.parser.ProcessingInstructionHandler = self.handler.processingInstruction
+        self.parser.CommentHandler = self.handler.comment
+        self.parser.ExternalEntityRefHandler = self.handler.entityRef
+        return
+
+    def initState(self, ownerDoc, refUri):
+        pDomlette.Handler.initState(self, ownerDoc)
         self._preserveStateStack = [0]
-        self._extElements = xslt.g_extElements
         self._extUris = []
         self._extUriStack = []
         self._firstElement = 1
         if not self._ssheetUri:
-            self._ssheetUri = baseUri
+            self._ssheetUri = refUri
         return
 
     def _completeTextNode(self):
@@ -393,7 +406,7 @@ class StylesheetReader(_ReaderBase):
         self._firstElement = 0
         return
 
-    def _handleExtUris(self, ns, local, prefix, value, extUri, delExtu, sheet):
+    def _handleExtUris(self, ns, local, value, extUri, delExtu, sheet):
         if (ns, local) == (extUri, 'extension-element-prefixes'):
             ext_prefixes = string.splitfields(value)
             for prefix in ext_prefixes:
@@ -431,7 +444,7 @@ class StylesheetReader(_ReaderBase):
             xsl_class = mapping[local]
             if xsl_class == IncludeElement:
                 #Can the included sheet have literal result element as root?
-                inc = self.clone().fromUri(nsattribs['href'],
+                inc = self.clone().fromUri(nsattribs[('', 'href')],
                                            baseUri=self._ssheetUri,
                                            ownerDoc=self._ownerDoc)
                 sty = inc.firstChild
@@ -448,28 +461,23 @@ class StylesheetReader(_ReaderBase):
                             child.setAttributeNS(XMLNS_NAMESPACE, 'xmlns',
                                                  included_nss[prefix])
                 self._nodeStack.append(None)
-                ReleaseNode(inc)
+                pDomlette.ReleaseNode(inc)
                 return
             else:
                 xsl_instance = xsl_class(self._ownerDoc,
                                          baseUri=self._ssheetUri)
             for aqname in nsattribs.getQNames():
                 (ansuri, alocal) = nsattribs.getNameByQName(aqname)
-                aprefix = SplitQName(aqname)[0]                
+
+
                 value = nsattribs.getValueByQName(aqname)
-                if alocal == 'xmlns':
-                    ansuri = XMLNS_NAMESPACE
-                else:
-                    if aprefix:
-                        ansuri = self._namespaces[-1].get(aprefix, '')
-                    else:
-                        ansuri = ''
-                    if xsl_class == StylesheetElement:
-                        self._handleExtUris(ansuri, alocal, aprefix, value,
-                                             '', del_extu,xsl_instance)
-                    if not ansuri and alocal not in xsl_instance.__class__.legalAttrs:
-                        raise XsltException(Error.XSLT_ILLEGAL_ATTR,
-                                            alocal, xsl_instance.nodeName)
+                if ansuri != XMLNS_NAMESPACE and xsl_class == StylesheetElement:
+                    self._handleExtUris(ansuri, alocal, value, '',
+                                        del_extu,xsl_instance)
+                elif not ansuri and alocal not in xsl_instance.__class__.legalAttrs:
+                    raise XsltException(Error.XSLT_ILLEGAL_ATTR,
+                                        aqname, xsl_instance.nodeName)
+
                 xsl_instance.setAttributeNS(ansuri, aqname, value)
         else:
             if nsuri in self._extUris and self._extElements:
@@ -482,18 +490,14 @@ class StylesheetReader(_ReaderBase):
                                               prefix, self._ssheetUri)
             for aqname in nsattribs.getQNames():
                 (ansuri, alocal) = nsattribs.getNameByQName(aqname)
-                aprefix = SplitQName(aqname)[0]                
                 value = nsattribs.getValueByQName(aqname)
-                if alocal != 'xmlns':
-                    if aprefix:
-                        ansuri = self._namespaces[-1].get(aprefix, '')
-                    else:
-                        ansuri = ''
-
-                    self._handleExtUris(ansuri, alocal, aprefix, value,
-                                         XSL_NAMESPACE, del_extu,None)
-                else:
-                    ansuri = XMLNS_NAMESPACE
+                if ansuri != XMLNS_NAMESPACE:
+                    self._handleExtUris(ansuri, alocal, value, '',
+                                        del_extu, xsl_instance)
+                    if hasattr(xsl_instance.__class__, 'legalAttrs'):
+                        if not ansuri and alocal not in xsl_instance.__class__.legalAttrs:
+                            raise XsltException(Error.XSLT_ILLEGAL_ATTR,
+                                                alocal, xsl_instance.nodeName)
                 xsl_instance.setAttributeNS(ansuri, aqname, value)
         self._extUriStack.append(del_extu)
         if (xsl_instance.namespaceURI, xsl_instance.localName) == (XSL_NAMESPACE, 'text') or xsl_instance.getAttributeNS(XML_NAMESPACE, 'space') == 'preserve':
@@ -527,6 +531,12 @@ class StylesheetReader(_ReaderBase):
     def characters(self, data):
         self._currText = self._currText + data
         return
+
+def CreateInstantStylesheet(sheet):
+    return pDomlette.PickleDocument(sheet.ownerDocument)
+
+def FromInstant(dump, forceBaseUri=None):
+    return UnpickleDocument(dump, forceBaseUri).documentElement
 
 
 ##FIXME

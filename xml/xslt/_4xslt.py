@@ -9,7 +9,7 @@
 Command-line invokation of the 4XSLT processor
 WWW: http://4suite.com/4XSLT        e-mail: support@4suite.com
 
-Copyright (c) 1999, 2001 FourThought LLC, USA.   All Rights Reserved.
+Copyright (c) 1999 FourThought LLC, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -49,21 +49,24 @@ def ParseCommandLine(argv):
     ignore_pis = 0
     top_level_params = {}
     command_line_error = 0
+    trace_on_error = 0
     stylesheets = []
     source = ""
     try:
-        optlist, args = getopt.getopt(argv[1:], 'ivD:o:')
+        optlist, args = getopt.getopt(argv[1:], 'ivD:o:', ['trace-on-error'])
         source = args[0]
-        for op in optlist:
-            if op[0] == "-v":
+        for k, v in optlist:
+            if k == "-v":
                 validate_flag = 1
-            elif op[0] == "-i":
+            elif k == "-i":
                 ignore_pis = 1
-            elif op[0] == "-o":
-                out_file = op[1]
-            elif op[0] == "-D":
-                match = g_paramBindingPattern.match(op[1])
+            elif k == "-o":
+                out_file = v
+            elif k == "-D":
+                match = g_paramBindingPattern.match(v)
                 top_level_params[match.group(1)] = match.group(2)
+            elif k == "--trace-on-error":
+                trace_on_error = 1
             else:
                 command_line_error = 1
         if len(args) > 1:
@@ -72,21 +75,18 @@ def ParseCommandLine(argv):
         command_line_error = 1
 
     if command_line_error:
-        try:
-            import Ft
-            version = Ft.__version__
-        except ImportError:
-            version = xml.__version__+" (PyXML)"
-        print g_usage % (version, os.path.basename(argv[0]))
+        import Ft
+        print g_usage % (Ft.__version__, os.path.basename(argv[0]))
         sys.exit(1)
 
-    return (validate_flag,out_file,ignore_pis,top_level_params,stylesheets,source,command_line_error)
+    return (validate_flag,out_file,ignore_pis,top_level_params,stylesheets,source,trace_on_error,command_line_error)
 
 
 def Run(argv):
-    (validate_flag,out_file,ignore_pis,top_level_params,stylesheets,source,command_line_error) = ParseCommandLine(argv)
+    (validate_flag, out_file, ignore_pis, top_level_params,
+     stylesheets, source, trace_on_error, command_line_error) = ParseCommandLine(argv)
 
-    out_file = out_file and open(out_file,'w') or sys.stdout
+    out_file = out_file and open(out_file, 'w') or sys.stdout
 
     processor = Processor()
     import os

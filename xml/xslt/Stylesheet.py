@@ -38,7 +38,8 @@ SPECIAL_RE_CHARS = ['.', '^', '$', '*', '+', '?']
 
 def MatchTree(patterns, context):
     '''Select all nodes from node on down that match the pattern'''
-    matched = map(lambda x, c=context, n=context.node: [n]*x.match(c,n), patterns)
+    matched = map(lambda x, c=context, n=context.node: [n]*x.match(c,n),
+                  patterns)
     counter = 1
     size = len(context.node.childNodes)
     origState = context.copyNodePosSize()
@@ -52,14 +53,16 @@ def MatchTree(patterns, context):
         size = len(context.node.attributes)
         for attr in context.node.attributes.values():
             context.setNodePosSize((attr, counter, size))
-            map(lambda x, y: x.extend(y), matched, MatchTree(patterns, context))
+            map(lambda x, y: x.extend(y),
+                matched, MatchTree(patterns, context))
             context.setNodePosSize(origState)
             counter = counter + 1
     return matched
 
 
 class StylesheetElement(XsltElement):
-    legalAttrs = ('id', 'extension-element-prefixes', 'exclude-result-prefixes', 'version')
+    legalAttrs = ('id', 'extension-element-prefixes',
+                  'exclude-result-prefixes', 'version')
 
     def __init__(self, doc, uri=xml.xslt.XSL_NAMESPACE, localName='stylesheet',
                  prefix='xsl', baseUri=''):
@@ -108,6 +111,7 @@ class StylesheetElement(XsltElement):
         '''
         self.namespaces = xml.dom.ext.GetAllNs(self)
         self.spaceRules = {}
+        self._topLevelVarNodes = {}
         self.namespaceAliases = ({}, {})
         self.decimalFormats = {'': ('.', ',', 'Infinity', '-', 'NaN', '%', '?', '0', '#', ';')}
         self.keys = {}
@@ -119,7 +123,17 @@ class StylesheetElement(XsltElement):
             for prefix in excluded_prefixes:
                 if prefix == '#default': prefix = ''
                 self.excludedNss.append(self.namespaces[prefix])
+        self._setupNamespaceAliases()
+        self._setupChildNodes()
+        self._setupDecimalFormats()
+        self._setupWhitespaceRules()
+        self._setupOutput()
+        self._setupTemplates()
+        self._setupKeys()
+        self._setupTopLevelVarParams()
+        return
 
+    def _setupNamespaceAliases(self):
         #Namespace aliases
         ns_aliases = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'namespace-alias'), self.childNodes)
         for nsa in ns_aliases:
@@ -135,7 +149,9 @@ class StylesheetElement(XsltElement):
             res_ns = self.namespaces[result_prefix]
             self.namespaceAliases[0][stylesheet_prefix] = result_prefix
             self.namespaceAliases[1][sty_ns] = res_ns
+        return
 
+    def _setupChildNodes(self):
         snit = self.ownerDocument.createNodeIterator(self, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, None,0)
         curr_node = snit.nextNode()
         curr_node = snit.nextNode()
@@ -143,11 +159,15 @@ class StylesheetElement(XsltElement):
             try:
                 curr_node.setup()
             except (xpath.SyntaxException, xpath.InternalException, xslt.SyntaxException, xslt.InternalException), e:
+                #import traceback
+                #traceback.print_exc(1000)
                 if not hasattr(e, 'stylesheetUri'):
                     e.stylesheetUri = curr_node.baseUri
                 raise e
             curr_node = snit.nextNode()
+        return
 
+    def _setupDecimalFormats(self):
         dec_formats = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'decimal-format'), self.childNodes)
         for dc in dec_formats:
             format_settings = (
@@ -171,7 +191,9 @@ class StylesheetElement(XsltElement):
             name = dc.getAttributeNS('', 'name')
             name = name and Util.ExpandQName(name, dc)
             self.decimalFormats[name] = tuple(nfs)
+        return
 
+    def _setupWhitespaceRules(self):
         #Whitespace rules
         space_rules = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) in [(XSL_NAMESPACE, 'preserve-space'), (XSL_NAMESPACE, 'strip-space')], self.childNodes)
         for sr in space_rules:
@@ -180,7 +202,9 @@ class StylesheetElement(XsltElement):
                 #FIXME: watch out!  ExpandQName doesn't handle ns defaulting
                 split_name = Util.ExpandQName(an_arg, sr)
                 self.spaceRules[split_name] = string.splitfields(sr.localName, '-')[0]
+        return
 
+    def _setupOutput(self):
         #Output
         output = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'output'), self.childNodes)
         for out in output:
@@ -207,25 +231,26 @@ class StylesheetElement(XsltElement):
                 self.outputParams.cdataSectionElements.append(Util.ExpandQName(qname, namespaces=self.namespaces))
             indent = out.getAttributeNS('', 'indent')
             if indent: self.outputParams.indent = indent
+        return
 
+    def _setupTemplates(self):
         templates = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'template'), self.childNodes)
-
 
         #Preprocess all of the templates with names
         match_tpls = filter(lambda x: x._name != '', templates)
-        self.__dict__['_call_templates'] = {}
+        self._call_templates = {}
         for m in match_tpls:
-            if not self.__dict__['_call_templates'].has_key(m._name):
-                self.__dict__['_call_templates'][m._name] = m
+            if not self._call_templates.has_key(m._name):
+                self._call_templates[m._name] = m
 
-
-        #Preprocess the patterns from all of our templates
+        #Preprocess the patterns from all templates
         patterns = []
         for tpl in templates:
-            patternInfo,mode,nss = tpl.getMatchInfo()
+            (patternInfo, mode, nss) = tpl.getMatchInfo()
             for pi in patternInfo:
-                patterns.append(pi+(mode,nss,tpl))
+                patterns.append(pi+(mode, nss, tpl))
 
+        patterns.reverse()
         patterns.sort(lambda x, y:
                       cmp(y[PatternInfo.PRIORITY], x[PatternInfo.PRIORITY]))
         patternDict = {}
@@ -234,10 +259,12 @@ class StylesheetElement(XsltElement):
             if not patternDict.has_key(m):
                 patternDict[m] = []
             patternDict[m].append(p)
-            
-        self.__dict__['_patterns'] = patternDict
 
-        self.__dict__['_kelems'] = []
+        self._patterns = patternDict
+        return
+
+    def _setupKeys(self):
+        self._kelems = []
         pattern_parser = XPatternParser.XPatternParser()
         path_parser = XPathParser.XPathParser()
         kelems = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'key'), self.childNodes)
@@ -250,6 +277,19 @@ class StylesheetElement(XsltElement):
             self._kelems.append((name, match_pattern, use_expr))
 
         self.reset()
+        return
+
+    def _setupTopLevelVarParams(self):
+        #Is there a more efficient way to zip two sequences into a dict?
+        vars = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and x.namespaceURI == XSL_NAMESPACE and x.localName == 'variable', self.childNodes)
+        self._topVariables = {}
+        for var in vars:
+            #FIXME: First check multiple variable errors
+            self._topVariables[var._name] = var
+        params = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and x.namespaceURI == XSL_NAMESPACE and x.localName == 'param', self.childNodes)
+        for param in params:
+            #FIXME: First check multiple variable errors
+            self._topVariables[param._name] = param
         return
 
     def newSource(self, doc, processor):
@@ -292,20 +332,50 @@ class StylesheetElement(XsltElement):
         self._fixupAliases()
         return
 
+    def _computeVar(self, vname, context, processed, deferred,
+                    overriddenParams, topLevelParams, processor):
+        vnode = self._topVariables[vname]
+        if vnode in deferred:
+            raise XsltException(Error.CIRCULAR_VAR, vname[0], vname[1])
+        if vnode in processed:
+            return
+        if vnode.localName[0] == 'p':
+            if overriddenParams.has_key(vname):
+                context.varBindings[vname] = overriddenParams[vname]
+            else:
+                try:
+                    context = vnode.instantiate(context, processor)[0]
+                except xpath.RuntimeException, e:
+                    deferred.append(vnode)
+                    self._computeVar((e.args[0], e.args[1]), context,
+                                     processed, deferred, overriddenParams,
+                                     topLevelParams, processor)
+                    deferred.remove(vnode)
+                    context = vnode.instantiate(context, processor)[0]
+                #Set up so that later stylesheets will get overridden by
+                #parameter values set in higher-priority stylesheets
+                topLevelParams[vname] = context.varBindings[vname]
+        else:
+            try:
+                context = vnode.instantiate(context, processor)[0]
+            except xpath.RuntimeException, e:
+                deferred.append(vnode)
+                self._computeVar((e.args[0], e.args[1]), context,
+                                 processed, deferred, overriddenParams,
+                                 topLevelParams, processor)
+                deferred.remove(vnode)
+                context = vnode.instantiate(context, processor)[0]
+        processed.append(vnode)
+        return
+    
     def prime(self, contextNode, processor, topLevelParams):
         self._primedContext = context = XsltContext.XsltContext(contextNode.ownerDocument, 1, 1, processorNss=self.namespaces, stylesheet=self, processor=processor)
-
         self._docReader = processor._docReader
 
         #Attribute sets
         attribute_sets = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and (x.namespaceURI, x.localName) == (XSL_NAMESPACE, 'attribute-set'), self.childNodes)
         for as in attribute_sets:
             as.instantiate(context, processor)
-        #Compute top-level vars and params
-        vars = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and x.namespaceURI == XSL_NAMESPACE and x.localName == 'variable', self.childNodes)
-        params = filter(lambda x: x.nodeType == Node.ELEMENT_NODE and x.namespaceURI == XSL_NAMESPACE and x.localName == 'param', self.childNodes)
-        for var in vars:
-            context = var.instantiate(context, processor)[0]
         overridden_params = {}
         for k in topLevelParams.keys():
             if type(k) != types.TupleType:
@@ -316,24 +386,12 @@ class StylesheetElement(XsltElement):
             else:
                 split_name = k
             overridden_params[split_name] = topLevelParams[k]
+        for vname in self._topVariables.keys():
+            self._computeVar(vname, context, [], [], overridden_params,
+                             topLevelParams, processor)
         self._primedContext = context
         #Note: key expressions can't have var refs, so we needn't worry about imports
         self._updateKeys(contextNode, processor)
-        # Update TLP before passing them on to the imports
-        for param in params:
-            if type(param._name) != types.TupleType:
-                split_name = Util.ExpandQName(param._name,
-                                              namespaces=context.processorNss)
-            else:
-                split_name = param._name
-            if overridden_params.has_key(split_name):
-                context.varBindings[split_name] = overridden_params[split_name]
-            else:
-                context = param.instantiate(context, processor)[0]
-                #Set up so that later stylesheets will get overridden by
-                #parameter values set in higher-priority stylesheets
-                topLevelParams[param._name] = context.varBindings[split_name]
-        #self.processImports(contextNode, processor, topLevelParams)
         for imp in self._imports:
             self._primedContext.varBindings.update(imp.stylesheet._primedContext.varBindings)
         return topLevelParams
@@ -351,7 +409,6 @@ class StylesheetElement(XsltElement):
             for name, (sty, tpl) in imp_tpl.items():
                 if not templates.has_key(name):
                     templates[name] = (sty, tpl)
-                    
         return templates
 
     def getTopLevelVariables(self):
@@ -437,7 +494,8 @@ class StylesheetElement(XsltElement):
          new_state = (base_state, self.namespaces, self.spaceRules,
                       self.namespaceAliases, self.decimalFormats,
                       self.keys, self.outputParams, self.excludedNss,
-                      self._patterns, self._call_templates, self._kelems, self.extensionNss)
+                      self._patterns, self._call_templates, self._kelems, self.extensionNss,
+                      self._topVariables)
          return new_state
 
     def __setstate__(self, state):
@@ -453,5 +511,6 @@ class StylesheetElement(XsltElement):
         self._call_templates = state[9]
         self._kelems = state[10]
         self.extensionNss = state[11]
+        self._topVariables = state[12]
         return
 

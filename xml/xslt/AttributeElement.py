@@ -16,7 +16,8 @@ import cStringIO
 import xml.dom.Element
 import xml.dom.ext
 import xml.xslt
-from xml.xslt import XsltElement, XsltException, Error, AttributeValueTemplate
+from xml.xslt import XsltElement, XsltException, Error
+from xml.xslt.AttributeValueTemplate import AttributeValueTemplate
 from xml.xpath import Conversions
 
 #FIXME: Add check for Attribute inside an Element.
@@ -29,9 +30,15 @@ class AttributeElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_name'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'name'))
-        self.__dict__['_namespace'] = AttributeValueTemplate.AttributeValueTemplate(self.getAttributeNS('', 'namespace'))
-        self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
+        name = self.getAttributeNS('', 'name')
+        if not name:
+            raise XsltException(Error.ATTRIBUTE_MISSING_NAME)
+        self._name = AttributeValueTemplate(name)
+
+        namespace = self.getAttributeNS('', 'namespace')
+        self._namespace = AttributeValueTemplate(namespace)
+
+        self._nss = xml.dom.ext.GetAllNs(self)
         return
         
     def instantiate(self, context, processor):

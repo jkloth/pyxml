@@ -26,19 +26,19 @@ class ParamElement(XsltElement):
         XsltElement.__init__(self, doc, uri, localName, prefix, baseUri)
 
     def setup(self):
-        self.__dict__['_nss'] = xml.dom.ext.GetAllNs(self)
+        self._nss = xml.dom.ext.GetAllNs(self)
         name_attr = self.getAttributeNS('', 'name')
         split_name = Util.ExpandQName(
             name_attr,
             namespaces=self._nss
             )
-        self.__dict__['_name'] = split_name
-        self.__dict__['_select'] = self.getAttributeNS('', 'select')
+        self._name = split_name
+        self._select = self.getAttributeNS('', 'select')
         if self._select:
             parser = XPathParser.XPathParser()
-            self.__dict__['_expr'] = parser.parseExpression(self._select)
+            self._expr = parser.parseExpression(self._select)
         else:
-            self.__dict__['_expr'] = None
+            self._expr = None
         return
 
     def instantiate(self, context, processor):

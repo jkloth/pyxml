@@ -44,7 +44,7 @@ except ImportError:
     ReleaseNode = _releasenode
     from minisupport import _XsltElementBase
 
-def RegisterExtensionModules(moduleNames):
+def RegisterExtensionModules(moduleNames, moduleList=g_extElements):
     mod_names = moduleNames[:]
     mods = []
     for mod_name in mod_names:
@@ -55,7 +55,7 @@ def RegisterExtensionModules(moduleNames):
                 xpath.g_extFunctions.update(mod.ExtFunctions)
                 module_used = 1
             if hasattr(mod, 'ExtElements'):
-                g_extElements.update(mod.ExtElements)
+                moduleList.update(mod.ExtElements)
                 module_used = 1
             module_used and mods.append(mod)
     return mods
@@ -74,6 +74,7 @@ class XsltElement(_XsltElementBase):
         self.baseUri = baseUri
 
     def setup(self):
+        self._nss = xml.dom.ext.GetAllNs(self)
         return
 
     def instantiate(self, context, processor):
@@ -113,6 +114,7 @@ class Error:
     XSLT_ILLEGAL_ATTR = 11
     XSLT_ILLEGAL_ELEMENT = 12
     STYLESHEET_ILLEGAL_ROOT = 13
+    CIRCULAR_VAR = 14
 
     WHEN_AFTER_OTHERWISE = 111
     MULTIPLE_OTHERWISE = 112
@@ -136,6 +138,7 @@ class Error:
 
     #xsl:attribute
     ATTRIBUTE_ADDED_AFTER_ELEMENT = 170
+    ATTRIBUTE_MISSING_NAME = 171
 
     #xsl:element
     UNDEFINED_ATTRIBUTE_SET = 180
@@ -201,7 +204,7 @@ class OutputParameters:
         #Initialize with defaults according to spec
         self.method = None
         self.version = "1.0"
-        self.encoding = "UTF-8"
+        self.encoding = ""
         self.omitXmlDeclaration = 'no'
         self.standalone = None
         self.doctypeSystem = ''

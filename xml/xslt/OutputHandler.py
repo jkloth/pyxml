@@ -44,7 +44,7 @@ class OutputHandler(NullWriter.NullWriter):
     def processingInstruction(self, *args, **kw):
         self._stack.append(('processingInstruction', args, kw))
 
-    def comment(self, body):
+    def comment(self, *args, **kw):
         self._stack.append(('comment', args, kw))
 
     def startElement(self, *args, **kw):

@@ -8,7 +8,7 @@
 Implementation of the XSLT Spec import stylesheet element.
 WWW: http://4suite.com/4XSLT        e-mail: support@4suite.com
 
-Copyright (c) 1999-2001 Fourthought Inc, USA.   All Rights Reserved.
+Copyright (c) 1999-2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 

@@ -14,7 +14,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import string
 import xml.dom.ext
-from xml.dom import Node
+from xml.dom import Node, XMLNS_NAMESPACE
 import xml.xslt
 from xml.xslt import XsltElement, XsltException, Error
 from xml.xpath import CoreFunctions, Util
@@ -57,8 +57,15 @@ class CopyElement(XsltElement):
             for child in self.childNodes:
                 context = child.instantiate(context, processor)[0]
         elif node.nodeType == Node.ATTRIBUTE_NODE:
-            processor.writers[-1].attribute(node.nodeName, node.nodeValue,
-                                            node.namespaceURI)
+            if node.namespaceURI == XMLNS_NAMESPACE:
+                nodeName = 'xmlns' + (node.localName and ':' + node.localName)
+                processor.writers[-1].attribute(nodeName,
+                                                node.nodeValue,
+                                                node.namespaceURI)
+            else:
+                processor.writers[-1].attribute(node.nodeName,
+                                                node.nodeValue,
+                                                node.namespaceURI)
         elif node.nodeType == Node.PROCESSING_INSTRUCTION_NODE:
             processor.writers[-1].processingInstruction(node.target, node.data)
         elif node.nodeType == Node.COMMENT_NODE:

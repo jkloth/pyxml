@@ -58,6 +58,7 @@ class Processor:
         #Can be overridden
         self._styReader = StylesheetReader.StylesheetReader()
         self._docReader = reader or g_readerClass()
+        self._lastOutputParams = None
 
         if not xslt.g_registered:
             xslt.Register()
@@ -70,6 +71,7 @@ class Processor:
         self.sheetWithCurrTemplate = [None]
         #A stack of writers, to support result-tree fragments
         self.writers = []
+        #self.extensionParams = {}
         return
 
     def _getWsStripElements(self):
@@ -141,13 +143,11 @@ class Processor:
     def runUri(self, uri, ignorePis=0, topLevelParams=None, writer=None,
                outputStream=None):
         try:
-            src = self._docReader.fromUri(uri,stripElements=self._getWsStripElements())
+            src = self._docReader.fromUri(uri, stripElements=self._getWsStripElements())
         except Exception, e:
-            #XXX
-            raise
-            #import traceback
-            #traceback.print_exc()
-            #raise XsltException(Error.SOURCE_PARSE_ERROR, uri, e)
+            import traceback
+            traceback.print_exc()
+            raise XsltException(Error.SOURCE_PARSE_ERROR, uri, e)
         if not ignorePis and self.checkStylesheetPis(src, uri):
             self._docReader.releaseNode(src)
             #Do it again with updates WS strip lists
@@ -344,7 +344,7 @@ class Processor:
         self.writers[-1].endDocument()
         del self.writers[-1]
 
-    def pushResult(self, handler=None):
+    def pushResult(self, handler=None, ownerDoc=None):
         '''
         Start processing all content into a separate result-tree
         (either an rtf, or for ft:write-file)
@@ -352,7 +352,7 @@ class Processor:
         #FIXME: Should actually use a doc fragment for the SAX handler doc
         #Q: Should the output parameters discovered at run-time (e.g html root element) be propagated back to RTFs?
         handler = handler or RtfWriter.RtfWriter(self._outputParams,
-                                                 self._dummyDoc)
+                                                 ownerDoc or self._dummyDoc)
         self.writers.append(handler)
         return
 

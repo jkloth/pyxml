@@ -18,6 +18,7 @@ g_errorMessages = {
     Error.APPLYIMPORTS_WITH_NULL_CURR_TPL: _('apply-imports used where there is no current template.  (see XSLT Spec)'),
     Error.ILLEGAL_IMPORT: _('import is not allowed here.  '),
     Error.STYLESHEET_PARSE_ERROR: _('Stylesheet (%s): XML parse error at line %d, column %d: %s'),
+    Error.CIRCULAR_VAR: _('Circular variable reference error (see XSLT Spec: 11.4) for variable or parameter: (%s, %s)'),
     Error.SOURCE_PARSE_ERROR: _('Source document (%s): %s'),
 #    Error.STYLESHEET_PARSE_ERROR: _('Stylesheet(XML) parse exception at line %d, column %d: %s'),
 #    Error.SOURCE_PARSE_ERROR: _('Source document XML parse exception at line %d, column %d: %s'),
@@ -77,6 +78,9 @@ g_errorMessages = {
     Error.INVALID_PREDICATE_LIST: _('Invalid predicate list'),
 
     Error.ATTRIBUTE_ADDED_AFTER_ELEMENT: _('xsl:attribute instantiated within an element instantiation after a child element has been added. (see XSLT Spec: 7.1.3)'),
+    Error.ATTRIBUTE_MISSING_NAME: _('xsl:attribute missing required name attribute. (see XSLT Spec: 7.1.3)'),
+
+
     Error.UNDEFINED_ATTRIBUTE_SET: _('Undefined attribute set (%s)'),
     Error.RESTRICTED_OUTPUT_VIOLATION: _('The requested output of element "%s" is forbidden accirding to output restrictions'),
     #Error.: _(''),
