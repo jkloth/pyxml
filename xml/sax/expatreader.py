@@ -6,6 +6,9 @@ pyexpat.__version__ == '2.22'.
 version = "0.20"
 
 from xml.sax._exceptions import *
+from xml.sax.handler import feature_validation, feature_namespaces
+from xml.sax.handler import feature_external_ges, feature_external_pes
+from xml.sax.handler import feature_string_interning, property_xml_string
 
 # xml.parsers.expat does not raise ImportError in Jython
 import sys
@@ -40,6 +43,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._lex_handler_prop = None
         self._parsing = 0
         self._entity_stack = []
+        self._external_ges = 1
 
     # XMLReader methods
 
@@ -64,15 +68,32 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
             self._reset_cont_handler()
 
     def getFeature(self, name):
-        if name == handler.feature_namespaces:
+        if name == feature_namespaces:
             return self._namespaces
+        elif name in (feature_validation, feature_external_pes,
+                      feature_string_interning):
+            return 0
+        elif name == feature_external_ges:
+            return self._external_ges
         raise SAXNotRecognizedException("Feature '%s' not recognized" % name)
 
     def setFeature(self, name, state):
         if self._parsing:
             raise SAXNotSupportedException("Cannot set features while parsing")
-        if name == handler.feature_namespaces:
+
+        if name == feature_namespaces:
             self._namespaces = state
+        elif name == feature_external_ges:
+            self._external_ges = state
+        elif name == feature_validation:
+            if state:
+                raise SAXNotSupportedException("expat does not support validation")
+        elif name == feature_external_pes:
+            if state:
+                raise SAXNotSupportedException("expat does not read external parameter entities")
+        elif name == feature_string_interning:
+            if state:
+                raise SAXNotSupportedException("expat does not intern strings")
         else:
             raise SAXNotRecognizedException("Feature '%s' not recognized" %
                                             name)
@@ -80,6 +101,14 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
     def getProperty(self, name):
         if name == handler.property_lexical_handler:
             return self._lex_handler_prop
+        elif name == property_xml_string:
+            if self._parser:
+                if hasattr(self._parser, "GetInputContext"):
+                    return self._parser.GetInputContext()
+                else:
+                    raise SAXNotRecognizedException("This version of expat does not support getting the XML string")
+            else:
+                raise SAXNotSupportedException("XML string cannot be returned when not parsing")
         raise SAXNotRecognizedException("Property '%s' not recognized" % name)
 
     def setProperty(self, name, value):
@@ -87,8 +116,12 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
             self._lex_handler_prop = value
             if self._parsing:
                 self._reset_lex_handler_prop()
+        elif name == property_xml_string:
+            raise SAXNotSupportedException("Property '%s' cannot be set" %
+                                           name)
         else:
-            raise SAXNotRecognizedException("Property '%s' not recognized" % name)
+            raise SAXNotRecognizedException("Property '%s' not recognized" %
+                                            name)
 
     # IncrementalParser methods
 
@@ -232,6 +265,9 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         self._dtd_handler.notationDecl(name, pubid, sysid)
 
     def external_entity_ref(self, context, base, sysid, pubid):
+        if not self._external_ges:
+            return 1
+        
         source = self._ent_handler.resolveEntity(pubid, sysid)
         source = saxutils.prepare_input_source(source,
                                                self._source.getSystemId() or
