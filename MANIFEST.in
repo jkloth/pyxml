@@ -60,3 +60,5 @@ include xml/dom/README
 include xml/dom/TODO
 include xml/dom/html/generate.dtd
 include xml/dom/html/html_classes.xml
+
+include setupext/*.py
