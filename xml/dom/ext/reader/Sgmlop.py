@@ -9,9 +9,9 @@ DEFAULT_CHARSET = 'ISO-8859-1'
 
 _root = '(?P<root>[a-zA-Z][a-zA-Z0-9]*)'
 _quoted = '("[^"]*")|' + "('[^']*')"
-_sysId = r'\s*(?P<system>' + _quoted + ')'
-_pubId = r'\s*PUBLIC\s*(?P<public>' + _quoted + '(' + _sysId + ')?)'
-_sysId = 'SYSTEM' + _sysId
+_sysId = r'\s*(?P<system%d>' + _quoted + ')'
+_pubId = r'\s*PUBLIC\s*(?P<public>' + _quoted + '(' + (_sysId % 1) + ')?)'
+_sysId = 'SYSTEM' + (_sysId % 2)
 _doctype = re.compile('DOCTYPE ' + _root + '(%s|%s)?' % (_pubId, _sysId), re.I)
 
 try:
