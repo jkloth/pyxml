@@ -27,7 +27,8 @@ This avoids all the overhead of SAX and pulldom to gain performance.
 #      calling any methods on the node object if it exists.  (A rather
 #      nice speedup is achieved this way as well!)
 
-from xml.dom import xmlbuilder, minidom, Node, EMPTY_NAMESPACE
+from xml.dom import xmlbuilder, minidom, Node
+from xml.dom import EMPTY_NAMESPACE, XMLNS_NAMESPACE
 from xml.parsers import expat
 from xml.dom.minidom import _appendChild, _setAttributeNode
 from xml.dom.NodeFilter import NodeFilter
@@ -37,10 +38,6 @@ CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
 DOCUMENT_NODE = Node.DOCUMENT_NODE
 
 theDOMImplementation = minidom.getDOMImplementation()
-
-# Common namespaces:
-XML_NS = "http://www.w3.org/XML/1998/namespace"
-XMLNS_NS = "http://www.w3.org/2000/xmlns/"
 
 
 def _intern(builder, s):
@@ -644,9 +641,7 @@ class FragmentBuilder(ExpatBuilder):
             # in; all of our given input is parsed in here.
             old_document = self.document
             old_cur_node = self.curNode
-            self._save_namespace_decls()
             parser = self._parser.ExternalEntityParserCreate(context)
-            self._restore_namespace_decls()
             # put the real document back, parse into the fragment to return
             self.document = self.originalDocument
             self.fragment = self.document.createDocumentFragment()
@@ -662,44 +657,11 @@ class FragmentBuilder(ExpatBuilder):
             return ExpatBuilder.external_entity_ref_handler(
                 self, context, base, systemId, publicId)
 
-    def _save_namespace_decls(self):
-        pass
-
-    def _restore_namespace_decls(self):
-        pass
-
 
 class Namespaces:
     """Mix-in class for builders; adds support for namespaces."""
 
     def _initNamespaces(self):
-        #
-        # These first two dictionaries are used to track internal
-        # namespace state, and contain all "current" declarations.
-        #
-        # URI -> [prefix, prefix, prefix...]
-        #
-        # The last prefix in list is most recently declared; there's
-        # no way to be sure we're using the right one if more than one
-        # has been defined for a particular URI.
-        self._nsmap = {
-            XML_NS: ["xml"],
-            XMLNS_NS: ["xmlns"],
-            }
-        # prefix -> URI
-        self._prefixmap = {
-            "xml": [XML_NS],
-            "xmlns": [XMLNS_NS],
-            }
-        #
-        # These dictionaries are used to store the namespace
-        # declaractions made on a single element; they are used to add
-        # the attributes of the same name to the DOM structure.  When
-        # added to the DOM, they are replaced with new, empty
-        # dictionaries on the Builder object.
-        #
-        self._ns_prefix_uri = {}
-        self._ns_uri_prefixes = {}
         # list of (prefix, uri) ns declarations.  Namespace attrs are
         # constructed from this and added to the element's attrs.
         self._ns_ordered_prefixes = []
@@ -714,55 +676,10 @@ class Namespaces:
         """Insert the namespace-handlers onto the parser."""
         ExpatBuilder.install(self, parser)
         parser.StartNamespaceDeclHandler = self.start_namespace_decl_handler
-        parser.EndNamespaceDeclHandler = self.end_namespace_decl_handler
 
     def start_namespace_decl_handler(self, prefix, uri):
-        "push this namespace declaration on our storage"
-        #
-        # These are what we use internally:
-        #
-        L = self._nsmap.get(uri)
-        if L is None:
-            self._nsmap[uri] = L = []
-        L.append(prefix)
-        L = self._prefixmap.get(prefix)
-        if L is None:
-            self._prefixmap[prefix] = L = []
-        L.append(uri)
-        #
-        # These are used to provide namespace declaration info to the DOM:
-        #
-        self._ns_prefix_uri[prefix] = uri
-        L = self._ns_uri_prefixes.get(uri)
-        if not L:
-            self._ns_uri_prefixes[uri] = L = []
-        L.append(prefix)
+        """Push this namespace declaration on our storage."""
         self._ns_ordered_prefixes.append((prefix, uri))
-
-    def end_namespace_decl_handler(self, prefix):
-        "pop the latest namespace declaration."
-        uri = self._prefixmap[prefix].pop()
-        self._nsmap[uri].pop()
-
-    def _save_namespace_decls(self):
-        """Save the stored namespace decls and reset the new ones.
-        This lets us launch another parser and have its namespace declarations
-        not affect future elements.  Must be called outside of any start/end
-        namespace_decl_handler calls."""
-        self._oldnsmap = self._nsmap
-        self._oldprefixmap = self._prefixmap
-        self._oldns_prefix_uri = self._ns_prefix_uri
-        self._oldns_uri_prefixes = self._ns_uri_prefixes
-        self._oldns_ordered_prefixes = self._ns_ordered_prefixes
-        self._initNamespaces()
-
-    def _restore_namespace_decls(self):
-        "Restore the namespace decls from _save_namespace_decls."
-        self._nsmap = self._oldnsmap
-        self._prefixmap = self._oldprefixmap
-        self._ns_prefix_uri = self._oldns_prefix_uri
-        self._ns_uri_prefixes = self._oldns_uri_prefixes
-        self._ns_ordered_prefixes = self._oldns_ordered_prefixes
 
     def start_element_handler(self, name, attributes):
         if ' ' in name:
@@ -790,15 +707,18 @@ class Namespaces:
 
         if self._ns_ordered_prefixes and self._options.namespace_declarations:
             for prefix, uri in self._ns_ordered_prefixes:
+                
                 if prefix:
                     a = minidom.Attr(_intern(self, 'xmlns:' + prefix),
-                                     uri, prefix, "xmlns")
+                                     XMLNS_NAMESPACE, prefix, "xmlns")
                 else:
-                    a = minidom.Attr("xmlns", uri, "xmlns", None)
+                    a = minidom.Attr("xmlns", XMLNS_NAMESPACE, "xmlns", None)
                 d = a.__dict__
                 d['value'] = d['nodeValue'] = uri
                 d['ownerDocument'] = self.document
                 _setAttributeNode(node, a)
+            del self._ns_ordered_prefixes[:]
+
         if attributes:
             # This uses the most-recently declared prefix, not necessarily
             # the right one.
@@ -862,6 +782,11 @@ class FragmentBuilderNS(Namespaces, FragmentBuilder):
     def _getNSattrs(self):
         """Return string of namespace attributes from this element and
         ancestors."""
+        # XXX This needs to be re-written to walk the ancestors of the
+        # context to build up the namespace information from
+        # declarations, elements, and attributes found in context.
+        # Otherwise we have to store a bunch more data on the DOM
+        # (though that *might* be more reliable -- not clear).
         attrs = ""
         context = self.context
         L = []
