@@ -12,14 +12,14 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
 from xml.dom.Element import Element
-
+from xml.dom import EMPTY_NAMESPACE
 import string
 
 class HTMLElement(Element):
 
     def __init__(self, ownerDocument, nodeName):
         tagName = string.upper(nodeName)
-        Element.__init__(self, ownerDocument, tagName, '', '',tagName)
+        Element.__init__(self, ownerDocument, tagName, EMPTY_NAMESPACE, '',tagName)
 
     ### Attribute Methods ###
 
