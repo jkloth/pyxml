@@ -1655,7 +1655,14 @@ def parseString(string, parser=None):
         return expatbuilder.parseString(string)
     else:
         from xml.dom import pulldom
-        return _do_pulldom_parse(pulldom.parseString, (string,), {'parser': parser})
+        return _do_pulldom_parse(pulldom.parseString, (string,),
+                                 {'parser': parser})
 
-def getDOMImplementation():
+def getDOMImplementation(features=None):
+    if features:
+        if isinstance(features, StringTypes):
+            features = domreg._parse_feature_string(features)
+        for f, v in features:
+            if not Document.implementation.hasFeature(f, v):
+                return None
     return Document.implementation

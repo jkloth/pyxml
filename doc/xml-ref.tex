@@ -104,6 +104,28 @@ serve as base classes for implementations:
   \constant{SEVERITY_ERROR}, and \constant{SEVERITY_FATA_ERROR}.
 \end{classdesc*}
 
+The \function{getDOMImplementation()} function has been extended to
+support DOM Level~3:
+
+\begin{funcdesc}{getDOMImplementation}{\optional{name\optional{, features}}}
+  The \var{features} argument now accepts a string as well as a list
+  of feature-version pairs.  The string should contain a list of
+  feature names, separated by whitespace, each followed by an optional
+  version number.  Version numbers begin with a digit; feature names
+  must not begin with a digit (the draft specification does not
+  adequately address this detail).  If a feature name is not followed
+  by a version number, any version of that feature is considered
+  acceptable.
+
+  \begin{notice}
+    There is an API issue hiding in this addition:  The function is
+    still not really compatible with the DOM Level~3 version.  The
+    draft specification states that if no implementation is available
+    that provides the desired features, \code{None} should be
+    returned, but this function raises \exception{ImportError}.
+  \end{notice}
+\end{funcdesc}
+
 
 \subsection{UserDataHandler Objects \label{userdatahandler}}
 
