@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Parser for XPath in -*- python -*-, as defined in REC-xpath-19991116
 # Copyright 2000, Martin v. Löwis
 

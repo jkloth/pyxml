@@ -1,7 +1,8 @@
+# -*- coding: iso-8859-1 -*-
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.15 2002/08/13 09:28:52 afayolle Exp $
+$Id: drv_pyexpat.py,v 1.16 2002/08/22 16:57:03 fdrake Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
