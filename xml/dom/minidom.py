@@ -396,7 +396,7 @@ class NamedNodeMap:
     def itemsNS(self):
         L = []
         for node in self._attrs.values():
-            L.append(((node.URI, node.localName), node.value))
+            L.append(((node.namespaceURI, node.localName), node.value))
         return L
 
     def keys(self):
