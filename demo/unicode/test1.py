@@ -1,4 +1,6 @@
-import intl,sys
+
+from xml.unicode import intl
+import sys
 _=intl.gettext
 intl.textdomain("test1")
 intl.bindtextdomain("test1",".")
