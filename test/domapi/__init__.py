@@ -115,9 +115,9 @@ cases = (
     CoreLvl2.cases +
     CoreLvl3.cases +
     XMLLvl1.cases +
-    XMLLvl2.cases# +
+    XMLLvl2.cases +
  #   TraversalLvl2.cases +
- #   Load3.cases
+    Load3.cases
 )
 
 def DOMImplementationTestSuite(implementation, parseMethod, verbose=0):
