@@ -4,7 +4,7 @@ class Walker:
 
 	def walk(self, root):
 		if root.get_nodeType() == DOCUMENT:
-			c = root.get_firstChild()
+			c = root.documentElement
 			assert c.get_nodeType() == ELEMENT
 			return self.walk1(c)
 		else:
