@@ -1,0 +1,35 @@
+test_marshal
+Testing XML marshalling...
+None <?xml version="1.0"?><marshal><none/></marshal>
+1 <?xml version="1.0"?><marshal><int>1</int></marshal>
+10633823966279326983230456482242756608L <?xml version="1.0"?><marshal><long>10633823966279326983230456482242756608</long></marshal>
+19.72 <?xml version="1.0"?><marshal><float>19.72</float></marshal>
+(1+5j) <?xml version="1.0"?><marshal><complex>1.0 5.0</complex></marshal>
+here is a string & a <fake tag> <?xml version="1.0"?><marshal><string>here is a string &amp; a &lt;fake tag&gt;</string></marshal>
+(1, 2, 3) <?xml version="1.0"?><marshal><tuple><int>1</int><int>2</int><int>3</int></tuple></marshal>
+['alpha', 'beta', 'gamma'] <?xml version="1.0"?><marshal><list id="i2"><string>alpha</string><string>beta</string><string>gamma</string></list></marshal>
+{'key': 'value', 1: 2} <?xml version="1.0"?><marshal><dictionary id="i2"><string>key</string><string>value</string><int>1</int><int>2</int></dictionary></marshal>
+<A instance> <?xml version="1.0"?><marshal><object id="i2" module="xml.marshal.generic" class="_A"><tuple></tuple><dictionary id="i3"><string>self</string><reference id="i2"/><string>subobject</string><object id="i4" module="xml.marshal.generic" class="_B"><tuple></tuple><dictionary id="i5"><string>list</string><list id="i6"><none/><int>1</int><long>10633823966279326983230456482242756608</long><float>19.72</float><complex>1.0 5.0</complex><string>here is a string &amp; a &lt;fake tag&gt;</string></list></dictionary></object></dictionary></object></marshal>
+[None, 1, 10301051460877537453973547267843L, {2: 'eggs', 1: 'spam'}, '<fake tag>', (1+5j), [...]] <?xml version="1.0"?><marshal><list id="i2"><none/><int>1</int><long>10301051460877537453973547267843</long><dictionary id="i3"><int>2</int><string>eggs</string><int>1</int><string>spam</string></dictionary><string>&lt;fake tag&gt;</string><complex>1.0 5.0</complex><reference id="i2"/></list></marshal>
+Testing WDDX marshalling...
+<TruthValue instance: True> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><boolean value="true"/></wddxPacket>
+<TruthValue instance: False> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><boolean value="false"/></wddxPacket>
+1 <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>1</number></wddxPacket>
+10633823966279326983230456482242756608L <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>10633823966279326983230456482242756608</number></wddxPacket>
+19.72 <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><number>19.72</number></wddxPacket>
+here is a string & a <fake tag> <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><string>here is a string &amp; a &lt;fake tag&gt;</string></wddxPacket>
+[1, 2, 3, 'foo'] <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><array length="4"><number>1</number><number>2</number><number>3</number><string>foo</string></array></wddxPacket>
+{'AGE': [34, 31], 'NAME': ['John Doe', 'Jane Doe']} <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><recordSet rowCount="2" fieldNames="NAME,AGE"><field name="NAME"><string>John Doe</string><string>Jane Doe</string></field><field name="AGE"><number>34</number><number>31</number></field></recordSet></wddxPacket>
+{'lowerBound': 18, 'upperBound': 139, 'eggs': ['rhode island red', 'bantam']} <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><struct><var name="lowerBound"><number>18</number></var><var name="upperBound"><number>139</number></var><var name="eggs"><array length="2"><string>rhode island red</string><string>bantam</string></array></var></struct></wddxPacket>
+{'n': -12.456, 'obj': {'n': -12.456, 's': 'a string'}, 'b': <TruthValue instance: True>, 's': 'a string', 'a': [10, 'second element']} <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><struct><var name="n"><number>-12.456</number></var><var name="obj"><struct><var name="n"><number>-12.456</number></var><var name="s"><string>a string</string></var></struct></var><var name="b"><boolean value="true"/></var><var name="s"><string>a string</string></var><var name="a"><array length="2"><number>10</number><string>second element</string></array></var></struct></wddxPacket>
+(1, 3, 'five', 7) <?xml version="1.0"?><!DOCTYPE wddxPacket SYSTEM "wddx_0090.dtd"><wddxPacket version="0.9"><array length="4"><number>1</number><number>3</number><string>five</string><number>7</number></array></wddxPacket>
+Testing XML-RPC marshalling...
+<TruthValue instance: True> <?xml version="1.0"?><methodCall><boolean>1</boolean></methodCall>
+<TruthValue instance: False> <?xml version="1.0"?><methodCall><boolean>0</boolean></methodCall>
+1 <?xml version="1.0"?><methodCall><int>1</int></methodCall>
+19.72 <?xml version="1.0"?><methodCall><double>19.72</double></methodCall>
+here is a string & a <fake tag> <?xml version="1.0"?><methodCall><string>here is a string &amp; a &lt;fake tag&gt;</string></methodCall>
+[12, 'Egypt', <TruthValue instance: False>, -31] <?xml version="1.0"?><methodCall><array><data><value><int>12</int></value><value><string>Egypt</string></value><value><boolean>0</boolean></value><value><int>-31</int></value></data></array></methodCall>
+{'lowerBound': 18, 'upperBound': 139, 'eggs': ['rhode island red', 'bantam']} <?xml version="1.0"?><methodCall><struct><member><name>lowerBound</name><value><int>18</int></value></member><member><name>upperBound</name><value><int>139</int></value></member><member><name>eggs</name><value><array><data><value><string>rhode island red</string></value><value><string>bantam</string></value></data></array></value></member></struct></methodCall>
+['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
+['lowerBound', 18, 'upperBound', 139, 'eggs', ['rhode island red', 'bantam']]
