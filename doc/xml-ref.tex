@@ -46,6 +46,44 @@ consult the Python Library Reference documentation for that module.
 
 %\section{{xml.dom}}
 
+\section{xml.dom.ext.c14n}
+
+This module takes a DOM element node (and all its children) and generates
+canonical XML as defined by the W3C candidate recommendation
+\url{http://www.w3.org/TR/xml-c14n}.
+(Unlike the specification, however, general document subsets are not
+supported.)
+
+The module name, \code{c14n}, comes from the standard way of abbreviating
+the word "canonicalization."
+This module is typically imported by doing
+\code{from xml.dom.ext import Canonicalize}.
+
+\begin{funcdesc}{Canonicalize}{node\optional{output\optional{**keywords}}}
+This function generates the canonical format.
+If \var{output} is specified, the data is sent by invoking its
+\method{write} method, the the function will return \var{None}.
+If \var{output} is omitted or has the value \var{None}, then
+the \method{Canonicalize} will return the data as a string.
+
+The keyword argument \var{comments}, if non-zero, directs the function
+to leave any comment nodes in the output. By default, they are removed.
+
+The keyword argument \var{stripspace}, if non-zero, directs the function
+to strip all extra whitespace from text elements.
+By default, whitespace is preserved.
+This argument should be used with caution, as the canonicalization
+specification directs that whitespace be preserved.
+
+The keyword argument \var{nsdict} may be used to provide a namespace
+dictionary that is assumed to be in the \var{node}'s containing
+context.
+The keys are namespace prefixes, and the values are the namespace URI's.
+If \var{nsdict} is \code{None} or an empty dictionary, then an initial
+dictionary containing just the URI's for the \code{xml} and \code{xmlns}
+prefixes will be used.
+\end{funcdesc}
+
 %\section{builder}
 %\section{core}
 %\section{esis_builder}
