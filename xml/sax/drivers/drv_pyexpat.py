@@ -36,11 +36,16 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.parser.ProcessingInstructionHandler = self.processingInstruction
 
     def startElement(self,name,attrs):
-        at = {}
-        for i in range(0, len(attrs), 2):
-            at[attrs[i]] = attrs[i+1]
-            
-        self.doc_handler.startElement(name,saxutils.AttributeMap(at))
+        # Backward compatibility code, for older versions of the 
+        # PyExpat module
+        if type(attrs) != type({}):
+            at = {}
+            print attrs
+            for i in range(0, len(attrs), 2):
+                at[attrs[i]] = attrs[i+1]
+            attrs = at
+
+        self.doc_handler.startElement(name,saxutils.AttributeMap(attrs))
 
     def endElement(self,name):
         self.doc_handler.endElement(name)
