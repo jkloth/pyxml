@@ -81,7 +81,7 @@ def testLegalChildren():
     dom = Document()
     elem = dom.createElement('element')
     text = dom.createTextNode('text')
-    
+
     try: dom.appendChild(text)
     except HierarchyRequestErr: pass
     else:
@@ -99,7 +99,7 @@ def testLegalChildren():
         print "dom.appendChild didn't raise HierarchyRequestErr"
 
     elem.appendChild(text)
-    dom.unlink() 
+    dom.unlink()
 
 def testNonZero():
     dom = parse(tstfile)
@@ -272,7 +272,7 @@ def testAttributeRepr():
 def testTextNodeRepr(): pass
 
 def testWriteXML():
-    str = '<a b="c"/>'
+    str = '<?xml version="1.0" ?>\n<a b="c"/>'
     dom = parseString(str)
     domstr = dom.toxml()
     dom.unlink()
@@ -294,7 +294,7 @@ def testTooManyDocumentElements():
     elem = doc.createElement("extra")
     try:
         doc.appendChild(elem)
-    except xml.dom.HierarchyRequestErr:
+    except HierarchyRequestErr:
         print "Caught expected exception when adding extra document element."
     else:
         print "Failed to catch expected exception when" \
@@ -395,7 +395,7 @@ def _testCloneElementCopiesAttributes(e1, e2, test):
                 , "clone of attribute node has proper attribute values")
         confirm(a2.ownerElement is e2,
                 "clone of attribute node correctly owned")
-    
+
 
 def testCloneDocumentShallow(): pass
 
@@ -500,7 +500,7 @@ def testSAX2DOM():
 names = globals().keys()
 names.sort()
 
-works = 1
+failed = []
 
 for name in names:
     if name[:4]=="test":
@@ -519,18 +519,21 @@ for name in names:
                     # are needed
                     print len(Node.allnodes)
             Node.allnodes = {}
-        except Exception, e:
-            works = 0
+        except:
+            failed.append(name)
             print "Test Failed: ", name
             sys.stdout.flush()
             traceback.print_exc()
-            print `e`
+            print `sys.exc_info()[1]`
             Node.allnodes = {}
 
-if works:
-    print "All tests succeeded"
+if failed:
+    print "\n\n\n**** Check for failures in these tests:"
+    for name in failed:
+        print "  " + name
+    print
 else:
-    print "\n\n\n\n************ Check for failures!"
+    print "All tests succeeded"
 
 Node.debug = None # Delete debug output collected in a StringIO object
 Node._debug = 0   # And reset debug mode
