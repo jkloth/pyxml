@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.33 2002/10/22 15:51:34 loewis Exp $
+$Id: saxutils.py,v 1.34 2002/10/28 18:15:43 fdrake Exp $
 """
 
 import os, urlparse, urllib2, types
@@ -15,6 +15,11 @@ try:
 except AttributeError: # 1.5 compatibility:UnicodeType not defined
     _StringTypes = [types.StringType]
 
+def __dict_replace(s, d):
+    """Replace substrings of a string using a dictionary."""
+    for key, value in d.items():
+        s = s.replace(key, value)
+    return s
 
 def escape(data, entities={}):
     """Escape &, <, and > in a string of data.
@@ -26,9 +31,23 @@ def escape(data, entities={}):
     data = data.replace("&", "&amp;")
     data = data.replace("<", "&lt;")
     data = data.replace(">", "&gt;")
-    for chars, entity in entities.items():
-        data = data.replace(chars, entity)
+    if entities:
+        data = __dict_replace(data, entities)
     return data
+
+def unescape(data, entities={}):
+    """Unescape &amp;, &lt;, and &gt; in a string of data.
+
+    You can unescape other strings of data by passing a dictionary as
+    the optional entities parameter.  The keys and values must all be
+    strings; each key will be replaced with its corresponding value.
+    """
+    data = data.replace("&lt;", "<")
+    data = data.replace("&gt;", ">")
+    if entities:
+        data = __dict_replace(data, entities)
+    # must do ampersand last
+    return data.replace("&amp;", "&")
 
 def quoteattr(data, entities={}):
     """Escape and quote an attribute value.
