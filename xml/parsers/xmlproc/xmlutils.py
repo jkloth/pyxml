@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.23 2001/08/08 07:29:09 larsga Exp $
+# $Id: xmlutils.py,v 1.24 2001/08/15 19:48:34 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -109,16 +109,16 @@ class EntityParser:
         string if supported and UTF-8 otherwise."""
         self.data_charset=charset
 
-    def parse_resource(self,sysID,bufsize=16384):
+    def parse_resource(self, sysID, bufsize = 16384):
         """Begin parsing an XML entity with the specified system
         identifier.  Only used for the document entity, not to handle
         subentities, which open_entity takes care of."""
 
-        self.current_sysID=sysID
+        self.current_sysID = sysID
         try:
-            infile=self.isf.create_input_source(sysID)
+            infile = self.isf.create_input_source(sysID)
         except IOError:
-            self.report_error(3000,sysID)
+            self.report_error(3000, sysID)
             return
 	
         self.read_from(infile,bufsize)
@@ -138,13 +138,7 @@ class EntityParser:
     def open_entity(self, sys_id, name = "None"):
         """Starts parsing a new entity, pushing the old onto the stack. This
         method must not be used to start parsing, use parse_resource for
-        that."""
-
-        if not self.get_current_sysid() and \
-           urlparse.urlparse(sys_id)[0] == "":
-            self.report_error(2024, sys_id)
-            
-        sys_id = join_sysids(self.get_current_sysid(), sys_id)
+        that. Note that sys_id must be absolute."""
 
         try:
             inf = self.isf.create_input_source(sys_id)
@@ -153,7 +147,7 @@ class EntityParser:
             return
 
         self._push_ent_stack(name)
-        self.current_sys_id = sys_id
+        self.current_sysID = sys_id
         self.pos = 0
         self.line = 1
         self.last_break = 0
@@ -522,7 +516,7 @@ class EntityParser:
 
     def set_sysid(self,sysID):
         "Sets the current system identifier. Does not store the old one."
-        self.current_sysID=sysID
+        self.current_sysID = sysID
 
     def get_offset(self):
         "Returns the current offset from the start of the stream."
@@ -558,9 +552,9 @@ class EntityParser:
                                name))
 
     def _pop_ent_stack(self):
-        (self.current_sysID,self.data,self.pos,self.line,self.last_break,\
-         self.datasize,self.last_upd_pos,self.block_offset,self.final,\
-         self.input_encoding,self.charset_converter,dummy)=\
+        (self.current_sysID, self.data, self.pos, self.line, self.last_break, \
+         self.datasize, self.last_upd_pos, self.block_offset, self.final, \
+         self.input_encoding, self.charset_converter, dummy) = \
              self.ent_stack[-1]
         del self.ent_stack[-1]
 
