@@ -5,11 +5,17 @@
 #include "Python.h"
 #include <ctype.h>
 
+#ifdef HAVE_PYMEMCOMPAT_H
+#include "pymemcompat.h"
+#endif
+
 #include "compile.h"
 #include "frameobject.h"
 #include "expat.h"
 
 #ifndef PyDoc_STRVAR
+#define PyDoc_STR(str)         (str)
+#define PyDoc_VAR(name)        static char name[]
 #define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
 #endif
 
