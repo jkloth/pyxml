@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.23 2002/03/22 08:02:00 jkloth Exp $
+# $Id: xmlproc.py,v 1.24 2002/04/13 19:14:07 larsga Exp $
 
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.23 $"
+revision="$Revision: 1.24 $"
 
 # ==============================
 # A full well-formedness parser
@@ -338,17 +338,18 @@ class XMLProcessor(XMLCommonParser):
         else:
             self.pos=self.pos+1
 
-        try:
-            elem=self.stack[-1]
-            del self.stack[-1]
-            if name!=elem:
-                self.report_error(3023,(name,elem))
+	try:
+            elem = self.stack[-1]
+            if name != elem:
+		self.report_error(3023,(name,elem))
 
                 # Let's do some guessing in case we continue
                 if len(self.stack)>0 and self.stack[-1]==name:
                     del self.stack[-1]
                 else:
                     self.stack.append(elem) # Put it back
+            else:
+                del self.stack[-1]
 
         except IndexError:
             self.report_error(3024,name)
