@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.8 2001/03/04 22:10:49 loewis Exp $
+$Id: drv_xmlproc.py,v 1.9 2001/03/28 10:45:05 loewis Exp $
 """
 
 import types, string
@@ -9,6 +9,7 @@ import types, string
 from xml.parsers.xmlproc import xmlproc, xmlval, xmlapp
 from xml.sax import saxlib
 from xml.sax.xmlreader import AttributesImpl, AttributesNSImpl
+from xml.sax.xmlreader import IncrementalParser
 from xml.sax.saxutils import ContentGenerator, prepare_input_source
 
 # Todo
@@ -28,14 +29,14 @@ from xml.sax.saxutils import ContentGenerator, prepare_input_source
 # - methods from Python SAX extensions?
 # - remove FIXMEs
 
-class XmlprocDriver(saxlib.XMLReader):
+class XmlprocDriver(IncrementalParser):
 
     # ===== SAX 2.0 INTERFACES
     
     # --- XMLReader methods
     
     def __init__(self):
-        saxlib.XMLReader.__init__(self)
+        IncrementalParser.__init__(self)
         self.__parsing = 0
         self.__validate = 0
         self.__namespaces = 1
@@ -44,61 +45,58 @@ class XmlprocDriver(saxlib.XMLReader):
 
         self._lex_handler = saxlib.LexicalHandler()
         self._decl_handler = saxlib.DeclHandler()
-        
-    def parse(self, source):
-        try:
-            self.__parsing = 1
 
-            # interpret source
-            
-            source = prepare_input_source(source)
+    def prepareParser(self, source):
+        self.__parsing = 1
 
-            # create parser
+        # create parser
                 
-            if self.__validate:
-                parser = xmlval.XMLValidator()
+        if self.__validate:
+            parser = xmlval.XMLValidator()
+        else:
+            parser = xmlproc.XMLProcessor()
+
+        # set handlers
+                
+        if self._cont_handler != None or self._lex_handler != None:
+            if self._cont_handler == None:
+                self._cont_handler = saxlib.ContentHandler()
+            if self._lex_handler == None:
+                self._lex_handler = saxlib.LexicalHandler()
+
+            if self.__namespaces:
+                filter = NamespaceFilter(parser, self._cont_handler,
+                                         self._lex_handler, self)
+                parser.set_application(filter)
             else:
-                parser = xmlproc.XMLProcessor()
+                parser.set_application(self)
 
-            # set handlers
-                
-            if self._cont_handler != None or self._lex_handler != None:
-                if self._cont_handler == None:
-                    self._cont_handler = saxlib.ContentHandler()
-                if self._lex_handler == None:
-                    self._lex_handler = saxlib.LexicalHandler()
+        if self._err_handler != None:
+            parser.set_error_handler(self)
 
-                if self.__namespaces:
-                    filter = NamespaceFilter(parser, self._cont_handler,
-                                             self._lex_handler, self)
-                    parser.set_application(filter)
-                else:
-                    parser.set_application(self)
+        if self._decl_handler != None or self._dtd_handler != None:
+            parser.set_dtd_listener(self)
+        # FIXME: set other handlers
 
-            if self._err_handler != None:
-                parser.set_error_handler(self)
+        self._parser = parser # make it available for callbacks
+        #parser.parse_resource(source.getSystemId()) # FIXME: rest!
+        parser.set_sysid(source.getSystemId())
 
-            if self._decl_handler != None or self._dtd_handler != None:
-                parser.set_dtd_listener(self)
-                
-            # FIXME: set other handlers
-
-            bufsize=16384
-            self._parser = parser # make it available for callbacks
-            #parser.parse_resource(source.getSystemId()) # FIXME: rest!
-            parser.set_sysid(source.getSystemId())
-            parser.read_from(source.getByteStream(), bufsize)
-            source.getByteStream().close()
-            parser.flush()
-            parser.parseEnd()
-            
-        finally:
-            self._parser = None
-            self.__parsing = 0
         
+    def feed(self, data):
+        self._parser.feed(data)
+
+    def close(self):
+        self._parser.flush()
+        self._parser.parseEnd()
+
+    def reset(self):
+        self._parser = None
+        self.__parsing = 0
+
     def setLocale(self, locale):
         pass
-    
+
     def getFeature(self, name):
         if name == saxlib.feature_string_interning or \
            name == saxlib.feature_external_ges or \
