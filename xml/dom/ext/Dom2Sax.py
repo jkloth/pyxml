@@ -1,13 +1,14 @@
 """  parser to generate SAX events from a DOM tree
 
-$Date: 2002/01/10 09:09:22 $ by $Author: syt $
+$Date: 2002/05/02 10:15:04 $ by $Author: loewis $
 """
 
 from xml.sax._exceptions import SAXNotSupportedException, SAXNotRecognizedException
 from xml.sax.xmlreader import XMLReader, AttributesNSImpl, AttributesImpl
 from xml.sax.saxlib import LexicalHandler, DeclHandler
 from xml.sax import handler
-from xml.dom import Node, XMLNS_NAMESPACE as XMLNS_NS
+from xml.dom import Node, XMLNS_NAMESPACE
+XMLNS_NS = XMLNS_NAMESPACE
 
 class Dom2SaxParser(XMLReader):
     """  Generate SAX events from a DOM tree
@@ -269,9 +270,13 @@ if __name__ == '__main__':
     from xml.sax import make_parser
     from xml.dom.ext.reader import Sax2
     from xml.dom.ext import PrettyPrint
-    from xml.sax.handler import feature_namespaces as f1,\
-         feature_namespace_prefixes as f2, property_lexical_handler as p1,\
-         property_declaration_handler as p2
+    from xml.sax.handler import feature_namespaces,\
+         feature_namespace_prefixes, property_lexical_handler,\
+         property_declaration_handler
+    f1 = feature_namespaces
+    f2 = feature_namespace_prefixes
+    p1 = property_lexical_handler
+    p2 = property_declaration_handler
     
     file = sys.argv[1]
     r = Sax2.Reader()
