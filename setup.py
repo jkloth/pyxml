@@ -50,7 +50,7 @@ for arg in args:
         with_xpath = 0
         sys.argv.remove(arg)
     elif arg == '--without-xslt':
-        without_xslt = 0
+        with_xslt = 0
 	sys.argv.remove(arg)
 
 if with_xpath:
