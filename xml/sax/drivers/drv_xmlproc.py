@@ -2,7 +2,7 @@
 A SAX driver for xmlproc
 """
 
-version="0.91"
+version="0.92"
 
 from xml.sax import saxlib,saxutils
 from xml.parsers.xmlproc import xmlproc
@@ -34,6 +34,7 @@ class SAX_XPParser(saxlib.Parser,xmlproc.Application,xmlproc.DTDConsumer,
 	return xmlproc.XMLProcessor()
     
     def doc_start(self):
+        self.doc_handler.setDocumentLocator(self)
 	self.doc_handler.startDocument()
 
     def doc_end(self):

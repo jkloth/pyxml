@@ -2,7 +2,7 @@
 A SAX driver for xmlproc with validation and DTD information.
 """
 
-version="0.91"
+version="0.92"
 
 from xml.sax import saxlib,saxutils
 from xml.parsers.xmlproc import xmlval
@@ -16,8 +16,6 @@ class SAX_XPValParser(SAX_XPParser):
 
     def __init__(self):
         SAX_XPParser.__init__(self)
-	self.parser.set_error_handler(self)
-        self.dtd=self.parser.get_dtd()
 	self.doc_handler.setDocumentLocator(self)
     
     def _create_parser(self):
@@ -27,12 +25,12 @@ class SAX_XPValParser(SAX_XPParser):
         try:
             self.doc_handler.startElement(name,
                                           XPAttributes(attrs,\
-                                                       self.dtd.get_elem(name)))
+                                                       self.parser.dtd.get_elem(name)))
         except KeyError,e:
             self.doc_handler.startElement(name,XPAttributes(attrs,None))
             
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS:
-
+        
     def get_parser_name(self):
         return "xmlproc_val"
 

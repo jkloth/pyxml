@@ -19,9 +19,8 @@ SAX driver for the Pyexpat C module.
 version="0.10"
 
 from xml.sax import saxlib,saxutils
-
-import urllib
 from xml.parsers import pyexpat
+import urllib
 
 # --- SAX_expat
 
