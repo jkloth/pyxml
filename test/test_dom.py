@@ -38,7 +38,10 @@ def _check_dom_tree(t):
     for n in nodes:
         n = core.NODE_CLASS[ n.type ](n, t._node)
 	p = n.get_parentNode()
-	assert p._node == parent[ n._node ]
+	if p is None:
+            assert not parent.has_key(n._node)
+        else:
+	    assert p._node == parent[ n._node ]
         count = count + 1
 
 test_text = """<?xml version="1.0"?>
@@ -300,11 +303,46 @@ check('ret.value == "v2"', 'Element: deleted attribute node returned')
 e.removeAttributeNode(a2)
 check('e.toxml() == "<elem />"', 'Element: attribute node removed')
 
+# Check handling of namespace prefixes
+
+e.setAttribute('xmlns', 'http://defaulturi')
+e.setAttribute('xmlns:html', 'http://htmluri')
+check('e.ns_prefix[""] == "http://defaulturi"',
+      'Default namespace with setAttribute')
+check('e.ns_prefix["html"] == "http://htmluri"',
+      'Prefixed namespace with setAttribute')
+e.removeAttribute('xmlns:html')
+check('not e.ns_prefix.has_key("html")',
+      'Prefixed namespace with removeAttribute')
+e.removeAttribute('xmlns')
+
+check('len(e.ns_prefix) == 0', 'Default namespace with removeAttribute')
+
+default = doc.createAttribute('xmlns') ; default.value = "http://defaulturi"
+html = doc.createAttribute('xmlns:html') ; html.value = "http://htmluri"
+
+e.setAttributeNode(default) ; e.setAttributeNode(html)
+check('e.ns_prefix[""] == "http://defaulturi"',
+      'Default namespace with setAttributeNode')
+check('e.ns_prefix["html"] == "http://htmluri"',
+      'Prefixed namespace with setAttributeNode')
+e.removeAttributeNode(html)
+check('not e.ns_prefix.has_key("html")',
+      'Prefixed namespace with removeAttribute')
+e.removeAttributeNode(default)
+
+
+#
+# Check getElementsByTagName
+#
 check('len(e.getElementsByTagName("elem")) == 0', 
       "getElementsByTagName doesn't return element")
 
 check('len(e.getElementsByTagName("*")) == 0', 
       "getElementsByTagName doesn't return element")
+
+
+# Check CharacterData interfaces using Text nodes
 
 t1 = doc.createText('first') ;  e.appendChild( t1 )
 t2 = doc.createText('second') ; e.appendChild( t2 )
@@ -330,8 +368,13 @@ check('len(e.childNodes) == 2', 'Text: should be two split Text nodes')
 check('e.lastChild.toxml() == "secondthird"', 
       "Element: newly split Text nodes")
 
+# Check comparisons; e1 and e2 are different proxies for the same underlying 
+# node
+
+e1 = doc.documentElement ; e2 = doc.documentElement
+check('e1 is not e2', 'Two proxies are different according to "is" operator')
+check('e1 == e2', 'Two proxies are identical according to "==" operator')
 
 # Done at last!
 print 'Test suite completed'
-
 
