@@ -30,8 +30,14 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
 
   if (Boolean_Check(obj)){
     result = (PyBooleanObject *)obj;
+  } else if (PyFloat_Check(obj)) {
+	if (NaN_Check(PyFloat_AS_DOUBLE(obj))) {
+	  result = g_false;
+	} else {
+	  result = PyObject_IsTrue(obj) ? g_true : g_false;
+	}
   } else if (PyNumber_Check(obj) || PySequence_Check(obj)){
-    result = PyObject_IsTrue(obj) ? g_true : g_false;
+	result = PyObject_IsTrue(obj) ? g_true : g_false;
   } else if (str_func) {
     obj = PyObject_CallFunction(str_func, "(O)", obj);
     if (!obj) return NULL;
@@ -47,7 +53,7 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
 static int pyobj_as_boolean_int(PyObject *obj) {
   if (Boolean_Check(obj)){
     return Boolean_Value((PyBooleanObject *)obj);
-  } else if (PyNumber_Check(obj) || PyString_Check(obj)){
+  } else if (PyNumber_Check(obj) || PySequence_Check(obj)){
     return PyObject_IsTrue(obj) ? 1 : 0;
   } else {
     return 0;

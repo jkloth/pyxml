@@ -6,6 +6,16 @@ extern "C" {
 
 #include "Python.h"
 
+#if defined(_WIN32) || defined(__WIN32__)
+#include <float.h>
+#define NaN_Check(x) _isnan(x)
+#define Inf_Check(x) (_finite(x) && !_isnan(x))
+#else
+#include <math.h>
+#define NaN_Check(x) isnan(x)
+#define Inf_Check(x) isinf(x)
+#endif
+
 extern DL_EXPORT(PyTypeObject) PyBoolean_Type;
 
 #define Boolean_Check(v)  ((v)->ob_type == &PyBoolean_Type)
