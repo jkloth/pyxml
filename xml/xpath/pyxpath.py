@@ -72,10 +72,14 @@ from xml.xpath.ParsedRelativeLocationPath import ParsedRelativeLocationPath
 from xml.xpath.ParsedNodeTest import ParsedNodeTest
 
 # XSLT
-from xml.xslt.ParsedPattern import ParsedPattern
-from xml.xslt import ParsedStepPattern
-from xml.xslt import ParsedRelativePathPattern
-from xml.xslt import ParsedLocationPathPattern
+try:
+    from xml.xslt.ParsedPattern import ParsedPattern
+    from xml.xslt import ParsedStepPattern
+    from xml.xslt import ParsedRelativePathPattern
+    from xml.xslt import ParsedLocationPathPattern
+    _xslt_patterns = 1
+except:
+    _xslt_patterns = 0
 
 import string,types
 
@@ -189,7 +193,7 @@ class FtFactory:
             return ParsedExpr.ParsedFunctionCallExpr(localName,args)
 
     # XSLT
-    createPattern = ParsedPattern
+    if _xslt_patterns: createPattern = ParsedPattern
 
     def createLocationPathPattern(self, idkey, isparent, step):
         if idkey is None and step is None:
