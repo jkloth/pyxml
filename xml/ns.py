@@ -57,6 +57,8 @@ class DSIG:
 	ENVELOPED -- an enveloped XML signature
 	C14N  -- XML canonicalization
 	C14N_COMM  -- XML canonicalization, retaining comments
+	XPATH -- The identifier for an XPATH transform
+	XSLT -- The identifier for an XSLT transform
     """
 
     BASE        = "http://www.w3.org/2000/09/xmldsig#"
@@ -70,6 +72,8 @@ class DSIG:
     ENVELOPED   = BASE + "enveloped-signature"
     C14N        = "http://www.w3.org/TR/2000/CR-xml-c14n-20010315"
     C14N_COMM   = C14N + "#WithComments"
+    XPATH       = "http://www.w3.org/TR/1999/REC-xpath-19991116"
+    XSLT        = "http://www.w3.org/TR/1999/REC-xslt-19991116"
 
 
 class ENCRYPTION:
