@@ -36,6 +36,9 @@ has to be filled in later, or rewritten, or verified, or something.
 \tableofcontents
 
 \section{\module{xml.dom} Extensions}
+
+\declaremodule{}{xml.dom}
+\modulesynopsis{Common aspects of the DOM interface.}
 \sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
 
 \begin{notice}
@@ -141,6 +144,47 @@ If \var{nsdict} is \code{None} or an empty dictionary, then an initial
 dictionary containing just the URI's for the \code{xml} and \code{xmlns}
 prefixes will be used.
 \end{funcdesc}
+
+
+\section{\module{xml.dom.xmlbuilder} ---
+         DOM Level 3 Load/Save Interface}
+
+\declaremodule{}{xml.dom.xmlbuilder}
+\modulesynopsis{DOM Level 3 Load/Save interface.}
+\sectionauthor{Fred L. Drake, Jr.}{fdrake@acm.org}
+
+\versionadded{0.8}
+
+\begin{notice}[warning]
+  The \module{xml.dom.xmlbuilder} represents the DOM Level 3 Load/Save
+  interface, which is only defined in a W3C working draft at this
+  time.  The Python API presented here is modelled on the 9 April 2002
+  version of the working draft, and is expected to change as new
+  drafts are released.  Backward compatibility to support older
+  versions of this interface will not be preserved.
+\end{notice}
+
+This module provides API support for the DOM Level 3 Load/Save
+specification.  It includes an implementation of the loading
+components of that specification only at this time.
+
+Tow groups of classes are provided.  The first group implements the
+objects specific to the Load/Save specification, and the second
+provides a group of mixin classes that can be used by a DOM
+implementation to make use of the first group of classes.
+
+Implementation classes:
+
+\class{DOMInputSource}
+\class{DOMEntityResolver}
+\class{DOMBuilder}
+\class{DOMBuilderFilter}
+
+Mixin classes:
+
+\class{DOMImplementationLS}
+\class{DocumentLS}
+
 
 %\section{builder}
 %\section{core}
