@@ -203,7 +203,7 @@ setup (name = "PyXML",
        url = "http://www.python.org/sigs/xml-sig/",
        long_description =
 """XML Parsers and API for Python
-This version of PyXML was tested with Python 2.x
+This version of PyXML was tested with Python 2.x.
 """,
 
        # Override certain command classes with our own ones
