@@ -1,6 +1,6 @@
 
 # regression test for SAX drivers
-# $Id: test_saxdrivers.py,v 1.1 2000/10/03 11:15:55 loewis Exp $
+# $Id: test_saxdrivers.py,v 1.2 2001/02/25 18:38:10 loewis Exp $
 
 from xml.sax.saxutils import XMLGenerator, ContentGenerator
 from xml.sax import handler
@@ -49,7 +49,9 @@ def test_sax1():
         result = StringIO()
         xmlgen = ContentGenerator(result)
         parser.setDocumentHandler(xmlgen)
-        parser.parse(findfile("test.xml"))
+        # We should not pass file names to parse; we don't have
+        # any URLs, either
+        parser.parseFile(open(findfile("test.xml")))
         summarize(p,result.getvalue())
 
 def test_sax2():
@@ -65,7 +67,8 @@ def test_sax2():
         result = StringIO()
         xmlgen = XMLGenerator(result)
         parser.setContentHandler(xmlgen)
-        parser.parse(findfile("test.xml"))
+        # In SAX2, we can pass an open file object to parse()
+        parser.parse(open(findfile("test.xml")))
         summarize(p,result.getvalue())
 
 items = locals().items()
