@@ -246,7 +246,8 @@ def builtin():
 def usage():
     print '''Options accepted:
     -b, --builtin            Run the C14N builtin tests
-    -e pfx,pfx2              Exclusive C14N with specified prefixes
+    -e                       Exclusive C14N
+    -p                       Exclusive C14N inclusive prefixes
     -i file, --in=file       Read specified file* (default is stdin)
     -o file, --out=file      Write to specified file* (default is stdout)
     -h, --help               Print this text
@@ -262,8 +263,9 @@ else:
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "e:hbi:o:x:",
-            [ "help", "builtin", "in=", "out=", "xpath=", ])
+        opts, args = getopt.getopt(sys.argv[1:], "ehbi:o:p:x:",
+				    [ "exclusive", "help", "builtin",
+				    "in=", "out=", "prefixes=", "xpath=", ])
     except getopt.GetoptError, e:
         print sys.argv[0] + ':', e, '\nTry --help for help.\n'
         sys.exit(1)
@@ -273,7 +275,7 @@ else:
 
     IN, OUT = sys.stdin, sys.stdout
     query = '(//. | //@* | //namespace::*)'
-    exclusive = None
+    exclusive, pfxlist = None, []
     for opt,arg in opts:
         if opt in ('-h', '--help'):
             usage()
@@ -281,8 +283,10 @@ else:
         if opt in ('-b', '--builtin'):
             builtin()
             sys.exit(0)
-	elif opt == '-e':
-	    exclusive=arg.split(',')
+	elif opt in ('-e', '--exclusive'):
+	    exclusive = 1
+	elif opt in ( '-p', '--prefixes'):
+	    pfxlist = arg.split(',')
         elif opt in ('-i', '--in'):
             if arg.find(',') == -1:
                 IN = open(arg, 'r')
@@ -306,5 +310,8 @@ else:
     dom = r.fromStream(IN)
     context = Context(dom)
     nodelist = xpath.Evaluate(query, context=context)
-    Canonicalize(dom, OUT, subset=nodelist, unsuppressedPrefixes=exclusive)
+    if exclusive:
+	Canonicalize(dom, OUT, subset=nodelist, unsuppressedPrefixes=pfxlist)
+    else:
+	Canonicalize(dom, OUT, subset=nodelist)
     OUT.close()
