@@ -120,7 +120,7 @@ class FileReader:
     class DomDumper(FileReader)
          def __init__(self,filename):
               FileReader.__init__(self,filename)
-              self.dom.dump()
+              self.document.dump()
 
     d = DomDumper(sys.argv[1])
     """
@@ -184,7 +184,7 @@ class FileReader:
         # Don't know much about this part.  This could call SX to
         # convert the SGML to XML, then read it in.  That's what I
         # do for some SGML files I need to convert.  Any suggestions?
-        print "This is not implemented."
+        raise RuntimeError, "This is not implemented."
 
     def getFileType(self,filename):
         """Given a filename, figure out if the file contains XML,
