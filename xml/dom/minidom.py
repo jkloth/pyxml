@@ -22,6 +22,14 @@ from xml.dom.xmlbuilder import DOMImplementationLS, DocumentLS
 
 _TupleType = type(())
 
+# This is used by the ID-cache invalidation checks; the list isn't
+# actually complete, since the nodes being checked will never be the
+# DOCUMENT_NODE or DOCUMENT_FRAGMENT_NODE.  (The node being checked is
+# the node being added or removed, not the node being modified.)
+#
+_nodeTypes_with_children = (xml.dom.Node.ELEMENT_NODE,
+                            xml.dom.Node.ENTITY_REFERENCE_NODE)
+
 
 class Node(xml.dom.Node, GetattrMagic):
     _make_parent_nodes = 1
@@ -89,6 +97,8 @@ class Node(xml.dom.Node, GetattrMagic):
                 index = self.childNodes.index(refChild)
             except ValueError:
                 raise xml.dom.NotFoundErr()
+            if newChild.nodeType in _nodeTypes_with_children:
+                _clear_id_cache(self)
             self.childNodes.insert(index, newChild)
             newChild.nextSibling = refChild
             refChild.previousSibling = newChild
@@ -111,6 +121,8 @@ class Node(xml.dom.Node, GetattrMagic):
         if node.nodeType not in self._child_node_types:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(node), repr(self)))
+        elif node.nodeType in _nodeTypes_with_children:
+            _clear_id_cache(self)
         if node.parentNode is not None:
             node.parentNode.removeChild(node)
         _append_child(self, node)
@@ -137,6 +149,9 @@ class Node(xml.dom.Node, GetattrMagic):
         if self._make_parent_nodes:
             newChild.parentNode = self
             oldChild.parentNode = None
+        if (newChild.nodeType in _nodeTypes_with_children
+            or oldChild.nodeType in _nodeTypes_with_children):
+            _clear_id_cache(self)
         newChild.nextSibling = oldChild.nextSibling
         newChild.previousSibling = oldChild.previousSibling
         oldChild.nextSibling = None
@@ -157,6 +172,8 @@ class Node(xml.dom.Node, GetattrMagic):
         if oldChild.previousSibling is not None:
             oldChild.previousSibling.nextSibling = oldChild.nextSibling
         oldChild.nextSibling = oldChild.previousSibling = None
+        if oldChild.nodeType in _nodeTypes_with_children:
+            _clear_id_cache(self)
 
         if self._make_parent_nodes:
             oldChild.parentNode = None
@@ -276,6 +293,14 @@ def _append_child(self, node):
     if self._make_parent_nodes:
         node.parentNode = self
 
+def _in_document(node):
+    # return True iff node is part of a document tree
+    while node is not None:
+        if node.nodeType == Node.DOCUMENT_NODE:
+            return True
+        node = node.parentNode
+    return False
+
 def _write_data(writer, data):
     "Writes datachars to writer."
     data = data.replace("&", "&amp;").replace("<", "&lt;")
@@ -353,8 +378,12 @@ class Attr(Node):
         if name in ("value", "nodeValue"):
             d["value"] = d["nodeValue"] = value
             d["childNodes"][0].data = value
+            if self.ownerElement is not None:
+                _clear_id_cache(self.ownerElement)
         elif name in ("name", "nodeName"):
             d["name"] = d["nodeName"] = value
+            if self.ownerElement is not None:
+                _clear_id_cache(self.ownerElement)
         else:
             d[name] = value
 
@@ -370,11 +399,15 @@ class Attr(Node):
             newName = self.localName
         else:
             newName = "%s:%s" % (value, self.localName)
+        if self.ownerElement:
+            _clear_id_cache(self.ownerElement)
         d['nodeName'] = d['name'] = newName
 
     def _set_value(self, value):
         d = self.__dict__
         d['value'] = d['nodeValue'] = value
+        if self.ownerElement:
+            _clear_id_cache(self.ownerElement)
         self.childNodes[0].data = value
 
     def _get_isId(self):
@@ -675,6 +708,7 @@ class Element(Node):
         except KeyError:
             raise xml.dom.NotFoundErr()
         del self._attrsNS[(node.namespaceURI, node.localName)]
+        _clear_id_cache(self)
         node.unlink()
         # Restore this since the node is still useful and otherwise
         # unlinked
@@ -696,7 +730,7 @@ class Element(Node):
             self, namespaceURI, localName, NodeList())
 
     def __repr__(self):
-        return "<DOM Element: %s at %s>" % (self.tagName, id(self))
+        return "<DOM Element: %s at %#x>" % (self.tagName, id(self))
 
     def writexml(self, writer, indent="", addindent="", newl=""):
         # indent = current indentation
@@ -735,14 +769,15 @@ defproperty(Element, "localName",
             doc="Namespace-local name of this element.")
 
 
-def _set_attribute_node(self, attr):
-    self._attrs[attr.name] = attr
-    self._attrsNS[(attr.namespaceURI, attr.localName)] = attr
+def _set_attribute_node(element, attr):
+    _clear_id_cache(element)
+    element._attrs[attr.name] = attr
+    element._attrsNS[(attr.namespaceURI, attr.localName)] = attr
 
     # This creates a circular reference, but Element.unlink()
     # breaks the cycle since the references to the attribute
     # dictionaries are tossed.
-    attr.__dict__['ownerElement'] = self
+    attr.__dict__['ownerElement'] = element
 
 
 class Childless:
@@ -1302,6 +1337,14 @@ class ElementInfo(NewStyle):
     def __setstate__(self, state):
         self.tagName = state
 
+def _clear_id_cache(node):
+    if node.nodeType == Node.DOCUMENT_NODE:
+        node._id_cache.clear()
+        node._id_search_stack = None
+    elif _in_document(node):
+        node.ownerDocument._id_cache.clear()
+        node.ownerDocument._id_search_stack= None
+
 class Document(Node, DocumentLS):
     _child_node_types = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
                          Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
@@ -1331,6 +1374,8 @@ class Document(Node, DocumentLS):
         # mapping of (namespaceURI, localName) -> ElementInfo
         #        and tagName -> ElementInfo
         self._elem_info = {}
+        self._id_cache = {}
+        self._id_search_stack = None
 
     def _get_elem_info(self, element):
         if element.namespaceURI:
@@ -1368,6 +1413,9 @@ class Document(Node, DocumentLS):
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(node), repr(self)))
         if node.parentNode is not None:
+            # This needs to be done before the next test since this
+            # may *be* the document element, in which case it should
+            # end up re-ordered to the end.
             node.parentNode.removeChild(node)
 
         if node.nodeType == Node.ELEMENT_NODE \
@@ -1489,30 +1537,43 @@ class Document(Node, DocumentLS):
         return n
 
     def getElementById(self, id):
+        if self._id_cache.has_key(id):
+            return self._id_cache[id]
         if not self._elem_info:
             return None
-        stack = [self.documentElement]
+
+        stack = self._id_search_stack
+        if stack is None:
+            # we never searched before, or the cache has been cleared
+            stack = [self.documentElement]
+            self._id_search_stack = stack
+        elif not stack:
+            # Previous search was completed and cache is still valid;
+            # no matching node.
+            return None
+
         while stack:
             node = stack.pop()
+            # add child elements to stack for continued searching
+            stack.extend([child for child in node.childNodes
+                          if child.nodeType in _nodeTypes_with_children])
             # check this node
             info = self._get_elem_info(node)
             if info:
                 for attr in node.attributes.values():
                     if attr.namespaceURI:
                         if info.isIdNS(attr.namespaceURI, attr.localName):
+                            self._id_cache[attr.value] = node
                             if attr.value == id:
                                 return node
                             else:
                                 break
                     elif info.isId(attr.name):
+                        self._id_cache[attr.value] = node
                         if attr.value == id:
                             return node
                         else:
                             break
-            # didn't match; add child elements to stack
-            for child in node.childNodes:
-                if child.nodeType == Node.ELEMENT_NODE:
-                    stack.append(child)
         return None
 
     def getElementsByTagName(self, name):

@@ -82,6 +82,37 @@ class Tests(unittest.TestCase):
                      "received unexpected node")
         self.assertEqual(doc.getElementById("foo").nodeName, "e",
                          "did not get expected node")
+        # Check an implementation detail; this is testing the
+        # ID-caching behavior.
+        self.assert_(doc._id_cache.has_key("foo"))
+
+        # make sure adding an element with an ID works
+        e = doc.createElement("e")
+        e.setAttribute("id", "new")
+        doc.documentElement.appendChild(e)
+        self.assert_(e.isSameNode(doc.getElementById("new")))
+
+        # make sure the cache doesn't cause false hits when we remove nodes
+        doc.documentElement.removeChild(e)
+        self.assert_(e.parentNode is None)
+        self.assert_(doc.getElementById("new") is None)
+
+        # now add the node back, make sure we can still get it by id,
+        # the change the value of the id attribute and check that it's
+        # returned only for the new ID
+        doc.documentElement.appendChild(e)
+        self.assert_(e.isSameNode(doc.getElementById("new")))
+        a = e.getAttributeNode("id")
+        a.value = "no-longer-new"
+        self.assert_(doc.getElementById("new") is None)
+        self.assert_(e.isSameNode(doc.getElementById("no-longer-new")))
+
+        # make sure nodes with an ID in a fragment are not located.
+        f = doc.createDocumentFragment()
+        e = doc.createElement("e")
+        e.setAttribute("id", "in-fragment")
+        f.appendChild(e)
+        self.assert_(doc.getElementById("in-fragment") is None)
 
         doc = self.builder.parse(self.makeSource(
             ID_PREFIX + "<doc id='foo'><d id='foo'/><e id='foo'/></doc>"))
