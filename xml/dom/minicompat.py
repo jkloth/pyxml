@@ -39,9 +39,12 @@
 #                    __getattr__() hackery to achieve the same effect,
 #                    but less efficiently.
 #
+#   NewStyle      -- base class to cause __slots__ to be honored in
+#                    the new world
+#
 #   True, False   -- only for Python 2.2 and earlier
 
-__all__ = ["isinstance", "NodeList", "EmptyNodeList", "NewStyle",
+__all__ = ["NodeList", "EmptyNodeList", "NewStyle",
            "StringTypes", "defproperty", "GetattrMagic"]
 
 try:
@@ -77,9 +80,7 @@ except TypeError:
                 if _isinstance(obj, t):
                     return 1
             return 0
-else:
-    # make this exportable from this module
-    isinstance = isinstance
+    __all__.append("isinstance")
 
 
 if list is type([]):
