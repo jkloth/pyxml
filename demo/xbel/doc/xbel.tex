@@ -29,13 +29,13 @@
 
 \author{Fred L. Drake, Jr.}
 \authoraddress{
-        Corporation for National Research Initiatives (CNRI) \\
-        1895 Preston White Drive, Reston, Va 20191, USA \\
+        PythonLabs at Digital Creations \\
         E-mail: \email{fdrake@acm.org}
 }
 
-\date{28 October, 1998}			% XXX update before release!
-\release{1.0}
+\date{\today}			% XXX update before release!
+\release{1.1}
+\setshortversion{1.1}
 
 \begin{document}
 \maketitle
@@ -69,10 +69,9 @@ drove the design process, and the resulting document type.
               \label{origins}}
 
     The XML Bookmark Exchange Language is a product of the Python XML
-    Special Interest Group (XML-SIG), sponsored by the Python Software
-    Activity (PSA).  The initial intent of the XBEL effort was to
-    create a demonstration of XML facilities available to Python
-    programmers which would also be useful.
+    Special Interest Group (XML-SIG).  The initial intent of the XBEL
+    effort was to create a demonstration of XML facilities available
+    to Python programmers which would also be useful.
 
   \subsection{Contributors
               \label{contrib}}
@@ -89,12 +88,18 @@ drove the design process, and the resulting document type.
         Documentation.  Design input on DTD and the storage of
         metadata.  Implemented direct support for XBEL in Grail.
 
+      \contributor{David Faure}{david@mandrakesoft.com}
+        Suggested adding the \attribute{icon} attribute to
+        \element{folder} and \element{bookmark} elements, and
+        \attribute{icon} to \element{folder}.  Implemented XBEL in the
+        Konqueror file manager for the K Desktop Envionment (KDE).
+
       \contributor{Stefane Fermigier}{fermigie@math.jussieu.fr}
         Modified implementation of software for Internet Explorer
         Favorites conversion using his original Python DOM
         implementation.
 
-      \contributor{Lars Marius Garshol}{larsga@ifi.uio.no}
+      \contributor{Lars Marius Garshol}{larsga@garshol.priv.no}
         Extended the concept to cover all Internet browsers bookmarks
         and came up with the name and acronym.  Implemented support
         for Navigator and Opera bookmark formats.
@@ -136,16 +141,17 @@ drove the design process, and the resulting document type.
               \label{availability}}
 
     Information on XBEL, including the public text and this document,
-    is available on the PSA Web site at
-    \url{http://www.python.org/topics/xml/xbel/} \cite{xbel-home}.
+    is available on the Python XML-SIG Web site at
+    \url{http://pyxml.sourceforge.net/topics/xml/xbel/} \cite{xbel-home}.
     Please refer to this Web resource for information on new versions,
     DTD variants, and supporting software.
 
     The public text for XBEL will be made available through a SOCAT
     catalog at available at:
-    \url{http://www.python.org/topics/xml/dtds/catalog}.  This catalog
-    may be used by including a DELEGATE entry in a catalog already
-    used by XML processing software.  The DELEGATE entry should be:
+    \url{http://pyxml.sourceforge.net/topics/xml/dtds/catalog}.  This
+    catalog may be used by including a DELEGATE entry in a catalog
+    already used by XML processing software.  The DELEGATE entry
+    should be:
 
 \begin{verbatim}
 DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
@@ -159,7 +165,7 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
     Identifier:
 
 \begin{verbatim}
-+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML
++//IDN python.org//DTD XML Bookmark Exchange Language 1.1//EN//XML
 \end{verbatim}
 
     Valid instances of this document type may use the following document
@@ -167,8 +173,8 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
 
 \begin{verbatim}
 <!DOCTYPE xbel
-  PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML"
-         "http://www.python.org/topics/xml/dtds/xbel-1.0.dtd">
+  PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.1//EN//XML"
+         "http://www.python.org/topics/xml/dtds/xbel-1.1.dtd">
 \end{verbatim}
 
 
@@ -390,6 +396,15 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
       which applies; XML namespaces should be used to identify
       explicit markup used within the element.
 
+      The DTD for XBEL specifies the content model for
+      \element{metadata} as \code{EMPTY}, but any content should be
+      considered acceptable so long as the XBEL document is
+      well-formed.  The use of \code{EMPTY} avoids making the DTD too
+      loose; applications which do not validate need not be
+      concerned.  Derivative DTDs can define the parameter entity
+      \paramentity{metadata.mix} to be the appropriate content model
+      for the application.
+
       \element{metadata} elements are always optional.  Note that an
       \element{info} element which contains no \element{metadata}
       elements must be removed.
@@ -470,6 +485,21 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
           Token which records whether the contents of the folder
           should be displayed by default in a user interface.  The
           value may be \nmtoken{yes} or \nmtoken{no}.
+
+          \term{\attribute{icon}}
+          The value of this attribute is a name which identifies an
+          icon that the user agent can use to mark the folder for the
+          user.  The value must be mapped to an actual icon; is it not
+          a URI which points to an image file, since the names should
+          (in theory) be usable in multiple user agents which have
+          differing capabilities for image display, and may require
+          different format or sizes of icon.  Mechanisms to do this
+          are outside the scope of this specification.
+
+          \term{\attribute{toolbar}}
+          Token which records whether the contents of the folder
+          should be used for the ``Personal Toolbar'' provided by some
+          user agents.  The value may be \nmtoken{yes} or \nmtoken{no}.
 	\end{definitions}
 
       \paragraph*{Processing Expectations}
@@ -483,6 +513,8 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
         The \element{folder} element may be used to represent
         hierarchical relationships within a collection of bookmarks,
         as deployed in current Internet browsers.
+        The \attribute{toolbar} attribute is needed to support the
+        ``Personal Toolbar'' information from Netscape Navigator.
 
     \subsubsection{The \element{separator} Element
                    \label{element-separator}}
@@ -530,6 +562,11 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
           ID value to allow linking to this element; only the
           \element{alias} element's \attribute{ref} attribute supports
           a corresponding IDREF value.
+
+          \term{\attribute{icon}}
+          This is identical to the \attribute{icon} attribute of the
+          \element{folder} element; refer to that description for
+          information.
 
           \term{\attribute{added}}
           Date/time value which indicates when the \element{bookmark}
@@ -636,6 +673,11 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
     for entities which define repeatable-or groups of elements, and
     \samp{.att} is used for entities which define attributes.
 
+    \subsubsection{The \paramentity{metadata.mix} Entity
+                   \label{entity-metadata.mix}}
+
+      
+
     \subsubsection{The \paramentity{nodes.mix} Entity
                    \label{entity-nodes.mix}}
 
@@ -657,10 +699,10 @@ DELEGATE "+//IDN python.org" "http://www.python.org/topics/xml/dtds/catalog"
                    \label{entity-url.att}}
 
       This entity defines the attributes which are available on
-      elements which refer to specific resources.  In XBEL 1.0, this
-      is only used on the \element{bookmark} element.  It defines a
-      required \attribute{href} attribute and the optional attributes
-      \attribute{modified} and \attribute{visited}.
+      elements which refer to specific resources.  In XBEL 1.0 and
+      1.1, this is only used on the \element{bookmark} element.  It
+      defines a required \attribute{href} attribute and the optional
+      attributes \attribute{modified} and \attribute{visited}.
 
   \subsection{Extending the DTD
               \label{extending}}
