@@ -7,7 +7,7 @@ LIBPREFIX=../build/lib.$(PLAT)
 # For now, always build pyexpat, since PyXML contains a more advanced
 # version of the extension.
 #
-BUILDARGS=--with-pyexpat
+BUILDARGS=
 
 .PHONY:	build
 
