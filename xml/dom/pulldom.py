@@ -1,11 +1,11 @@
-import minidom
-import xml.sax,xml.sax.handler
+import xml.sax
+import xml.sax.handler
 import types
 
 try:
-  _StringTypes = [types.StringType, types.UnicodeType]
+    _StringTypes = [types.StringType, types.UnicodeType]
 except AttributeError:
-  _StringTypes = [types.StringType]
+    _StringTypes = [types.StringType]
 
 START_ELEMENT = "START_ELEMENT"
 END_ELEMENT = "END_ELEMENT"
@@ -17,23 +17,28 @@ IGNORABLE_WHITESPACE = "IGNORABLE_WHITESPACE"
 CHARACTERS = "CHARACTERS"
 
 class PullDOM(xml.sax.ContentHandler):
-    def __init__(self):
+    _locator = None
+    document = None
+
+    def __init__(self, documentFactory=None):
+        self.documentFactory = documentFactory
         self.firstEvent = [None, None]
         self.lastEvent = self.firstEvent
         self._ns_contexts = [{}] # contains uri -> prefix dicts
         self._current_context = self._ns_contexts[-1]
 
-    def setDocumentLocator(self, locator): pass
+    def setDocumentLocator(self, locator):
+        self._locator = locator
 
     def startPrefixMapping(self, prefix, uri):
         self._ns_contexts.append(self._current_context.copy())
-        self._current_context[uri] = prefix
+        self._current_context[uri] = prefix or ''
 
     def endPrefixMapping(self, prefix):
-        del self._ns_contexts[-1]
+        self._current_context = self._ns_contexts.pop()
 
     def startElementNS(self, name, tagName , attrs):
-        uri,localname = name
+        uri, localname = name
         if uri:
             # When using namespaces, the reader may or may not
             # provide us with the original name. If not, create
@@ -55,9 +60,8 @@ class PullDOM(xml.sax.ContentHandler):
                 attr = self.document.createAttribute(a_localname)
             attr.value = value
             node.setAttributeNode(attr)
-        
-        parent = self.curNode
-        node.parentNode = parent
+
+        node.parentNode = self.curNode
         self.curNode = node
 
         self.lastEvent[1] = [(START_ELEMENT, node), None]
@@ -69,7 +73,7 @@ class PullDOM(xml.sax.ContentHandler):
         self.lastEvent[1] = [(END_ELEMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((END_ELEMENT, node))
-        self.curNode = node.parentNode
+        self.curNode = self.curNode.parentNode
 
     def startElement(self, name, attrs):
         node = self.document.createElement(name)
@@ -78,9 +82,8 @@ class PullDOM(xml.sax.ContentHandler):
             attr = self.document.createAttribute(aname)
             attr.value = value
             node.setAttributeNode(attr)
-        
-        parent = self.curNode
-        node.parentNode = parent
+
+        node.parentNode = self.curNode
         self.curNode = node
 
         self.lastEvent[1] = [(START_ELEMENT, node), None]
@@ -93,7 +96,7 @@ class PullDOM(xml.sax.ContentHandler):
         self.lastEvent = self.lastEvent[1]
         #self.events.append((END_ELEMENT, node))
         self.curNode = node.parentNode
-        
+
     def comment(self, s):
         node = self.document.createComment(s)
         parent = self.curNode
@@ -104,7 +107,7 @@ class PullDOM(xml.sax.ContentHandler):
 
     def processingInstruction(self, target, data):
         node = self.document.createProcessingInstruction(target, data)
-        
+
         parent = self.curNode
         node.parentNode = parent
         self.lastEvent[1] = [(PROCESSING_INSTRUCTION, node), None]
@@ -112,7 +115,7 @@ class PullDOM(xml.sax.ContentHandler):
         #self.events.append((PROCESSING_INSTRUCTION, node))
 
     def ignorableWhitespace(self, chars):
-        node = self.document.createTextNode(chars[start:start + length])
+        node = self.document.createTextNode(chars)
         parent = self.curNode
         node.parentNode = parent
         self.lastEvent[1] = [(IGNORABLE_WHITESPACE, node), None]
@@ -127,20 +130,25 @@ class PullDOM(xml.sax.ContentHandler):
         self.lastEvent = self.lastEvent[1]
 
     def startDocument(self):
-        node = self.curNode = self.document = minidom.Document()
-        node.parentNode = None
+        publicId = systemId = None
+        if self._locator:
+            publicId = self._locator.getPublicId()
+            systemId = self._locator.getSystemId()
+        if self.documentFactory is None:
+            import xml.dom.minidom
+            self.documentFactory = xml.dom.minidom.Document.implementation
+        node = self.documentFactory.createDocument(None, publicId, systemId)
+        self.curNode = self.document = node
         self.lastEvent[1] = [(START_DOCUMENT, node), None]
         self.lastEvent = self.lastEvent[1]
         #self.events.append((START_DOCUMENT, node))
 
     def endDocument(self):
-        assert not self.curNode.parentNode
-        for node in self.curNode.childNodes:
-            if node.nodeType == node.ELEMENT_NODE:
-                self.document.documentElement = node
-        #if not self.document.documentElement:
-        #    raise Error, "No document element"
-
+        assert self.curNode.parentNode is None, \
+               "not all elements have been properly closed"
+        assert self.curNode.documentElement is not None, \
+               "document does not contain a root element"
+        node = self.curNode.documentElement
         self.lastEvent[1] = [(END_DOCUMENT, node), None]
         #self.events.append((END_DOCUMENT, self.curNode))
 
@@ -148,9 +156,9 @@ class ErrorHandler:
     def warning(self, exception):
         print exception
     def error(self, exception):
-        raise exception 
+        raise exception
     def fatalError(self, exception):
-        raise exception 
+        raise exception
 
 class DOMEventStream:
     def __init__(self, stream, parser, bufsize):
@@ -162,7 +170,7 @@ class DOMEventStream:
     def reset(self):
         self.pulldom = PullDOM()
         # This content handler relies on namespace support
-        self.parser.setFeature(xml.sax.handler.feature_namespaces,1)
+        self.parser.setFeature(xml.sax.handler.feature_namespaces, 1)
         self.parser.setContentHandler(self.pulldom)
 
     def __getitem__(self, pos):
@@ -185,7 +193,7 @@ class DOMEventStream:
         if not self.pulldom.firstEvent[1]:
             self.pulldom.lastEvent = self.pulldom.firstEvent
         while not self.pulldom.firstEvent[1]:
-            buf=self.stream.read(self.bufsize)
+            buf = self.stream.read(self.bufsize)
             if not buf:
                 #FIXME: why doesn't Expat close work?
                 #self.parser.close()
@@ -208,26 +216,29 @@ class SAX2DOM(PullDOM):
     def processingInstruction(self, target, data):
         PullDOM.processingInstruction(self, target, data)
         node = self.lastEvent[0][1]
-        node.parentNode.appendChild(node)        
+        node.parentNode.appendChild(node)
 
     def ignorableWhitespace(self, chars):
         PullDOM.ignorableWhitespace(self, chars)
         node = self.lastEvent[0][1]
-        node.parentNode.appendChild(node)        
+        node.parentNode.appendChild(node)
 
     def characters(self, chars):
         PullDOM.characters(self, chars)
         node = self.lastEvent[0][1]
-        node.parentNode.appendChild(node)        
-    
+        node.parentNode.appendChild(node)
+
+
 default_bufsize = (2 ** 14) - 20
 
-def parse(stream_or_string, parser=None, bufsize=default_bufsize):
+def parse(stream_or_string, parser=None, bufsize=None):
+    if bufsize is None:
+        bufsize = default_bufsize
     if type(stream_or_string) in _StringTypes:
         stream = open(stream_or_string)
     else:
         stream = stream_or_string
-    if not parser: 
+    if not parser:
         parser = xml.sax.make_parser()
     return DOMEventStream(stream, parser, bufsize)
 
@@ -236,7 +247,7 @@ def parseString(string, parser=None):
         from cStringIO import StringIO
     except ImportError:
         from StringIO import StringIO
-        
+
     bufsize = len(string)
     buf = StringIO(string)
     if not parser:
