@@ -967,7 +967,7 @@ class CharacterData(Childless, Node):
     def substringData(self, offset, count):
         if offset < 0:
             raise xml.dom.IndexSizeErr("offset cannot be negative")
-        if offset >= len(self.data):
+        if offset > len(self.data):
             raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
         if count < 0:
             raise xml.dom.IndexSizeErr("count cannot be negative")
@@ -979,7 +979,7 @@ class CharacterData(Childless, Node):
     def insertData(self, offset, arg):
         if offset < 0:
             raise xml.dom.IndexSizeErr("offset cannot be negative")
-        if offset >= len(self.data):
+        if offset > len(self.data):
             raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
         if arg:
             self.data = "%s%s%s" % (
@@ -988,7 +988,7 @@ class CharacterData(Childless, Node):
     def deleteData(self, offset, count):
         if offset < 0:
             raise xml.dom.IndexSizeErr("offset cannot be negative")
-        if offset >= len(self.data):
+        if offset > len(self.data):
             raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
         if count < 0:
             raise xml.dom.IndexSizeErr("count cannot be negative")
@@ -998,7 +998,7 @@ class CharacterData(Childless, Node):
     def replaceData(self, offset, count, arg):
         if offset < 0:
             raise xml.dom.IndexSizeErr("offset cannot be negative")
-        if offset >= len(self.data):
+        if offset > len(self.data):
             raise xml.dom.IndexSizeErr("offset cannot be beyond end of data")
         if count < 0:
             raise xml.dom.IndexSizeErr("count cannot be negative")
