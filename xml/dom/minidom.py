@@ -195,8 +195,7 @@ class Node(xml.dom.Node, GetattrMagic):
         self.childNodes[:] = L
 
     def cloneNode(self, deep):
-        clone = _clone_node(self, deep, self.ownerDocument or self)
-        return clone
+        return _clone_node(self, deep, self.ownerDocument or self)
 
     def isSupported(self, feature, version):
         return self.ownerDocument.implementation.hasFeature(feature, version)
@@ -322,7 +321,7 @@ class Attr(Node):
     nodeType = Node.ATTRIBUTE_NODE
     attributes = None
     ownerElement = None
-    specified = 0
+    specified = False
 
     _child_node_types = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
 
@@ -941,6 +940,9 @@ class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
         # seq should be a list or tuple
         self._seq = seq
 
+    def __len__(self):
+        return len(self._seq)
+
     def _get_length(self):
         return len(self._seq)
 
@@ -1021,6 +1023,33 @@ class DocumentType(Identified, Childless, Node):
 
     def _get_internalSubset(self):
         return self.internalSubset
+
+    def cloneNode(self, deep):
+        if self.ownerDocument is None:
+            # it's ok
+            clone = DocumentType(None)
+            clone.name = self.name
+            clone.nodeName = self.name
+            operation = xml.dom.UserDataHandler.NODE_CLONED
+            if deep:
+                clone.entities._seq = []
+                clone.notations._seq = []
+                for n in self.notations._seq:
+                    notation = Notation(n.nodeName, n.publicId, n.systemId)
+                    clone.notations._seq.append(notation)
+                    n._call_user_data_handler(operation, n, notation)
+                for e in self.entities._seq:
+                    entity = Entity(e.nodeName, e.publicId, e.systemId,
+                                    e.notationName)
+                    entity.actualEncoding = e.actualEncoding
+                    entity.encoding = e.encoding
+                    entity.version = e.version
+                    clone.entities._seq.append(entity)
+                    e._call_user_data_handler(operation, n, entity)
+            self._call_user_data_handler(operation, self, clone)
+            return clone
+        else:
+            return None
 
     def writexml(self, writer, indent="", addindent="", newl=""):
         writer.write("<!DOCTYPE ")
@@ -1266,6 +1295,27 @@ class Document(Node, DocumentLS):
             self.doctype = None
         Node.unlink(self)
 
+    def cloneNode(self, deep):
+        if not deep:
+            return None
+        clone = self.implementation.createDocument(None, None, None)
+        clone.encoding = self.encoding
+        clone.standalone = self.standalone
+        clone.version = self.version
+        for n in self.childNodes:
+            childclone = _clone_node(n, deep, clone)
+            assert childclone.ownerDocument.isSameNode(clone)
+            clone.childNodes.append(childclone)
+            if childclone.nodeType == Node.DOCUMENT_NODE:
+                assert clone.documentElement is None
+            elif childclone.nodeType == Node.DOCUMENT_TYPE_NODE:
+                assert clone.doctype is None
+                clone.doctype = childclone
+            childclone.parentNode = clone
+        self._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
+                                     self, clone)
+        return clone
+
     def createDocumentFragment(self):
         d = DocumentFragment()
         d.ownerDocument = self
@@ -1362,7 +1412,11 @@ class Document(Node, DocumentLS):
     def isSupported(self, feature, version):
         return self.implementation.hasFeature(feature, version)
 
-    def importNode(self,node,deep):
+    def importNode(self, node, deep):
+        if node.nodeType == Node.DOCUMENT_NODE:
+            raise xml.dom.NotSupportedErr("cannot import document nodes")
+        elif node.nodeType == Node.DOCUMENT_TYPE_NODE:
+            raise xml.dom.NotSupportedErr("cannot import document type nodes")
         return _clone_node(node, deep, self)
 
     def writexml(self, writer, indent="", addindent="", newl="",
@@ -1421,9 +1475,11 @@ class Document(Node, DocumentLS):
             d['name'] = name
             if element is not None:
                 element.setAttributeNode(n)
-        # XXX not clear whether we should call the user data handlers
-        # for the NODE_RENAMED event since we're re-using the existing
-        # node.  This is a whole in the spec.
+        # It's not clear from a semantic perspective whether we should
+        # call the user data handlers for the NODE_RENAMED event since
+        # we're re-using the existing node.  The draft spec has been
+        # interpreted as meaning "no, don't call the handler unless a
+        # new node is created."
         return n
 
 defproperty(Document, "documentElement",
@@ -1435,11 +1491,17 @@ def _clone_node(node, deep, newOwnerDocument):
     Clone a node and give it the new owner document.
     Called by Node.cloneNode and Document.importNode
     """
+    if node.ownerDocument.isSameNode(newOwnerDocument):
+        operation = xml.dom.UserDataHandler.NODE_CLONED
+    else:
+        operation = xml.dom.UserDataHandler.NODE_IMPORTED
     if node.nodeType == Node.ELEMENT_NODE:
         clone = newOwnerDocument.createElementNS(node.namespaceURI,
                                                  node.nodeName)
         for attr in node.attributes.values():
             clone.setAttributeNS(attr.namespaceURI, attr.nodeName, attr.value)
+            a = clone.getAttributeNodeNS(attr.namespaceURI, attr.nodeName)
+            a.specified = attr.specified
 
         if deep:
             for child in node.childNodes:
@@ -1465,14 +1527,44 @@ def _clone_node(node, deep, newOwnerDocument):
     elif node.nodeType == Node.ATTRIBUTE_NODE:
         clone = newOwnerDocument.createAttributeNS(node.namespaceURI,
                                                    node.nodeName)
+        clone.specified = True
         clone.value = node.value
+    elif node.nodeType == Node.DOCUMENT_TYPE_NODE:
+        assert node.ownerDocument is not newOwnerDocument
+        operation = xml.dom.UserDataHandler.NODE_IMPORTED
+        clone = newOwnerDocument.implementation.createDocumentType(
+            node.name, node.publicId, node.systemId)
+        clone.ownerDocument = newOwnerDocument
+        if deep:
+            clone.entities._seq = []
+            clone.notations._seq = []
+            for n in node.notations._seq:
+                notation = Notation(n.nodeName, n.publicId, n.systemId)
+                notation.ownerDocument = newOwnerDocument
+                clone.notations._seq.append(notation)
+                if hasattr(n, '_call_user_data_handler'):
+                    n._call_user_data_handler(operation, n, notation)
+            for e in node.entities._seq:
+                entity = Entity(e.nodeName, e.publicId, e.systemId,
+                                e.notationName)
+                entity.actualEncoding = e.actualEncoding
+                entity.encoding = e.encoding
+                entity.version = e.version
+                entity.ownerDocument = newOwnerDocument
+                clone.entities._seq.append(entity)
+                if hasattr(e, '_call_user_data_handler'):
+                    e._call_user_data_handler(operation, n, entity)
     else:
-        raise Exception("Cannot clone node %s" % repr(node))
+        # Note the cloning of Document and DocumentType nodes is
+        # implemenetation specific.  minidom handles those cases
+        # directly in the cloneNode() methods.
+        raise xml.dom.NotSupportedErr("Cannot clone node %s" % repr(node))
 
-    # XXX Why would a node ever *not* have _call_user_data_handler() ??
+    # Check for _call_user_data_handler() since this could conceivably
+    # used with other DOM implementations (one of the FourThought
+    # DOMs, perhaps?).
     if hasattr(node, '_call_user_data_handler'):
-        node._call_user_data_handler(xml.dom.UserDataHandler.NODE_CLONED,
-                                     node, clone)
+        node._call_user_data_handler(operation, node, clone)
     return clone
 
 
@@ -1489,22 +1581,30 @@ def _get_StringIO():
     from StringIO import StringIO
     return StringIO()
 
-def _doparse(func, args, kwargs):
+def _do_pulldom_parse(func, args, kwargs):
     events = apply(func, args, kwargs)
     toktype, rootNode = events.getEvent()
     events.expandNode(rootNode)
     events.clear()
     return rootNode
 
-def parse(*args, **kwargs):
+def parse(file, parser=None, bufsize=None):
     """Parse a file into a DOM by filename or file object."""
-    from xml.dom import pulldom
-    return _doparse(pulldom.parse, args, kwargs)
+    if parser is None and not bufsize:
+        from xml.dom import expatbuilder
+        return expatbuilder.parse(file)
+    else:
+        from xml.dom import pulldom
+        return _do_pulldom_parse(pulldom.parse, args, kwargs)
 
-def parseString(*args, **kwargs):
+def parseString(string, parser=None):
     """Parse a file into a DOM from a string."""
-    from xml.dom import pulldom
-    return _doparse(pulldom.parseString, args, kwargs)
+    if parser is None:
+        from xml.dom import expatbuilder
+        return expatbuilder.parseString(string)
+    else:
+        from xml.dom import pulldom
+        return _do_pulldom_parse(pulldom.parseString, args, kwargs)
 
 def getDOMImplementation():
     return Document.implementation
