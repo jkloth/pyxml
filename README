@@ -11,7 +11,9 @@ For information on the licensing conditions for each component,
 consult the LICENCE file.
 
 The only requirements for installing the package are Python 2.0 or
-later, and a C compiler. This release has been tested with Python 2.x.
+later, and a C compiler. Note that the Python must actually be an
+INSTALLed python, rather than one that is being used directly from
+Python's build area. This release has been tested with Python 2.x.
 
 To compile everything, simply perform the following steps.
 
