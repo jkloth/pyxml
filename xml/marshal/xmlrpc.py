@@ -1,4 +1,3 @@
-
 from generic import *
 
 # XXX how to marshal iso8601 dates?
@@ -11,9 +10,9 @@ class TruthValue:
     def __init__(self, value): self.value = value
     def __nonzero__(self): return self.value
     def __repr__(self):
-        if self.value: return "<TruthValue instance: True>" 
-        else: return "<TruthValue instance: False>" 
-    
+        if self.value: return "<TruthValue instance: True>"
+        else: return "<TruthValue instance: False>"
+
 TRUE = TruthValue(1)
 FALSE = TruthValue(0)
 
@@ -38,7 +37,7 @@ class XMLRPCMarshaller(Marshaller):
         return L
 
     m_tuple = m_list
-    
+
     def m_dictionary(self, value, dict):
         L = []
         i = str( id(value) ) ; dict[ i ] = 1
@@ -66,7 +65,7 @@ class XMLRPCUnmarshaller(Unmarshaller):
         'member': ('um_start_ignore', 'um_end_ignore'),
         'struct': ('um_start_dictionary', 'um_end_dictionary'),
         }
-    
+
     um_start_boolean = Unmarshaller.um_start_generic
     def um_end_boolean(self, name):
         ds = self.data_stack
@@ -102,7 +101,7 @@ class XMLRPCUnmarshaller(Unmarshaller):
             d[key] = value
         ds[index:] = [ d ]
 
-        
+
 _m = XMLRPCMarshaller()
 dump = _m.dump ; dumps = _m.dumps
 _um = XMLRPCUnmarshaller()
@@ -111,7 +110,7 @@ load = _um.load ; loads = _um.loads
 def runtests():
     print "Testing XML-RPC marshalling..."
     test(load, loads, dump, dumps,
-         [TRUE, FALSE, 1, 19.72,  
+         [TRUE, FALSE, 1, 19.72,
           "here is a string & a <fake tag>",
           [12, 'Egypt', FALSE, -31],
 #          ('alpha', 'beta', 'gamma', 5),
@@ -122,4 +121,3 @@ def runtests():
 
 if __name__ == '__main__':
     runtests()
-

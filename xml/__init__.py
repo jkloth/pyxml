@@ -1,4 +1,3 @@
-
 __all__ = ['dom', 'marshal', 'parsers', 'sax', 'utils']
 
 # Needs to synchronize with setup.py

@@ -12,7 +12,7 @@ from setupext import Data_Files, install_Data_Files
 # I want to override the default build directory so the extension
 # modules are compiled and placed in the build/xml directory
 # tree.  This is a bit clumsy, but I don't see a better way to do
-# this at the moment. 
+# this at the moment.
 
 # Use either unixfilemap or readfilemap depending on the platform
 if sys.platform == 'win32':
@@ -29,11 +29,11 @@ ext_modules = []
 # Rename xml to _xmlplus for Python 2.0
 
 if sys.hexversion < 0x2000000:
-  def xml(s):
-    return "xml"+s
+    def xml(s):
+        return "xml"+s
 else:
-  def xml(s):
-    return "_xmlplus"+s
+    def xml(s):
+        return "_xmlplus"+s
 
 def should_build_pyexpat():
     try:
@@ -120,16 +120,16 @@ if sys.platform == 'win32':
 # files which are considered documentation (doc, demo, test, plus some
 # toplevel files)
 docfiles="""
-recursive-include doc *.html 
-recursive-include doc *.tex 
-recursive-include doc *.txt 
-recursive-include doc *.gif 
+recursive-include doc *.html
+recursive-include doc *.tex
+recursive-include doc *.txt
+recursive-include doc *.gif
 recursive-include doc *.css
 recursive-include doc *.api
 recursive-include doc *.web
 
-recursive-include demo README 
-recursive-include demo *.py 
+recursive-include demo README
+recursive-include demo *.py
 recursive-include demo *.xml
 recursive-include demo *.dtd
 recursive-include demo *.html
@@ -140,16 +140,16 @@ include demo/xbel/doc/xbel.bib
 include demo/xbel/doc/xbel.tex
 include demo/xmlproc/catalog.soc
 
-recursive-include test *.py 
+recursive-include test *.py
 recursive-include test *.xml
 include test/test.xml.out
 recursive-include test/output test_*
 
-include ANNOUNCE 
-include CREDITS 
-include LICENCE 
-include README* 
-include TODO 
+include ANNOUNCE
+include CREDITS
+include LICENCE
+include README*
+include TODO
 """
 
 if doc2xmldoc:
@@ -173,17 +173,17 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
 """,
 
        # Override certain command classes with our own ones
-       cmdclass = {'install_data':install_Data_Files}, 
-       
+       cmdclass = {'install_data':install_Data_Files},
+
        package_dir = {xml(''):'xml'},
 
        data_files = xmldocfiles,
-       
-       packages = [xml(''), 
+
+       packages = [xml(''),
                    xml('.dom'), xml('.dom.html'), xml('.dom.ext'),
                    xml('.dom.ext.reader'),
                    xml('.marshal'), xml('.unicode'),
-                   xml('.parsers'), xml('.parsers.xmlproc'), 
+                   xml('.parsers'), xml('.parsers.xmlproc'),
                    xml('.sax'), xml('.sax.drivers'),
                    xml('.sax.drivers2'), xml('.utils')
                    ],

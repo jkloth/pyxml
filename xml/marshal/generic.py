@@ -1,7 +1,6 @@
-
 # Generic class for marshalling simple Python data types into an XML-based
 # format.  The interface is the same as the built-in module of the
-# same name, with four functions: 
+# same name, with four functions:
 #   dump(value, file), load(file)
 #   dumps(value), loads(string)
 
@@ -42,10 +41,10 @@ class Marshaller(saxlib.HandlerBase):
         dict = { 'id':1 }
         root_tag = self.m_root(value, dict)
         L = self._marshal(value, dict )
-        L = ( [self.PROLOGUE + self.DTD] + root_tag + 
+        L = ( [self.PROLOGUE + self.DTD] + root_tag +
               L +
               ['</' + self.tag_root + '>'] )
-        
+
         # XXX should this just loop through the L and call file.write
         # for each item?
         file.write( string.join(L, "") )
@@ -58,9 +57,9 @@ class Marshaller(saxlib.HandlerBase):
         L = ( [self.PROLOGUE + self.DTD] + root_tag +
               L +
               ['</' + self.tag_root + '>'] )
-        return string.join(L, "") 
+        return string.join(L, "")
 
-    # Entry point for marshalling.  This function gets the name of the 
+    # Entry point for marshalling.  This function gets the name of the
     # type of the object being marshalled, and calls the
     # m_<typename> method.  This method must return a list of strings,
     # which will be returned to the caller.
@@ -68,7 +67,7 @@ class Marshaller(saxlib.HandlerBase):
     # (This function can be called recursively, so it shouldn't
     # return just a single.  The top-level caller will perform a
     # single string.join to get the resulting XML document.
-    # 
+    #
     # dict is a dictionary whose keys are used to store the IDs of
     # objects that have already been marshalled, in order to allow
     # writing a reference to them.
@@ -79,11 +78,11 @@ class Marshaller(saxlib.HandlerBase):
     def _marshal(self, value, dict):
         t = type(value) ; i = str( id(value) )
         if dict.has_key( i ):
-            return self.m_reference( value, dict ) 
+            return self.m_reference( value, dict )
         else:
             if type(value) == type(1L): meth = 'm_long'
             else: meth = "m_" + type(value).__name__
-            return getattr(self,meth)(value, dict) 
+            return getattr(self,meth)(value, dict)
 
     # Utility function, used for types that aren't implemented
     def m_unimplemented(self, value, dict):
@@ -113,7 +112,7 @@ class Marshaller(saxlib.HandlerBase):
         L.append( s )
         L.append( '</' + name + '>')
         return L
-    
+
     def m_int(self, value, dict):
         name = self.tag_int ; L = []
         L.append( '<' + name + '>' + str(value) + '</' + name + '>' )
@@ -143,7 +142,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_list(self, value, dict):
         name = self.tag_list ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
         dict[ str(id(value)) ] = i ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' % (i,))
         for elem in value:
@@ -153,7 +152,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_dictionary(self, value, dict):
         name = self.tag_dictionary ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
         dict[ str(id(value)) ] = i ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' %(i,) )
         for key, v in value.items():
@@ -188,10 +187,10 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_instance(self, value, dict):
         name = self.tag_instance ; L = []
-        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id'])
         dict[ str(id(value)) ] = i ; dict[ i ] = value
         cls = value.__class__
-        L.append( '<%s id="i%s" module="%s" class="%s">' 
+        L.append( '<%s id="i%s" module="%s" class="%s">'
                  % (name, i, cls.__module__, cls.__name__) )
 
         # Check for pickle's __getinitargs__
@@ -212,7 +211,7 @@ class Marshaller(saxlib.HandlerBase):
             stuff = getstate()
 
         L = L + self._marshal(stuff, dict)
-        
+
         L.append('</%s>' % (name,) )
         return L
 
@@ -222,14 +221,14 @@ class Marshaller(saxlib.HandlerBase):
 # objects are processed.  When the </tuple> tag is found, the code
 # looks back into the stack until TUPLE is found; all the higher
 # objects are then collected into a tuple.  Ditto for lists...
- 
-TUPLE = {} ; LIST = {} ; DICT = {} 
+
+TUPLE = {} ; LIST = {} ; DICT = {}
 
 class Unmarshaller(saxlib.HandlerBase):
     # This dictionary maps element names to the names of starting and ending
     # functions to call when unmarshalling them.  My convention is to
     # name them um_start_foo and um_end_foo, but do whatever you like.
-    
+
     unmarshal_meth = {
         'marshal': ('um_start_root', None),
         'int': ('um_start_int', 'um_end_int'),
@@ -260,7 +259,7 @@ class Unmarshaller(saxlib.HandlerBase):
         "Unmarshal one value, reading it from a file-like object"
         # Instatiate a new object; unmarshalling isn't thread-safe
         # with a single object because it modifies attributes on the
-        # object.  
+        # object.
         m = self.__class__()
         return m._load(file)
 
@@ -276,7 +275,7 @@ class Unmarshaller(saxlib.HandlerBase):
     # Basic unmarshalling routine; it creates a SAX XML parser,
     # registers self as the SAX handler, parses it, and returns
     # the only thing on the data stack.
-    
+
     def _load(self, file):
         "Read one value from the open file"
         from xml.sax import saxexts
@@ -299,7 +298,7 @@ class Unmarshaller(saxlib.HandlerBase):
         klass = env[name]
         return klass
 
-    
+
     # SAXlib handler methods.
     #
     # Unmarshalling is done by creating a stack (a Python list) on
@@ -312,10 +311,10 @@ class Unmarshaller(saxlib.HandlerBase):
     #
     # The ending methods can then do string.join() on the list on the
     # top of the stack, and convert it to whatever Python type is
-    # required.  The resulting Python object then replaces the list on 
+    # required.  The resulting Python object then replaces the list on
     # the top of the stack.
-    # 
-        
+    #
+
     def startElement(self, name, attrs):
         # Call the start unmarshalling method, if specified
         sm, em = self.unmarshal_meth[ name ]
@@ -345,7 +344,7 @@ class Unmarshaller(saxlib.HandlerBase):
     um_start_float = um_start_long = um_start_string = um_start_generic
     um_start_complex = um_start_code = um_start_none = um_start_generic
     um_start_int = um_start_generic
-    
+
     def um_end_string(self, name):
         ds = self.data_stack
         # might need to convert unicode string to byte string
@@ -458,7 +457,7 @@ class Unmarshaller(saxlib.HandlerBase):
         if not instantiated:
             try:
                 # Uh oh... we need to call the constructor with the initial
-                # arguments, but we also have to preserve the identity of 
+                # arguments, but we also have to preserve the identity of
                 # the object, to keep recursive objects right.
                 v2 = apply(klass, initargs)
             except TypeError, err:
@@ -474,7 +473,7 @@ class Unmarshaller(saxlib.HandlerBase):
         self.data_stack[ -5: ] = [value]
 
 # Helper class for instance unmarshalling
-class _EmptyClass: pass         
+class _EmptyClass: pass
 
 _m = Marshaller()
 dump = _m.dump ; dumps = _m.dumps
@@ -505,24 +504,24 @@ def test(load, loads, dump, dumps, test_values,
             assert item==output and item==output2 and output==output2
 
 # Classes used in the test suite
-class _A: 
+class _A:
     def __repr__(self): return '<A instance>'
-class _B: 
+class _B:
     def __repr__(self): return '<B instance>'
 
 def runtests():
     print "Testing XML marshalling..."
 
-    L = [None, 1, pow(2,123L), 19.72, 1+5j, 
+    L = [None, 1, pow(2,123L), 19.72, 1+5j,
          "here is a string & a <fake tag>",
-         (1,2,3), 
+         (1,2,3),
          ['alpha', 'beta', 'gamma'],
          {'key':'value', 1:2}
          ]
     test(load, loads, dump, dumps, L)
 
-    instance = _A() ; instance.subobject = _B() 
-    instance.subobject.list=[None, 1, pow(2,123L), 19.72, 1+5j, 
+    instance = _A() ; instance.subobject = _B()
+    instance.subobject.list=[None, 1, pow(2,123L), 19.72, 1+5j,
                              "here is a string & a <fake tag>"]
     instance.self = instance
     L = [ instance ]

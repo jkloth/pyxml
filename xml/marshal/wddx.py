@@ -1,4 +1,3 @@
-
 from generic import *
 
 # WDDX has a Boolean type.  We need to generate such variables, so
@@ -9,8 +8,8 @@ class TruthValue:
     def __init__(self, value): self.value = value
     def __nonzero__(self): return self.value
     def __repr__(self):
-        if self.value: return "<TruthValue instance: True>" 
-        else: return "<TruthValue instance: False>" 
+        if self.value: return "<TruthValue instance: True>"
+        else: return "<TruthValue instance: False>"
 
 TRUE = TruthValue(1)
 FALSE = TruthValue(0)
@@ -19,11 +18,11 @@ RECORDSET = {}
 import UserDict
 class RecordSet(UserDict.UserDict):
     def __init__(self, fields, *lists):
-        UserDict.UserDict.__init__(self)        
+        UserDict.UserDict.__init__(self)
         if len(fields) != len(lists):
             raise ValueError, "Number of fields and lists must be the same"
         for L in lists[1:]:
-            if len(L) != len(lists[0]): 
+            if len(L) != len(lists[0]):
                 raise ValueError, "Number of entries in each list must be the same"
         self.fields = fields
         for i in range(len(fields)):
@@ -40,7 +39,7 @@ class WDDXMarshaller(Marshaller):
     m_reference = m_tuple = Marshaller.m_unimplemented
     m_dictionary = m_None = m_code = Marshaller.m_unimplemented
     m_complex = Marshaller.m_unimplemented
-    
+
     def m_root(self, value, dict):
         return ['<%s version="%s">' % (self.tag_root, self.wddx_version) ]
 
@@ -54,7 +53,7 @@ class WDDXMarshaller(Marshaller):
         elif value is FALSE: return ['<boolean value="false"/>']
 
     def m_recordset(self, value, dict):
-        L = ['<recordSet rowCount="%i" fieldNames="%s">' % 
+        L = ['<recordSet rowCount="%i" fieldNames="%s">' %
              (len(value), string.join( value.fields, ',') )]
         for f in value.fields:
             recs = value[f]
@@ -64,7 +63,7 @@ class WDDXMarshaller(Marshaller):
 
         L.append('</recordSet>')
         return L
-             
+
     def m_list(self, value, dict):
         L = []
         i = str(id(value)) ; dict[ i ] = 1
@@ -110,7 +109,7 @@ class WDDXUnmarshaller(Unmarshaller):
         else: ds[-1] = FALSE
 
     um_start_number = Unmarshaller.um_start_generic
-    um_end_number = Unmarshaller.um_end_float 
+    um_end_number = Unmarshaller.um_end_float
 
     def um_start_var(self, name, attrs):
         name = attrs['name']
@@ -145,14 +144,14 @@ _m = WDDXMarshaller()
 dump = _m.dump ; dumps = _m.dumps
 _um = WDDXUnmarshaller()
 load = _um.load ; loads = _um.loads
-    
+
 def runtests():
     print "Testing WDDX marshalling..."
     recordset = RecordSet( ['NAME', 'AGE'],
                            ['John Doe', 'Jane Doe'],
                            [34, 31] )
     test(load, loads, dump, dumps,
-         [TRUE, FALSE, 1, pow(2,123L), 19.72,  
+         [TRUE, FALSE, 1, pow(2,123L), 19.72,
           "here is a string & a <fake tag>",
           [1,2,3,"foo"], recordset,
           {'lowerBound':18, 'upperBound': 139,
