@@ -1,6 +1,6 @@
 
 
-TEST_FILE = '../../demo/4DOM/addr_book1.xml'
+TEST_FILE = '../../demo/dom/addr_book1.xml'
 
 from xml.dom.ext.reader import PyExpat
 from xml.dom import Node
@@ -522,7 +522,7 @@ def test(tester=None):
     tester.testDone()
 
 
-    tester.startTest("Range.surrondContents")
+    tester.startTest("Range.surroundContents")
     ReadDoc()
     range = doc.createRange()
     range.setStart(PA,0)
@@ -530,10 +530,8 @@ def test(tester=None):
 
     newNode = doc.createElement('FOO')
 
-    range.surrondContents(newNode)
+    range.surroundContents(newNode)
 
-
-    #I think these results are wrong because extractContent does not collapse properly
 
     tester.testResults(4,len(PA.childNodes),done=0,msg='insertNode 1')
     tester.testResults(newNode,PA.childNodes[1],done=0,msg='insertNode 2')
