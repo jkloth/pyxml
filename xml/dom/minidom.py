@@ -794,6 +794,7 @@ class Document(Node):
     def createAttribute(self, qName):
         a = Attr(qName)
         a.ownerDocument = self
+        a.value = ""
         return a
 
     def createElementNS(self, namespaceURI, qualifiedName):
@@ -806,6 +807,7 @@ class Document(Node):
         prefix, localName = _nssplit(qualifiedName)
         a = Attr(qualifiedName, namespaceURI, localName, prefix)
         a.ownerDocument = self
+        a.value = ""
         return a
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
