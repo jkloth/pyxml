@@ -94,16 +94,16 @@ class ExpatBuilder:
         if not self._parser:
             self._parser = self.createParser()
             self._intern_setdefault = self._parser.intern.setdefault
-            self._parser.buffer_text = 1
-            self._parser.ordered_attributes = 1
-            self._parser.specified_attributes = 1
+            self._parser.buffer_text = True
+            self._parser.ordered_attributes = True
+            self._parser.specified_attributes = True
             self.install(self._parser)
         return self._parser
 
     def reset(self):
         """Free all data structures used during DOM construction."""
         self.document = None
-        self._cdata = 0
+        self._cdata = False
         self._standalone = -1
         self._version = None
         self._encoding = None
@@ -141,7 +141,7 @@ class ExpatBuilder:
         """Parse a document from a file object, returning the document
         node."""
         parser = self.getParser()
-        first_buffer = 1
+        first_buffer = True
         try:
             while 1:
                 buffer = file.read(16*1024)
@@ -151,8 +151,8 @@ class ExpatBuilder:
                 if first_buffer and self.document:
                     if self.document.doctype:
                         self._setup_subset(buffer)
-                    first_buffer = 0
-            parser.Parse("", 1)
+                first_buffer = False
+            parser.Parse("", True)
         except ParseEscape:
             pass
         doc = self.document
@@ -164,7 +164,7 @@ class ExpatBuilder:
         """Parse a document from a string, returning the document node."""
         parser = self.getParser()
         try:
-            parser.Parse(string, 1)
+            parser.Parse(string, True)
             self._setup_subset(string)
         except ParseEscape:
             pass
@@ -205,7 +205,7 @@ class ExpatBuilder:
                 childNodes[-1].appendData(data)
                 return
             node = self.document.createCDATASection(data)
-            self._cdata_continue = 1
+            self._cdata_continue = True
         elif childNodes and childNodes[-1].nodeType == TEXT_NODE:
             node = childNodes[-1]
             node.data = node.data + data
@@ -267,12 +267,12 @@ class ExpatBuilder:
                 curNode.removeChild(node)
 
     def start_cdata_section_handler(self):
-        self._cdata = 1
-        self._cdata_continue = 0
+        self._cdata = True
+        self._cdata_continue = False
 
     def end_cdata_section_handler(self):
-        self._cdata = 0
-        self._cdata_continue = 0
+        self._cdata = False
+        self._cdata_continue = False
 
     def external_entity_ref_handler(self, context, base, systemId, publicId):
         return 1
@@ -363,7 +363,7 @@ class ExpatBuilder:
         #
         for child in L:
             if self._options.whitespace_in_element_content:
-                child.__dict__['isWhitespaceInElementContent'] = 1
+                child.__dict__['isWhitespaceInElementContent'] = True
             else:
                 node.removeChild(child)
 
@@ -684,7 +684,7 @@ class Namespaces:
     def createParser(self):
         """Create a new namespace-handling parser."""
         parser = expat.ParserCreate(namespace_separator=" ")
-        parser.namespace_prefixes = 1
+        parser.namespace_prefixes = True
         return parser
 
     def install(self, parser):
