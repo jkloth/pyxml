@@ -375,6 +375,30 @@ def testAttrListKeys(): pass
 
 def testAttrListKeysNS(): pass
 
+def testRemoveNamedItem():
+    doc = parseString("<doc a=''/>")
+    e = doc.documentElement
+    attrs = e.attributes
+    a1 = e.getAttributeNode("a")
+    a2 = attrs.removeNamedItem("a")
+    confirm(a1.isSameNode(a2))
+    try:
+        attrs.removeNamedItem("a")
+    except xml.dom.NotFoundErr:
+        pass
+
+def testRemoveNamedItemNS():
+    doc = parseString("<doc xmlns:a='http://xml.python.org/' a:b=''/>")
+    e = doc.documentElement
+    attrs = e.attributes
+    a1 = e.getAttributeNodeNS("http://xml.python.org/", "b")
+    a2 = attrs.removeNamedItemNS("http://xml.python.org/", "b")
+    confirm(a1.isSameNode(a2))
+    try:
+        attrs.removeNamedItemNS("http://xml.python.org/", "b")
+    except xml.dom.NotFoundErr:
+        pass
+
 def testAttrListValues(): pass
 
 def testAttrListLength(): pass
