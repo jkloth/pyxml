@@ -20,7 +20,9 @@ class Filter(xmlbuilder.DOMBuilderFilter):
 
     def acceptNode(self, node):
         assert node.nodeType == Node.ELEMENT_NODE
-        if node.tagName == "rejectafter":
+        if node.tagName == "skipafter":
+            return self.FILTER_SKIP
+        elif node.tagName == "rejectafter":
             return self.FILTER_REJECT
         elif node.tagName == "stopafter":
             return self.FILTER_INTERRUPT
@@ -127,14 +129,7 @@ checkResult("<rejectafter/>")
 checkResult("<stopbefore/>")
 
 checkResult("<doc>text<stopbefore> and </stopbefore>more</doc>")
-# Note that this doesn't do what we (intuitively) expect; the current
-# WD does not support FILTER_INTERRUPT as a return value for
-# acceptNode().
-try:
-    checkResult("<doc>text<stopafter> and </stopafter>more</doc>")
-except ValueError:
-    pass
-
+checkResult("<doc>text<stopafter> and </stopafter>more</doc>")
 
 checkFilterEvents("<doc/>", [])
 checkFilterEvents("<doc attr='value'/>", [])

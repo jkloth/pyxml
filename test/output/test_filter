@@ -44,3 +44,5 @@ test_filter
 <?xml version="1.0" ?>
 <doc>text<stopbefore/></doc>
 
+<?xml version="1.0" ?>
+<doc>text<stopafter> and </stopafter></doc>
