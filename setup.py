@@ -38,6 +38,10 @@ else:
 build_pyexpat = 0
 try:
     import pyexpat
+    # We need ExternalEntityParserCreate, which is available only from
+    # 2.25 on.
+    if pyexpat.__version__ < '2.25':
+        build_pyexpat = 1
 except ImportError:
     build_pyexpat = 1
 
