@@ -2,7 +2,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.17 2004/11/29 13:09:07 loewis Exp $
+$Id: drv_pyexpat.py,v 1.18 2004/11/29 13:15:22 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -71,7 +71,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.parser.Parse("", 1)
 
         self.doc_handler.endDocument()
-        self.close()
+        self.close(needFinal=0)
 
     # --- Locator methods. Only usable after errors.
 
@@ -125,12 +125,13 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         if self.parser.Parse(data, 0) != 1:
             self.__report_error()
 
-    def close(self):
+    def close(self, needFinal=1):
         if self.parser is None:
             # make sure close is idempotent
             return
-        if self.parser.Parse("", 1) != 1:
-            self.__report_error()
+	if needFinal:
+            if self.parser.Parse("", 1) != 1:
+                self.__report_error()
         self.parser = None
 
 # --- An expat driver that uses the lazy map
