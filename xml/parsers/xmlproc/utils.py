@@ -1,29 +1,37 @@
 """
 Some utilities for use with xmlproc.
 
-$Id: utils.py,v 1.2 2000/09/26 14:43:10 loewis Exp $
+$Id: utils.py,v 1.3 2001/03/27 19:27:43 larsga Exp $
 """
 
 import xmlapp,sys,string,types
 
 replace = string.replace
 
+if sys.platform[ : 4] == "java":
+    from java.lang import Exception
+
+# --- XMLParseException
+
+class XMLParseException(Exception):
+    pass
+    
+
 # --- ErrorPrinter
 
 class ErrorPrinter(xmlapp.ErrorHandler):
     """An error handler that prints out warning messages."""
 
-    def __init__(self,locator,level=0,out=sys.stderr):
-	self.locator=locator
-        self.level=level
-        self.out=out
+    def __init__(self, level = 0, out = sys.stderr):
+        self.level = level
+        self.out = out
 	
     def warning(self,msg):
-        if self.level<1:
+        if self.level < 1:
             self.out.write("WARNING: %s at %s\n" % (msg,self.__get_location()))
 
     def error(self,msg):
-        if self.level<2:
+        if self.level < 2:
             self.out.write("ERROR: %s at %s\n" % (msg,self.__get_location()))
     
     def fatal(self,msg):
@@ -33,12 +41,32 @@ class ErrorPrinter(xmlapp.ErrorHandler):
         return "%s:%d:%d" % (self.locator.get_current_sysid(),
                              self.locator.get_line(),
                              self.locator.get_column())
+# --- ErrorRaiser
+    
+class ErrorRaiser(xmlapp.ErrorHandler):
+    """An error handler that raises exceptions."""
+
+    def __init__(self, level = 0):
+        xmlapp.ErrorHandler.__init__(self, locator)
+        
+    def warning(self, msg):
+        if self.level < 1:
+            raise XMLParseException(msg)
+
+    def error(self, msg):
+        if self.level < 2:
+            raise XMLParseException(msg)
+    
+    def fatal(self, msg):
+        raise XMLParseException(msg)
+       
 # --- ErrorCounter
     
 class ErrorCounter(xmlapp.ErrorHandler):
     """An error handler that counts errors."""
 
-    def __init__(self,locator):
+    def __init__(self, locator = None):
+        xmlapp.ErrorHandler.__init__(self, locator)
         self.reset()
         
     def reset(self):
@@ -54,7 +82,7 @@ class ErrorCounter(xmlapp.ErrorHandler):
     
     def fatal(self,msg):
         self.fatals=self.fatals+1
-
+ 
 # --- ESIS document handler
 
 class ESISDocHandler(xmlapp.Application):
@@ -194,4 +222,3 @@ def validate_doc(dtd,sysid):
     parser.parse_resource(sysid)
 
     dtd.rollback_changes()
-
