@@ -4,7 +4,7 @@ one, so this module is the only one one needs to import. For validating
 parsing, import xmlval instead.
 """
 
-# $Id: xmlproc.py,v 1.22 2001/12/30 12:09:14 loewis Exp $
+# $Id: xmlproc.py,v 1.23 2002/03/22 08:02:00 jkloth Exp $
 
 import re,string,sys,urllib,urlparse
 
@@ -17,7 +17,7 @@ from xmlapp import *
 from xmldtd import *
 
 version="0.70"
-revision="$Revision: 1.22 $"
+revision="$Revision: 1.23 $"
 
 # ==============================
 # A full well-formedness parser
@@ -500,9 +500,9 @@ class XMLProcessor(XMLCommonParser):
                 self.report_error(2024, sys_id)
 
             if self.read_external_subset:
+                p = self._setup_dtd_parser(0)
                 try:
                     sys_id = self.pubres.resolve_doctype_pubid(pub_id, sys_id)
-                    p = self._setup_dtd_parser(0)
                     p.dtd_start_called = 1
                     p.parse_resource(join_sysids(self.get_current_sysid(),
                                                  sys_id))
