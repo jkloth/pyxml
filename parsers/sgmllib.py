@@ -420,21 +420,7 @@ class FastSGMLParser:
 
     # Internal -- finish processing of start tag
     # Return -1 for unknown tag, 0 for open-only tag, 1 for balanced tag
-    def finish_starttag(self, tag, data):
-	# FIXME: should use the sgmlop attribute parser!!!
-	attrs = []
-	k, j = 0, len(data)
-	while k < j:
-	    match = attrfind.match(data, k)
-	    if not match: break
-	    attrname, rest, attrvalue = match.group(1, 2, 3)
-	    if not rest:
-		attrvalue = attrname
-	    elif attrvalue[:1] == '\'' == attrvalue[-1:] or \
-		 attrvalue[:1] == '"' == attrvalue[-1:]:
-		attrvalue = attrvalue[1:-1]
-	    attrs.append((string.lower(attrname), attrvalue))
-	    k = match.end(0)
+    def finish_starttag(self, tag, attrs):
 	# FIXME: should move this logic into sgmlop!
 	try:
 	    method = getattr(self, 'start_' + tag)
