@@ -32,7 +32,7 @@ class OutputStream:
 
 class XmlWriter(Walker):
 
-	def __init__(self, stream=sys.stdout):
+	def __init__(self, stream=sys.stdout, nl_dict={}):
 		self.stream = OutputStream(stream)
 		self.empties = []
 		self.strip = []
@@ -42,6 +42,22 @@ class XmlWriter(Walker):
 		self.newline_before_end = []
 		self.newline_after_end = []
 		self.map_attr = self.map_tag = lambda x: x
+		self._setNewLines(nl_dict)
+
+	def _setNewLines(self,nl_dict):
+		for k, v in nl_dict.items():
+			if v[0]:
+				self.newline_before_start.append(k)
+				self.newline_before_start.append(string.upper(k))
+			if v[1]:
+				self.newline_after_start.append(k)
+				self.newline_after_start.append(string.upper(k))
+			if v[2]:
+				self.newline_before_end.append(k)
+				self.newline_before_end.append(string.upper(k))
+			if v[3]:
+				self.newline_after_end.append(k)
+				self.newline_after_end.append(string.upper(k))
 
 	def write(self, x):
 		if type(x) == type(''):
@@ -148,19 +164,8 @@ class HtmlWriter(XmlWriter):
 			'p': (1, 0, 0, 1),
 			'br': (1, 1, 0, 0),
 		}
-		for k, v in nl_dict.items():
-			if v[0]:
-				self.newline_before_start.append(k)
-				self.newline_before_start.append(string.upper(k))
-			if v[1]:
-				self.newline_after_start.append(k)
-				self.newline_after_start.append(string.upper(k))
-			if v[2]:
-				self.newline_before_end.append(k)
-				self.newline_before_end.append(string.upper(k))
-			if v[3]:
-				self.newline_after_end.append(k)
-				self.newline_after_end.append(string.upper(k))
+		
+		self._setNewLines(nl_dict)
 
 
 class HtmlLineariser(HtmlWriter):
