@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.20 2001/06/07 19:18:19 larsga Exp $
+# $Id: xmlutils.py,v 1.21 2001/06/07 19:36:47 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -210,8 +210,6 @@ class EntityParser:
         self.final=0
         self.datasize=0
         self.start_point=-1
-        self.must_decode=-1 # do we have to decode data fed to us or not?
-                            # -1: dunno yet, 0: no, 1: yes
     
         # Location tracking
         self.line=1
@@ -286,12 +284,6 @@ class EntityParser:
         if self.first_feed:
             self.first_feed = 0                    
             self.parseStart()
-            self.must_decode = not decoded # now we know if we have to decode
-
-        if self.must_decode != (not decoded):
-            # client code has been inconsistent in its use of the decoded
-            # flag, or has mixed Unicode and byte strings
-            self.report_error(3800)
 
         new_data = new_data + self.encoded_data
         self.encoded_data = ""

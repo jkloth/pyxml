@@ -120,9 +120,6 @@ english={
     3043: "Conditional section not closed",
     3044: "Token '%s' defined more than once",
     # next: 3049
-
-    # Special errors deriving from bad use of the API
-    3800: "Inconsistent data fed. Data must always be either Unicode or byte strings throughout a single parse.",
     
     # From regular expressions that were not matched
     3900: "Not a valid name",
@@ -250,9 +247,6 @@ norsk.update({
     3041: "'Conditional sections' er ikke tillatt i det interne DTD-subsettet",
     3043: "'Conditional section' ikke lukket",
     3044: "Symbolet '%s' er definert mer enn en gang",
-
-    # Special errors deriving from bad use of the API
-    3800: "Inkonsistens i inndata: må alltid bruke enten bare Unicode- eller byte-strenger i samme dokument.",
     
     # From regular expressions that were not matched
     3900: "Ikke et gyldig navn",
