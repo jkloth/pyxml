@@ -1,5 +1,5 @@
 
-XML package v0.7.1
+XML package v0.8
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM
@@ -10,10 +10,8 @@ xmllib.py by a factor of 5.  There's even documentation!
 For information on the licensing conditions for each component,
 consult the LICENCE file.
 
-The only requirements for installing the package are Python 1.5 or
-later, and a C compiler (unless the pyexpat module is already part of
-your Python installation). This release has been tested with Python
-2.x and Python 1.5.2.
+The only requirements for installing the package are Python 2.0 or
+later, and a C compiler. This release has been tested with Python 2.x.
 
 To compile everything, simply perform the following steps.
 
@@ -27,7 +25,8 @@ If you intend to install FourThought's 4Suite package, there may be a
 conflict between the packages xml.xpath and xml.xslt provided here,
 and those provided by 4Suite. In this case, it is advisable not to
 install XPath and XSLT support from this package. To do so, pass the
-options --without-xpath and --without-xslt to setup.py.
+options --without-xpath and --without-xslt to setup.py: "python
+setup.py --without-xpath --without-xslt install".
 
 If you use a binary distribution package, no compiler is needed, and
 setup.py does not need to be run.
@@ -44,4 +43,4 @@ Software versions and credits:
 	sgmlop-000705		Fredrik Lundh
 	xmlproc 0.70		Lars Marius Garshol
 	minidom			Paul Prescod
-	PyTrex			James Tauber
+	PyTREX			James Tauber
