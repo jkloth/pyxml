@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/12/06 17:08:41 $ by $Author: rsalz $
+$Date: 2001/12/06 17:13:04 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -97,12 +97,12 @@ class _implementation:
         '''Create and run the implementation.'''
 
         self.write = write
-        self.subset = kw.get('subset', None)
+        self.subset = kw.get('subset')
         if self.subset:
             self.comments = kw.get('comments', 1)
         else:
             self.comments = kw.get('comments', 0)
-        self.unsuppressedPrefixes = kw.get('unsuppressedPrefixes', None)
+        self.unsuppressedPrefixes = kw.get('unsuppressedPrefixes')
         nsdict = kw.get('nsdict', { 'xml': XMLNS.XML, 'xmlns': XMLNS.BASE })
 
         # Processing state.
@@ -275,7 +275,7 @@ class _implementation:
             # Create list of NS attributes to render.
             ns_to_render = []
             for n,v in ns_local.items():
-                pval = ns_parent.get(n, None)
+                pval = ns_parent.get(n)
 
                 # If default namespace is XMLNS.BASE or empty, skip
                 if n == "xmlns" \
