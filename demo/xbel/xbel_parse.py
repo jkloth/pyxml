@@ -12,9 +12,9 @@ it to standard output in a selected format.
 
 import bookmark
 import string
-from xml.sax import saxexts,saxlib
+from xml.sax import saxlib,make_parser
 
-class XBELHandler(saxlib.HandlerBase):
+class XBELHandler(saxlib.ContentHandler):
     def __init__(self):
         self.bms = bookmark.Bookmarks()
         self.entered_folder = self.entered_bookmark = 0
@@ -48,11 +48,11 @@ class XBELHandler(saxlib.HandlerBase):
             if attrs.has_key('modified'):
                 self.modified = attrs['modified']
 
-    def characters(self, ch, start, length):
+    def characters(self, data):
         if self.cur_elem in ['title', 'desc']:
             attr = string.lower(self.cur_elem)
             value = getattr(self, attr)
-            setattr(self, attr, value + ch[start:start+length])
+            setattr(self, attr, value + data)
 
     def endElement(self, name):
         self.cur_elem = None
@@ -98,9 +98,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     xbel_handler = XBELHandler()
-    p=saxexts.XMLParserFactory.make_parser()
-    p.setDocumentHandler( xbel_handler )
-    p.parseFile( sys.stdin )
+    p=make_parser()
+    p.setContentHandler( xbel_handler )
+    p.parse( sys.stdin )
     bms = xbel_handler.bms
     mode, arg = opts[0]
     if mode == '--opera': bms.dump_adr()

@@ -8,7 +8,7 @@ A simple XBEL to HTML converter written with SAX.
 
 import sys
 
-from xml.sax import saxlib,saxutils,saxexts
+from xml.sax import make_parser,saxlib,saxutils
 
 # --- HTML templates
 
@@ -18,7 +18,8 @@ top=\
 <HTML>
 <HEAD>
   <TITLE>%s</TITLE>
-  <META NAME="Generator" CONTENT="sax_xbel">
+  <META NAME="Generator" CONTENT="xbel2html">
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=%s">
 </HEAD>
 
 <BODY>
@@ -29,7 +30,7 @@ bottom=\
 """
 <HR>
 <ADDRESS>
-Converted from XBEL by sax_xbel, using %s.
+Converted from XBEL by xbel2html.
 </ADDRESS>
 </BODY>
 </HTML>
@@ -37,32 +38,34 @@ Converted from XBEL by sax_xbel, using %s.
 
 # --- DocumentHandler
 
-class XBELHandler(saxlib.HandlerBase):
+class XBELHandler(saxlib.ContentHandler):
 
-    def __init__(self,parser,writer=sys.stdout):
+    def __init__(self,writer=sys.stdout,encoding='utf-8'):
         self.stack=[]
         self.writer=writer
         self.last_url=None
-        self.parser=parser
         self.inside_ul=0
         self.level=0
+        self.encoding=encoding
 
     def startElement(self,name,attrs):
         self.stack.append(name)
-
+        self.data = ''
         if name=="bookmark":
-            self.last_url=attrs["href"]
+            self.last_url=attrs["href"].encode(self.encoding)
 
-    def characters(self,data,start,length):
-        if self.stack==[]: return
+    def characters(self,data):
+        self.data += data.encode(self.encoding)
 
+
+    def endElement(self,name):
+        data = self.data
         if self.stack[-1]=="title" and self.stack[-2]=="xbel":
-            data=data[start:start+length]
-            self.writer.write(top % (data,data))
+            self.writer.write(top % (data,self.encoding,data))
             self.state=None
 
         if self.stack[-1]=="desc" and self.stack[-2]=="xbel":
-            self.writer.write("<P>%s</P>\n" % data[start:start+length])
+            self.writer.write("<P>%s</P>\n" % data)
 
         if self.stack[-1]=="title" and self.stack[-2]=="bookmark":
             if not self.inside_ul:
@@ -70,17 +73,16 @@ class XBELHandler(saxlib.HandlerBase):
                 self.writer.write("<UL>\n")
 
             self.writer.write('<LI><A HREF="%s">%s</A>. \n' %
-                              (self.last_url,data[start:start+length]))
+                              (self.last_url,data))
 
         if self.stack[-1]=="desc" and self.stack[-2]=="bookmark":
-            self.writer.write(data[start:start+length]+"\n\n")
+            self.writer.write(data+"\n\n")
 
         if self.stack[-1]=="title" and self.stack[-2]=="folder":
-            self.writer.write("<LI><B>%s</B>\n" % data[start:start+length])
+            self.writer.write("<LI><B>%s</B>\n" % data)
             self.writer.write("<UL>\n")
             self.inside_ul=1
 
-    def endElement(self,name):
         del self.stack[-1]
 
         if name=="folder":
@@ -88,12 +90,12 @@ class XBELHandler(saxlib.HandlerBase):
 
     def endDocument(self):
         self.writer.write("</UL>\n")
-        self.writer.write(bottom % self.parser)
+        self.writer.write(bottom)
 
 # --- Main program
 
 if __name__ == '__main__':
-    p=saxexts.make_parser()
-    p.setDocumentHandler(XBELHandler(p.get_parser_name()))
+    p=make_parser()
+    p.setContentHandler(XBELHandler())
     p.setErrorHandler(saxutils.ErrorPrinter())
     p.parse(sys.argv[1])

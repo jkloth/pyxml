@@ -44,7 +44,11 @@ class NetscapeHandler(handler.ContentHandler):
             self.id = d.get('id')
             self.added= d.get('add_date',"")
             self.modified = d.get('last_modified', "")
-
+            folder = self.bms.add_folder('', None)
+            folder.id = self.id
+            folder.folded = self.folded
+            folder.added = self.added
+            self.latest = folder
         elif name=="a":
             self.cur_elem="a"
             self.bookmark = ""
@@ -81,13 +85,9 @@ class NetscapeHandler(handler.ContentHandler):
 
 
     def characters(self,data):
-##        print 'char', self.cur_elem, data[start:start+length]
+##        print 'char', self.cur_elem, data
         if self.cur_elem=="h3":
-            folder = self.bms.add_folder(data, None)
-            folder.id = self.id
-            folder.folded = self.folded
-            folder.added = self.added
-            self.latest = folder
+            self.latest.title+=data
         elif self.cur_elem=="a":
             self.bookmark = self.bookmark+data
         elif self.cur_elem=="title":
