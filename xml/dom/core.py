@@ -858,7 +858,7 @@ class CDATASection(Text):
 class DocumentType(Node):
     readonly = 1    # This is a read-only class
     childNodeTypes = []
-    
+
     # Attributes
     def get_name(self):
         return self._node.name
@@ -924,6 +924,9 @@ class ProcessingInstruction(Node):
     def toxml(self):
         return "<?" + self._node.name + ' ' +self._node.value + "?>"
 
+    def __repr__(self):
+        return '<Processing instruction ?%s %s?>' % (self._node.name, self._node.value)
+
     def get_target(self):
         return self._node.name
 
@@ -954,6 +957,9 @@ class Document(Node):
             s = s + n.toxml()
         return s
 
+    def __repr__(self):
+        return '<DOM Document; root=%s >' % (repr(self.get_documentElement()),)
+    
     def createElement(self, tagName, dict={}, **kwdict):
         "Return a new Element object."
 
