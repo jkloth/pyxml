@@ -357,4 +357,4 @@ pyexpat$(SO) : expat/libexpat.a
 
 expat/libexpat.a:
 	cd expat ; make libexpat.a CC="$(CC)" CFLAGS="$(CCSHARED) $(CFLAGS) -Ixmltok -Ixmlparse"
-
+	-$(RANLIB) expat/libexpat.a
