@@ -11,14 +11,14 @@ Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
-from xml.dom import Node
+from xml.dom import Node, EMPTY_NAMESPACE
 from FtNode import FtNode
 
 class ProcessingInstruction(FtNode):
     nodeType = Node.PROCESSING_INSTRUCTION_NODE
 
     def __init__(self,ownerDocument,target,data):
-        FtNode.__init__(self,ownerDocument,'','','')
+        FtNode.__init__(self,ownerDocument,EMPTY_NAMESPACE,'','')
         self.__dict__['__nodeName'] = target
         self.__dict__['__nodeValue'] = data
 

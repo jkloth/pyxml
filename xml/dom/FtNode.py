@@ -15,7 +15,7 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 from DOMImplementation import implementation
 import Event
 
-from xml.dom import Node
+from xml.dom import Node, EMPTY_NAMESPACE
 from xml.dom import NoModificationAllowedErr
 from xml.dom import NamespaceErr
 from xml.dom import NotFoundErr
@@ -44,7 +44,7 @@ class FtNode(Event.EventTarget, Node):
 
     def __init__(self,
                  ownerDocument,
-                 namespaceURI=None,
+                 namespaceURI=EMPTY_NAMESPACE,
                  prefix=None,
                  localName=None):
         Event.EventTarget.__init__(self)
