@@ -1,9 +1,9 @@
 """\
 minidom.py -- a lightweight DOM implementation.
 
-parse( "foo.xml" )
+parse("foo.xml")
 
-parseString( "<foo><bar/></foo>" )
+parseString("<foo><bar/></foo>")
 
 Todo:
 =====
@@ -47,7 +47,7 @@ class Node(_Node):
             Node.allnodes[index] = repr(self.__dict__)
             if Node.debug is None:
                 Node.debug = _get_StringIO()
-                #open( "debug4.out", "w" )
+                #open("debug4.out", "w")
             Node.debug.write("create %s\n" % index)
 
     def __getattr__(self, key):
@@ -85,6 +85,13 @@ class Node(_Node):
         self.writexml(writer)
         return writer.getvalue()
 
+    def toprettyxml(self, indent="\t", newl="\n"):
+      # indent = the indentation string to prepend, per level
+      # newl = the newline string to append
+      writer = _get_StringIO()
+      self.writexml(writer, "", indent, newl)
+      return writer.getvalue()
+
     def hasChildNodes(self):
         if self.childNodes:
             return 1
@@ -102,7 +109,7 @@ class Node(_Node):
     def insertBefore(self, newChild, refChild):
         if newChild.nodeType not in self.childNodeTypes:
             raise HierarchyRequestErr, \
-                  "%s cannot be child of %s" % (repr(newChild), repr(self) )
+                  "%s cannot be child of %s" % (repr(newChild), repr(self))
         if newChild.parentNode is not None:
             newChild.parentNode.removeChild(newChild)
         if refChild is None:
@@ -125,7 +132,7 @@ class Node(_Node):
     def appendChild(self, node):
         if node.nodeType not in self.childNodeTypes:
             raise HierarchyRequestErr, \
-                  "%s cannot be child of %s" % (repr(node), repr(self) )
+                  "%s cannot be child of %s" % (repr(node), repr(self))
         if node.parentNode is not None:
             node.parentNode.removeChild(node)
         if self.childNodes:
@@ -143,7 +150,7 @@ class Node(_Node):
     def replaceChild(self, newChild, oldChild):
         if newChild.nodeType not in self.childNodeTypes:
             raise HierarchyRequestErr, \
-                  "%s cannot be child of %s" % (repr(newChild), repr(self) )
+                  "%s cannot be child of %s" % (repr(newChild), repr(self))
         if newChild.parentNode is not None:
             newChild.parentNode.removeChild(newChild)
         if newChild is oldChild:
@@ -435,10 +442,16 @@ class Element(Node):
         Node.unlink(self)
 
     def getAttribute(self, attname):
-        return self._attrs[attname].value
+        try:
+            return self._attrs[attname].value
+        except KeyError:
+            return ""
 
     def getAttributeNS(self, namespaceURI, localName):
-        return self._attrsNS[(namespaceURI, localName)].value
+        try:
+            return self._attrsNS[(namespaceURI, localName)].value
+        except KeyError:
+            return ""
 
     def setAttribute(self, attname, value):
         attr = Attr(attname)
@@ -457,7 +470,7 @@ class Element(Node):
         return self._attrs.get(attrname)
 
     def getAttributeNodeNS(self, namespaceURI, localName):
-        return self._attrsNS[(namespaceURI, localName)]
+        return self._attrsNS.get((namespaceURI, localName))
 
     def setAttributeNode(self, attr):
         if attr.ownerElement not in (None, self):
@@ -506,8 +519,11 @@ class Element(Node):
     def __repr__(self):
         return "<DOM Element: %s at %s>" % (self.tagName, id(self))
 
-    def writexml(self, writer):
-        writer.write("<" + self.tagName)
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        # indent = current indentation
+        # addindent = indentation to add to higher levels
+        # newl = newline string
+        writer.write(indent+"<" + self.tagName)
 
         attrs = self._get_attributes()
         a_names = attrs.keys()
@@ -518,15 +534,21 @@ class Element(Node):
             _write_data(writer, attrs[a_name].value)
             writer.write("\"")
         if self.childNodes:
-            writer.write(">")
+            writer.write(">%s"%(newl))
             for node in self.childNodes:
-                node.writexml(writer)
-            writer.write("</%s>" % self.tagName)
+                node.writexml(writer,indent+addindent,addindent,newl)
+            writer.write("%s</%s>%s" % (indent,self.tagName,newl))
         else:
-            writer.write("/>")
+            writer.write("/>%s"%(newl))
 
     def _get_attributes(self):
         return AttributeList(self._attrs, self._attrsNS)
+
+    def hasAttributes(self):
+        if self._attrs or self._attrsNS:
+            return 1
+        else:
+            return 0
 
 class Comment(Node):
     nodeType = Node.COMMENT_NODE
@@ -538,8 +560,8 @@ class Comment(Node):
         Node.__init__(self)
         self.data = self.nodeValue = data
 
-    def writexml(self, writer):
-        writer.write("<!--%s-->" % self.data)
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        writer.write("%s<!--%s-->%s" % (indent,self.data,newl))
 
 class ProcessingInstruction(Node):
     nodeType = Node.PROCESSING_INSTRUCTION_NODE
@@ -551,8 +573,8 @@ class ProcessingInstruction(Node):
         self.target = self.nodeName = target
         self.data = self.nodeValue = data
 
-    def writexml(self, writer):
-        writer.write("<?%s %s?>" % (self.target, self.data))
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        writer.write("%s<?%s %s?>%s" % (indent,self.target, self.data, newl))
 
 class Text(Node):
     nodeType = Node.TEXT_NODE
@@ -586,8 +608,8 @@ class Text(Node):
         self.data = self.data[:offset]
         return newText
 
-    def writexml(self, writer):
-        _write_data(writer, self.data)
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        _write_data(writer, "%s%s%s"%(indent, self.data, newl))
 
 def _nssplit(qualifiedName):
     fields = _string.split(qualifiedName, ':', 1)
@@ -624,17 +646,28 @@ class DOMImplementation:
 
     def createDocument(self, namespaceURI, qualifiedName, doctype):
         if doctype and doctype.parentNode is not None:
-            raise xml.dom.WrongDocumentErr("doctype object owned by another DOM tree")
+            raise xml.dom.WrongDocumentErr(
+                "doctype object owned by another DOM tree")
         doc = Document()
         if doctype is None:
             doctype = self.createDocumentType(qualifiedName, None, None)
-        if qualifiedName:
-            prefix, localname = _nssplit(qualifiedName)
-            if prefix == "xml" \
-               and namespaceURI != "http://www.w3.org/XML/1998/namespace":
-                raise xml.dom.NamespaceErr("illegal use of 'xml' prefix")
-            if prefix and not namespaceURI:
-                raise xml.dom.NamespaceErr("illegal use of prefix without namespaces")
+        if not qualifiedName:
+            # The spec is unclear what to raise here; SyntaxErr
+            # would be the other obvious candidate. Since Xerces raises
+            # InvalidCharacterErr, and since SyntaxErr is not listed
+            # for createDocument, that seems to be the better choice.
+            # XXX: need to check for illegal characters here and in
+            # createElement.
+            raise xml.dom.InvalidCharacterErr("Element with no name")
+        prefix, localname = _nssplit(qualifiedName)
+        if prefix == "xml" \
+           and namespaceURI != "http://www.w3.org/XML/1998/namespace":
+            raise xml.dom.NamespaceErr("illegal use of 'xml' prefix")
+        if prefix and not namespaceURI:
+            raise xml.dom.NamespaceErr(
+                "illegal use of prefix without namespaces")
+        element = doc.createElementNS(namespaceURI, qualifiedName)
+        doc.appendChild(element)
         doctype.parentNode = doc
         doc.doctype = doctype
         doc.implementation = self
@@ -662,13 +695,14 @@ class Document(Node):
     def appendChild(self, node):
         if node.nodeType not in self.childNodeTypes:
             raise HierarchyRequestErr, \
-                  "%s cannot be child of %s" % (repr(node), repr(self) )
+                  "%s cannot be child of %s" % (repr(node), repr(self))
         if node.parentNode is not None:
             node.parentNode.removeChild(node)
 
         if node.nodeType == Node.ELEMENT_NODE \
            and self._get_documentElement():
-            raise xml.dom.HierarchyRequestErr("two document elements disallowed")
+            raise xml.dom.HierarchyRequestErr(
+                "two document elements disallowed")
         return Node.appendChild(self, node)
 
     def removeChild(self, oldChild):
@@ -719,9 +753,10 @@ class Document(Node):
         _getElementsByTagNameHelper(self, name, rc)
         return rc
 
-    def writexml(self, writer):
+    def writexml(self, writer, indent="", addindent="", newl=""):
+        writer.write('<?xml version="1.0" ?>\n')
         for node in self.childNodes:
-            node.writexml(writer)
+            node.writexml(writer, indent, addindent, newl)
 
 def _get_StringIO():
     # we can't use cStringIO since it doesn't support Unicode strings
@@ -732,6 +767,7 @@ def _doparse(func, args, kwargs):
     events = apply(func, args, kwargs)
     toktype, rootNode = events.getEvent()
     events.expandNode(rootNode)
+    events.clear()
     return rootNode
 
 def parse(*args, **kwargs):
