@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.4 2000/09/27 18:45:59 loewis Exp $
+ * $Id: sgmlop.c,v 1.5 2001/01/15 21:10:21 jkloth Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1101,7 +1101,9 @@ fastfeed(FastSGMLParserObject* self)
             e = p;
             if (*p == ';')
                 p++;
-
+            else
+                continue;
+  
         } else {
 
             /* raw data */
@@ -1195,12 +1197,18 @@ fastfeed(FastSGMLParserObject* self)
                                             "s#", b, e-b);
             else {
                 /* fallback: handle charref's as data */
-                /* FIXME: hexadecimal charrefs? */
                 CHAR_T ch;
                 CHAR_T *p;
                 ch = 0;
-                for (p = b; p < e; p++)
-                    ch = (CHAR_T) (ch*10 + *p - '0');
+                if (*b == 'x') {
+                    for (p = b+1; p < e; p++)
+                        ch = (CHAR_T) (ch*16 + *p - (*p > 'F' ? 
+                                                     'a'-1 :(*p > '9' ? 
+                                                             'A'-1 : '0')));
+                } else {
+                    for (p = b; p < e; p++)
+                        ch = (CHAR_T) (ch*10 + *p - '0');
+                }
                 res = PyObject_CallFunction(self->handle_data,
                                             "s#", &ch, sizeof(CHAR_T));
             }
