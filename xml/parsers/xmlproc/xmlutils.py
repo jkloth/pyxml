@@ -1,8 +1,9 @@
+
 """
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.25 2001/08/28 06:55:34 larsga Exp $
+# $Id: xmlutils.py,v 1.26 2001/10/09 14:01:56 larsga Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -75,8 +76,8 @@ class EntityParser:
         self.pubres=xmlapp.PubIdResolver()
         self.data_charset=None
         # the default charset in XML is UTF-8
-        self.input_encoding=None           # not determined, yet
-        self.charset_converter=None
+        self.input_encoding = None           # not determined, yet
+        self.charset_converter = None
         self.err_lang="en"
         self.errors=errors.get_error_list(self.err_lang)
         
@@ -252,7 +253,7 @@ class EntityParser:
 
     def _handle_decoding_error(self, new_data, exc):
         """If there was an error decoding input data, there could be
-        to reasons: the data could be genuinely incorrect, or the
+        two reasons: the data could be genuinely incorrect, or the
         decoder could have run out of data. The latter case is very
         hard to determine in Python 2.0"""
 
@@ -269,7 +270,7 @@ class EntityParser:
         else:
             self.report_error(3048, exc)
             # stop feeding any more data
-            self.charset_converter = lambda s:""
+            self.charset_converter = lambda s: ""
             return ""
             
     def feed(self, new_data, decoded = 0):
@@ -498,15 +499,15 @@ class EntityParser:
 
     def report_error(self,number,args=None):
         try:
-            msg=self.errors[number]
-            if args!=None:
-                msg=msg % args
+            msg = self.errors[number]
+            if args != None:
+                msg = msg % args
         except KeyError:
-            msg=self.errors[4002] % number # Unknown err msg :-)
+            msg = self.errors[4002] % number # Unknown err msg :-)
         
-        if number<2000:
+        if number < 2000:
             self.err.warning(msg)
-        elif number<3000:
+        elif number < 3000:
             self.err.error(msg)
         else:
             self.err.fatal(msg)
@@ -706,7 +707,10 @@ class XMLCommonParser(EntityParser):
             # so far, we should have only seen proper ASCII
             # characters, so the position should not have changed due
             # to the recoding.
-            self.data = self.charset_converter(self.data)
+            try:
+                self.data = self.charset_converter(self.data)
+            except UnicodeError, e:
+                self._handle_decoding_error(self.data, e)
             self.input_encoding = enc1
 
         if handler!=None:
