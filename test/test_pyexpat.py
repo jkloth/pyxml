@@ -359,7 +359,7 @@ text = '''\
      xmlns:bar="http://xml.python.org/x">
   <foo:e foo:a1="a1" bar:a2="a2"/>
   <bar:e foo:a1="a1" bar:a2="a2"/>
-  <e ugh:a1="a1" a2="a2" xmlns="http://xml.python.org/e"/>
+  <e a2="a2" xmlns="http://xml.python.org/e"/>
 </doc>
 '''
 
@@ -373,7 +373,7 @@ expected_info = [
      {"http://xml.python.org/x a1 foo": "a1",
       "http://xml.python.org/x a2 bar": "a2"}),
     "http://xml.python.org/x e bar",
-    ("http://xml.python.org/e e", {"ugh:a1": "a1", "a2": "a2"}),
+    ("http://xml.python.org/e e", {"a2": "a2"}),
     "http://xml.python.org/e e",
     "doc"
     ]
