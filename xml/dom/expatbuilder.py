@@ -175,7 +175,7 @@ class ExpatBuilder:
         """Install the callbacks needed to build the DOM into the parser."""
         # This creates circular references!
         parser.StartDoctypeDeclHandler = self.start_doctype_decl_handler
-        parser.StartElementHandler = self.start_element_handler
+        parser.StartElementHandler = self.first_element_handler
         parser.EndElementHandler = self.end_element_handler
         parser.ProcessingInstructionHandler = self.pi_handler
         if self._options.entities:
@@ -262,6 +262,8 @@ class ExpatBuilder:
         if self._options.comments:
             self._parser.CommentHandler = self.comment_handler
         self._parser.ProcessingInstructionHandler = self.pi_handler
+        if not (self._elem_info or self._filter):
+            self._finish_end_element = id
 
     def pi_handler(self, target, data):
         node = self.document.createProcessingInstruction(target, data)
@@ -344,6 +346,12 @@ class ExpatBuilder:
 
     def external_entity_ref_handler(self, context, base, systemId, publicId):
         return 1
+
+    def first_element_handler(self, name, attributes):
+        if self._filter is None and not self._elem_info:
+            self._finish_end_element = id
+        self.getParser().StartElementHandler = self.start_element_handler
+        self.start_element_handler(name, attributes)
 
     def start_element_handler(self, name, attributes):
         node = self.document.createElement(name)
