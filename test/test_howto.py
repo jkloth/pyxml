@@ -122,8 +122,9 @@ print "DOM tests:\n"
 
 import sys
 from xml.sax import saxexts
-from xml.dom.sax_builder import SaxBuilder
-from xml.dom import utils
+from xml.dom.ext.reader.Sax import FromXml
+from xml.dom.ext import PrettyPrint
+#from xml.dom import utils
 
 dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
 <xbel>  
@@ -137,43 +138,38 @@ dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
   </folder>
 </xbel>"""
 
-# Create a SAX parser and a SaxBuilder instance
-p = saxexts.make_parser()
-dh = SaxBuilder()
-p.setDocumentHandler(dh)
+# Parse the input into a DOM tree
+doc = FromXml(dom_xml)
 
-# Parse the input, and close the parser
-comic_xml.seek(0)
-p.parseFile( StringIO.StringIO(dom_xml) )
-p.close()
+# Print it
+PrettyPrint(doc)
 
-# Retrieve the DOM tree
-doc = dh.document
-print doc.toxml()
-
-utils.strip_whitespace( doc )
-print ' With whitespace removed:'
-print doc.toxml()
+# whitespace-removal currently not supported
+# utils.strip_whitespace( doc )
+# print ' With whitespace removed:'
+# print doc.toxml()
 
 # Builder code
 
-print '\nxml.dom.builder tests'
+print 'DOM creation tests'
 
-from xml.dom.builder import Builder
-b = Builder()
+from xml.dom.DOMImplementation import implementation
+d = implementation.createDocument(None, None, None)
 
 # Create the root element
-b.startElement("html")
+r = d.createElement("html")
+d.appendChild(r)
 
 # Create an empty 'head' element
-b.startElement('head') ; b.endElement('head')
+r.appendChild(d.createElement("head"))
 
 # Start the 'body' element, giving it an attribute
-b.startElement('body', {'background': '#ffffff'})
+b = d.createElement("body")
+b.setAttribute('background','#ffffff')
+r.appendChild(b)
 
 # Add a text node
-b.text("The body text goes here.")
+b.appendChild(d.createTextNode("The body text goes here."))
 
-# Close the body element
-b.endElement("body")
-b.document.dump()
+# Print the document
+PrettyPrint(d)
