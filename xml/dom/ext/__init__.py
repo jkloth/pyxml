@@ -278,6 +278,11 @@ def SeekNss(node, nss=None):
                 nss[child.prefix] = child.namespaceURI
             for attr in child.attributes.values():
                 if attr.namespaceURI == XMLNS_NAMESPACE:
-                    nss[attr.localName] = attr.value
+                    if attr.localName == 'xmlns':
+                        nss[''] = attr.value
+                    else:
+                        nss[attr.localName] = attr.value
+            elif attr.namespaceURI:
+                nss[attr.prefix] = attr.namespaceURI
             SeekNss(child, nss)
     return nss
