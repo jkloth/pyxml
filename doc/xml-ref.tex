@@ -580,6 +580,83 @@ used in that standard.
 \end{classdesc*}
 
 
+\section{\module{xml.parsers.expat} Extensions}
+
+The version of the \module{xml.parsers.expat} module currently shipped
+with PyXML extends that provided by the standard Python library by
+exposing features of recent versions of the C implementation of the
+underlying Expat parser.  These extensions are described here; the
+base documentation for this module is that published as part of the
+\citetitle
+[http://www.python.org/doc/2.2.1/lib/module-xml.parsers.expat.html]
+{Python Library Reference}.
+
+The module provides a new data attribute:
+
+\begin{datadesc}{features}
+  A list of \var{name}-\var{value} pairs giving some information about
+  the compilation of Expat being used.  This is generated directly
+  from the feature information provided by Expat's
+  \cfunction{XML_GetFeatureList()} function.  It is unlikely to be of
+  interest to most applications.
+
+  This was added in PyXML 0.8.1 to support Expat 1.95.5 and newer.
+\end{datadesc}
+
+The parser provides a new method:
+
+\begin{methoddesc}[xmlparser]{UseForeignDTD}{\optional{flag}}
+  Tells Expat whether is should attempt to load an
+  application-provided external subset if one is not specified by the
+  document type declaration.  If \var{flag} is true or omitted, Expat
+  will attempt to load an external subset by calling the
+  \code{ExternalEntityRefHandler} callback with \var{systemId} and
+  \var{publicId} both set to \code{None}; this is done \emph{only} if
+  the document does not specify a external subset.  If \var{flag} is
+  false (or this method is never called), Expat will not attempt such
+  a load.  This method should only be called before parsing has
+  actually started; \exception{ExpatError} will be raised if this is
+  called after parsing has begun.
+
+  This was added in PyXML 0.8.1 to support Expat 1.95.5 and newer.
+\end{methoddesc}
+
+and one new attribute:
+
+\begin{memberdesc}[xmlparser]{namespace_prefixes}
+  Set to true on a parser with namespaces enabled to request that the
+  actual prefix is reported as well as the namespace URI for each
+  namespace-qualified name.  This modifies the element or attribute
+  names passed to the \code{StartElementHandler} and
+  \code{EndElementHandler} callbacks, if true.  If set to a true
+  value, the names passed to these callbacks will have the prefix
+  added to the end, separated from the local name by the value of the
+  \var{namespace_separator} passed to the parser constructor.  No
+  additional information will be added if the name uses the default
+  namespace.  This should only be called before parsing has begun.
+
+  This was added in PyXML 0.8 to support Expat 1.95.4 and newer.
+\end{memberdesc}
+
+One new callback method has been added as well:
+
+\begin{methoddesc}[xmlparser]{SkippedEntityHandler}{name, is_param_entity}
+  This is called when an external entity is not read, and gives
+  information about the entity.  The entity name will have been
+  previously reported by the \code{EntityDeclHandler}, if set.
+
+  This was added in PyXML 0.8 to support Expat 1.95.4 and newer.
+\end{methoddesc}
+
+
+\begin{seealso}
+  \seetitle[http://www.libexpat.org/]{Expat Home Page}{
+            The home page for the Expat project provides information
+            about new versions of the library and user resources such
+            as 3rd-party language bindings and mailing lists.}
+\end{seealso}
+
+
 \section{\module{xml.parsers.xmllib} ---
          Augmented version of \module{xmllib}}
 
