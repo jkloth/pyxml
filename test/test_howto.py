@@ -5,7 +5,8 @@
 
 print "SAX tests:\n"
 
-from xml.sax import saxlib, saxexts
+from xml.sax import saxlib, saxutils, make_parser, ContentHandler
+from xml.sax.handler import feature_namespaces
 import StringIO
 import string
 
@@ -21,7 +22,7 @@ comic_xml = StringIO.StringIO("""<collection>
   </comic>
 </collection>""")
 
-class FindIssue(saxlib.HandlerBase):
+class FindIssue(saxutils.DefaultHandler):
     def __init__(self, title, number):
         self.search_title, self.search_number = title, number
 
@@ -36,36 +37,34 @@ class FindIssue(saxlib.HandlerBase):
             print title, '#'+str(number), 'found'
 
     def error(self, exception):
-        raise exception
-    def fatalError(self, exception):
-        raise exception
+        import sys
+        sys.stderr.write("%s\n" % exception)
 
 if 1:
     # Create a parser
-    parser = saxexts.make_parser()
+    parser = make_parser()
+    # Disable namespace processing
+    parser.setFeature(feature_namespaces, 0)
 
     # Create the handler
     dh = FindIssue('Sandman', '62')
 
     # Tell the parser to use our handler
-    parser.setDocumentHandler(dh)
+    parser.setContentHandler(dh)
     parser.setErrorHandler(dh)
 
     # Parse the input
-    parser.parseFile( comic_xml )
-
-    # Close the parser
-    parser.close()
+    parser.parse(comic_xml)
 
 
 def normalize_whitespace(text):
     "Remove redundant whitespace from a string"
-    return string.join( string.split(text), ' ')
+    return string.join(string.split(text), ' ')
 
-class FindWriter(saxlib.HandlerBase):
+class FindWriter(ContentHandler):
     def __init__(self, search_name):
         # Save the name we're looking for
-        self.search_name = normalize_whitespace( search_name )
+        self.search_name = normalize_whitespace(search_name)
 
         # Initialize the flag to false
         self.inWriterContent = 0
@@ -73,8 +72,8 @@ class FindWriter(saxlib.HandlerBase):
     def startElement(self, name, attrs):
         # If it's a comic element, save the title and issue
         if name == 'comic':
-            title = normalize_whitespace( attrs.get('title', "") )
-            number = normalize_whitespace( attrs.get('number', "") )
+            title = normalize_whitespace(attrs.get('title', ""))
+            number = normalize_whitespace(attrs.get('number', ""))
             self.this_title = title
             self.this_number = number
 
@@ -83,9 +82,9 @@ class FindWriter(saxlib.HandlerBase):
             self.inWriterContent = 1
             self.writerName = ""
 
-    def characters(self, ch, start, length):
+    def characters(self, ch):
         if self.inWriterContent:
-            self.writerName = self.writerName + ch[start:start+length]
+            self.writerName = self.writerName + ch
 
     def endElement(self, name):
         if name == 'writer':
@@ -96,24 +95,23 @@ class FindWriter(saxlib.HandlerBase):
 
 if 1:
     # Create a parser
-    parser = saxexts.make_parser()
+    parser = make_parser()
+
+    # Disable namespace processing
+    parser.setFeature(feature_namespaces, 0)
 
     # Create the handler
     dh = FindWriter('Peter Milligan')
 
     # Tell the parser to use our handler
-    parser.setDocumentHandler(dh)
-    parser.setErrorHandler(dh)
+    parser.setContentHandler(dh)
 
     # Print a title
     print '\nTitles by Peter Milligan:'
 
     # Parse the input
     comic_xml.seek(0)
-    parser.parseFile( comic_xml )
-
-    # Close the parser
-    parser.close()
+    parser.parse(comic_xml)
 
 
 # DOM tests
@@ -121,10 +119,8 @@ if 1:
 print "DOM tests:\n"
 
 import sys
-from xml.sax import saxexts
 from xml.dom.ext.reader.Sax import FromXml
 from xml.dom.ext import PrettyPrint
-#from xml.dom import utils
 
 dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
 <xbel>  
@@ -145,7 +141,7 @@ doc = FromXml(dom_xml)
 PrettyPrint(doc)
 
 # whitespace-removal currently not supported
-# utils.strip_whitespace( doc )
+# utils.strip_whitespace(doc)
 # print ' With whitespace removed:'
 # print doc.toxml()
 
