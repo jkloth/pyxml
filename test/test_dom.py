@@ -93,6 +93,55 @@ doc = core.createDocument()
 check( 'isinstance(doc, core.Document)', 'createDocument returns a Document')
 check( 'doc.parentNode == None', 'Documents have no parent')
 
+# Check that documents can only have one child
+
+n1 = doc.createElement('n1') ; n2 = doc.createElement('n2')
+pi = doc.createProcessingInstruction("Processing", "Instruction")
+doc.appendChild(pi)
+doc.appendChild(n1)
+doc.appendChild(n1)  # n1 should be removed, and then added again
+try: doc.appendChild(n2)
+except core.HierarchyRequestException: pass
+else:
+    print " *** Failed: Document.insertBefore didn't raise HierarchyRequestException"
+
+doc.replaceChild(n2, n1)    # Should work
+try: doc.replaceChild(n1, pi)    
+except core.HierarchyRequestException: pass
+else:
+    print " *** Failed: Document.replaceChild didn't raise HierarchyRequestException"
+doc.replaceChild(n2, pi)    # Should also work
+
+check('pi.parentNode == None', 
+      'Document.replaceChild: PI should have no parent')
+doc.removeChild(n2)
+check('n2.parentNode == None', 
+      'Document.removeChild: n2 should have no parent')
+
+# Check adding and deletion with DocumentFragments
+
+fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
+doc.appendChild( fragment )
+check('fragment.parentNode == None', 
+      'Doc.appendChild: fragment has no parent')
+check('n1.parentNode.nodeType == core.DOCUMENT_NODE', 
+      'Doc.appendChild: n1 now has document as parent')
+
+fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
+fragment.appendChild( doc.createElement('n2') )
+try: doc.appendChild( fragment )
+except core.HierarchyRequestException: pass
+else:
+    print " *** Failed: Document.fragment.appendChild didn't raise HierarchyRequestException"
+
+doc.appendChild( n1 ) ; doc.appendChild( pi )
+try: doc.replaceChild(fragment, pi)
+except core.HierarchyRequestException: pass
+else:
+    print " *** Failed: Document.fragment.replaceChild didn't raise HierarchyRequestException"
+
+n1.appendChild(fragment) ; _check_dom_tree(doc)
+
 # Check adding and deleting children for ordinary nodes
 
 n1 = doc.createElement('n1') ; n2 = doc.createElement('n2')
