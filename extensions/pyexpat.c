@@ -1,4 +1,4 @@
-/* Based on Python's pyexpat.c, version 2.29.
+/* Based on Python's pyexpat.c, version 2.33.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
@@ -10,9 +10,13 @@
 #include "xmlparse.h"
 #endif
 
-/* Assume Expat 1.1 unless told otherwise */
+#ifdef XML_MAJOR_VERSION
+#define EXPAT_VERSION (0x10000*XML_MAJOR_VERSION+0x100*XML_MINOR_VERSION+XML_MICRO_VERSION)
+#else
 #ifndef EXPAT_VERSION
+/* Assume Expat 1.1 unless told otherwise */
 #define EXPAT_VERSION 0x010100
+#endif
 #endif
 
 #ifndef PyGC_HEAD_SIZE
@@ -658,7 +662,7 @@ xmlparse_GetBase(xmlparseobject *self, PyObject *args)
 }
 
 static char xmlparse_ExternalEntityParserCreate__doc__[] = 
-"ExternalEntityParserCreate(context, encoding)\n\
+"ExternalEntityParserCreate(context[, encoding])\n\
 Create a parser for parsing an external entity based on the\n\
 information passed to the ExternalEntityRefHandler.";
 
@@ -1160,7 +1164,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.29 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.33 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
