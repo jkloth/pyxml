@@ -3,7 +3,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.26 2001/10/09 14:01:56 larsga Exp $
+# $Id: xmlutils.py,v 1.27 2001/11/22 09:02:25 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -40,6 +40,7 @@ try:
         return _interned.setdefault(x,x)
     using_unicode = 1
     xml_chr = unichr
+    BOM = unicode("\xfe\xff","utf-16-be")
 except ImportError:
     def mkconverter(parser,src,dest):
         if dest == None:
@@ -52,6 +53,8 @@ except ImportError:
     string_intern = intern
     using_unicode = 0
     xml_chr = chr
+    # FIXME: support BOM detection in multibyte mode
+    BOM = None
 
 # Standard exceptions
 
@@ -226,6 +229,8 @@ class EntityParser:
             # have enough bytes for auto-detection. In that case,
             # it must be UTF-8
             enc = "utf-8"
+        elif new_data[:3] == '\xef\xbb\xbf':
+            enc = "utf-8" # with BOM
         elif new_data[:4] == '\0\0\0\x3c':
             enc = "ucs-4-be"
         elif new_data[:4] == '\x3c\0\0\0':
@@ -283,8 +288,10 @@ class EntityParser:
            type(new_data) == types.UnicodeType:
             decoded = 1
         
+        first_feed = 0
         if self.first_feed:
-            self.first_feed = 0                    
+            self.first_feed = 0
+            first_feed = 1
             self.parseStart()
 
         new_data = new_data + self.encoded_data
@@ -303,6 +310,8 @@ class EntityParser:
         if not decoded:
             try:
                 new_data = self.charset_converter(new_data)
+                if first_feed and new_data[0] == BOM:
+                    new_data = new_data[1:]
             except UnicodeError, e:
                 new_data = self._handle_decoding_error(new_data, e)
         
