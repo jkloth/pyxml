@@ -131,19 +131,25 @@ check('n1.parentNode.nodeType == core.DOCUMENT_NODE',
       'Doc.appendChild: n1 now has document as parent')
 
 fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
-fragment.appendChild( doc.createElement('n2') )
+n2 = doc.createElement('n2') ; fragment.appendChild( n2 )
 try: doc.appendChild( fragment )
 except core.HierarchyRequestException: pass
 else:
     print " *** Failed: Document.fragment.appendChild didn't raise HierarchyRequestException"
 
-doc.appendChild( n1 ) ; doc.appendChild( pi )
+fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
+n2 = doc.createElement('n2') ; fragment.appendChild( n2 )
+doc.appendChild( pi )
 try: doc.replaceChild(fragment, pi)
 except core.HierarchyRequestException: pass
 else:
     print " *** Failed: Document.fragment.replaceChild didn't raise HierarchyRequestException"
 
-n1.appendChild(fragment) ; _check_dom_tree(doc)
+fragment.removeChild(n2) ; fragment.appendChild(pi)
+doc.appendChild( fragment)
+check('n1.parentNode == doc',
+      "Document.fragment.replaceChild parent node is correct")
+_check_dom_tree(doc)
 
 # Check adding and deleting children for ordinary nodes
 
@@ -371,7 +377,9 @@ check('e.lastChild.toxml() == "secondthird"',
 # Check comparisons; e1 and e2 are different proxies for the same underlying 
 # node
 
-e1 = doc.documentElement ; e2 = doc.documentElement
+n1 = doc.createElement('n1') ; n2 = doc.createElement('n2')
+n1.appendChild(n2)
+e1 = n1 ; e2 = n2.parentNode
 check('e1 is not e2', 'Two proxies are different according to "is" operator')
 check('e1 == e2', 'Two proxies are identical according to "==" operator')
 
