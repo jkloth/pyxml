@@ -4,28 +4,13 @@ The Netherlands.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its
-documentation for any purpose and without fee is hereby granted,
-provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in
-supporting documentation, and that the names of Stichting Mathematisch
-Centrum or CWI or Corporation for National Research Initiatives or
-CNRI not be used in advertising or publicity pertaining to
-distribution of the software without specific, written prior
-permission.
+Copyright (c) 2000, BeOpen.com.
+Copyright (c) 1995-2000, Corporation for National Research Initiatives.
+Copyright (c) 1990-1995, Stichting Mathematisch Centrum.
+All rights reserved.
 
-While CWI is the initial source for this software, a modified version
-is made available by the Corporation for National Research Initiatives
-(CNRI) at the Internet address ftp://ftp.python.org.
-
-STICHTING MATHEMATISCH CENTRUM AND CNRI DISCLAIM ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL STICHTING MATHEMATISCH
-CENTRUM OR CNRI BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
-DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
-PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
+See the file "Misc/COPYRIGHT" for information on usage and
+redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 ******************************************************************/
 
@@ -81,7 +66,7 @@ struct HandlerInfo {
 	xmlhandler handler;
 };
 
-staticforward struct HandlerInfo handler_info[];
+staticforward struct HandlerInfo handler_info[64];
 
 /* Convert an array of attributes and their values into a Python dict */
 
@@ -855,7 +840,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-        char *rev="$Revision: 1.9 $";
+        char *rev="$Revision: 1.10 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
@@ -999,49 +984,49 @@ void pyxml_SetEndCdataSection( XML_Parser *parser,
 statichere struct HandlerInfo handler_info[]=
 {{"StartElementHandler", 
 	pyxml_SetStartElementHandler, 
-	my_StartElementHandler},
+        (xmlhandler)my_StartElementHandler},
 {"EndElementHandler", 
 	pyxml_SetEndElementHandler, 
-	my_EndElementHandler},
+	(xmlhandler)my_EndElementHandler},
 {"ProcessingInstructionHandler", 
 	(xmlhandlersetter)XML_SetProcessingInstructionHandler,
-	my_ProcessingInstructionHandler},
+	(xmlhandler)my_ProcessingInstructionHandler},
 {"CharacterDataHandler", 
 	(xmlhandlersetter)XML_SetCharacterDataHandler,
-	my_CharacterDataHandler},
+	(xmlhandler)my_CharacterDataHandler},
 {"UnparsedEntityDeclHandler", 
 	(xmlhandlersetter)XML_SetUnparsedEntityDeclHandler,
-	my_UnparsedEntityDeclHandler },
+	(xmlhandler)my_UnparsedEntityDeclHandler },
 {"NotationDeclHandler", 
 	(xmlhandlersetter)XML_SetNotationDeclHandler,
-	my_NotationDeclHandler },
+	(xmlhandler)my_NotationDeclHandler },
 {"StartNamespaceDeclHandler", 
 	pyxml_SetStartNamespaceDeclHandler,
-	my_StartNamespaceDeclHandler },
+	(xmlhandler)my_StartNamespaceDeclHandler },
 {"EndNamespaceDeclHandler", 
 	pyxml_SetEndNamespaceDeclHandler,
-	my_EndNamespaceDeclHandler },
+	(xmlhandler)my_EndNamespaceDeclHandler },
 {"CommentHandler",
 	(xmlhandlersetter)XML_SetCommentHandler,
-	my_CommentHandler},
+	(xmlhandler)my_CommentHandler},
 {"StartCdataSectionHandler",
 	pyxml_SetStartCdataSection,
-	my_StartCdataSectionHandler},
+	(xmlhandler)my_StartCdataSectionHandler},
 {"EndCdataSectionHandler",
 	pyxml_SetEndCdataSection,
-	my_EndCdataSectionHandler},
+	(xmlhandler)my_EndCdataSectionHandler},
 {"DefaultHandler",
 	(xmlhandlersetter)XML_SetDefaultHandler,
-	my_DefaultHandler},
+	(xmlhandler)my_DefaultHandler},
 {"DefaultHandlerExpand",
 	(xmlhandlersetter)XML_SetDefaultHandlerExpand,
-	my_DefaultHandlerExpandHandler},
+	(xmlhandler)my_DefaultHandlerExpandHandler},
 {"NotStandaloneHandler",
 	(xmlhandlersetter)XML_SetNotStandaloneHandler,
-	my_NotStandaloneHandler},
+	(xmlhandler)my_NotStandaloneHandler},
 {"ExternalEntityRefHandler",
 	(xmlhandlersetter)XML_SetExternalEntityRefHandler,
-	my_ExternalEntityRefHandler },
+	(xmlhandler)my_ExternalEntityRefHandler },
 
 {NULL, NULL, NULL } /* sentinel */
 };
