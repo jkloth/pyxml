@@ -44,7 +44,8 @@ try:
     # ExternalEntityParserCreate, available only from 2.25 on.
     # ParseFile throws exception, not available up to 2.28.
     # Memory leak fixes, merged into 2.33
-    if pyexpat.__version__ <= '2.32':
+    # Wrong array boundaries fixed in 2.35
+    if pyexpat.__version__ <= '2.35':
         build_pyexpat = 1
     if 'pyexpat' in sys.builtin_module_names:
         print "Error: builtin expat library will conflict with ours"
