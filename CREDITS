@@ -96,6 +96,13 @@
 
   <xml-hacker>
     <name> Greg Stein </name>
+    <task> xml.utils.qp_xml module </task>
+    <task> Admin the XML-SIG CVS repository
+       <href> http://www.lyra.org/cgi-bin/viewcvs.cgi/xml/ </href>
+    </task>
+    <email> gstein@lyra.org </email>
+    <home-page> http://www.lyra.org/greg/ </home-page>
+    <snail-mail> PO Box 760, Palo Alto, CA, 94302 </snail-mail>
   </xml-hacker>
 
   <xml-hacker>

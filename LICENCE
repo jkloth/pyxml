@@ -36,6 +36,12 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 --------------------------------------------------------------------
 
+qp_xml:
+--------------------------------------------------------------------
+Written by Greg Stein. Public Domain.
+No Copyright, no Rights Reserved, and no Warranties.
+--------------------------------------------------------------------
+
 saxlib:
 
 sgmlop.c
