@@ -1,7 +1,7 @@
 """
 SAX2 driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.5 2001/12/30 22:18:45 loewis Exp $
+$Id: drv_sgmlop.py,v 1.6 2002/05/30 09:13:43 syt Exp $
 """
 
 version = "0.1"
@@ -93,7 +93,7 @@ class SaxParser(SGMLParser, XMLReader):
         self._cont_handler.characters(to_xml_string(data,self._encoding))
 
     def unknown_entityref(self, entity):
-        self.doc_handler.skippedEntity(entity)
+        self._cont_handler.skippedEntity(entity)
 
     def handle_comment(self,data):
         if self._lexical_handler is not None:
