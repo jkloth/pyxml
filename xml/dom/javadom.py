@@ -1,17 +1,16 @@
+"""An adapter for Java DOM implementations that makes it possible to
+access them through the same interface as the Python DOM implementations.
 
-# An adapter for Java DOM implementations that makes it possible to
-# access them through the same interface as the Python DOM
-# implementation.
-#
-# $Id: javadom.py,v 1.5 2000/06/03 11:04:24 lars Exp $
+Supports:
+- Sun's Java Project X
+- Xerces
+- David Brownell's SAX 2.0 Utilities / DOM2
+- Indelv DOM
+- SXP
+- OpenXML
 
-# Supports:
-# - Sun's Java Project X
-# - Xerces
-# - David Brownell's SAX 2.0 Utilities / DOM2
-# - Indelv DOM
-# - SXP
-# - OpenXML
+$Id: javadom.py,v 1.6 2001/01/29 17:20:15 larsga Exp $
+"""
 
 # Todo:
 # - extend test suite
