@@ -125,12 +125,13 @@ class Reader(reader.Reader):
             if local == 'xmlns':
                 if self._namespaces.has_key(prefix):
                     old_nss[prefix] = self._namespaces[prefix]
-                else:
-                    del_nss.append(prefix)
-                if prefix  or value:
+                    if value:
+                        self._namespaces[prefix] = attribs[curr_attrib_key]
+                    else:
+                        del self._namespaces[prefix]
+                elif value:
                     self._namespaces[prefix] = attribs[curr_attrib_key]
-                else:
-                    del self._namespaces[prefix]
+                    del_nss.append(prefix)
 
         self._namespaceStack.append((old_nss, del_nss))
         (prefix, local) = SplitQName(name)
