@@ -1,18 +1,18 @@
 """
 SAX driver for the Java SAX parsers. Can only be used in Jython.
 
-$Id: drv_javasax.py,v 1.3 2001/12/30 12:13:45 loewis Exp $
+$Id: drv_javasax.py,v 1.4 2002/03/05 22:31:55 larsga Exp $
 """
 
 # --- Initialization
 
 version = "0.10"
-revision = "$Revision: 1.3 $"
+revision = "$Revision: 1.4 $"
 
 import string
 from xml.sax import xmlreader, saxutils
 from xml.sax.handler import feature_namespaces
-from xml.sax._exceptions import *
+from xml.sax import _exceptions
 
 # we only work in jython
 import sys
@@ -41,8 +41,8 @@ except ImportError:
 class JavaSAXParser(xmlreader.XMLReader, ContentHandler):
     "SAX driver for the Java SAX parsers."
 
-    def __init__(self):
-        self._parser = create_java_parser()
+    def __init__(self, jdriver = None):
+        self._parser = create_java_parser(jdriver)
         self._parser.setFeature(feature_namespaces, 0)
         self._parser.setContentHandler(self)
         self._attrs = AttributesImpl()
@@ -53,7 +53,10 @@ class JavaSAXParser(xmlreader.XMLReader, ContentHandler):
     def parse(self, source):
         "Parse an XML document from a URL or an InputSource."
         self._source = saxutils.prepare_input_source(source)
-        self._parser.parse(source)
+        try:
+            self._parser.parse(source)
+        except SAXException, e:
+            raise _exceptions.SAXException("", e)
 
     def getFeature(self, name):
         return self._parser.getFeature(name)
@@ -156,7 +159,10 @@ class AttributesImpl:
         return value
 
     def keys(self):
-        return self._attrs.getQNames()
+        qnames = []
+        for ix in range(self._attrs.getLength()):
+            qnames.append(self._attrs.getQName(ix))
+        return qnames
 
     def copy(self):
         return self.__class__(self._attrs)
@@ -189,9 +195,11 @@ class AttributesNSImpl:
 
 # ---
 
-def create_java_parser():
+def create_java_parser(jdriver = None):
     try:
-        if jaxp:
+        if jdriver:
+            return XMLReaderFactory.createXMLReader(jdriver)
+        elif jaxp:
             return factory.newSAXParser().getXMLReader()
         else:
             return XMLReaderFactory.createXMLReader()
@@ -200,5 +208,5 @@ def create_java_parser():
     except SAXException, e:
         raise SAXReaderNotAvailable(e.getMessage())
 
-def create_parser():
-    return JavaSAXParser()
+def create_parser(jdriver = None):
+    return JavaSAXParser(jdriver)
