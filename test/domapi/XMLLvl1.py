@@ -121,7 +121,8 @@ class DocumentTypeReadTestCase(NodeReadTestCaseBase):
         checkReadOnly(self.doctype, 'name')
 
     def checkEmptyEntities(self):
-        assert self.doctype.entities.length == 0
+        self.assertEqual(self.doctype.entities.length, 0)
+        self.assertEqual(len(self.doctype.entities), 0)
 
     def checkEntitiesInternalSubset(self):
         checkLength(self.doctypeInternalSubset.entities, 3)
@@ -130,25 +131,20 @@ class DocumentTypeReadTestCase(NodeReadTestCaseBase):
             'internalParsedE')
 
     def checkEntitiesRemoveReadOnly(self):
-        try:
-            self.doctypeInternalSubset.entities.removeNamedItem(
-                'internalParsedE')
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, 'Was allowed to remove entity.'
+        self.assertRaises(
+            xml.dom.NoModificationAllowedErr,
+            self.doctypeInternalSubset.entities.removeNamedItem,
+            'internalParsedE')
 
     def checkEntitiesSetReadOnly(self):
         entity = self.doctypeInternalSubset.entities.item(0)
-        try:
-            self.doctypeInternalSubset.entities.setNamedItem(entity)
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, 'Was allowed to set entity.'
+        self.assertRaises(
+            xml.dom.NoModificationAllowedErr,
+            self.doctypeInternalSubset.entities.setNamedItem, entity)
 
     def checkEmptyNotations(self):
-        assert self.doctype.notations.length == 0
+        self.assertEqual(self.doctype.notations.length, 0)
+        self.assertEqual(len(self.doctype.notations), 0)
 
     def checkNotationsInternalSubset(self):
         checkLength(self.doctypeInternalSubset.notations, 1)
@@ -157,22 +153,15 @@ class DocumentTypeReadTestCase(NodeReadTestCaseBase):
             'aNotation')
 
     def checkNotationsRemoveReadOnly(self):
-        try:
-            self.doctypeInternalSubset.notations.removeNamedItem(
-                'aNotation')
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, 'Was allowed to remove notation.'
+        self.assertRaises(
+            xml.dom.NoModificationAllowedErr,
+            self.doctypeInternalSubset.notations.removeNamedItem, 'aNotation')
 
     def checkNotationsSetReadOnly(self):
         notation = self.doctypeInternalSubset.notations.item(0)
-        try:
-            self.doctypeInternalSubset.notations.setNamedItem(notation)
-        except xml.dom.NoModificationAllowedErr:
-            pass
-        else:
-            assert 0, 'Was allowed to set notation.'
+        self.assertRaises(
+            xml.dom.NoModificationAllowedErr,
+            self.doctypeInternalSubset.notations.setNamedItem, notation)
 
     def checkCloneNode(self):
         # TODO: Implementation dependent, what should we test?
@@ -207,8 +196,10 @@ class ProcessingInstructionReadTestCase(NodeReadTestCaseBase):
         clone = self.pi.cloneNode(0)
         deepClone = self.pi.cloneNode(1)
 
-        assert not isSameNode(self.pi, clone), "Clone is same as original."
-        assert not isSameNode(self.pi, deepClone), "Clone is same as original."
+        self.failIf(isSameNode(self.pi, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.pi, deepClone),
+                    "Clone is same as original.")
 
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
@@ -342,19 +333,20 @@ class EntityReadTestCase(NodeReadTestCaseBase):
     def checkSubTreeInternalParsed(self):
         entity = self.internalParsed
 
-        assert entity.hasChildNodes(), (
+        self.assert_(
+            entity.hasChildNodes(),
             'Internal Parsed Entity has no subtree representing the value.')
         checkAttribute(entity.firstChild, 'nodeType', Node.TEXT_NODE)
         checkAttribute(entity.firstChild, 'data', 'Entity text')
         checkReadOnly(entity.firstChild, 'data')
 
     def checkSubTreePublicUnparsed(self):
-        assert not self.publicUnparsed.hasChildNodes(), (
-            'An unparsed entity should not have a sub-tree.')
+        self.failIf(self.publicUnparsed.hasChildNodes(),
+                    'An unparsed entity should not have a sub-tree.')
 
     def checkSubTreeSystemUnparsed(self):
-        assert not self.systemUnparsed.hasChildNodes(), (
-            'An unparsed entity should not have a sub-tree.')
+        self.failIf(self.systemUnparsed.hasChildNodes(),
+                    'An unparsed entity should not have a sub-tree.')
 
 class EntityWriteTestCase(NodeWriteTestCaseBase):
 
