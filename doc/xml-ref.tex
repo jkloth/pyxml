@@ -1,0 +1,498 @@
+% Questions:
+% Should xmllib.py be moved into xml.parsers?  What about pyexpat.so?
+% Should ErrorPrinter go to standard error, not stdout?
+
+\documentclass{howto}
+
+\newcommand{\element}[1]{\code{#1}}
+\newcommand{\attribute}[1]{\code{#1}}
+
+\title{Python/XML Reference Guide}
+
+\release{0.04}
+
+\author{The Python/XML Special Interest Group}
+\authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+XML is the eXtensible Markup Language, a subset of SGML, intended to
+allow the creation and processing of application-specific markup
+languages.  Python makes an excellent language for processing XML
+data.  This document is the reference manual for the Python/XML
+package, containing several XML modules.
+
+This is a draft document; 'XXX' in the text indicates that something
+has to be filled in later, or rewritten, or verified, or something.  
+\end{abstract}
+
+\tableofcontents
+
+\section{xml.parsers.xmllib}
+
+This is a version of the \module{xmllib} module from Python 1.5,
+modified to use the \module{sgmlop} C extension when it's available.
+This produces a significant speedup, amounting to about a factor of 5.
+The interface is unchanged from the original \module{xmllib} module;
+consult the Python Library Reference documentation for that module.
+
+
+%\section{{xml.dom}}
+
+%\section{builder}
+%\section{core}
+%\section{esis_builder}
+%\section{html_builder}
+%\section{sax_builder}
+%\section{transform}
+%\section{transformer}
+%\section{walker}
+%\section{writer}
+
+%\section{{xml.marshal}}
+
+%\section{{xml.sax.drivers}}
+
+%XXX Should all the driver modules be documented, or should they be
+%treated as internal modules, whose details will be handled by a parser
+%Factory function?
+
+%\section{{xml.sax.drivers.drv_xmllib}}
+%\section{{xml.sax.drivers.drv_xmlproc}}
+%\section{{xml.sax.drivers.drv_xmlproc_val}}
+%\section{{xml.sax.drivers.drv_xmltok}}
+%\section{{xml.sax.drivers.drv_xmltoolkit}}
+
+\section{{xml.sax.saxexts}}
+
+\begin{funcdesc}{make_parser}{\optional{parser}}
+A utility function that returns a \class{Parser} object for a
+non-validating XML parser.  If \var{parser} is specified, it must be a 
+parser name; otherwise, a list of available parsers is checked and the
+fastest one chosen.
+\end{funcdesc}
+
+\begin{datadesc}{HTMLParserFactory}
+An instance of the \class{ParserFactory} class that's already been
+prepared with a list of HTML parsers.  Simply call its
+\method{make_parser()} method to get a \class{Parser} object. 
+\end{datadesc}
+
+\begin{datadesc}{SGMLParserFactory}
+An instance of the \class{ParserFactory} class that's already been
+prepared with a list of SGML parsers.  Simply call its
+\method{make_parser()} method to get a parser object. 
+\end{datadesc}
+
+\begin{datadesc}{XMLParserFactory}
+An instance of the \class{ParserFactory} class that's already been
+prepared with a list of nonvalidating XML parsers.  Simply call its
+\method{make_parser()} method to get a parser object. 
+\end{datadesc}
+
+\begin{datadesc}{XMLValParserFactory}
+An instance of the \class{ParserFactory} class that's already been
+prepared with a list of validating XML parsers.  Simply call its
+\method{make_parser()} method to get a parser object. 
+\end{datadesc}
+
+\begin{classdesc}{ExtendedParser}{}
+This class is an experimental extended parser interface, that offers
+additional functionality that may be useful.  However, it's not
+specified by the SAX specification.
+\end{classdesc}
+
+\subsection{\class{ExtendedParser} methods}
+
+\begin{methoddesc}{close}{}
+Called after the last call to feed, when there are no more data.
+\end{methoddesc}
+
+\begin{methoddesc}{feed}{data}
+Feeds \var{data} to the parser.
+\end{methoddesc}
+
+\begin{methoddesc}{get_parser_name}{}
+Returns a single-word parser name.
+\end{methoddesc}
+
+\begin{methoddesc}{get_parser_version}{}
+Returns the version of the imported parser, which may not be the
+one the driver was implemented for.
+\end{methoddesc}
+
+\begin{methoddesc}{is_dtd_reading}{}
+True if the parser is non-validating, but conforms to the XML specification by
+reading the DTD.
+\end{methoddesc}
+
+\begin{methoddesc}{is_validating}{}
+Returns true if the parser is validating, false otherwise.
+\end{methoddesc}
+
+\begin{methoddesc}{reset}{}
+Makes the parser start parsing afresh.
+\end{methoddesc}
+
+\begin{classdesc}{ParserFactory}{}
+A general class to be used by applications for creating parsers on
+foreign systems where it is unknown which parsers exist.
+\end{classdesc}
+
+\subsection{\class{ParserFactory} methods}
+
+\begin{methoddesc}{get_parser_list}{}
+Returns the list of possible drivers.  Currently this starts out as
+\code{["xml.sax.drivers.drv_xmltok",
+                      "xml.sax.drivers.drv_xmlproc",
+                      "xml.sax.drivers.drv_xmltoolkit",
+                      "xml.sax.drivers.drv_xmllib"]}.
+\end{methoddesc}
+
+\begin{methoddesc}{make_parser}{\optional{driver_name}}
+Returns a SAX driver for the first available parser of the parsers
+in the list. Note that the list contains drivers, so it first tries
+the driver and if that exists imports it to see if the parser also
+exists. If no parsers are available a \class{SAXException} is thrown.
+
+Optionally, \var{driver_name} can be a string containing the name of
+the driver to be used; the stored parser list will then not be used at
+all.  
+\end{methoddesc}
+
+\begin{methoddesc}{set_parser_list}{list}
+Sets the driver list to \var{list}.
+\end{methoddesc}
+
+
+\section{{xml.sax.saxlib}}
+
+\begin{classdesc}{AttributeList}{}
+Interface for an attribute list. This interface provides
+    information about a list of attributes for an element (only
+    specified or defaulted attributes will be reported). Note that the
+    information returned by this object will be valid only during the
+    scope of the \method{DocumentHandler.startElement} callback, and the
+    attributes will not necessarily be provided in the order declared
+    or specified.
+\end{classdesc}
+
+\begin{classdesc}{DocumentHandler}{}
+Handle general document events. This is the main client
+    interface for SAX: it contains callbacks for the most important
+    document events, such as the start and end of elements. You need
+    to create an object that implements this interface, and then
+    register it with the \class{Parser}. If you do not want to implement
+    the entire interface, you can derive a class from \class{HandlerBase},
+    which implements the default functionality. You can find the
+    location of any document event using the \class{Locator} interface
+    supplied by \method{setDocumentLocator()}.
+\end{classdesc}
+
+\begin{classdesc}{DTDHandler}{}
+Handle DTD events. This interface specifies only those DTD
+    events required for basic parsing (unparsed entities and
+    attributes). If you do not want to implement the entire interface,
+    you can extend \class{HandlerBase}, which implements the default
+    behaviour.
+\end{classdesc}
+
+\begin{classdesc}{EntityResolver}{}
+This is the basic interface for resolving entities. If you create an object
+    implementing this interface, then register the object with your
+    \class{Parser} instance, the parser will call the method in your object to
+    resolve all external entities. Note that \class{HandlerBase} implements
+    this interface with the default behaviour.
+\end{classdesc}
+
+\begin{classdesc}{ErrorHandler}{}
+This is the basic interface for SAX error handlers. If you create an object
+    that implements this interface, then register the object with your
+    Parser, the parser will call the methods in your object to report
+    all warnings and errors. There are three levels of errors
+    available: warnings, (possibly) recoverable errors, and
+    unrecoverable errors. All methods take a SAXParseException as the
+    only parameter.
+\end{classdesc}
+
+\begin{classdesc}{HandlerBase}{}
+Default base class for handlers. This class implements the
+    default behaviour for four SAX interfaces, inheriting from them all
+: \class{EntityResolver},
+    \class{DTDHandler}, \class{DocumentHandler}, and \class{ErrorHandler}.  Rather
+    than implementing those full interfaces, you may simply extend
+    this class and override the methods that you need. Note that the
+    use of this class is optional, since you are free to implement the
+    interfaces directly if you wish.
+\end{classdesc}
+
+\begin{classdesc}{Locator}{}
+Interface for associating a SAX event with a document
+location. A locator object will return valid results only during
+calls to SAXDocumentHandler methods; at any other time, the
+results are unpredictable.
+\end{classdesc}
+
+\begin{classdesc}{Parser}{}
+Basic interface for SAX (Simple API for XML) parsers. All SAX
+    parsers must implement this basic interface: it allows users to
+    register handlers for different types of events and to initiate a
+    parse from a URI, a character stream, or a byte stream. SAX
+    parsers should also implement a zero-argument constructor.
+\end{classdesc}
+
+
+\begin{classdesc}{SAXException}{msg, exception, locator}
+Encapsulate an XML error or warning. This class can contain
+    basic error or warning information from either the XML parser or
+    the application: you can subclass it to provide additional
+    functionality, or to add localization. Note that although you will
+    receive a SAXException as the argument to the handlers in the
+    ErrorHandler interface, you are not actually required to throw
+    the exception; instead, you can simply read the information in
+    it.
+\end{classdesc}
+
+\begin{classdesc}{SAXParseException}{msg, exception, locator}
+Encapsulate an XML parse error or warning.
+    
+This exception will include information for locating the error in
+    the original XML document. Note that although the application will
+    receive a SAXParseException as the argument to the handlers in the
+    ErrorHandler interface, the application is not actually required
+    to throw the exception; instead, it can simply read the
+    information in it and take a different action.
+
+Since this exception is a subclass of \class{SAXException}, it inherits
+    the ability to wrap another exception.
+\end{classdesc}
+
+
+\subsection{\class{AttributeList} methods}
+
+\begin{methoddesc}{getLength}{}
+Return the number of attributes in the list.
+\end{methoddesc}
+
+\begin{methoddesc}{getName}{i}
+Return the name of attribute \var{i} in the list.
+\end{methoddesc}
+
+\begin{methoddesc}{getType}{i}
+Return the type of an attribute in the list. \var{i} can be
+either the integer index or the attribute name.
+\end{methoddesc}
+
+\begin{methoddesc}{getValue}{i}
+Return the value of an attribute in the list. \var{i} can be
+either the integer index or the attribute name.
+\end{methoddesc}
+
+\subsection{\class{DocumentHandler} methods}
+
+\begin{methoddesc}{characters}{ch, start, length}
+Handle a character data event.
+\end{methoddesc}
+
+\begin{methoddesc}{endDocument}{}
+Handle an event for the end of a document.
+\end{methoddesc}
+
+\begin{methoddesc}{endElement}{name}
+Handle an event for the end of an element.
+\end{methoddesc}
+
+\begin{methoddesc}{ignorableWhitespace}{ch, start, length}
+Handle an event for ignorable whitespace in element content.
+\end{methoddesc}
+
+\begin{methoddesc}{processingInstruction}{target, data}
+Handle a processing instruction event.
+\end{methoddesc}
+
+\begin{methoddesc}{setDocumentLocator}{locator}
+Receive 
+an object for locating the origin of SAX document events.  You'll probably want to store the value of \var{locator} as an attribute of the handler instance.
+\end{methoddesc}
+
+\begin{methoddesc}{startDocument}{}
+Handle an event for the beginning of a document.
+\end{methoddesc}
+
+\begin{methoddesc}{startElement}{name, attrs}
+Handle an event for the beginning of an element.
+\end{methoddesc}
+
+
+\subsection{\class{DTDHandler} methods}
+
+\begin{methoddesc}{notationDecl}{name, publicId, systemId}
+Handle a notation declaration event.
+\end{methoddesc}
+
+\begin{methoddesc}{unparsedEntityDecl}{publicId, systemId, notationName}
+Handle an unparsed entity declaration event.
+\end{methoddesc}
+
+
+\subsection{\class{EntityResolver} methods}
+
+\begin{methoddesc}{resolveEntity}{name, publicId, systemId}
+Resolve the system identifier of an entity.
+\end{methoddesc}
+
+\subsection{\class{ErrorHandler} methods}
+
+\begin{methoddesc}{error}{exception}
+Handle a recoverable error.
+\end{methoddesc}
+
+\begin{methoddesc}{fatalError}{exception}
+Handle a non-recoverable error.
+\end{methoddesc}
+
+\begin{methoddesc}{warning}{exception}
+Handle a warning.
+\end{methoddesc}
+
+\subsection{\class{Locator} methods}
+
+\begin{methoddesc}{getColumnNumber}{}
+Return the column number where the current event ends.
+\end{methoddesc}
+
+\begin{methoddesc}{getLineNumber}{}
+Return the line number where the current event ends.
+\end{methoddesc}
+
+\begin{methoddesc}{getPublicId}{}
+Return the public identifier for the current event.
+\end{methoddesc}
+
+\begin{methoddesc}{getSystemId}{}
+Return the system identifier for the current event.
+\end{methoddesc}
+
+\subsection{\class{Parser} methods}
+
+\begin{methoddesc}{parse}{systemId}
+Parse an XML document from a system identifier.
+\end{methoddesc}
+
+\begin{methoddesc}{parseFile}{fileobj}
+Parse an XML document from a file-like object.
+\end{methoddesc}
+
+\begin{methoddesc}{setDocumentHandler}{handler}
+Register an object to receive basic document-related events.
+\end{methoddesc}
+
+\begin{methoddesc}{setDTDHandler}{handler}
+Register an object to receive basic DTD-related events.
+\end{methoddesc}
+
+\begin{methoddesc}{setEntityResolver}{resolver}
+Register an object to resolve external entities.
+\end{methoddesc}
+
+\begin{methoddesc}{setErrorHandler}{handler}
+Register an object to receive error-message events.
+\end{methoddesc}
+
+\begin{methoddesc}{setLocale}{locale}
+Allow an application to set the locale for errors and warnings. 
+   
+        SAX parsers are not required to provide localisation for errors
+        and warnings; if they cannot support the requested locale,
+        however, they must throw a SAX exception. Applications may
+        request a locale change in the middle of a parse.
+\end{methoddesc}
+
+\subsection{\class{SAXException} methods}
+
+\begin{methoddesc}{getException}{}
+Return the embedded exception, if any.
+\end{methoddesc}
+
+\begin{methoddesc}{getMessage}{}
+Return a message for this exception.
+\end{methoddesc}
+
+\subsection{\class{SAXParseException} methods}
+
+\begin{methoddesc}{getColumnNumber}{}
+Return the column number of the end of the text where the exception
+	occurred.
+\end{methoddesc}
+
+\begin{methoddesc}{getLineNumber}{}
+Return the line number of the end of the text where the exception occurred.
+\end{methoddesc}
+
+\begin{methoddesc}{getPublicId}{}
+Return the public identifier of the entity where the exception occurred.
+\end{methoddesc}
+
+\begin{methoddesc}{getSystemId}{}
+Return the system identifier of the entity where the exception occurred.
+\end{methoddesc}
+
+
+\section{{xml.sax.saxutils}}
+
+\begin{classdesc}{Canonizer}{writer}
+A SAX document handler that produces canonicalized XML output.
+\var{writer} must support a \method{write()} method which accepts a
+single string.  
+\end{classdesc}
+
+\begin{classdesc}{ErrorPrinter}{}
+A simple class that just prints error messages to standard error (\code{sys.stderr}).
+\end{classdesc}
+
+\begin{classdesc}{ESISDocHandler}{writer}
+A SAX document handler that produces naive ESIS output.
+\var{writer} must support a \method{write()} method which accepts a single string. 
+\end{classdesc}
+
+\begin{classdesc}{EventBroadcaster}{list}
+Takes a list of objects and forwards any method calls received
+    to all objects in the list. The attribute list holds the list and
+    can freely be modified by clients.
+\end{classdesc}
+
+\begin{classdesc}{Location}{locator}
+Represents a location in an XML entity. Initialized by being passed
+a locator, from which it reads off the current location, which is then
+stored internally.
+\end{classdesc}
+
+\subsection{\class{Location} methods}
+
+\begin{methoddesc}{getColumnNumber}{}
+Return the column number of the location.
+\end{methoddesc}
+
+\begin{methoddesc}{getLineNumber}{}
+Return the line number of the location.
+\end{methoddesc}
+
+\begin{methoddesc}{getPublicId}{}
+Return the public identifier for the location.
+\end{methoddesc}
+
+\begin{methoddesc}{getSystemId}{}
+Return the system identifier for the location.
+\end{methoddesc}
+
+\section{Related Links}
+
+Collects all the links from the preceding sections, and more besides...
+
+\end{document}
+
+
+

@@ -1,0 +1,52 @@
+
+This directory contains demo programs that show how to use various XML
+processing interfaces.  The demo programs are:
+
+Parser demos:
+=============
+
+xpcmd.py 
+    A command-line interface to the xmlproc parser in non-validating mode.
+The program takes one command-line argument, a URL for the document to be
+parsed.
+
+xvcmd.py:
+    A command-line interface to the xmlproc parser in validating mode.
+The program takes one command-line argument, a URL for the document to
+parsed.
+
+
+SAX demos:
+==========
+saxdemo.py
+	A demo SAX application that uses SAX to parse XML documents into
+either ESIS or canonical XML.
+
+saxstats.py
+	A simple SAX application that counts the number of elements,
+attributes and processing instructions in a document.
+
+saxtimer.py
+	A simple SAX application that measures the time spent parsing
+a document with an empty document handler.
+
+saxtrace.py
+	A minimal SAX application that just prints out the
+document-handler events it receives.
+
+DOM demos:
+==========
+
+hmap:
+	Accesses a Web page and parses the HTML to produce a list of
+the Linux HOWTO documents.
+
+html2html:
+	Parses an HTML document into a DOM tree, and then generates
+HTML output from the tree.
+
+sgt:
+	Converts an instance of the Linuxdoc DTD into HTML using the
+DOM.  This is just a proof-of-convert demonstration, not a finished
+program.
+

@@ -1,0 +1,87 @@
+test_pyexpat
+start collection
+cdata 
+
+cdata 
+
+start quotation
+cdata 
+
+cdata We will perhaps eventually be writing only small modules which are
+cdata 
+
+cdata identified by name as they are used to build larger ones, so that
+cdata 
+
+cdata devices like indentation, rather than delimiters, might become
+cdata 
+
+cdata feasible for expressing local structure in the source language.
+cdata 
+
+cdata 
+
+start source
+cdata Donald E. Knuth, "Structured Programming with goto
+cdata 
+
+cdata Statements", Computing Surveys, Vol 6 No 4, Dec. 1974
+end source
+cdata 
+
+end quotation
+cdata 
+
+cdata 
+
+start quotation
+cdata 
+
+cdata The infinities aren't contagious except in that they often appear that way
+cdata 
+
+cdata due to to their large size.
+cdata 
+
+start source
+cdata Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998
+end source
+cdata 
+
+end quotation
+cdata 
+
+cdata 
+
+start quotation
+cdata 
+
+cdata Indeed, when I design *my* killer language, the identifiers "foo" and "bar"
+cdata 
+
+cdata will be reserved words, never used, and not even mentioned in the reference
+cdata 
+
+cdata manual.  Any program using one will simply dump core without comment.
+cdata 
+
+cdata Multitudes will rejoice.
+cdata 
+
+start source
+cdata Tim Peters, 29 Apr 1998
+end source
+cdata 
+
+end quotation
+cdata 
+
+cdata 
+
+end collection
+Parser returned 1
+Summary of XML parser upcalls:
+start elements: 7
+end elements: 7
+character data: 40
+processing instructions: 0

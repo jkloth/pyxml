@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+  <TITLE>xmlproc: A Python XML parser</TITLE>
+  <META NAME="Author"    CONTENT="Lars Marius Garshol">
+  <META NAME="Generator" CONTENT="Homemade (http://birk105.studby.uio.no/hovedfag/pilot.html)">
+  <META NAME="Description" CONTENT="This is the home page of a free XML parser written in Python.">
+  <LINK REL=StyleSheet HREF="../../../standard.css" TYPE="text/css" MEDIA=screen>
+  <LINK REL=top               HREF="index.html" TITLE="Tools for parsing XML with Python">
+</HEAD>
+
+<BODY>
+
+<DIV CLASS=partof>
+This page is a part of <A HREF="index.html">Tools for parsing XML with Python</A>.
+</DIV>
+
+<H1>xmlproc: A Python XML parser</H1>
+
+<TABLE>
+<TR><TH ALIGN=left>Version:   <TD>0.50
+<TR><TH ALIGN=left>Author:    <TD>Lars Marius Garshol
+<TR><TH ALIGN=left>Email:     <TD>larsga@ifi.uio.no
+<TR><TH ALIGN=left>Released:  <TD>18.Jul.98
+</TABLE>
+
+<H2>What is xmlproc?</H2>
+
+<P>
+xmlproc is an XML parser written in Python. It is a fairly complete validating parser, but does not
+do everything required of a validating parser, or even a well-formedness parser. The average
+user should not run into any omissions, though. Later releases will be more complete.
+</P>
+
+<P>
+xmlproc now supports both <A HREF="xmlproc-catalog-doco.html">SGML Open Catalogs and XCatalog 0.1</A>.
+</P>
+
+<H2>Deviations from the XML specification</H2>
+
+<P>
+xmlproc does not follow the XML specification in these respects:
+</P>
+
+<UL>
+  <LI>Parameter entities in external DTD subsets are not allowed inside declarations,
+          only between them.
+  <LI>No attempt is made to deal with different character sets or encodings.
+  <LI>The parser does not check for the illegal characters below &amp;#x20;.
+</UL>
+
+<P>
+All other deviations from the specification are unintentional bugs and should be reported
+to me via email. Hopefully, xmlproc will be 100% compliant in version 1.00.
+</P>
+
+<H2>Using xmlproc</H2>
+
+<P>
+xmlproc can be used both as a command-line parser and as a parser API
+you can use to write XML applications.
+</P>
+
+<H3>The command-line parser</H3>
+
+<P>
+The command-line parser is in xpcmd.py for well-formedness parsing and xvcmd.py
+for validating parsing. Currently xpcmd.py only accepts one
+argument: the URL to the file to parse. (You can use just the file
+name instead of a full URL if you like.) xvcmd.py allows the "-c" option followed by the
+URL to a catalog file in front of the document URL. For more details on the catalog file
+support in xvcmd.py, see the documentation string at the top of the file.
+</P>
+
+<H3>Basic usage</H3>
+
+<P>
+If you want to make a program that gets data from the parser you
+should subclass the Application class in xmlapp.py. This is a sample
+xmlproc client:
+</P>
+
+<PRE><CODE>
+from xml.parsers.xmlproc import xmlproc
+
+class MyApplication(xmlproc.Application):
+    pass # Add some useful stuff here
+
+p=xmlproc.XMLProcessor()  # Make this xmlval.XMLValidator if you want to validate
+p.set_application(MyApplication())
+p.parse_resource("foo.xml")
+</CODE></PRE>
+
+<H3>More detailed information</H3>
+
+<P>
+The xmlproc APIs are now <A HREF="xmlproc-doco.html">documented</A>.
+</P>
+
+<H2>Licence?</H2>
+
+<P>
+xmlproc is free and you can do as you like with it. If you change it,
+please let me know.
+</P>
+
+<H2>Getting xmlproc</H2>
+
+<P>
+You can download xmlproc <A HREF="xmlproc.zip">here</A>.
+</P>
+
+<H2>Feedback</H2>
+
+<P>
+Any and all feedback is welcome, from suggestions for improvements or new features
+to bug reports. And I really mean it! If you have some opinions on this program, please
+let me hear them.
+</P>
+
+<H2>Email notification of new versions</H2>
+
+<P>
+To be notified by email when a new version is released, fill out this
+form. I guarantee that these email addresses won't be used for any
+other purpose, and that you'll receive notification if the service
+dies. (If you follow the Python XML-SIG mailing list you won't need to register here
+since new releases will also be announced there.)
+</P>
+
+<FORM METHOD=POST ACTION="http://www.stud.ifi.uio.no/~larsga/addmail.cgi">
+  <TABLE>
+  <TR><TD>Your full name:     <TD><INPUT TYPE=TEXT NAME=FULLNAME SIZE=30>
+  <TR><TD>Your email address: <TD><INPUT TYPE=TEXT NAME=EMAIL    SIZE=30>
+  <TR><TD COLSPAN=2><INPUT TYPE=SUBMIT VALUE="Add to list">
+  </TABLE>
+  <INPUT TYPE=hidden NAME=LIST VALUE=xmlproc>
+</FORM>
+
+
+<HR>
+
+<ADDRESS>
+18.Jul.98 18:33, 
+<A HREF="../../../lmg.html">Lars Marius Garshol</A>,
+<A HREF="mailto:larsga@ifi.uio.no">larsga@ifi.uio.no</A>. A part of 
+<A HREF="index.html">Tools for parsing XML with Python</A>.
+</ADDRESS>
+
+</BODY>
+</HTML>

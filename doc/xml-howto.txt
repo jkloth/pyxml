@@ -1,0 +1,675 @@
+
+     _________________________________________________________________
+   
+                              Python/XML HOWTO
+                                      
+                   The Python/XML Special Interest Group
+                                      
+                             xml-sig@python.org
+                       (edited by akuchling@acm.org)
+     _________________________________________________________________
+   
+  Abstract:
+  
+   XML is the eXtensible Markup Language, a subset of SGML, intended to
+   allow the creation and processing of application-specific markup
+   languages. Python makes an excellent language for processing XML data.
+   This document is a tutorial for the Python/XML package. It assumes
+   you're already familiar with the structure and terminology of XML.
+   
+   This is a draft document; 'XXX' in the text indicates that something
+   has to be filled in later, or rewritten, or verified, or something.
+   
+Contents
+
+     * [1]1. Introduction to XML
+          + [2]1.1 Related Links
+     * [3]2. Installing the XML Toolkit
+          + [4]2.1 Related Links
+     * [5]3. SAX: The Simple API for XML
+          + [6]3.1 Starting Out
+          + [7]3.2 Error Handling
+          + [8]3.3 Searching Element Content
+          + [9]3.4 Related Links
+     * [10]4. DOM: The Document Object Model
+          + [11]4.1 Related Links
+     * [12]5. Glossary
+     * [13]6. Related Links
+       
+                            1. Introduction to XML
+                                       
+   XML, the eXtensible Markup Language, is a simplified dialect of SGML,
+   the Standardized General Markup Language. XML is intended to be
+   reasonably simple to implement and use, and is already being used for
+   specifying markup languages for various new standards: MathML for
+   expressing mathematical equations, XXX SMIL (Expand acronym) for
+   synchronizing multimedia objects, and so forth.
+   
+   SGML and XML represent a document by tagging the document's various
+   components with their function, or meaning. For example, an academic
+   paper contains several parts: it has a title, one or more authors, an
+   abstract, the actual text of the paper, a list of references, and so
+   forth. A markup languge for writing such papers would therefore have
+   tags for indicating what the contents of the abstract are, what the
+   title is, and so forth. This should not be confused with the physical
+   details of how the document is actually printed on paper. The abstract
+   might be printed with narrow margins in a smaller font than the rest
+   of the document, but the markup usually won't be concerned with
+   details such as this; other software will translate from the markup
+   language to a typesetting language such as TEX, and will handle the
+   details.
+   
+   A markup language specified using XML looks a lot like HTML; a
+   document consists of a single element, which contains sub-elements,
+   which can have further sub-elements inside them. Elements are
+   indicated by tags in the text. Tags are always inside angle brackets
+   < >. There are two forms of elements. An element can contain content
+   between opening and closing tags, as in <name>Euryale</name>, which is
+   a name element containing the data "Euryale". This content may be text
+   data, other XML elements, or a mixture of both. Elements can also be
+   empty, in which case they contain nothing, and are represented as a
+   single tag ended with a slash, as in <stop/>, which is an empty stop
+   element. Unlike HTML, XML element names are case-sensitive; stop and
+   Stop are two different element types.
+   
+   Opening and empty tags can also contain attributes, which specify
+   values associated with an element. For example, text such as <name
+   lang='greek'>Herakles</name>, the name element has a lang attribute
+   which has a value of "greek". This would contrast with <name
+   lang='latin'>Hercules</name>, where the attribute's value is "latin".
+   
+   A given XML language is specified with a Document Type Definition, or
+   DTD. The DTD declares the element names that are allowed, and how
+   elements can be nested inside each other. The DTD also specifies the
+   attributes that can be provided for each element, their default
+   values, and if they can be omitted. For example, to take an example
+   from HTML, the LI element, representing an entry in a list, can only
+   occur inside certain elements which represent lists, such as OL or UL.
+   A validating parser can be given a DTD and a document, and verify
+   whether a given document is legal according to the DTD's rules, or
+   determine that one or more rules have been violated.
+   
+   Applications that process XML can be classed into two types. The
+   simplest class is an application that only handles one particular
+   markup language. For example, a chemistry program may only need to
+   process Chemical Markup Language, but not MathML. This application can
+   therefore be written specifically for a single DTD, and doesn't need
+   to be capable of handling multiple markup languages. This type is
+   simpler to write, and can easily be implemented with the available
+   Python software.
+   
+   The second type of application is less common, and has to be able to
+   handle any markup language you throw at it. An example might be a
+   smart XML editor that helps you to write XML that conforms to a
+   selected DTD; it might do so by not letting you enter an element where
+   it would be illegal, or by suggesting elements that can be placed at
+   the current cursor location. Such an application needs to handle any
+   possible XML-defined markup, and therefore must be able to obtain a
+   data structure embodying the DTD in use. XXX This type of application
+   can't currently be implemented in Python without difficulty (XXX but
+   wait and see if a DTD module is included...)
+   
+   For the full details of XML's syntax, the one definitive source is the
+   XML 1.0 specification, available on the Web at
+   [14]http://www.w3.org/TR/xml-spec.html. However, like all
+   specifications, it's quite formal and isn't intended to be a friendly
+   introduction or a tutorial. The annotated version of the standard, at
+   [15]http://www.xml.com/XXX, is quite helpful in clarifying the
+   specification's intent. There are also various informal tutorials and
+   books available to introduce you to XML.
+   
+   The rest of this HOWTO will assume that you're familiar with the
+   relevant terminology. Most section will use XML terms such as element
+   and attribute; section [16]4 on the Document Object Model will assume
+   that you've read the relevant Working Draft, and are familiar with
+   things like XXXIterators and XXXNodes. Section [17]3 does not require
+   that you have experience with the Java SAX implentations.
+   
+1.1 Related Links
+
+                         2. Installing the XML Toolkit
+                                       
+   Windows users should get the precompiled version at [18]XXX; Mac users
+   will use the corresponding precompiled version at [19]XXX. Linux users
+   may wish to use either the Debian package from [20]XXX, or the RPM
+   from [21]XXX. To compile from source on a Unix platform, simply
+   perform the following steps.
+   
+   1.
+          Get a copy of the source distribution from [22]XXX. Unpack it
+          with the following command.
+          
+gzip -dc xml-package.tgz | tar -xvf -
+
+   2.
+          Run:
+          
+make -f Makefile.pre.in boot
+
+          This creates the "Makefile" and "config.c" (producing various
+          other intermediate files in the process), incorporating the
+          values for sys.prefix, sys.exec_prefix and sys.version from the
+          installed Python binary. For this to work, the Python
+          interpreter must be on your path. If this fails, try
+          
+   make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
+
+          where "<prefix>" is the value of "installdir" used when
+          installing Python. You may possibly have to also set
+          "exec_installdir" to the value of "exec_prefix".
+   3.
+          Once the Makefile has been constructed, just run "make" to
+          compile the C modules. There's no test suite yet, but there
+          will be one someday.
+   4.
+          To install the code, run "make install". The code will be
+          installed under the "site-packages/" directory as a package
+          named "xml/".
+          
+   If you have difficulty installing this software, send a problem report
+   to <xml-sig@python.org> describing the problem.
+   
+   There are various demonstration programs in the "demo/" directory of
+   the source distribution. You may wish to look at them next to get an
+   impression of what's possible with the XML tools, and as a source of
+   example code.
+   
+2.1 Related Links
+
+   [23]http://www.python.org/topic/xml/
+          This is the starting point for Python-related XML topics; it is
+          updated to refer to all software, mailing lists, documentation,
+          etc.
+          
+                        3. SAX: The Simple API for XML
+                                       
+   The Simple API for XML isn't a standard in the formal sense, but an
+   informal specification designed by David Megginson, with input from
+   many people on the xml-dev mailing list. SAX defines an event-driven
+   interface for parsing XML. To use SAX, you must create Python class
+   instances which implement a specified interface, and the parser will
+   then call various methods of those objects.
+   
+   SAX is most suitable for purposes where you want to read through an
+   entire XML document from beginning to end, and perform some
+   computation, such as building a data structure representating a
+   document, or summarizing information in a document (computing an
+   average value of a certain element, for example). It's not very useful
+   if you want to modify the document structure in some complicated way
+   that involves changing how elements are nested, though it could be
+   used if you simply wish to change element contents or attributes. For
+   example, you would not want to re-order chapters in a book using SAX,
+   but you might want to change the contents of any name elements with
+   the attribute lang equal to 'greek' into Greek letters.
+   
+   One advantage of SAX is speed and simplicity. Let's say you've defined
+   a complicated DTD for listing comic books, and you wish to scan
+   through your collection and list everything written by Neil Gaiman.
+   For this specialized task, there's no need to expend effort examining
+   elements for artists and editors and colourists, because they're
+   irrelevant to the search. You can therefore write a class instance
+   which ignores all elements that aren't writer.
+   
+   Another advantage is that you don't have the whole document resident
+   in memory at any one time, which matters if you are processing really
+   huge documents.
+   
+   SAX defines 4 basic interfaces; an SAX-compliant XML parser can be
+   passed any objects that support these interfaces, and will call
+   various methods as data is processed. Your task, therefore, is to
+   implement those interfaces that are relevant to your application.
+   
+   The SAX interfaces are:
+   
+                             Interface Purpose
+                                      
+   DocumentHandler Called for general document events. This interface is
+       the heart of SAX; its methods are called for the start of the
+     document, the start and end of elements, and for the characters of
+                      data contained inside elements.
+                                      
+     DTDHandler Called to handle DTD events required for basic parsing.
+    This means notation declarations (XML spec section XXX) and unparsed
+                entity declarations (XML spec section XXX).
+                                      
+    EntityResolver Called to resolve references to external entities. If
+   your documents will have no external entity references, you won't need
+                        to implement this interface.
+                                      
+    ErrorHandler Called for error handling. The parser will call methods
+           from this interface to report all warnings and errors.
+                                      
+   Python doesn't support the concept of interfaces, so the interfaces
+   listed above are implemented as Python classes. The default method
+   implementations are defined to do nothing--the method body is just a
+   Python pass statement-so usually you can simply ignore methods that
+   aren't relevant to your application. The one big exception is the
+   ErrorHandler interface; if you don't provide methods that print a
+   message or otherwise take some action, errors in the XML data will be
+   silently ignored. This is almost certainly not what you want your
+   application to do, so always implement at least the error() and
+   fatalError() methods. xml.sax.saxutils provides an ErrorPrinter class
+   which sends error messages to standard error, and an ErrorRaiser class
+   which raises an exception for any warnings or errors.
+   
+   Pseudo-code for using SAX looks something like this:
+   
+# Define your specialized handler classes
+from xml.sax import saxlib
+class docHandler(saxlib.DocumentHandler):
+    ...
+
+# Create an instance of the handler classes
+dh = docHandler()
+
+# Create an XML parser
+parser = ...
+
+# Tell the parser to use your handler instance
+parser.setDocumentHandler(dh)
+
+# Parse the file; your handler's method will get called
+parser.parseFile(sys.stdin)
+
+3.1 Starting Out
+
+   Following the earlier example, let's consider a simple XML format for
+   storing information about a comic book collection. Here's a sample
+   document for a collection consisting of a single issue:
+   
+<collection>
+  <comic title="Sandman" number='62'>
+    <writer>Neil Gaiman</writer>
+    <penciller pages='1-9,18-24'>Glyn Dillon</penciller>
+    <penciller pages="10-17">Charles Vess</penciller>
+  </comic>
+</collection>
+
+   An XML document must have a single root element; this is the
+   "collection" element. It has one child comic element for each issue;
+   the book's title and number are given as attributes of the comic
+   element, which can have one or more children containing the issue's
+   writer and artists. There may be several artists or writers for a
+   single issue.
+   
+   Let's start off with something simple: a document handler named
+   FindIssue that reports whether a given issue is in the collection.
+   
+from xml.sax import saxlib
+
+class FindIssue(saxlib.HandlerBase):
+    def __init__(self, title, number):
+        self.search_title, self.search_number = title, number
+
+   The HandlerBase class inherits from all four interfaces:
+   DocumentHandler, DTDHandler, EntityResolver, and ErrorHandler. This is
+   what you should use if you want to use one class for everything. When
+   you want separate classes for each purpose, you can just subclass each
+   interface individually. Neither of the two approaches is always
+   ``better'' than the other; their suitability depends on what you're
+   trying to do, and on what you prefer.
+   
+   Since this class is doing a search, an instance needs to know what to
+   search for. The desired title and issue number are passed to the
+   FindIssue constructor, and stored as part of the instance.
+   
+   Now let's look at the function which actually does all the work. This
+   simple task only requires looking at the attributes of a given
+   element, so only the startElement method is relevant.
+   
+    def startElement(self, name, attrs):
+        # If it's not a comic element, ignore it
+        if name != 'comic': return
+
+        # Look for the title and number attributes (see text)
+        title = attrs.get('title', None)
+        number = attrs.get('number', None)
+        if title == self.search_title and number == self.search_number:
+            print title, '#'+str(number), 'found'
+
+   The startElement() method is passed a string giving the name of the
+   element, and an instance containing the element's attributes. The
+   latter implements the AttributeList interface, which includes most of
+   the semantics of Python dictionaries. Therefore, the function looks
+   for comic elements, and compares the specified title and number
+   attributes to the search values. If they match, a message is printed
+   out.
+   
+   startElement() is called for every single element in the document. If
+   you added print 'Starting element:', name to the top of
+   startElement(), you would get the following output.
+   
+Starting element: collection
+Starting element: comic
+Starting element: writer
+Starting element: penciller
+Starting element: penciller
+
+   To actually use the class, we need top-level code that creates
+   instances of a parser and of FindIssue, associates them, and then
+   calls a parser method to process the input.
+   
+from xml.sax import saxexts
+
+if __name__ == '__main__':
+    # Create a parser
+    parser = saxexts.make_parser()
+
+    # Create the handler
+    dh = FindIssue('Sandman', '62')
+
+    # Tell the parser to use our handler
+    parser.setDocumentHandler(dh)
+
+    # Parse the input
+    parser.parseFile(file)
+
+   The ParserFactory class can automate the job of creating parsers.
+   There are already several XML parsers available to Python, and more
+   might be added in future. "xmllib.py" is included with Python 1.5, so
+   it's always available, but it's also not particularly fast. A faster
+   version of "xmllib.py" is included in xml.parsers. The pyexpat module
+   is faster still, so it's obviously a preferred choice if it's
+   available. ParserFactory's make_parser method determines which parsers
+   are available and chooses the fastest one, so you don't have to know
+   what the different parsers are, or how they differ. (You can also tell
+   make_parser to use a given parser, if you want to use a specific one.)
+   
+   Once you've created a parser instance, calling setDocumentHandler
+   tells the parser what to use as the handler.
+   
+   If you run the above code with the sample XML document, it'll output
+   Sandman #62 found.
+   
+3.2 Error Handling
+
+   Now, try running the above code with this file as input:
+   
+<collection>
+  &foo;
+  <comic title="Sandman" number='62'>
+</collection>
+
+   The &foo; entity is unknown, and the comic element isn't closed (if it
+   was empty, there would be a "/" before the closing ">". Why did the
+   file get processed without complaint? Because the default code for the
+   ErrorHandler interface does nothing, and no different implementation
+   was provided, so the errors are silently ignored.
+   
+   The ErrorRaiser class automatically raises an exception for any error;
+   you'll usually set an instance of this class as the error handler.
+   Otherwise, you should provide your own version of the ErrorHandler
+   interface, and at minimum override the error() and fatalError()
+   methods. The minimal implementation for each method can be a single
+   line. The methods in the ErrorHandler interface-warning, error, and
+   fatalError-are all passed a single argument, an exception instance.
+   The exception will always be a subclass of SAXException, and calling
+   str() on it will produce a readable error message explaining the
+   problem.
+   
+   So, to re-implement a variant of ErrorRaiser, simply define two of the
+   three methods to raise the exception they're passed:
+   
+    def error(self, exception):
+        raise exception
+    def fatalError(self, exception):
+        raise exception
+
+   warning() might simply print the exception to sys.stderr and return
+   without raising the exception. Now the same incorrect XML file will
+   cause a traceback to be printed, with the error message
+   ``xml.sax.saxlib.SAXException: reference to unknown entity''.
+   
+3.3 Searching Element Content
+
+   Let's tackle a slightly more complicated task, printing out all issues
+   written by a certain author. This now requires looking at element
+   content, because the writer's name is inside a writer element:
+   <writer>Peter Milligan</writer>.
+   
+   The search will be performed using the following algorithm:
+   
+   1.
+          The startElement method will be more complicated. For comic
+          elements, the handler has to save the title and number, in case
+          this comic is later found to match the search criterion. For
+          writer elements, it sets a inWriterContent flag to true, and
+          sets a writerName attribute to the empty string.
+   2.
+          Characters outside of XML tags must be processed. When
+          inWriterContent is true, these characters must be added to the
+          writerName string.
+   3.
+          When the writer element is finished, we've now collected all of
+          the element's content in the writerName attribute, so we can
+          check if the name matches the one we're searching for, and if
+          so, print the information about this comic. We must also set
+          inWriterContent back to false.
+          
+   Here's the first part of the code; this implements step 1.
+   
+from xml.sax import saxlib
+import string
+
+def normalize_whitespace(text):
+    "Remove redundant whitespace from a string"
+    return string.join( string.split(text), ' ')
+
+class FindWriter(saxlib.HandlerBase):
+    def __init__(self, search_name):
+        # Save the name we're looking for
+        self.search_name = normalize_whitespace( search_name )
+
+        # Initialize the flag to false
+        self.inWriterContent = 0
+
+    def startElement(self, name, attrs):
+        # If it's a comic element, save the title and issue
+        if name == 'comic':
+            title = normalize_whitespace( attrs.get('title', "") )
+            number = normalize_whitespace( attrs.get('number', "") )
+            self.this_title = title
+            self.this_number = number
+
+        # If it's the start of a writer element, set flag
+        elif name == 'writer':
+            self.inWriterContent = 1
+            self.writerName = ""
+
+   The startElement() method has been discussed previously. Now we have
+   to look at how the content of elements is processed.
+   
+   The normalize_whitespace() function is important, and you'll probably
+   use it in your own code. XML treats whitespace very flexibly; you can
+   include extra spaces or newlines wherever you like. This means that
+   you must normalize the whitespace before comparing attribute values or
+   element content; otherwise the comparision might produce a wrong
+   result because of different use of whitespace.
+   
+    def characters(self, ch, start, length):
+        if self.inWriterContent:
+            self.writerName = self.writerName + ch[start:start+length]
+
+   The characters() method is called for characters that aren't inside
+   XML tags. ch is a string of characters, and start is the point in the
+   string where the characters start. length is the length of the
+   character data. You should not assume that start is equal to 0, or
+   that all of ch is the character data. An XML parser could be
+   implemented to read the entire document into memory as a string, and
+   then operate by indexing into the string. This would mean that ch
+   would always contain the entire document, and only the values of start
+   and length would be changed.
+   
+   You also shouldn't assume that all the characters are passed in a
+   single function call. In the example above, there might be only one
+   call to characters() for the string "Peter Milligan", or it might call
+   characters() once for each character. More realistically, if the
+   content contains an entity reference, as in "Wagner &amp; Seagle", the
+   parser might call the method three times; once for "Wagner ", once for
+   "&", represented by the entity reference, and again for " Seagle".
+   
+   For step 2 of FindWriter, characters() only has to check
+   inWriterContent, and if it's true, add the characters to the string
+   being built up.
+   
+   Finally, when the writer element ends, the entire name has been
+   collected, so we can compare it to the name we're searching for.
+   
+    def endElement(self, name):
+        if name == 'writer':
+            self.inWriterContent = 0
+            self.writerName = normalize_whitespace(self.writerName)
+            if self.search_name == self.writerName:
+                print 'Found:', self.this_title, self.this_number
+
+   This is an unrealistically stupid comparison function that will be
+   fooled by differing whitespace, but it's good enough for an example.
+   
+   End tags can't have attributes on them, so there's no attrs parameter.
+   Empty elements with attributes, such as "<arc name="Season of
+   Mists"/>", will result in a call to startElement(), followed
+   immediately by a call to endElement().
+   
+   XXX how are external entities handled? Anything special need to be
+   done for them?
+   
+3.4 Related Links
+
+   [24]http://www.megginson.com/SAX/
+          The SAX home page. This has the most recent copy of the
+          specification, and lists SAX implementations for various
+          languages and platforms. At the moment it's somewhat
+          Java-centric.
+          
+                       4. DOM: The Document Object Model
+                                       
+   The Document Object Model is currently at first draft stage, and isn't
+   even close to being a standard. The Python DOM is therefore not yet
+   documented. If you want to look at the code and use it anyway, feel
+   free (report any bugs you find), but be aware that your code may need
+   to be changed for future DOM drafts.
+   
+   The Document Object Model specifies a tree-based representation for an
+   XML document. A top-level Document instance is the root of the tree,
+   and has a single child which is the top-level Element instance; this
+   instance has children nodes representing the content and any
+   sub-elements. These sub-element nodes can have further children, and
+   so forth. Functions are defined which let you traverse the resulting
+   tree any way you like, access element and attribute values, insert and
+   delete nodes, and convert the tree back into XML.
+   
+   The DOM is useful for modifying the tree; you can remove a node from
+   one place in the tree, and insert it somewhere else. You can also
+   construct a DOM tree yourself, and convert it to XML; this is often a
+   more flexible way of producing XML output than simply writing
+   <tag1>...</tag1> to a file.
+   
+   While the DOM doesn't require that the entire tree be resident in
+   memory at one time, the Python implementation currently keeps the
+   whole tree in RAM. This means you may not have enough memory to
+   process very large documents, measuring tens or hundreds of megabytes.
+   It's possible to write a DOM implementation that stores most of the
+   tree on disk or in a database, and reads in new sections as they're
+   accessed, but this hasn't been done yet, and such implementations
+   often impose limitations on how the tree can be accessed.
+   
+4.1 Related Links
+
+   [25]http://www.w3.org/DOM/
+          The World Wide Web Consortium's DOM page.
+          
+                                  5. Glossary
+                                       
+   XML has given rise to a sea of acronyms and terms. This section will
+   list the most significant terms, and sketch their relevance.
+   
+   Many of the following definitions are taken from Lars Marius Garshol's
+   SGML glossary, at
+   [26]http://www.stud.ifi.uio.no/larsga/download/diverse/sgmlglos.html.
+   
+   DOM (Document Object Model)
+          The Document Object Model is intended to a platform- and
+          language-neutral interface that will allow programs and scripts
+          to dynamically access and update the content, structure and
+          style of documents. Documents will be represented as tree
+          structures which can be traversed and modified.
+          
+   DTD (Document Type Definition)
+          A Document Type Definition (nearly always called DTD) defines
+          an XML document type, complete with element types, entities and
+          an XML declaration. In other words: a DTD completely describes
+          one particular kind of XML document, such as, for instance,
+          HTML 3.2.
+          
+   SAX (Simple API for XML)
+          SAX is a simple standardized API for XML parsers developed by
+          the contributors to the xml-dev mailing list. The interface is
+          mostly language-independent, as long as the language is
+          object-oriented; the first implementation was written for Java,
+          but a Python implementation is also available. SAX is supported
+          by many XML parsers.
+          
+   XML (eXtensible Markup Language)
+          XML is an SGML application profile specialized for use on the
+          web and has its own standards for linking and stylesheets under
+          development.
+          
+   XSL (eXtensible Style Language)
+          XSL is a proposal for a stylesheet language for XML, which
+          enables browsers to lay out XML documents in an attractive
+          manner, and also provides a way to convert XML documents to
+          HTML.
+          
+                               6. Related Links
+                                       
+   Collects all the links from the preceding sections, and more
+   besides...
+   
+                            About this document ...
+                                       
+   Python/XML HOWTO
+   
+   This document was generated using the [27]LaTeX2HTML translator
+   Version 98.2beta (June 26th, 1998)
+   
+   Copyright © 1993, 1994, 1995, 1996, 1997, [28]Nikos Drakos, Computer
+   Based Learning Unit, University of Leeds.
+   
+   The command line arguments were:
+   latex2html -init_file
+   /home/akuchlin/src/Python-1.5/Doc/perl/l2hinit.perl -link 3 -split 1
+   -dir xml-howto ./xml-howto.tex.
+   
+   The translation was initiated by on 1998-07-21
+     _________________________________________________________________
+
+References
+
+   1. file:./xml-howto.html
+   2. file:./xml-howto.html#SECTION000210000000000000000
+   3. file:./xml-howto.html#SECTION000300000000000000000
+   4. file:./xml-howto.html#SECTION000310000000000000000
+   5. file:./xml-howto.html#SECTION000400000000000000000
+   6. file:./xml-howto.html#SECTION000410000000000000000
+   7. file:./xml-howto.html#SECTION000420000000000000000
+   8. file:./xml-howto.html#SECTION000430000000000000000
+   9. file:./xml-howto.html#SECTION000440000000000000000
+  10. file:./xml-howto.html#SECTION000500000000000000000
+  11. file:./xml-howto.html#SECTION000510000000000000000
+  12. file:./xml-howto.html#SECTION000600000000000000000
+  13. file:./xml-howto.html#SECTION000700000000000000000
+  14. http://www.w3.org/TR/xml-spec.html
+  15. http://www.xml.com/XXX
+  16. file:./xml-howto.html#DOM
+  17. file:./xml-howto.html#SAX
+  18. file:./XXX
+  19. file:./XXX
+  20. file:./XXX
+  21. file:./XXX
+  22. file:./XXX
+  23. http://www.python.org/topic/xml/
+  24. http://www.megginson.com/SAX/
+  25. http://www.w3.org/DOM/
+  26. http://www.stud.ifi.uio.no/larsga/download/diverse/sgmlglos.html
+  27. http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/
+  28. http://cbl.leeds.ac.uk/nikos/personal.html

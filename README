@@ -1,0 +1,50 @@
+
+XXX what's the license for everything?  Python-style?
+
+This is the first test release of the Python XML package.  The
+distribution contains a validating XML parser, and an implementation
+of the SAX programming interface, along with a Python interface to the
+Expat parser, and a C helper module that can speed up xmllib.py by a
+factor of 5.  There's even documentation!
+
+	There's also a very new DOM implementation included here.  DOM
+isn't even a standard yet, but is still at the first working draft
+stage.  Therefore, while you can use the DOM code (at your own risk),
+it may change in non-backward-compatible ways in future, and
+accordingly the DOM code is not documented.
+
+To compile everything, simply perform the following steps.
+
+1) 
+ Run "make -f Makefile.pre.in boot".  This creates Makefile
+ (producing Makefile.pre and sedscript as intermediate files) and
+ config.c, incorporating the values for sys.prefix, sys.exec_prefix
+ and sys.version from the installed Python binary.  For this to work,
+ the python binary must be on your path.  If this fails, try
+
+   make -f Makefile.pre.in Makefile VERSION=1.5 installdir=<prefix>
+
+ where <prefix> is the prefix used to install Python for installdir
+ (and possibly similar for exec_installdir=<exec_prefix>).
+
+2) 
+ Once the Makefile has been constructed, run "make" to compile the C modules.
+ There's no test suite yet, but there will be one someday.
+
+3)
+ To install everything in the site-packages directory as an xml/ package, 
+ run "make install".
+
+
+If you have difficulty installing this software, send a problem report
+to <xml-sig@python.org> describing the problem.
+
+
+Software versions and credits:
+	DOM v0.1 		Stefane Fermigier
+	PyExpat 		Jack Jansen
+	saxlib-1.0beta3		Lars Marius Garshol
+	sgmlop-980519		Fredrik Lundh
+	xmlproc 0.40		Lars Marius Garshol
+
+

@@ -1,0 +1,10 @@
+TODO list:
+
+	* Make more passes over the documentation
+	* Produce plain-text versions of the docs
+	* More demo programs
+	* Flesh out the test suite
+	* Should PyPointers go in this version?
+
+After 1.0 final:
+	* Start working on DOM again

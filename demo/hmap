@@ -1,0 +1,35 @@
+import sys, re
+from dom.esis_builder import EsisBuilder
+from dom.transformer import *
+
+base_url = 'http://www.freenix.fr/linux/HOWTO/'
+
+
+print '<h1>Liste des HOWTOs en français</h1>'
+
+for fn in sys.argv[1:]:
+
+	sys.stderr.write('Parsing %s\n' % fn)
+
+	#print re.compile('.*/([a-zA-Z0-9_-]).esis').match(fn).group(1)
+
+	url = base_url + re.compile('.*/([a-zA-Z0-9_-]*)\.esis').match(fn).group(1)
+	#print url
+
+	p = EsisBuilder()
+	p.feed(open(fn).read())
+
+	doc = p.document
+
+	title = cdata(doc.documentElement.getElementsByTagName('title')[0].children)
+	try:
+		abstract = cdata(doc.documentElement.getElementsByTagName('abstract')[0].children)
+	except:
+		abstract = ''
+
+	print '<h2><a href="%s.html">%s</a></h2>' % (url, title)
+	print '<em>%s</em>' % abstract
+	sys.stdout.flush()
+	#print (fn, title, abstract)
+
+# vim:ts=2:ai

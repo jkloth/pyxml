@@ -1,0 +1,83 @@
+test_sax
+<collection>&#10;&#10;<quotation>&#10;We will perhaps eventually be writing only small modules which are&#10;identified by name as they are used to build larger ones, so that&#10;devices like indentation, rather than delimiters, might become&#10;feasible for expressing local structure in the source language.&#10;&#10;<source>Donald E. Knuth, &quot;Structured Programming with goto&#10;Statements&quot;, Computing Surveys, Vol 6 No 4, Dec. 1974</source>&#10;</quotation>&#10;&#10;<quotation>&#10;The infinities aren't contagious except in that they often appear that way&#10;due to to their large size.&#10;<source>Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998</source>&#10;</quotation>&#10;&#10;<quotation>&#10;Indeed, when I design *my* killer language, the identifiers &quot;foo&quot; and &quot;bar&quot;&#10;will be reserved words, never used, and not even mentioned in the reference&#10;manual.  Any program using one will simply dump core without comment.&#10;Multitudes will rejoice.&#10;<source>Tim Peters, 29 Apr 1998</source>&#10;</quotation>&#10;&#10;</collection>
+(collection
+-
+
+-
+
+(quotation
+-
+
+-We will perhaps eventually be writing only small modules which are
+-
+
+-identified by name as they are used to build larger ones, so that
+-
+
+-devices like indentation, rather than delimiters, might become
+-
+
+-feasible for expressing local structure in the source language.
+-
+
+-
+
+(source
+-Donald E. Knuth, "Structured Programming with goto
+-
+
+-Statements", Computing Surveys, Vol 6 No 4, Dec. 1974
+)source
+-
+
+)quotation
+-
+
+-
+
+(quotation
+-
+
+-The infinities aren't contagious except in that they often appear that way
+-
+
+-due to to their large size.
+-
+
+(source
+-Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998
+)source
+-
+
+)quotation
+-
+
+-
+
+(quotation
+-
+
+-Indeed, when I design *my* killer language, the identifiers "foo" and "bar"
+-
+
+-will be reserved words, never used, and not even mentioned in the reference
+-
+
+-manual.  Any program using one will simply dump core without comment.
+-
+
+-Multitudes will rejoice.
+-
+
+(source
+-Tim Peters, 29 Apr 1998
+)source
+-
+
+)quotation
+-
+
+-
+
+)collection
+

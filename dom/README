@@ -1,0 +1,45 @@
+This is a snapshot release of my current implementation of DOM (core, level 1).
+
+In fact there are many differences from the specs, for points where I
+thought that a ``pythonic'' interface was better than a ``corbaic'' one.
+
+Included files are:
+
+dom/core.py : Python interpretation of the DOM.
+
+dom/pydom.py : classes to write XML/SGML/HTML in python.
+dom/pyhtml.py : classes to write HTML in python, a la HTMLGen but using dom.
+
+dom/dc_parser.py : Dan Connoly's XML parser (should be replaced by whatever
+front end one can wish for: nsgmls, xmllib, sgmllib, htmllib, xmltok. etc.)
+
+dom/builder.py : root class for event-driven DOM builders.
+
+dom/dc_builder.py : DOM builder built on dc_parser.
+
+dom/esis_builder.py : DOM builder from ESIS output.
+
+dom/sax_builder.py : DOM builder as a SAX event handler.
+
+dom/html_builder.py : DOM builder built on sgmllib.py (more tolerant than
+Dan Connoly's parser, but probably bogous wrt tag minimization).
+
+dom/transformer.py : prototypical tranformation engine.
+
+dom/writer.py : XML / HTML lineariser / writer.
+
+test.py : test the various modules.
+
+hmap, sgt : protypical clients of the dom package (hmap is supposed to
+produce description for a collection of Linux HOWTOs written in SGML,
+the other is a prototypical SGML (linuxdoc DTD) -> HTML converter, a la 
+sgml-tools.
+
+README : this file.
+
+
+These files are Copyright 1998 Stefane Fermigier. You are free to
+use / hack them under the LGPL license.
+
+Contact: fermigie@math.jussieu.fr
+

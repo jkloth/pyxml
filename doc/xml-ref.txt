@@ -1,0 +1,444 @@
+
+     _________________________________________________________________
+   
+                         Python/XML Reference Guide
+                                      
+                   The Python/XML Special Interest Group
+                                      
+                             xml-sig@python.org
+                       (edited by akuchling@acm.org)
+     _________________________________________________________________
+   
+  Abstract:
+  
+   XML is the eXtensible Markup Language, a subset of SGML, intended to
+   allow the creation and processing of application-specific markup
+   languages. Python makes an excellent language for processing XML data.
+   This document is the reference manual for the Python/XML package,
+   containing several XML modules.
+   
+   This is a draft document; 'XXX' in the text indicates that something
+   has to be filled in later, or rewritten, or verified, or something.
+   
+Contents
+
+     * [1]1. xml.parsers.xmllib
+     * [2]2. xml.sax.saxexts
+          + [3]2.1 ExtendedParser methods
+          + [4]2.2 ParserFactory methods
+     * [5]3. xml.sax.saxlib
+          + [6]3.1 AttributeList methods
+          + [7]3.2 DocumentHandler methods
+          + [8]3.3 DTDHandler methods
+          + [9]3.4 EntityResolver methods
+          + [10]3.5 ErrorHandler methods
+          + [11]3.6 Locator methods
+          + [12]3.7 Parser methods
+          + [13]3.8 SAXException methods
+          + [14]3.9 SAXParseException methods
+     * [15]4. xml.sax.saxutils
+          + [16]4.1 Location methods
+     * [17]5. Related Links
+       
+                             1. xml.parsers.xmllib
+                                       
+   This is a version of the xmllib module from Python 1.5, modified to
+   use the sgmlop C extension when it's available. This produces a
+   significant speedup, amounting to about a factor of 5. The interface
+   is unchanged from the original xmllib module; consult the Python
+   Library Reference documentation for that module.
+   
+                              2. xml.sax.saxexts
+                                       
+   make_parser ([parser])
+          A utility function that returns a Parser object for a
+          non-validating XML parser. If parser is specified, it must be a
+          parser name; otherwise, a list of available parsers is checked
+          and the fastest one chosen.
+          
+   HTMLParserFactory
+          An instance of the ParserFactory class that's already been
+          prepared with a list of HTML parsers. Simply call its
+          make_parser() method to get a Parser object.
+          
+   SGMLParserFactory
+          An instance of the ParserFactory class that's already been
+          prepared with a list of SGML parsers. Simply call its
+          make_parser() method to get a parser object.
+          
+   XMLParserFactory
+          An instance of the ParserFactory class that's already been
+          prepared with a list of nonvalidating XML parsers. Simply call
+          its make_parser() method to get a parser object.
+          
+   XMLValParserFactory
+          An instance of the ParserFactory class that's already been
+          prepared with a list of validating XML parsers. Simply call its
+          make_parser() method to get a parser object.
+          
+   ExtendedParser ()
+          This class is an experimental extended parser interface, that
+          offers additional functionality that may be useful. However,
+          it's not specified by the SAX specification.
+          
+2.1 ExtendedParser methods
+
+   close ()
+          Called after the last call to feed, when there are no more
+          data.
+          
+   feed (data)
+          Feeds data to the parser.
+          
+   get_parser_name ()
+          Returns a single-word parser name.
+          
+   get_parser_version ()
+          Returns the version of the imported parser, which may not be
+          the one the driver was implemented for.
+          
+   is_dtd_reading ()
+          True if the parser is non-validating, but conforms to the XML
+          specification by reading the DTD.
+          
+   is_validating ()
+          Returns true if the parser is validating, false otherwise.
+          
+   reset ()
+          Makes the parser start parsing afresh.
+          
+   ParserFactory ()
+          A general class to be used by applications for creating parsers
+          on foreign systems where it is unknown which parsers exist.
+          
+2.2 ParserFactory methods
+
+   get_parser_list ()
+          Returns the list of possible drivers. Currently this starts out
+          as ["xml.sax.drivers.drv_xmltok",
+          "xml.sax.drivers.drv_xmlproc",
+          "xml.sax.drivers.drv_xmltoolkit",
+          "xml.sax.drivers.drv_xmllib"].
+          
+   make_parser ([driver_name])
+          Returns a SAX driver for the first available parser of the
+          parsers in the list. Note that the list contains drivers, so it
+          first tries the driver and if that exists imports it to see if
+          the parser also exists. If no parsers are available a
+          SAXException is thrown.
+          
+          Optionally, driver_name can be a string containing the name of
+          the driver to be used; the stored parser list will then not be
+          used at all.
+          
+   set_parser_list (list)
+          Sets the driver list to list.
+          
+                               3. xml.sax.saxlib
+                                       
+   AttributeList ()
+          Interface for an attribute list. This interface provides
+          information about a list of attributes for an element (only
+          specified or defaulted attributes will be reported). Note that
+          the information returned by this object will be valid only
+          during the scope of the DocumentHandler.startElement callback,
+          and the attributes will not necessarily be provided in the
+          order declared or specified.
+          
+   DocumentHandler ()
+          Handle general document events. This is the main client
+          interface for SAX: it contains callbacks for the most important
+          document events, such as the start and end of elements. You
+          need to create an object that implements this interface, and
+          then register it with the Parser. If you do not want to
+          implement the entire interface, you can derive a class from
+          HandlerBase, which implements the default functionality. You
+          can find the location of any document event using the Locator
+          interface supplied by setDocumentLocator().
+          
+   DTDHandler ()
+          Handle DTD events. This interface specifies only those DTD
+          events required for basic parsing (unparsed entities and
+          attributes). If you do not want to implement the entire
+          interface, you can extend HandlerBase, which implements the
+          default behaviour.
+          
+   EntityResolver ()
+          This is the basic interface for resolving entities. If you
+          create an object implementing this interface, then register the
+          object with your Parser instance, the parser will call the
+          method in your object to resolve all external entities. Note
+          that HandlerBase implements this interface with the default
+          behaviour.
+          
+   ErrorHandler ()
+          This is the basic interface for SAX error handlers. If you
+          create an object that implements this interface, then register
+          the object with your Parser, the parser will call the methods
+          in your object to report all warnings and errors. There are
+          three levels of errors available: warnings, (possibly)
+          recoverable errors, and unrecoverable errors. All methods take
+          a SAXParseException as the only parameter.
+          
+   HandlerBase ()
+          Default base class for handlers. This class implements the
+          default behaviour for four SAX interfaces, inheriting from them
+          all : EntityResolver, DTDHandler, DocumentHandler, and
+          ErrorHandler. Rather than implementing those full interfaces,
+          you may simply extend this class and override the methods that
+          you need. Note that the use of this class is optional, since
+          you are free to implement the interfaces directly if you wish.
+          
+   Locator ()
+          Interface for associating a SAX event with a document location.
+          A locator object will return valid results only during calls to
+          SAXDocumentHandler methods; at any other time, the results are
+          unpredictable.
+          
+   Parser ()
+          Basic interface for SAX (Simple API for XML) parsers. All SAX
+          parsers must implement this basic interface: it allows users to
+          register handlers for different types of events and to initiate
+          a parse from a URI, a character stream, or a byte stream. SAX
+          parsers should also implement a zero-argument constructor.
+          
+   SAXException (msg, exception, locator)
+          Encapsulate an XML error or warning. This class can contain
+          basic error or warning information from either the XML parser
+          or the application: you can subclass it to provide additional
+          functionality, or to add localization. Note that although you
+          will receive a SAXException as the argument to the handlers in
+          the ErrorHandler interface, you are not actually required to
+          throw the exception; instead, you can simply read the
+          information in it.
+          
+   SAXParseException (msg, exception, locator)
+          Encapsulate an XML parse error or warning. This exception will
+          include information for locating the error in the original XML
+          document. Note that although the application will receive a
+          SAXParseException as the argument to the handlers in the
+          ErrorHandler interface, the application is not actually
+          required to throw the exception; instead, it can simply read
+          the information in it and take a different action.
+          
+          Since this exception is a subclass of SAXException, it inherits
+          the ability to wrap another exception.
+          
+3.1 AttributeList methods
+
+   getLength ()
+          Return the number of attributes in the list.
+          
+   getName (i)
+          Return the name of attribute i in the list.
+          
+   getType (i)
+          Return the type of an attribute in the list. i can be either
+          the integer index or the attribute name.
+          
+   getValue (i)
+          Return the value of an attribute in the list. i can be either
+          the integer index or the attribute name.
+          
+3.2 DocumentHandler methods
+
+   characters (ch, start, length)
+          Handle a character data event.
+          
+   endDocument ()
+          Handle an event for the end of a document.
+          
+   endElement (name)
+          Handle an event for the end of an element.
+          
+   ignorableWhitespace (ch, start, length)
+          Handle an event for ignorable whitespace in element content.
+          
+   processingInstruction (target, data)
+          Handle a processing instruction event.
+          
+   setDocumentLocator (locator)
+          Receive an object for locating the origin of SAX document
+          events. You'll probably want to store the value of locator as
+          an attribute of the handler instance.
+          
+   startDocument ()
+          Handle an event for the beginning of a document.
+          
+   startElement (name, attrs)
+          Handle an event for the beginning of an element.
+          
+3.3 DTDHandler methods
+
+   notationDecl (name, publicId, systemId)
+          Handle a notation declaration event.
+          
+   unparsedEntityDecl (publicId, systemId, notationName)
+          Handle an unparsed entity declaration event.
+          
+3.4 EntityResolver methods
+
+   resolveEntity (name, publicId, systemId)
+          Resolve the system identifier of an entity.
+          
+3.5 ErrorHandler methods
+
+   error (exception)
+          Handle a recoverable error.
+          
+   fatalError (exception)
+          Handle a non-recoverable error.
+          
+   warning (exception)
+          Handle a warning.
+          
+3.6 Locator methods
+
+   getColumnNumber ()
+          Return the column number where the current event ends.
+          
+   getLineNumber ()
+          Return the line number where the current event ends.
+          
+   getPublicId ()
+          Return the public identifier for the current event.
+          
+   getSystemId ()
+          Return the system identifier for the current event.
+          
+3.7 Parser methods
+
+   parse (systemId)
+          Parse an XML document from a system identifier.
+          
+   parseFile (fileobj)
+          Parse an XML document from a file-like object.
+          
+   setDocumentHandler (handler)
+          Register an object to receive basic document-related events.
+          
+   setDTDHandler (handler)
+          Register an object to receive basic DTD-related events.
+          
+   setEntityResolver (resolver)
+          Register an object to resolve external entities.
+          
+   setErrorHandler (handler)
+          Register an object to receive error-message events.
+          
+   setLocale (locale)
+          Allow an application to set the locale for errors and warnings.
+          SAX parsers are not required to provide localisation for errors
+          and warnings; if they cannot support the requested locale,
+          however, they must throw a SAX exception. Applications may
+          request a locale change in the middle of a parse.
+          
+3.8 SAXException methods
+
+   getException ()
+          Return the embedded exception, if any.
+          
+   getMessage ()
+          Return a message for this exception.
+          
+3.9 SAXParseException methods
+
+   getColumnNumber ()
+          Return the column number of the end of the text where the
+          exception occurred.
+          
+   getLineNumber ()
+          Return the line number of the end of the text where the
+          exception occurred.
+          
+   getPublicId ()
+          Return the public identifier of the entity where the exception
+          occurred.
+          
+   getSystemId ()
+          Return the system identifier of the entity where the exception
+          occurred.
+          
+                              4. xml.sax.saxutils
+                                       
+   Canonizer (writer)
+          A SAX document handler that produces canonicalized XML output.
+          writer must support a write() method which accepts a single
+          string.
+          
+   ErrorPrinter ()
+          A simple class that just prints error messages to standard
+          error (sys.stderr).
+          
+   ESISDocHandler (writer)
+          A SAX document handler that produces naive ESIS output. writer
+          must support a write() method which accepts a single string.
+          
+   EventBroadcaster (list)
+          Takes a list of objects and forwards any method calls received
+          to all objects in the list. The attribute list holds the list
+          and can freely be modified by clients.
+          
+   Location (locator)
+          Represents a location in an XML entity. Initialized by being
+          passed a locator, from which it reads off the current location,
+          which is then stored internally.
+          
+4.1 Location methods
+
+   getColumnNumber ()
+          Return the column number of the location.
+          
+   getLineNumber ()
+          Return the line number of the location.
+          
+   getPublicId ()
+          Return the public identifier for the location.
+          
+   getSystemId ()
+          Return the system identifier for the location.
+          
+                               5. Related Links
+                                       
+   Collects all the links from the preceding sections, and more
+   besides...
+   
+                            About this document ...
+                                       
+   Python/XML Reference Guide
+   
+   This document was generated using the [18]LaTeX2HTML translator
+   Version 98.2beta (June 26th, 1998)
+   
+   Copyright © 1993, 1994, 1995, 1996, 1997, [19]Nikos Drakos, Computer
+   Based Learning Unit, University of Leeds.
+   
+   The command line arguments were:
+   latex2html -init_file
+   /home/akuchlin/src/Python-1.5/Doc/perl/l2hinit.perl -link 3 -split 1
+   -dir xml-ref ./xml-ref.tex.
+   
+   The translation was initiated by on 1998-07-21
+     _________________________________________________________________
+
+References
+
+   1. file:./xml-ref.html
+   2. file:./xml-ref.html#SECTION000300000000000000000
+   3. file:./xml-ref.html#SECTION000310000000000000000
+   4. file:./xml-ref.html#SECTION000320000000000000000
+   5. file:./xml-ref.html#SECTION000400000000000000000
+   6. file:./xml-ref.html#SECTION000410000000000000000
+   7. file:./xml-ref.html#SECTION000420000000000000000
+   8. file:./xml-ref.html#SECTION000430000000000000000
+   9. file:./xml-ref.html#SECTION000440000000000000000
+  10. file:./xml-ref.html#SECTION000450000000000000000
+  11. file:./xml-ref.html#SECTION000460000000000000000
+  12. file:./xml-ref.html#SECTION000470000000000000000
+  13. file:./xml-ref.html#SECTION000480000000000000000
+  14. file:./xml-ref.html#SECTION000490000000000000000
+  15. file:./xml-ref.html#SECTION000500000000000000000
+  16. file:./xml-ref.html#SECTION000510000000000000000
+  17. file:./xml-ref.html#SECTION000600000000000000000
+  18. http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/
+  19. http://cbl.leeds.ac.uk/nikos/personal.html

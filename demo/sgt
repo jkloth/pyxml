@@ -1,0 +1,131 @@
+'''sgt: a SGML (linuxdoc dtd) to HTML proof-of-concept converter.
+
+Just for testing the dom package. 
+'''
+
+import sys
+from dom.esis_builder import EsisBuilder
+from dom.writer import HtmlLineariser
+
+from dom.html import *
+from dom.transformer import *
+
+
+class Linuxdoc2Html(Transformer):
+	simple_map = {
+		'itemize': 'ul',
+		'enum': 'ol',
+		'descrip': 'dl',
+		'item': 'li',
+		'bf': 'b',
+		'it': 'i',
+		'sl': 'i',
+		'tt': 'code',
+		'code': 'hr/pre',
+		'tag': 'dt/b',
+		#'cite': 'i([ID])',
+		#'sect': 'h1(=heading),!heading',
+	}
+
+	complex_map = [
+		'item [in itemize] : li($)',
+		'url : a(name=#url, #name)',
+		'sect : h1([$.GI!=heading]),[$.GI=heading]',
+	]
+
+	def do_sect(self, node):
+		return [
+			H1(having(node.children, 'this.GI == "heading"')[0].children), 
+		] +	having(node.children, 'this.GI != "heading"')
+
+	def do_sect1(self, node):
+		return [
+			H2(having(node.children, 'this.GI == "heading"')[0].children), 
+		] +	having(node.children, 'this.GI != "heading"')
+
+	def do_sect2(self, node):
+		return [
+			H3(having(node.children, 'this.GI == "heading"')[0].children), 
+		] +	having(node.children, 'this.GI != "heading"')
+
+	def do_sect3(self, node):
+		return [
+			H3(having(node.children, 'this.GI == "heading"')[0].children), 
+		] +	having(node.children, 'this.GI != "heading"')
+
+	def do_sect4(self, node):
+		return [
+			H3(having(node.children, 'this.GI == "heading"')[0].children), 
+		] +	having(node.children, 'this.GI != "heading"')
+
+
+	def do_verb(self, node):
+		return [PRE(node.children)]
+
+	def do_tscreen(self, node):
+		return node.children
+
+	def do_titlepag(self, node):
+		return []
+
+	do_toc = do_titlepag
+
+	def do_linuxdoc(self, node):
+		return node.children
+
+	def do_htmlurl(self, node):
+		return [A({'href': node.attributes['URL']}, node.attributes['NAME'])]
+
+	do_url = do_htmlurl
+
+	def do_ref(self, node):
+		return []
+
+	def do_title(self, node):
+		self.title = cdata(node.children)
+		return []
+		
+	def do_abstract(self, node):
+		self.abstract = cdata(node.children)
+		return []
+
+
+	def do_itemize(self, node):
+		return [UL(node.attributes, node.children)]
+
+	def do_enum(self, node):
+		return [OL(node.attributes, node.children)]
+
+	def do_item(self, node):
+		return [LI(node.children)]
+		
+	def do_p(self, node):
+		if len(node.children) > 0:
+			return [node]
+		else:
+			return []
+
+	def do_article(self, node):
+		return [HTML(
+			HEAD(
+				TITLE(self.title),
+				META(name='description', content=self.abstract),
+			),
+			BODY(node.children),
+		)]
+
+	def do_linuxdoc(self, node):
+		return node.children
+
+
+p = EsisBuilder()
+p.feed(open(sys.argv[1]).read())
+
+t = Linuxdoc2Html()
+doc = t.transform(p.document)
+
+w = HtmlLineariser()
+print w.linearise(doc)
+
+
+# vim:ts=2:ai
