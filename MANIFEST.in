@@ -5,11 +5,9 @@ recursive-include xml *.py *.po *.mo
 
 recursive-include mac *.prj *.prj.exp
 
-recursive-include Wise *.py *.WSM *.wse
-
 recursive-include doc *.html *.tex *.txt *.gif *.css *.api *.web
 
-recursive-include extensions Makefile.pre.in Setup.in *.c *.h 
+recursive-include extensions *.c *.h 
 
 recursive-include extensions/expat *.html *Makefile  expat.* *.dsp
 
