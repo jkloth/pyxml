@@ -292,9 +292,12 @@ class Reader(reader.Reader):
         self.parser.setContentHandler(self.handler)
         self.parser.setDTDHandler(self.handler)
         self.parser.setErrorHandler(self.handler)
-        self.parser.setProperty(handler.property_lexical_handler, self.handler)
         try:
+            #FIXME: Maybe raise a warning?
+            self.parser.setProperty(handler.property_lexical_handler, self.handler)
             self.parser.setProperty(handler.property_declaration_handler, self.handler)
+        except (SystemExit, KeyboardInterrupt):
+            raise
         except:
             pass
         return
