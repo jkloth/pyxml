@@ -34,7 +34,8 @@ Changes in this version, compared to 0.7.1:
         * Various bugs in sgmlop have been fixed.
 
         * Various DOM Level 3 symbolic constants have been added;
-          DOMStringSizeErr can now be spelled as DomstringSizeErr again.
+          DOMStringSizeErr can now be spelled as DomstringSizeErr
+          again, and ValidationErr has been defined.
 
         * Various DOM L1, L2 and L3 features have been added to
           minidom: userdata, isSupported, getInterface, wholeText,
