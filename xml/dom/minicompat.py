@@ -1,6 +1,7 @@
 """Python version compatibility support for minidom."""
 
 # XXX This module needs more explanation!
+# It should only be imported using "import *".
 
 __all__ = ["isinstance", "NodeList", "EmptyNodeList",
            "StringTypes", "TupleType", "defproperty", "GetattrMagic"]
@@ -13,6 +14,14 @@ else:
     StringTypes = type(''), type(unicode(''))
 
 TupleType = type(StringTypes)
+
+
+# define True and False only if not defined as built-ins
+try:
+    True
+except NameError:
+    True = 1
+    False = 0
 
 
 try:
