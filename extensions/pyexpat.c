@@ -79,7 +79,7 @@ struct HandlerInfo{
 	xmlhandler handler;
 };
 
-static struct HandlerInfo handler_info[];
+staticforward struct HandlerInfo handler_info[];
 
 static PyObject *conv_atts( XML_Char **atts){
 	PyObject *attrs_obj=NULL;
@@ -148,7 +148,7 @@ static RC my_##NAME##Handler PARAMS {\
 }
 
 #define VOID_HANDLER( NAME, PARAMS, PARAM_FORMAT ) \
-	RC_HANDLER( void, NAME, PARAMS, , PARAM_FORMAT, , ,\
+	RC_HANDLER( void, NAME, PARAMS, ;, PARAM_FORMAT, ;, ;,\
 	(xmlparseobject *)userData )
 
 #define INT_HANDLER( NAME, PARAMS, PARAM_FORMAT )\
@@ -681,7 +681,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-	char *rev="$Revision: 1.4 $";
+	char *rev="$Revision: 1.5 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
@@ -815,7 +815,7 @@ void pyxml_SetEndCdataSection( XML_Parser *parser,
 		(pairsetter)XML_SetCdataSectionHandler);
 }
 
-static struct HandlerInfo handler_info[]=
+statichere struct HandlerInfo handler_info[]=
 {{"StartElementHandler", 
 	pyxml_SetStartElementHandler, 
 	my_StartElementHandler},
