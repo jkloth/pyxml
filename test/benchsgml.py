@@ -1,11 +1,13 @@
 # benchmark
 
 import time
+
 import sgmlop
-from xml.parsers import sgmllib
+
+import sgmllib
 
 SIZE = 16384
-FILE = "hamlet.xml"
+FILE = "test2.htm"
 
 bytes = len(open(FILE).read())
 

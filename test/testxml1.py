@@ -1,8 +1,7 @@
 # basic tests
 
-from xml.parsers import xmllib
-import sgmlop
-import sys
+import xmllib
+import sgmlop, sys
 import time, string
 
 try:
@@ -62,7 +61,7 @@ for i in range(1):
     parser.close()
 t1 = time.clock() - t
 
-print "raw sgmlop", len(out.data), "lines in", round(t1, 3), "seconds;",
+print "raw sgmlop:", len(out.data), "items;", round(t1, 3), "seconds;",
 print round(b / t1 / 1024, 2), "kbytes per second"
 
 # --------------------------------------------------------------------
@@ -112,7 +111,7 @@ for i in range(1):
     parser2.close()
 t2 = time.clock() - t
 
-print "fast xmllib", len(parser2.data), "lines in", round(t2, 3), "seconds;",
+print "fast xmllib:", len(parser2.data), "items;", round(t2, 3), "seconds;",
 print round(b / t2 / 1024, 2), "kbytes per second"
 
 class SlowXMLParser(xmllib.SlowXMLParser):
@@ -159,7 +158,7 @@ for i in range(1):
     parser3.close()
 t3 = time.clock() - t
 
-print "slow xmllib", len(parser3.data), "lines in", round(t3, 3), "seconds;",
+print "slow xmllib:", len(parser3.data), "items;", round(t3, 3), "seconds;",
 print round(b / t3 / 1024, 2), "kbytes per second"
 
 print
@@ -171,11 +170,11 @@ print
 
 print "looking for differences:"
 
-lines = min(len(parser2.data), len(parser3.data))
+items = min(len(parser2.data), len(parser3.data))
 
-for i in xrange(lines):
+for i in xrange(items):
     if parser2.data[i] != parser3.data[i]:
-	for j in range(max(i-5, 0), min(i+5, lines)):
+	for j in range(max(i-5, 0), min(i+5, items)):
 	    if parser2.data[j] != parser3.data[j]:
 		print "+", j+1, parser2.data[j]
 		print "*", j+1, parser3.data[j]
@@ -183,4 +182,4 @@ for i in xrange(lines):
 		print "=", j+1, parser2.data[j]
 	break
 else:
-    print "   (none)"
+    print "   (none found)"

@@ -478,6 +478,7 @@ class SlowXMLParser:
 # accelerated XML parser
 
 class FastXMLParser:
+
     # Interface -- initialize and reset this instance
     def __init__(self, verbose=0):
 	self.verbose = verbose
@@ -546,22 +547,7 @@ class FastXMLParser:
 
     # Internal -- finish processing of start tag
     # Return -1 for unknown tag, 1 for balanced tag
-    def finish_starttag(self, tag, data):
-	# FIXME: should use the sgmlop attribute parser!!!
-	attrs = {}
-	k, j = 0, len(data)
-	while k < j:
-	    match = attrfind.match(data, k)
-	    if not match: break
-	    attrname, rest, attrvalue = match.group(1, 2, 3)
-	    if not rest:
-		attrvalue = attrname
-	    elif attrvalue[:1] == '\'' == attrvalue[-1:] or \
-		 attrvalue[:1] == '"' == attrvalue[-1:]:
-		attrvalue = attrvalue[1:-1]
-	    attrs[attrname] = attrvalue
-	    k = match.end(0)
-	# FIXME: should move this logic into sgmlop!
+    def finish_starttag(self, tag, attrs):
 	self.stack.append(tag)
 	try:
 	    method = getattr(self, 'start_' + tag)
@@ -645,16 +631,16 @@ class FastXMLParser:
 	pass
 
     # Example -- handle comment, could be overridden
-    def handle_comment(self, data):
-	pass
+    #def handle_comment(self, data):
+    #	pass
 
     # Example -- handle processing instructions, could be overridden
-    def handle_proc(self, name, data):
-	pass
+    #def handle_proc(self, name, data):
+    #	pass
 
     # Example -- handle special instructions, could be overridden
-    def handle_special(self, data):
-	pass
+    #def handle_special(self, data):
+    #	pass
 
     # Example -- handle relatively harmless syntax errors, could be overridden
     def syntax_error(self, lineno, message):

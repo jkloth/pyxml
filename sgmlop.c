@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.1 1998/08/01 03:07:15 amk Exp $
+ * $Id: sgmlop.c,v 1.2 1998/09/16 01:04:37 amk Exp $
  *
  * The sgmlop accelerator module
  *
@@ -10,12 +10,14 @@
  * of it to process HTML documents, at least) or XML.
  *
  * History:
- * 98-04-04 fl  Created
+ * 98-04-04 fl  Created (for coreXML)
  * 98-04-05 fl  Added close method
  * 98-04-06 fl  Added parse method, revised callback interface
  * 98-04-14 fl  Fixed parsing of PI tags
- * 98-05-14 fl  Cleaned up for release
+ * 98-05-14 fl  Cleaned up for first public release
  * 98-05-19 fl  Fixed xmllib compatibility: handle_proc, handle_special
+ * 98-05-22 fl  Added attribute parser
+ * 98-05-23 fl  Added saxlib callback mode
  *
  * Copyright (c) 1998 by Secret Labs AB.
  *
@@ -58,6 +60,7 @@ typedef struct {
 
     /* mode flags */
     int xml; /* 0=sgml/html 1=xml */
+    int saxlib; /* 0=xmllib/sgmllib callbacks 1=saxlib callbacks */
 
     /* state attributes */
     int shorttag; /* 0=normal 2=parsing shorttag */
@@ -82,6 +85,10 @@ typedef struct {
 } FastSGMLParserObject;
 
 staticforward PyTypeObject FastSGMLParser_Type;
+
+/* forward declarations */
+static int fastfeed(FastSGMLParserObject* self);
+static PyObject* attrparse(const CHAR_T *p, int len, int xml);
 
 
 /* -------------------------------------------------------------------- */
@@ -153,40 +160,52 @@ _sgmlop_dealloc(FastSGMLParserObject* self)
     PyMem_DEL(self);
 }
 
+#define GETCB(member, name)\
+    Py_XDECREF(self->member);\
+    self->member = PyObject_GetAttrString(item, name);
+
 static PyObject*
 _sgmlop_register(FastSGMLParserObject* self, PyObject* args)
 {
     /* register a callback object */
     PyObject* item;
-    if (!PyArg_ParseTuple(args, "O", &item))
+    int saxlib = 0;
+    if (!PyArg_ParseTuple(args, "O|i", &item, &saxlib))
         return NULL;
 
-    Py_XDECREF(self->finish_starttag);
-    self->finish_starttag = PyObject_GetAttrString(item, "finish_starttag");
+    if (saxlib) {
 
-    Py_XDECREF(self->finish_endtag);
-    self->finish_endtag = PyObject_GetAttrString(item, "finish_endtag");
+        /* saxlib DocumentHandler callbacks */
 
-    Py_XDECREF(self->handle_proc);
-    self->handle_proc = PyObject_GetAttrString(item, "handle_proc");
+        self->saxlib = 1;
 
-    Py_XDECREF(self->handle_special);
-    self->handle_special = PyObject_GetAttrString(item, "handle_special");
+        GETCB(finish_starttag, "startElement");
+        GETCB(finish_endtag, "endElement");
+        GETCB(handle_proc, "processingInstruction");
+        GETCB(handle_special, "handle_special"); /* FIXME: ??? */
+        Py_XDECREF(self->handle_charref); self->handle_charref = NULL;
+        GETCB(handle_entityref, "handle_entityref"); /* FIXME: ??? */
+        GETCB(handle_data, "characters");
+        GETCB(handle_cdata, "characters");
+        Py_XDECREF(self->handle_comment); self->handle_comment = NULL;
 
-    Py_XDECREF(self->handle_charref);
-    self->handle_charref = PyObject_GetAttrString(item, "handle_charref");
+    } else {
 
-    Py_XDECREF(self->handle_entityref);
-    self->handle_entityref = PyObject_GetAttrString(item, "handle_entityref");
+        /* sgmllib/xmllib callbacks */
 
-    Py_XDECREF(self->handle_data);
-    self->handle_data = PyObject_GetAttrString(item, "handle_data");
+        self->saxlib = 0;
 
-    Py_XDECREF(self->handle_cdata);
-    self->handle_cdata = PyObject_GetAttrString(item, "handle_cdata");
-
-    Py_XDECREF(self->handle_comment);
-    self->handle_comment = PyObject_GetAttrString(item, "handle_comment");
+        GETCB(finish_starttag, "finish_starttag");
+        GETCB(finish_endtag, "finish_endtag");
+        GETCB(handle_proc, "handle_proc");
+        GETCB(handle_special, "handle_special");
+        GETCB(handle_charref, "handle_charref");
+        GETCB(handle_entityref, "handle_entityref");
+        GETCB(handle_data, "handle_data");
+        GETCB(handle_cdata, "handle_cdata");
+        GETCB(handle_comment, "handle_comment");
+        
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -196,9 +215,6 @@ _sgmlop_register(FastSGMLParserObject* self, PyObject* args)
 /* -------------------------------------------------------------------- */
 /* feed data to parser.  the parser processes as much of the data as
    possible, and keeps the rest in a local buffer. */
-
-/* forward declaration */
-static int fastfeed(FastSGMLParserObject* self);
 
 static PyObject*
 feed(FastSGMLParserObject* self, char* string, int stringlen, int last)
@@ -603,8 +619,12 @@ fastfeed(FastSGMLParserObject* self)
         if (q != s && self->handle_data) {
             /* flush any raw data before this tag */
             PyObject* res;
-            res = PyObject_CallFunction(self->handle_data,
-                                        "s#", s, q-s);
+            if (self->saxlib)
+                res = PyObject_CallFunction(self->handle_data,
+                                            "s#ii", s, q-s, 0, q-s);
+            else
+                res = PyObject_CallFunction(self->handle_data,
+                                            "s#", s, q-s);
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -644,11 +664,16 @@ fastfeed(FastSGMLParserObject* self)
                 }
             } else if (self->finish_starttag) {
                 PyObject* res;
+                PyObject* attr;
                 int len = t-b;
                 while (ISSPACE(*t))
                     t++;
+                attr = attrparse(t, e-t, self->xml);
+                if (!attr)
+                    return -1;
                 res = PyObject_CallFunction(self->finish_starttag,
-                                            "s#s#", b, len, t, e-t);
+                                            "s#O", b, len, attr);
+                Py_DECREF(attr);
                 if (!res)
                     return -1;
                 Py_DECREF(res);
@@ -668,13 +693,19 @@ fastfeed(FastSGMLParserObject* self)
                                             "s#", b, e-b);
             else {
                 /* fallback: handle charref's as data */
+                /* FIXME: hexadecimal charrefs? */
                 CHAR_T ch;
                 CHAR_T *p;
                 ch = 0;
                 for (p = b; p < e; p++)
                     ch = ch*10 + *p - '0';
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#", &ch, sizeof(CHAR_T));
+                if (self->saxlib)
+                    res = PyObject_CallFunction(self->handle_data,
+                                                "s#ii", &ch, sizeof(CHAR_T),
+                                                0, sizeof(CHAR_T));
+                else
+                    res = PyObject_CallFunction(self->handle_data,
+                                                "s#", &ch, sizeof(CHAR_T));
             }
             if (!res)
                 return -1;
@@ -682,13 +713,22 @@ fastfeed(FastSGMLParserObject* self)
         } else if (token == CDATA && (self->handle_cdata ||
                                       self->handle_data)) {
             PyObject* res;
-            if (self->handle_cdata)
-                res = PyObject_CallFunction(self->handle_cdata,
-                                            "s#", b, e-b);
-            else
+            if (self->handle_cdata) {
+                if (self->saxlib)
+                    res = PyObject_CallFunction(self->handle_cdata,
+                                                "s#ii", b, e-b, 0, e-b);
+                else
+                    res = PyObject_CallFunction(self->handle_cdata,
+                                                "s#", b, e-b);
+            } else {
                 /* fallback: handle cdata as plain data */
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#", b, e-b);
+                if (self->saxlib)
+                    res = PyObject_CallFunction(self->handle_data,
+                                                "s#ii", b, e-b, 0, e-b);
+                else
+                    res = PyObject_CallFunction(self->handle_data,
+                                                "s#", b, e-b);
+            }
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -708,7 +748,12 @@ fastfeed(FastSGMLParserObject* self)
   eol: /* end of line */
     if (q != s && self->handle_data) {
         PyObject* res;
-        res = PyObject_CallFunction(self->handle_data, "s#", s, q-s);
+        if (self->saxlib)
+            res = PyObject_CallFunction(self->handle_data,
+                                        "s#ii", s, q-s, 0, q-s);
+        else
+            res = PyObject_CallFunction(self->handle_data,
+                                        "s#", s, q-s);
         if (!res)
             return -1;
         Py_DECREF(res);
@@ -716,4 +761,112 @@ fastfeed(FastSGMLParserObject* self)
 
     /* returns the number of bytes consumed in this pass */
     return ((char*) q) - self->buffer;
+}
+
+static PyObject*
+attrparse(const CHAR_T* p, int len, int xml)
+{
+    PyObject* attrs;
+    PyObject* key = NULL;
+    PyObject* value = NULL;
+    const CHAR_T* end = p + len;
+    const CHAR_T* q;
+
+    if (xml)
+        attrs = PyDict_New();
+    else
+        attrs = PyList_New(0);
+
+    while (p < end) {
+
+        /* skip leading space */
+        while (p < end && ISSPACE(*p))
+            p++;
+        if (p >= end)
+            break;
+
+        /* get attribute name (key) */
+        q = p;
+        while (p < end && *p != '=' && !ISSPACE(*p))
+            p++;
+
+        key = PyString_FromStringAndSize(q, p-q);
+        if (key == NULL)
+            goto err;
+
+        while (p < end && ISSPACE(*p))
+            p++;
+
+        if (p < end && *p != '=') {
+
+            /* attribute value not specified: set value to name */
+            value = key;
+            Py_INCREF(value);
+
+        } else {
+
+            /* attribute value found */
+
+            if (p < end)
+                p++;
+            while (p < end && ISSPACE(*p))
+                p++;
+
+            q = p;
+            if (p < end && (*p == '"' || *p == '\'')) {
+                p++;
+                while (p < end && *p != *q)
+                    p++;
+                value = PyString_FromStringAndSize(q+1, p-q-1);
+                if (p < end && *p == *q)
+                    p++;
+            } else {
+                while (p < end && !ISSPACE(*p))
+                    p++;
+                value = PyString_FromStringAndSize(q, p-q);
+            }
+
+            if (value == NULL)
+                goto err;
+
+        }
+
+        if (xml) {
+
+            /* add to dictionary */
+
+            /* PyString_InternInPlace(&key); */
+            if (PyDict_SetItem(attrs, key, value) < 0)
+                goto err;
+            Py_DECREF(key);
+            Py_DECREF(value);
+
+        } else {
+
+            /* add to list */
+
+            PyObject* res;
+            res = PyTuple_New(2);
+            PyTuple_SET_ITEM(res, 0, key);
+            PyTuple_SET_ITEM(res, 0, value);
+            if (PyList_Append(attrs, res) < 0) {
+                Py_DECREF(res);
+                goto err;
+            }
+            Py_DECREF(res);
+
+        }
+
+        key = NULL;
+        value = NULL;
+        
+    }
+
+    return attrs;
+
+  err:
+    Py_XDECREF(key);
+    Py_XDECREF(value);
+    Py_DECREF(attrs);
+    return NULL;
 }
