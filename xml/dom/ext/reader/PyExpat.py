@@ -8,7 +8,7 @@
 Components for reading XML files from PyExpat (Python 1.6, 2.0 or from PyXML).
 WWW: http://4suite.com/4DOM         e-mail: support@4suite.com
 
-Copyright (c) 2000 Fourthought Inc, USA.   All Rights Reserved.
+Copyright (c) 2000-2001 Fourthought Inc, USA.   All Rights Reserved.
 See  http://4suite.com/COPYRIGHT  for license and copyright information
 """
 
@@ -127,7 +127,7 @@ class Reader(reader.Reader):
                     old_nss[prefix] = self._namespaces[prefix]
                 else:
                     del_nss.append(prefix)
-                if (prefix or value):
+                if prefix is not None or value:
                     self._namespaces[prefix] = attribs[curr_attrib_key]
                 else:
                     del self._namespaces[prefix]

@@ -31,6 +31,13 @@ expected_1 = source_1 = """\
 </memo>"""
 
 
+expected_2 = source_2 = """\
+<outer xmlns=""> 
+  <inner xmlns="http://www.ietf.org"/> 
+</outer>
+"""
+
+
 #expected_1 = """<xsltemplate match="email/headers[substring-after(subject,\'address\')]"/>"""
 
         
