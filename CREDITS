@@ -28,8 +28,11 @@
   <xml-hacker>
     <name> Fred L. Drake, Jr. </name>
     <email> fdrake@acm.org </email>
-    <home-page> http://python.starship.net/crew/fdrake/ </home-page>
-    <task> XBEL maintainer. </task>
+    <home-page> http://python.starship.net/~fdrake/ </home-page>
+    <task> XBEL maintainer </task>
+    <task> Expat maintainer </task>
+    <task> General minidom maintenance </task>
+    <task> pyexpat maintenance </task>
   </xml-hacker>
   
   <xml-hacker>
