@@ -1,14 +1,15 @@
 TODO list:
 	* Make more passes over the documentation
 	* More demo programs 
+	* Add READMEs to existing demo programs
         * Re-indent everything to 4-space indents
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite
 	* Should PyPointers be added?
+	* Update the Windows DLLs
 
 test/
 	* Add xmlarch tests to test suite
-	* Add iso8601 tests to test suite
 
 demo/xbel/	
 	* Implement dump_lynx method in bookmark.py
