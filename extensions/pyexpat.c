@@ -42,6 +42,7 @@ enum HandlerTypes {
     XmlDecl,
     ElementDecl,
     AttlistDecl,
+    SkippedEntity,
     _DummyDecl
 };
 
@@ -655,6 +656,13 @@ VOID_HANDLER(AttlistDecl,
               string_intern(self, elname), string_intern(self, attname),
               STRING_CONV_FUNC,att_type, STRING_CONV_FUNC,dflt,
               isrequired))
+
+VOID_HANDLER(SkippedEntity,
+             (void *userData,
+              const XML_Char *entityName,
+              int is_parameter_entity),
+             ("Ni",
+              string_intern(self, entityName), is_parameter_entity))
 
 VOID_HANDLER(NotationDecl,
 		(void *userData,
@@ -1807,6 +1815,9 @@ statichere struct HandlerInfo handler_info[] = {
     {"AttlistDeclHandler",
      (xmlhandlersetter)XML_SetAttlistDeclHandler,
      (xmlhandler)my_AttlistDeclHandler},
+    {"SkippedEntityHandler",
+     (xmlhandlersetter)XML_SetSkippedEntityHandler,
+     (xmlhandler)my_SkippedEntityHandler},
 
     {NULL, NULL, NULL} /* sentinel */
 };
