@@ -683,6 +683,61 @@ static struct PyMethodDef xmlparse_methods[] = {
 /* ---------- */
 
 
+#if !(PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6)
+
+/* 
+    pyexpat international encoding support.
+    Make it as simple as possible.
+*/
+
+static char template_buffer[256];
+PyObject * template_string=NULL;
+
+static void 
+init_template_buffer()
+{
+    int i;
+    for (i=0;i<256;i++) {
+	template_buffer[i]=i;
+    };
+    template_buffer[256]=0;
+};
+
+int 
+PyUnknownEncodingHandler(void *encodingHandlerData, 
+const XML_Char *name, 
+XML_Encoding * info)
+{
+    PyUnicodeObject * _u_string=NULL;
+    int result=0;
+    int i;
+    
+    _u_string=(PyUnicodeObject *) PyUnicode_Decode(template_buffer, 256, name, "replace"); // Yes, supports only 8bit encodings
+    
+    if (_u_string==NULL) {
+	return result;
+    };
+    
+    for (i=0; i<256; i++) {
+	Py_UNICODE c = _u_string->str[i] ; // Stupid to access directly, but fast
+	if (c==Py_UNICODE_REPLACEMENT_CHARACTER) {
+	    info->map[i] = -1;
+	} else {
+	    info->map[i] = c;
+	};
+    };
+    
+    info->data = NULL;
+    info->convert = NULL;
+    info->release = NULL;
+    result=1;
+    
+    Py_DECREF(_u_string);
+    return result;
+}
+
+#endif
+
 static xmlparseobject *
 newxmlparseobject(char *encoding, char *namespace_separator)
 {
@@ -716,6 +771,10 @@ newxmlparseobject(char *encoding, char *namespace_separator)
         return NULL;
     }
     XML_SetUserData(self->itself, (void *)self);
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+#else
+    XML_SetUnknownEncodingHandler(self->itself, (XML_UnknownEncodingHandler) PyUnknownEncodingHandler, NULL);
+#endif
 
     for(i = 0; handler_info[i].name != NULL; i++)
         /* do nothing */;
@@ -881,7 +940,6 @@ static PyTypeObject Xmlparsetype = {
 /* End of code for xmlparser objects */
 /* -------------------------------------------------------- */
 
-
 static char pyexpat_ParserCreate__doc__[] =
 "ParserCreate([encoding[, namespace_separator]]) -> parser\n\
 Return a new XML parser object.";
@@ -1010,6 +1068,10 @@ initpyexpat(void)
                                      XML_MINOR_VERSION, XML_MICRO_VERSION));
 #endif
 
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+#else
+    init_template_buffer();
+#endif
     /* XXX When Expat supports some way of figuring out how it was
        compiled, this should check and set native_encoding 
        appropriately. 
