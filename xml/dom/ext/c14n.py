@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2002/02/04 16:54:46 $ by $Author: rsalz $
+$Date: 2002/03/12 15:38:35 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -119,7 +119,7 @@ class _implementation:
             self._do_document(node)
         elif node.nodeType == Node.ELEMENT_NODE:
             self.documentOrder = _Element        # At document element
-            if self.unsuppressedPrefixes != None:
+            if self.unsuppressedPrefixes is not None:
                 self._do_element(node)
             else:
                 inherited = self._inherit_context(node)
@@ -265,7 +265,7 @@ class _implementation:
                 if n == "xmlns:": n = "xmlns"        # DOM bug workaround
                 ns_local[n] = a.nodeValue
             elif a.namespaceURI == XMLNS.XML:
-                if self.unsuppressedPrefixes == None or in_subset:
+                if self.unsuppressedPrefixes is None or in_subset:
                     xml_attrs.append(a)
             else:
                 other_attrs.append(a)
@@ -298,7 +298,7 @@ class _implementation:
                 # and if not exclusive, or this prefix is needed or
                 # not suppressed
                 if (v != pval or n not in ns_rendered) \
-                  and (self.unsuppressedPrefixes == None or \
+                  and (self.unsuppressedPrefixes is None or \
                   _utilized(n, node, other_attrs, self.unsuppressedPrefixes)):
                     ns_to_render.append((n, v))
 
