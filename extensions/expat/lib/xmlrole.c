@@ -4,12 +4,14 @@ See the file COPYING for copying permission.
 */
 
 static char RCSId[]
-  = "$Header: /cvsroot/pyxml/xml/extensions/expat/lib/xmlrole.c,v 1.1 2001/08/11 07:19:41 loewis Exp $";
+  = "$Header: /cvsroot/pyxml/xml/extensions/expat/lib/xmlrole.c,v 1.2 2001/09/05 21:21:55 loewis Exp $";
 
 #ifdef COMPILED_FROM_DSP
 #  include "winconfig.h"
 #else
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
+#endif
 #endif /* ndef COMPILED_FROM_DSP */
 
 #include "xmlrole.h"
