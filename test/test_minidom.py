@@ -325,7 +325,14 @@ def testProcessingInstruction():
     confirm(pi.target == "mypi"
             and pi.data == "data \t\n "
             and pi.nodeName == "mypi"
-            and pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE)
+            and pi.nodeType == Node.PROCESSING_INSTRUCTION_NODE
+            and pi.attributes is None
+            and not pi.hasChildNodes()
+            and pi.childNodes.length == 0
+            and pi.firstChild is None
+            and pi.lastChild is None
+            and pi.localName is None
+            and pi.namespaceURI == xml.dom.EMPTY_NAMESPACE)
 
 def testProcessingInstructionRepr(): pass
 
