@@ -13,9 +13,7 @@ http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6.win32-py2.0.exe
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6-1.5.2.i386.rpm
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.6.6-2.0.i386.rpm
 
-This is a pure bugfix release only. Changes in this version, 
-compared to 0.6.5:
-
+This is a pure bugfix release only.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
