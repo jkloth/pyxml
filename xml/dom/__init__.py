@@ -13,7 +13,7 @@ See  http://4suite.org/COPYRIGHT  for license and copyright information
 
 
 class Node:
-    """Class giving the NodeType constants."""
+    """Class giving the nodeType and tree-position constants."""
 
     # DOM implementations may use this as a base class for their own
     # Node implementations.  If they don't, the constants defined here
@@ -34,6 +34,35 @@ class Node:
     DOCUMENT_TYPE_NODE          = 10
     DOCUMENT_FRAGMENT_NODE      = 11
     NOTATION_NODE               = 12
+
+    # Based on DOM Level 3 (WD 9 April 2002)
+
+    TREE_POSITION_PRECEDING    = 0x01
+    TREE_POSITION_FOLLOWING    = 0x02
+    TREE_POSITION_ANCESTOR     = 0x04
+    TREE_POSITION_DESCENDENT   = 0x08
+    TREE_POSITION_EQUIVALENT   = 0x10
+    TREE_POSITION_SAME_NODE    = 0x20
+    TREE_POSITION_DISCONNECTED = 0x00
+
+class UserDataHandler:
+    """Class giving the operation constants for UserDataHandler.handle()."""
+
+    # Based on DOM Level 3 (WD 9 April 2002)
+
+    NODE_CLONED   = 1
+    NODE_IMPORTED = 2
+    NODE_DELETED  = 3
+    NODE_RENAMED  = 4
+
+class DOMError:
+    """Class giving constants for error severity."""
+
+    # Based on DOM Level 3 (WD 9 April 2002)
+
+    SEVERITY_WARNING     = 0
+    SEVERITY_ERROR       = 1
+    SEVERITY_FATAL_ERROR = 2
 
 
 # DOMException codes
