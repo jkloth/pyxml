@@ -7,38 +7,18 @@ Version 0.7 of the Python/XML distribution is now available.  It
 should be considered a beta release, and can be downloaded from
 the following URLs:
 
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.tar.gz
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.win32-py1.5.exe
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.tar.gz
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1.win32-py1.5.exe
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.win32-py2.0.exe
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.win32-py2.1.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7-1.5.2.i386.rpm
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.7-2.1.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1-1.5.2.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.7.1-2.1.i386.rpm
 
 
-Changes in this version, compared to 0.6.6:
+Changes in this version, compared to 0.7:
 
-	* Expat 1.95.2 has been integrated.
+	* sgmlop offers the XMLUnicodeParser (contributed by Walter Dörwald).
 
-	* James Tauber has contributed an implementation of TREX,
-	  in the xml.schema.trex module.
-
-	* xmlproc has been updated to produce Unicode strings in
-	  Python 2.x using the Python codecs to convert the input.
-
-	* 4XPath and 4XSLT from the 4Suite package have been
-	  integrated as xml.xpath and xml.xslt. Both packages are a
-	  few releases behind 4Suite. In case of conflicts with
-	  a 4Suite installation, passing --without-{xpath,xslt}
-	  to setup.py is recommended.
-
-	* XBEL has been updated to revision 1.1.
-
-	* The C14N code in xml.dom.ext.c14n was completely rewritten.
-
-	* Swedish and French messages have been added to xmlproc.
-
-	* New SAX2 drivers have been added for htmllib, sgmllib,
-	  sgmlop, and sgmlop_html.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled

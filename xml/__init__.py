@@ -3,5 +3,5 @@
 __all__ = ['dom', 'marshal', 'parsers', 'sax', 'schema', 'utils', 'xpath', 'xslt']
 
 # Needs to synchronize with setup.py
-version_info = (0,7)
-__version__ = "0.7"
+version_info = (0,7,1)
+__version__ = "0.7.1"

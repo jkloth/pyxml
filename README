@@ -1,5 +1,5 @@
 
-XML package v0.7
+XML package v0.7.1
 
 This is the Python XML package.  The distribution contains a
 validating XML parser, an implementation of the SAX and DOM

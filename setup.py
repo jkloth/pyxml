@@ -16,7 +16,7 @@ from setupext import Data_Files, install_Data_Files, wininst_request_delete
 
 ext_modules = []
 
-# Rename xml to _xmlplus for Python 2.0
+# Rename xml to _xmlplus for Python 2.x
 
 if sys.hexversion < 0x2000000:
     def xml(s):
@@ -219,7 +219,7 @@ else:
     xmldocfiles = []
 
 setup (name = "PyXML",
-       version = "0.7", # Needs to match xml/__init__.version_info
+       version = "0.7.1", # Needs to match xml/__init__.version_info
        description = "Python/XML package",
        author = "XML-SIG",
        author_email = "xml-sig@python.org",
