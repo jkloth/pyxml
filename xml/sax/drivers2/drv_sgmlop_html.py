@@ -1,7 +1,7 @@
 """
 SAX2 driver for parsing HTML with the sgmlop parser.
 
-$Id: drv_sgmlop_html.py,v 1.2 2001/12/30 12:13:45 loewis Exp $
+$Id: drv_sgmlop_html.py,v 1.3 2002/05/10 14:50:06 akuchling Exp $
 """
 
 version = "0.1"
@@ -33,7 +33,7 @@ class SaxHtmlParser(SaxParser):
 
         self.unknown_starttag(tag,attrs)
         if upper(tag) in HTML_FORBIDDEN_END:
-            # close immediatly tags for which we won't get and end
+            # close immediately tags for which we won't get an end
             self.unknown_endtag(tag)
             return 0
         else:
