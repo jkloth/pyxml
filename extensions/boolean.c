@@ -24,7 +24,7 @@ static PyObject *BooleanValue(PyObject *self, PyObject *args) {
   PyObject *obj, *tmp;
   PyBooleanObject *result = NULL;
 
-  if (!PyArg_ParseTuple(args, "O", &obj))
+  if (!PyArg_ParseTuple(args, "O", &obj)) 
     return NULL;
 
   if (Boolean_Check(obj)){
@@ -221,6 +221,7 @@ void initboolean(void) {
   d = PyModule_GetDict(m);
 
   PyBoolean_Type.ob_type = &PyType_Type;
+  PyDict_SetItemString(d, "BooleanType", (PyObject *)&PyBoolean_Type);
 
   ErrorObject = PyString_FromString("boolean.error");
   PyDict_SetItemString(d, "error", ErrorObject);
@@ -233,6 +234,7 @@ void initboolean(void) {
 
   PyDict_SetItemString(d, "true", (PyObject *)g_true);
   PyDict_SetItemString(d, "false", (PyObject *)g_false);
+
   return;
 }
 
