@@ -245,10 +245,35 @@ def testGetElementsByTagNameNS():
     </foo>"""
     dom = parseString(d)
     elems = dom.getElementsByTagNameNS("http://pyxml.sf.net/minidom", "myelem")
-    confirm(len(elems) == 1)
+    confirm(len(elems) == 1
+            and elems.item(0).namespaceURI == "http://pyxml.sf.net/minidom"
+            and elems.item(0).localName == "myelem"
+            and elems.item(0).prefix == "minidom"
+            and elems.item(0).tagName == "minidom:myelem"
+            and elems.item(0).nodeName == "minidom:myelem")
     dom.unlink()
 
-def testGetEmptyNodeListFromElementsByTagNameNS(): pass
+def get_empty_nodelist_from_elements_by_tagName_ns_helper(doc, nsuri, lname):
+    nodelist = doc.getElementsByTagNameNS(nsuri, lname)
+    confirm(len(nodelist) == 0
+            and nodelist.item(0) is None)
+
+def testGetEmptyNodeListFromElementsByTagNameNS():
+    doc = parseString('<doc/>')
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, 'http://xml.python.org/namespaces/a', 'localname')
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, '*', 'splat')
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, 'http://xml.python.org/namespaces/a', '*')
+
+    doc = parseString('<doc xmlns="http://xml.python.org/splat"><e/></doc>')
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, "http://xml.python.org/splat", "not-there")
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, "*", "not-there")
+    get_empty_nodelist_from_elements_by_tagName_ns_helper(
+        doc, "http://somewhere.else.net/not-there", "e")
 
 def testElementReprAndStr():
     dom = Document()
