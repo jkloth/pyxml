@@ -50,6 +50,8 @@
 __all__ = ["NodeList", "EmptyNodeList", "NewStyle",
            "StringTypes", "defproperty", "GetattrMagic"]
 
+import xml.dom
+
 try:
     unicode
 except NameError:
@@ -97,7 +99,11 @@ if list is type([]):
         def _get_length(self):
             return len(self)
 
-        length = property(_get_length,
+        def _set_length(self, value):
+            raise xml.dom.NoModificationAllowedErr(
+                "attempt to modify read-only attribute 'length'")
+
+        length = property(_get_length, _set_length,
                           doc="The number of nodes in the NodeList.")
 
     class EmptyNodeList(list):
@@ -106,10 +112,15 @@ if list is type([]):
         def item(self, index):
             return None
 
-        length = 0
-
         def _get_length(self):
             return 0
+
+        def _set_length(self, value):
+            raise xml.dom.NoModificationAllowedErr(
+                "attempt to modify read-only attribute 'length'")
+
+        length = property(_get_length, _set_length,
+                          doc="The number of nodes in the NodeList.")
 
         def append(self, o):
             import xml.dom
@@ -151,8 +162,12 @@ except NameError:
 else:
     def defproperty(klass, name, doc):
         get = getattr(klass, ("_get_" + name)).im_func
-        assert not hasattr(klass, "_set_" + name)
-        prop = property(get, doc=doc)
+        def set(self, value, name=name):
+            raise xml.dom.NoModificationAllowedErr(
+                "attempt to modify read-only attribute " + repr(name))
+        assert not hasattr(klass, "_set_" + name), \
+               "expected not to find _set_" + name
+        prop = property(get, set, doc=doc)
         setattr(klass, name, prop)
 
     class GetattrMagic:
