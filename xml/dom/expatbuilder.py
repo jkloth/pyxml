@@ -121,12 +121,12 @@ class ExpatBuilder:
         parser.StartElementHandler = self.start_element_handler
         parser.EndElementHandler = self.end_element_handler
         parser.ProcessingInstructionHandler = self.pi_handler
-        if self._options.create_entity_nodes:
+        if self._options.entities:
             parser.EntityDeclHandler = self.entity_decl_handler
         parser.NotationDeclHandler = self.notation_decl_handler
         if self._options.comments:
             parser.CommentHandler = self.comment_handler
-        if self._options.create_cdata_nodes:
+        if self._options.cdata_sections:
             parser.StartCdataSectionHandler = self.start_cdata_section_handler
             parser.EndCdataSectionHandler = self.end_cdata_section_handler
             parser.CharacterDataHandler = self.character_data_handler_cdata
@@ -232,7 +232,7 @@ class ExpatBuilder:
         if is_parameter_entity:
             # we don't care about parameter entities for the DOM
             return
-        if not self._options.create_entity_nodes:
+        if not self._options.entities:
             return
         node = minidom.Entity(entityName, publicId, systemId, notationName)
         if value is not None:
@@ -722,7 +722,6 @@ class Namespaces:
 
         if self._ns_ordered_prefixes and self._options.namespace_declarations:
             for prefix, uri in self._ns_ordered_prefixes:
-                
                 if prefix:
                     a = minidom.Attr(_intern(self, 'xmlns:' + prefix),
                                      XMLNS_NAMESPACE, prefix, "xmlns")

@@ -28,15 +28,15 @@ class Options:
     external_general_entities = True
     external_dtd_subset = True
     validate_if_schema = False
-    validate_against_dtd = False
+    validate = False
     datatype_normalization = False
     create_entity_ref_nodes = True
-    create_entity_nodes = True
+    entities = True
     whitespace_in_element_content = True
-    create_cdata_nodes = True
+    cdata_sections = True
     comments = True
     charset_overrides_xml_encoding = True
-    load_as_infoset = False
+    infoset = False
     supported_mediatypes_only = False
 
     errorHandler = None
@@ -76,6 +76,7 @@ class DOMBuilder:
 
     def setFeature(self, name, state):
         if self.supportsFeature(name):
+            state = state and 1 or 0
             try:
                 settings = self._settings[(_name_xform(name), state)]
             except KeyError:
@@ -85,7 +86,7 @@ class DOMBuilder:
                 for name, value in settings:
                     setattr(self._options, name, value)
         else:
-            raise xml.dom.NotFoundErr("unknown feature: " + `name`)        
+            raise xml.dom.NotFoundErr("unknown feature: " + repr(name))
 
     def supportsFeature(self, name):
         return hasattr(self._options, _name_xform(name))
@@ -120,19 +121,19 @@ class DOMBuilder:
             ("create_entity_ref_nodes", 0)],
         ("create_entity_ref_nodes", 1): [
             ("create_entity_ref_nodes", 1)],
-        ("create_entity_nodes", 0): [
+        ("entities", 0): [
             ("create_entity_ref_nodes", 0),
-            ("entity_nodes", 0)],
-        ("create_entity_nodes", 1): [
-            ("entity_nodes", 1)],
+            ("entities", 0)],
+        ("entities", 1): [
+            ("entities", 1)],
         ("whitespace_in_element_content", 0): [
             ("whitespace_in_element_content", 0)],
         ("whitespace_in_element_content", 1): [
             ("whitespace_in_element_content", 1)],
-        ("create_cdata_nodes", 0): [
-            ("create_cdata_nodes", 0)],
-        ("create_cdata_nodes", 1): [
-            ("create_cdata_nodes", 1)],
+        ("cdata_sections", 0): [
+            ("cdata_sections", 0)],
+        ("cdata_sections", 1): [
+            ("cdata_sections", 1)],
         ("comments", 0): [
             ("comments", 0)],
         ("comments", 1): [
@@ -141,13 +142,13 @@ class DOMBuilder:
             ("charset_overrides_xml_encoding", 0)],
         ("charset_overrides_xml_encoding", 1): [
             ("charset_overrides_xml_encoding", 1)],
-        ("load_as_infoset", 0): [],
-        ("load_as_infoset", 1): [
+        ("infoset", 0): [],
+        ("infoset", 1): [
             ("namespace_declarations", 0),
             ("validate_if_schema", 0),
             ("create_entity_ref_nodes", 0),
-            ("create_entity_nodes", 0),
-            ("create_cdata_nodes", 0),
+            ("entities", 0),
+            ("cdata_sections", 0),
             ("datatype_normalization", 1),
             ("whitespace_in_element_content", 1),
             ("comments", 1),
@@ -161,11 +162,11 @@ class DOMBuilder:
     }
 
     def getFeature(self, name):
-        name = _name_xform(name)
+        xname = _name_xform(name)
         try:
-            return getattr(self._options, name)
+            return getattr(self._options, xname)
         except AttributeError:
-            if name == "load_as_infoset":
+            if name == "infoset":
                 options = self._options
                 return (options.datatype_normalization
                         and options.whitespace_in_element_content
@@ -174,9 +175,9 @@ class DOMBuilder:
                         and not (options.namespace_declarations
                                  or options.validate_if_schema
                                  or options.create_entity_ref_nodes
-                                 or options.create_entity_nodes
-                                 or options.create_cdata_nodes))
-            raise xml.dom.NotFoundErr()
+                                 or options.entities
+                                 or options.cdata_sections))
+            raise xml.dom.NotFoundErr("feature %s not known" % repr(name))
 
     def parseURI(self, uri):
         if self.entityResolver:
