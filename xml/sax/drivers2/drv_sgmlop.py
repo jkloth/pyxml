@@ -1,30 +1,28 @@
 """
 SAX2 driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.4 2001/12/30 12:13:45 loewis Exp $
+$Id: drv_sgmlop.py,v 1.5 2001/12/30 22:18:45 loewis Exp $
 """
 
 version = "0.1"
 
 from xml.parsers.sgmllib import SGMLParser
-from xml.sax import saxlib
+from xml.sax import saxlib, handler
 from xml.sax.xmlreader import AttributesImpl, XMLReader
 from xml.sax.saxutils import ContentGenerator, prepare_input_source
-
 
 try:
     import codecs
     def to_xml_string(str,encoding):
         try:
             decoder = codecs.lookup(encoding)[1]
-            encoder = codecs.lookup('utf-8')[0]
-            return encoder(decoder(str)[0])[0]
+            return decoder(str)[0]
         except LookupError:
             return str
 except ImportError:
     from xml.unicode.iso8859 import wstring
     def to_xml_string(str,encoding):
-        if upper(self._encoding) == 'UTF-8':
+        if string.lower(self._encoding) == 'utf-8':
             return str
         else:
             return wstring.decode(encoding,str).utf8()
@@ -37,7 +35,6 @@ class SaxParser(SGMLParser, XMLReader):
     def __init__(self, bufsize = 65536, encoding = 'UTF-8'):
         XMLReader.__init__(self)
         SGMLParser.__init__(self)
-        self.parser = SGMLParser()
         self._bufsize = bufsize
         self._lexical_handler = None
         self._encoding = encoding
@@ -95,6 +92,9 @@ class SaxParser(SGMLParser, XMLReader):
     def handle_data(self,data):
         self._cont_handler.characters(to_xml_string(data,self._encoding))
 
+    def unknown_entityref(self, entity):
+        self.doc_handler.skippedEntity(entity)
+
     def handle_comment(self,data):
         if self._lexical_handler is not None:
             self._lexical_handler.comment(to_xml_string(data,self._encoding))
@@ -102,11 +102,15 @@ class SaxParser(SGMLParser, XMLReader):
     def setProperty(self,name,value):
         if name == handler.property_lexical_handler:
             self._lexical_handler = value
+        elif name == handler.property_encoding:
+            self._encoding = value
         else:
             raise SAXNotRecognizedException("Property '%s' not recognized" % name)
     def getProperty(self, name):
         if name == handler.property_lexical_handler:
             return self._lexical_handler
+        elif name == handler.property_encoding:
+            return self._encoding
         raise SAXNotRecognizedException("Property '%s' not recognized" % name)
 
 ##    def getFeature(self, name):
