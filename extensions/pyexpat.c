@@ -1,8 +1,12 @@
-/* Based on Python's pyexpat.c, version 2.26.
+/* Based on Python's pyexpat.c, version 2.28.
    After integrating a new version from Python, the version string in
    initpyexpat should be corrected.  */
 #include "Python.h"
+#ifdef HAVE_EXPAT_H
+#include "expat.h"
+#else
 #include "xmlparse.h"
+#endif
 
 enum HandlerTypes {
     StartElement,
@@ -825,6 +829,13 @@ pyexpat_ParserCreate(PyObject *notused, PyObject *args, PyObject *kw)
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "|zz:ParserCreate", kwlist,
 					 &encoding, &namespace_separator))
 		return NULL;
+	if (namespace_separator != NULL
+	    && strlen(namespace_separator) != 1) {
+		PyErr_SetString(PyExc_ValueError,
+				"namespace_separator must be one character,"
+				" omitted, or None");
+		return NULL;
+	}
 	return (PyObject *)newxmlparseobject(encoding, namespace_separator);
 }
 
@@ -880,7 +891,7 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
         return 0;
 }
 
-static int
+static int 
 PyModule_AddStringConstant(PyObject *m, char *name, char *value)
 {
 	return PyModule_AddObject(m, name, PyString_FromString(value));
@@ -892,7 +903,7 @@ DL_EXPORT(void)
 initpyexpat(void)
 {
     PyObject *m, *d;
-    char *rev = "#Revision: 2.26 $"; /* version number of Python CVS,
+    char *rev = "#Revision: 2.28 $"; /* version number of Python CVS,
 					should not be updated here. */
     PyObject *errmod_name = PyString_FromString("pyexpat.errors");
     PyObject *errors_module, *errors_dict;
@@ -913,6 +924,8 @@ initpyexpat(void)
         ErrorObject = PyErr_NewException("xml.parsers.expat.error",
                                          NULL, NULL);
     PyModule_AddObject(m, "error", ErrorObject);
+    Py_INCREF(&Xmlparsetype);
+    PyModule_AddObject(m, "XMLParserType", (PyObject *) &Xmlparsetype);
 
     PyModule_AddObject(m, "__version__",
                        PyString_FromStringAndSize(rev+11, strlen(rev+11)-2));
