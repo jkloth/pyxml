@@ -503,7 +503,7 @@ names.sort()
 works = 1
 
 for name in names:
-    if name.startswith("test"):
+    if name[:4]=="test":
         func = globals()[name]
         try:
             func()
@@ -523,7 +523,7 @@ for name in names:
             works = 0
             print "Test Failed: ", name
             sys.stdout.flush()
-            traceback.print_exception(*sys.exc_info())
+            traceback.print_exc()
             print `e`
             Node.allnodes = {}
 

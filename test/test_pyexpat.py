@@ -5,6 +5,11 @@
 
 from xml.parsers import expat
 
+import sys
+# Make test fail for 1.5, since it also tests for Unicode
+if sys.hexversion < 0x02000000:
+    raise ImportError,"pyexpat does not support Unicode"
+
 class Outputter:
     def StartElementHandler(self, name, attrs):
         print 'Start element:\n\t', repr(name), attrs

@@ -7,6 +7,9 @@ This will show russian text in koi8-r encoding.
 from xml.parsers import expat
 import string
 
+# Produces ImportError in 1.5, since this test can't possibly pass there
+import codecs
+
 class XMLTree:
     def __init__(self):
         pass
@@ -15,8 +18,8 @@ class XMLTree:
     def StartElement(self, name, attrs ):
         #name = name.encode()
         print "<", repr(name), ">"
-        print "attr name:", attrs.get("name",u"").encode("koi8-r")
-        print "attr value:", attrs.get("value",u"").encode("koi8-r")
+        print "attr name:", attrs.get("name",unicode("")).encode("koi8-r")
+        print "attr value:", attrs.get("value",unicode("")).encode("koi8-r")
 
     def EndElement(self,  name ):
         print "</", repr(name), ">"
