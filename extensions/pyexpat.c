@@ -27,17 +27,6 @@
 #define Py_USING_UNICODE
 #endif
 
-/* Try to define PyOS_snprintf if we don't already have one; relies on
- * platform support.  We expect that some other error or warning comes
- * up if there isn't an snprintf() in the system libraries.
- *
- * XXX We should have a better way, but HAVE_SNPRINTF wasn't defined
- * by the configure script in Python versions before 2.2.
- */
-#if PY_MAJOR_VERSION == 1 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
-#define PyOS_snprintf snprintf
-#endif
-
 enum HandlerTypes {
     StartElement,
     EndElement,
@@ -124,7 +113,9 @@ set_error(xmlparseobject *self)
     int column = XML_GetErrorColumnNumber(parser);
     enum XML_Error code = XML_GetErrorCode(parser);
 
-    PyOS_snprintf(buffer, sizeof(buffer), "%.200s: line %i, column %i",
+    /* There is no risk of overflowing this buffer, since
+       even for 64-bit integers, there is sufficient space. */
+    sprintf(buffer, "%.200s: line %i, column %i",
             XML_ErrorString(code), lineno, column);
     err = PyObject_CallFunction(ErrorObject, "s", buffer);
     if (  err != NULL
