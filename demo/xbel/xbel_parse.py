@@ -24,11 +24,18 @@ class XBELHandler(saxlib.HandlerBase):
 #        print name, attrs
         if name == 'folder':
             self.entered_folder = 1
+            self.id = attrs.get('id')
+            self.added = attrs.get('added')
+            self.folded = attrs.get('folded')
+            self.icon = attrs.get('icon')
+            self.toolbar = attrs.get('toolbar')
+
         elif name == 'title':
             self.title = ""
         elif name == 'desc':
             self.desc = ""
         elif name == 'bookmark':
+            self.entered_bookmark = 1
             self.title = self.href = ""
             self.added = self.visited = self.modified = ""
 
@@ -46,29 +53,34 @@ class XBELHandler(saxlib.HandlerBase):
             attr = string.lower(self.cur_elem)
             value = getattr(self, attr)
             setattr(self, attr, value + ch[start:start+length])
-#            print getattr(self, attr)
 
     def endElement(self, name):
-#        print 'ending:', name
         self.cur_elem = None
         if name == 'folder':
-#            print 'leaving folder'
             self.bms.leave_folder()
             self.entered_folder = 0
         elif name == 'desc':
             self.bms.desc = self.desc
-        elif name == 'title' and self.entered_folder:
-#            print 'Adding folder', self.title
-            self.bms.add_folder(self.title)
-            self.entered_folder = 0
+        elif name == 'title':
+            if self.entered_folder:
+                folder = self.bms.add_folder(self.title)
+                folder.id = self.id
+                folder.added = self.added
+                folder.folded = self.folded
+                folder.icon = self.icon
+                folder.toolbar = self.toolbar
+                self.entered_folder = 0
+            elif not self.entered_bookmark:
+                self.bms.title = self.title
         elif name == 'bookmark':
-#            print 'adding bookmark:', self.title, self.href
             self.entered_folder = 0
+            self.entered_bookmark = 0
             if self.added == "": self.added = None
             if self.visited == "": self.visited = None
             if self.modified == "": self.modified = None
-#            raise ImportError
             self.bms.add_bookmark(self.title, self.added, self.visited, self.modified, self.href)
+        elif name == 'separator':
+            self.bms.add_separator()
 
 if __name__ == '__main__':
     import sys, getopt

@@ -4,13 +4,20 @@
 Small utility that parses Netscape bookmarks.
 """
 
-from xml.sax import saxexts,saxlib
+# TODO:
+# LAST_CHARSET: put in <info><metadata owner="mozilla"><last_charset>...</info>
+# H3:LAST_MODIFIED: Put in XBEL 1.2?
+# Cross references?
+# Descriptions
+
+
+from xml.sax import sax2exts,handler
 import bookmark
-import string
+import string, htmlentitydefs
 
 # --- SAX handler for Netscape bookmarks
 
-class NetscapeHandler(saxlib.HandlerBase):
+class NetscapeHandler(handler.ContentHandler):
 
     def __init__(self):
         self.bms=bookmark.Bookmarks()
@@ -28,11 +35,17 @@ class NetscapeHandler(saxlib.HandlerBase):
 ##        print 'start', name, d
         if name=="h3":
             self.cur_elem="h3"
-            if d.has_key('add_date'): self.added=d["add_date"]
-            else: self.added = ""
+            if d.has_key("folded"):
+                self.folded = "yes"
+            else:
+                self.folded = "no"
+            self.id = d.get('id')
+            self.added= d.get('add_date',"")
+            self.modified = d.get('last_modified', "")
 
         elif name=="a":
             self.cur_elem="a"
+            self.bookmark = ""
             if d.has_key('add_date'): self.added=d["add_date"]
             else: self.added = None
             if d.has_key('last_visit'): self.visited=d["last_visit"]
@@ -41,31 +54,52 @@ class NetscapeHandler(saxlib.HandlerBase):
             else: self.modified = None
 
             self.url=d["href"]
-        elif name=='title':  # Could equally use h1 element
+        elif name=='title':
             self.cur_elem = 'title'
-            self.bms.owner = ""
+            self.bms.title = ""
+        elif name=='h1':
+            self.cur_elem = 'h1'
+            self.bms.desc = ""
+        elif name=='hr':
+            self.bms.add_separator()
+        elif name=='meta':
+            if d.has_key('http-equiv') and \
+               string.lower(d['http-equiv'])=='content-type':
+                value = string.split(d['content'], "charset=")
+                if len(value) == 2:
+                    the_parser.setProperty(handler.property_encoding, value[1])
 
-    def characters(self,data,start,length):
+    def characters(self,data):
 ##        print 'char', self.cur_elem, data[start:start+length]
         if self.cur_elem=="h3":
-            self.bms.add_folder(data[start:start+length],None)
+            folder = self.bms.add_folder(data, None)
+            folder.id = self.id
+            folder.folded = self.folded
+            folder.added = self.added
         elif self.cur_elem=="a":
-            self.bms.add_bookmark( data[start:start+length],
-                                   added = self.added,
-                                   visited = self.visited,
-                                   modified = self.modified,
-                                   href = self.url)
+            self.bookmark = self.bookmark+data
         elif self.cur_elem=="title":
-            self.bms.owner = self.bms.owner + data[start:start+length]
+            self.bms.title = self.bms.title + data
+        elif self.cur_elem=="h1":
+            self.bms.desc = self.bms.desc + data
+
+    def skippedEntity(self, name):
+        self.characters(htmlentitydefs.entitydefs[name])
 
     def endElement(self,name):
         name = string.lower( name )
 ##        print 'end', name
+        if name=="a":
+            self.bms.add_bookmark(self.bookmark,
+                                  added = self.added,
+                                  visited = self.visited,
+                                  modified = self.modified,
+                                  href = self.url)
         if name=="h3":
             self.cur_elem=None
         elif name=="dl":
             self.bms.leave_folder()
-        elif name=="a" or name == 'title':
+        elif name == self.cur_elem:
             self.cur_elem=None
 
 # --- Test-program
@@ -82,10 +116,12 @@ if __name__ == '__main__':
         sys.exit(1)
 
     ns_handler=NetscapeHandler()
-    p=saxexts.SGMLParserFactory.make_parser()
-    p.setDocumentHandler(ns_handler)
+    the_parser = sax2exts.SGMLParserFactory.make_parser()
+    the_parser.setContentHandler(ns_handler)
+    # For Netscape 4, default to Latin-1
+    the_parser.setProperty(handler.property_encoding, "iso-8859-1")
     file = open(sys.argv[1], 'r')
-    p.parseFile( file )
+    the_parser.parse(file)
     bms = ns_handler.bms
 
     if len(sys.argv)==3:
