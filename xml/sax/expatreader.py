@@ -82,7 +82,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         except expat.error:
             error_code = self._parser.ErrorCode
             exc = SAXParseException(expat.ErrorString(error_code), None, self)
-            # FIXME: when to invoke eror()?
+            # FIXME: when to invoke error()?
             self._err_handler.fatalError(exc)
 
     def close(self):
