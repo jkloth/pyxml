@@ -22,6 +22,7 @@ try:
 except NameError:
     True = 1
     False = 0
+    __all__.extend(["True", "False"])
 
 
 try:
