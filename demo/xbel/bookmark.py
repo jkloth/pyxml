@@ -3,6 +3,7 @@ Classes to store bookmarks and dump them to XBEL.
 """
 
 import sys,string
+from xml.utils import escape
 
 # --- Class for bookmark container
 
@@ -11,10 +12,10 @@ class Bookmarks:
     def __init__(self):
         self.folders=[]
         self.folder_stack=[]
-        self.owner = "Anonymous Bookmark File"
+        self.desc = "No description"
         
-    def add_folder(self,name,created,visited):
-        nf=Folder(name,created,visited)
+    def add_folder(self, name, added=None):
+        nf=Folder(name, added)
         if self.folder_stack==[]:
             self.folders.append(nf)
         else:
@@ -22,8 +23,10 @@ class Bookmarks:
             
         self.folder_stack.append(nf)
 
-    def add_bookmark(self,name,created,visited,url):
-        nb=Bookmark(name,created,visited,url)
+    def add_bookmark(self,name=None,
+                     added=None, visited=None, modified=None,
+                     href=None):
+        nb=Bookmark(name,added,visited,modified,href)
 
         if self.folder_stack!=[]:
             self.folder_stack[-1].add_child(nb)
@@ -38,7 +41,7 @@ class Bookmarks:
         out.write('<?xml version="1.0"?>\n'
                   '<!DOCTYPE xbel SYSTEM "xbel.dtd">\n'
                   '<xbel>\n')
-        out.write("  <desc>%s's Bookmarks</desc>\n" % (self.owner,) )
+        out.write("  <desc>%s</desc>\n" % (escape(self.desc),) )
 
         for folder in self.folders:
             folder.dump_xbel(out)
@@ -54,8 +57,8 @@ class Bookmarks:
         out.write("<!-- This is an automatically generated file.\n")
         out.write("It will be read and overwritten.\n")
         out.write("Do Not Edit! -->\n")
-        out.write("<TITLE>" + self.owner + "</TITLE>\n")
-        out.write("<H1>" + self.owner + "</H1>\n\n")
+        out.write("<TITLE>" + self.desc + "</TITLE>\n")
+        out.write("<H1>" + self.desc + "</H1>\n\n")
 
         out.write("<DL><p>\n")
         for folder in self.folders:
@@ -77,18 +80,18 @@ class Bookmarks:
 # --- Superclass for folder and bookmarks
         
 class Node:
-
-    def __init__(self,name,created,visited):
-        self.name=name
-        self.created=created
+    def __init__(self,name,added=None, visited=None, modified=None):
+        self.title=name
+        self.added=added
         self.visited=visited
+        self.modified=modified
 
 # --- Class for folders
     
 class Folder(Node):
 
-    def __init__(self,name,created,visited):
-        Node.__init__(self,name,created,visited)
+    def __init__(self,name,added=None):
+        Node.__init__(self,name, added=added)
         self.children=[]
 
     def add_child(self,child):
@@ -96,15 +99,15 @@ class Folder(Node):
 
     def dump_xbel(self,out):
         out.write("  <folder>\n")
-        out.write("    <title>%s</title>\n" % self.name)
+        out.write("    <title>%s</title>\n" % escape(self.title) )
         for child in self.children:
             child.dump_xbel(out)
         out.write("  </folder>\n")
 
     def dump_adr(self,out):
         out.write("#FOLDER\n")
-        out.write("\tNAME=%s\n" % self.name)
-        out.write("\tCREATED=%s\n" % "0 (?)")
+        out.write("\tNAME=%s\n" % self.title)
+        out.write("\tADDED=%s\n" % "0 (?)")
         out.write("\tVISITED=%s\n" % "0 (?)")
         out.write("\tORDER=-1\n")
         out.write("\n")
@@ -116,7 +119,7 @@ class Folder(Node):
         out.write("-\n")
 
     def dump_netscape(self,out):
-        out.write("  <DT><H3 FOLDED>%s</H3>\n" % self.name)
+        out.write("  <DT><H3 FOLDED>%s</H3>\n" % self.title)
         out.write("  <DL><p>\n")
 
         for child in self.children:
@@ -128,34 +131,44 @@ class Folder(Node):
         
 class Bookmark(Node):
 
-    def __init__(self,name,created,visited,url):
-        Node.__init__(self,name,created,visited)
-        self.url=url
+    def __init__(self,name, added=None, visited=None,
+                 modified=None, href=None):
+        Node.__init__(self,name,added,visited,modified)
+        self.href=href
 
     def dump_xbel(self,out):
         if self.visited!=None:
-            visited = 'visited="%s" ' % self.visited
+            visited = 'visited="%s" ' % escape(self.visited)
         else:
             visited = ""
 
-        if self.created!=None:
-            created = 'added="%s" ' % self.created
+        if self.added!=None:
+            added = 'added="%s" ' % escape(self.added)
         else:
-            created = ""
+            added = ""
             
-        out.write('    <bookmark href="%s" %s%s>\n' % (self.url, created, visited) )
-        out.write("      <title>%s</title>\n" % self.name)
+        if self.modified!=None:
+            modified = 'modified="%s" ' % escape(self.modified)
+        else:
+            modified = ""
+            
+        out.write('    <bookmark href="%s" %s%s%s>\n' % (self.href, added, visited, modified) )
+        out.write("      <title>%s</title>\n" % escape(self.title) )
         out.write("    </bookmark>\n")
 
     def dump_adr(self,out):
         out.write("#URL\n")
-        out.write("\tNAME=%s\n" % self.name)
-        out.write("\tURL=%s\n" % self.url)
+        out.write("\tNAME=%s\n" % self.title)
+        out.write("\tURL=%s\n" % self.href)
         out.write("\tCREATED=%s\n" % "0 (?)")
         out.write("\tVISITED=%s\n" % "0 (?)")
         out.write("\tORDER=-1\n")
         out.write("\n")
 
     def dump_netscape(self,out):
-        out.write("    <DT><A HREF=\"%s\">%s</A>\n" % (self.url,self.name))
+        out.write("    <DT><A HREF=\"%s\">%s</A>\n" % (self.href,self.title))
+
+
+
+
 

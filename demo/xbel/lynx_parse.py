@@ -22,7 +22,7 @@ def parse_lynx_file(bms, input):
     if m is None: title = "Untitled"
     else: title = m.group(1)
 
-    bms.add_folder( title, None, None)
+    bms.add_folder( title )
     
     hrefpat = re.compile( r"""^ \s* <li> \s*
 <a \s+ href \s* = \s* "(?P<url> [^"]* )" \s*>
@@ -34,7 +34,7 @@ def parse_lynx_file(bms, input):
         if m is None: break
         pos = m.end()
         url, name = m.group(1,2)
-        bms.add_bookmark( name, None, None, url)
+        bms.add_bookmark( name, href = url)
 
     bms.leave_folder()
 

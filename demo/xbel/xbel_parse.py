@@ -19,46 +19,54 @@ class XBELHandler(saxlib.HandlerBase):
         
     def startElement(self, name, attrs):
         self.cur_elem = name
-        print name, attrs
-        if name == 'FOLDER':
+#        print name, attrs
+        if name == 'folder':
             self.entered_folder = 1
-        elif name == 'NAME':
-            self.name = ""
-        elif name == 'OWNER':
-            self.owner = ""
-        elif name == 'BOOKMARK':
-            self.name = self.url = ""
+        elif name == 'title':
+            self.title = ""
+        elif name == 'desc':
+            self.desc = ""
+        elif name == 'bookmark':
+            self.title = self.href = ""
             self.added = self.visited = self.modified = ""
 
+            if attrs.has_key('href'):
+                self.href = attrs['href']
+            if attrs.has_key('added'):
+                self.added = attrs['added']
+            if attrs.has_key('visited'):
+                self.visited = attrs['visited']
+            if attrs.has_key('modified'):
+                self.modified = attrs['modified']
+
     def characters(self, ch, start, length):
-        if self.cur_elem in ['NAME', 'URL', 'ADDED',
-                               'VISITED', 'MODIFIED', 'OWNER']:
+        if self.cur_elem in ['title', 'desc']:
             attr = string.lower(self.cur_elem)
             value = getattr(self, attr)
             setattr(self, attr, value + ch[start:start+length])
-            print getattr(self, attr)
+#            print getattr(self, attr)
         
     def endElement(self, name):
-        print 'ending:', name
+#        print 'ending:', name
         self.cur_elem = None
-        if name == 'FOLDER':
-            print 'leaving folder'
+        if name == 'folder':
+#            print 'leaving folder'
             self.bms.leave_folder()
             self.entered_folder = 0
-        elif name == 'OWNER':
-            self.bms.owner = self.owner
-        elif name == 'NAME' and self.entered_folder:
-            print 'Adding folder', self.name
-            self.bms.add_folder(self.name, None, None)
+        elif name == 'desc':
+            self.bms.desc = self.desc
+        elif name == 'title' and self.entered_folder:
+#            print 'Adding folder', self.title
+            self.bms.add_folder(self.title)
             self.entered_folder = 0
-        elif name == 'BOOKMARK':
-            print 'adding bookmark:', self.name, self.url
+        elif name == 'bookmark':
+#            print 'adding bookmark:', self.title, self.href
             self.entered_folder = 0
             if self.added == "": self.added = None
             if self.visited == "": self.visited = None
             if self.modified == "": self.modified = None
 #            raise ImportError
-            self.bms.add_bookmark(self.name, self.added, self.visited, self.url)
+            self.bms.add_bookmark(self.title, self.added, self.visited, self.modified, self.href)
             
 if __name__ == '__main__':
     import sys, getopt
@@ -74,11 +82,10 @@ if __name__ == '__main__':
         sys.exit(1)
         
     xbel_handler = XBELHandler()
-    p=saxexts.XMLParserFactory.make_parser("xml.sax.drivers.drv_xmlproc")
+    p=saxexts.XMLParserFactory.make_parser()
     p.setDocumentHandler( xbel_handler )
     p.parseFile( sys.stdin )
     bms = xbel_handler.bms
-    print bms.__dict__
     mode = opts[0][0]
     if mode == '--opera': bms.dump_adr()
     elif mode == '--lynx': bms.dump_lynx()
