@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.34 2002/10/28 18:15:43 fdrake Exp $
+$Id: saxutils.py,v 1.35 2004/03/20 07:46:04 fdrake Exp $
 """
 
 import os, urlparse, urllib2, types
@@ -105,9 +105,17 @@ class Location:
         return self.__sysid
 
     def __str__(self):
-        return "%s:%d:%d" % (
+        if self.__line is None:
+            line = "?"
+        else:
+            line = self.__line
+        if self.__col is None:
+            col = "?"
+        else:
+            col = self.__col
+        return "%s:%s:%s" % (
             self.__sysid or self.__pubid or "<unknown>",
-            self.__line, self.__col)
+            line, col)
 
 # --- ErrorPrinter
 

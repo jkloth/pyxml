@@ -1,6 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 # regression test for SAX 2.0
-# $Id: test_sax.py,v 1.12 2002/10/28 18:19:26 fdrake Exp $
+# $Id: test_sax.py,v 1.13 2004/03/20 07:46:04 fdrake Exp $
 
 from xml.sax import make_parser, ContentHandler, \
                     SAXException, SAXReaderNotAvailable, SAXParseException
@@ -10,7 +10,7 @@ except SAXReaderNotAvailable:
     # don't try to test this module if we cannot create a parser
     raise ImportError("no XML parsers available")
 from xml.sax.saxutils import XMLGenerator, escape, unescape, quoteattr, \
-                             XMLFilterBase
+                             XMLFilterBase, Location
 from xml.sax.expatreader import create_parser
 from xml.sax.xmlreader import InputSource, AttributesImpl, AttributesNSImpl
 from cStringIO import StringIO
@@ -535,6 +535,56 @@ def test_expat_incomplete():
     else:
         return 0
 
+def test_sax_location_str():
+    # pass various values from a locator to the SAXParseException to
+    # make sure that the __str__() doesn't fall apart when None is
+    # passed instead of an integer line and column number
+    #
+    # use "normal" values for the locator:
+    str(Location(DummyLocator(1, 1)))
+    # use None for the line number:
+    str(Location(DummyLocator(None, 1)))
+    # use None for the column number:
+    str(Location(DummyLocator(1, None)))
+    # use None for both:
+    str(Location(DummyLocator(None, None)))
+    return 1
+
+def test_sax_parse_exception_str():
+    # pass various values from a locator to the SAXParseException to
+    # make sure that the __str__() doesn't fall apart when None is
+    # passed instead of an integer line and column number
+    #
+    # use "normal" values for the locator:
+    str(SAXParseException("message", None,
+                          DummyLocator(1, 1)))
+    # use None for the line number:
+    str(SAXParseException("message", None,
+                          DummyLocator(None, 1)))
+    # use None for the column number:
+    str(SAXParseException("message", None,
+                          DummyLocator(1, None)))
+    # use None for both:
+    str(SAXParseException("message", None,
+                          DummyLocator(None, None)))
+    return 1
+
+class DummyLocator:
+    def __init__(self, lineno, colno):
+        self._lineno = lineno
+        self._colno = colno
+
+    def getPublicId(self):
+        return "pubid"
+
+    def getSystemId(self):
+        return "sysid"
+
+    def getLineNumber(self):
+        return self._lineno
+
+    def getColumnNumber(self):
+        return self._colno
 
 # ===========================================================================
 #
