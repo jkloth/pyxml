@@ -1,4 +1,4 @@
-import wstring
+from xml.unicode import wstring
 
 funcs=(
     ("utf8",lambda s:wstring.from_utf8(s.utf8())),
