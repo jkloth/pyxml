@@ -3,6 +3,14 @@ OK.
 OK.
 OK.
 OK.
+OK.
+OK.
+OK.
+OK.
+OK.
+OK.
+OK.
+OK.
 PI:
 	'xml-stylesheet' 'href="stylesheet.css"'
 Comment:
@@ -41,7 +49,7 @@ Notation declared: (u'notation', None, u'notation.jpeg', None)
 Unparsed entity decl:
 	(u'unparsed_entity', None, u'entity.file', None, u'notation')
 Start element:
-	u'root' { u'attr1': u'value1', u'attr2': u'value2\\\u1f40', }
+	u'root' { u'attr1': u'value1', u'attr2': u'value2\\u1f40', }
 NS decl:
 	u'myns' u'http://www.python.org/namespace'
 Start element:
@@ -71,7 +79,7 @@ Notation declared: (u'notation', None, u'notation.jpeg', None)
 Unparsed entity decl:
 	(u'unparsed_entity', None, u'entity.file', None, u'notation')
 Start element:
-	u'root' { u'attr1': u'value1', u'attr2': u'value2\\\u1f40', }
+	u'root' { u'attr1': u'value1', u'attr2': u'value2\\u1f40', }
 NS decl:
 	u'myns' u'http://www.python.org/namespace'
 Start element:
@@ -100,4 +108,3 @@ Caught expected TypeError:
 ParserCreate() argument 2 must be string or None, not int
 Caught expected ValueError:
 namespace_separator must be at most one character, omitted, or None
-Failed to catch expected ValueError.
