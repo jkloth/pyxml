@@ -350,7 +350,7 @@ if __name__ == '__main__':
 
         # Enforce the use of the Expat parser, because the code needs to be
         # sure that the output will be UTF-8 encoded.
-	p=xml.sax.saxexts.XMLParserFactory.make_parser("xml.sax.drivers.drv_pyexpat")
+	p=xml.sax.saxexts.XMLParserFactory.make_parser("pyexpat")
 	dh = QuotationDocHandler(process_func)
 	p.setDocumentHandler(dh)
 	p.setErrorHandler(dh)
