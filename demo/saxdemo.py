@@ -9,19 +9,21 @@ import sys,urllib,getopt
 ### Interpreting arguments (rather crudely)
 
 try:
-    (args,trail)=getopt.getopt(sys.argv[1:],"ed:")
+    (args,trail)=getopt.getopt(sys.argv[1:],"sed:")
 except getopt.error,e:
     print "ERROR: %s" % e
     print
     print "Usage: python saxdemo.py [-e] [-d drv] filename [outfilename]"
     print
     print " -e: Output ESIS instead of normalized XML."
+    print " -s: Silent (no messages except error messages)"
     print " -d: Use driver 'drv', where 'drv' is a module name."
     print " outfilename: Write to this file."
     sys.exit(1)
 
 driver=None
 esis=0
+silent=0
 in_sysID=trail[0]
 
 if len(trail)==2:
@@ -34,6 +36,8 @@ for (arg,val) in args:
         driver=val
     elif arg=="-e":
         esis=1
+    elif arg=="-s":
+        silent=1
     
 p=saxexts.make_parser(driver)
 p.setErrorHandler(saxutils.ErrorPrinter())
@@ -52,6 +56,11 @@ else:
     dh=saxutils.Canonizer(out)
 
 ### Ready. Let's go!
+
+if not silent:
+    print "Parser: %s (%s, %s)" % (p.get_parser_name(),p.get_parser_version(),
+                                   p.get_driver_version())
+    print
     
 try:
     p.setDocumentHandler(dh)

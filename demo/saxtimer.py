@@ -37,7 +37,7 @@ for ix in range(3):
         pt=time.clock()-start
         OK=1
     except IOError,e:
-        print "\nERROR: "+in_sysID+": "+str(e)
+        print "\nERROR: "+sys.argv[2]+": "+str(e)
     except saxlib.SAXException,e:
         print "\nERROR: "+str(e)
 
