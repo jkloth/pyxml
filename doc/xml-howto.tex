@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.9 2002/05/10 14:38:13 akuchling Exp $
+% $Id: xml-howto.tex,v 1.10 2002/05/10 16:58:19 akuchling Exp $
 
 % TODO:
 %   Read over DOM section
@@ -15,7 +15,7 @@
 
 \title{Python/XML HOWTO}
 
-\release{0.6.1}
+\release{0.7.1}
 
 \author{A.M. Kuchling}
 \authoraddress{\email{akuchlin@mems-exchange.org}}
@@ -371,10 +371,10 @@ one.
 
 \item[\module{xml.dom}]
   The Python DOM interface.  The full interface
-  support DOM Levels 1 and 2.  This implementation is called 4DOM,
-  and was written by Fourthought LLC.  \module{xml.dom} contains
+  support DOM Levels 1 and 2.  \module{xml.dom} contains
   the implementation for DOM trees built from XML documents.
-
+  (This implementation is called 4DOM, and was written by Fourthought LLC.)
+  
 \item[\module{dom.html}]
   DOM trees built from HTML documents are also supported.
 
@@ -413,7 +413,7 @@ one.
   Classes for printing an HTML DOM tree as XHTML.
 
 \item[\module{dom.ext.c14n}]
-  Takes a DOM tree and outputs another DOM tree containing the
+  Takes a DOM tree and outputs a text stream containing the
   Canonical XML representation of the document.
 
 \item[\module{dom.ext.reader}]
@@ -498,10 +498,11 @@ one.
 
 \item[\module{xml.xpath}]
   An XPath parser and evaluator.
+  (This implementation is called 4XPath, and was written by Fourthought LLC.)
 
 \item[\module{xml.xslt}] 
    An implementation of the XSLT transformation language.
-% XXX do the FourThought guys want a credit in the text here?
+  (This implementation is called 4XSLT, and was written by Fourthought LLC.)
 
 \end{itemize}
 
@@ -1144,5 +1145,12 @@ rearranging them.
 The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and links
 to the XSLT specifications and to friendlier tutorials.
 
+
+%==========================================================================
+\section{Acknowledgements \label{section-acks}}
+
+The author would like to thank the following people for offering
+suggestions, corrections and assistance with various drafts of this
+article: Rich Salz.
 
 \end{document}
