@@ -135,6 +135,7 @@ if len(sysids)==0:
 
 # --- Parsing
 
+retval = 0
 for sysid in sysids:
     print
     print "Parsing '%s'" % sysid
@@ -145,5 +146,13 @@ for sysid in sysids:
         print "and %d warning(s)" % err.warnings
     else:
         print
+
+    if err.errors:
+        retval = 2
+    if err.warnings and retval < 1:
+        retval = 1        
+        
     err.reset()
     p.reset()
+
+sys.exit(retval)
