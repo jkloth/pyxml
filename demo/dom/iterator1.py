@@ -27,9 +27,9 @@ if __name__ == '__main__':
     import sys
     try:
         xml_dom_object = Sax2.FromXmlFile(sys.argv[1], validate=0)
-    except Sax.saxlib.SAXException, msg:
+    except Sax2.saxlib.SAXException, msg:
         print "SAXException caught:", msg
-    except Sax.saxlib.SAXParseException, msg:
+    except Sax2.saxlib.SAXParseException, msg:
         print "SAXParseException caught:", msg
 
     iterate(xml_dom_object)
