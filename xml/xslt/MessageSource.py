@@ -1,14 +1,8 @@
 from xml.xslt import Error
+from xml.FtCore import get_translator
 
-try:
-    import os, gettext
-    locale_dir = os.path.split(__file__)[0]
-    gettext.install('4Suite', locale_dir)
-#except ImportError, IOError:
-#Note, 1.5.2 has gettext, but no install
-except (ImportError,AttributeError,IOError):
-    def _(msg):
-        return msg
+_ = get_translator("xslt")
+
 
 g_errorMessages = {
     Error.INTERNAL_ERROR: _('There is an internal bug in 4XSLT.  Please report this error code to support@4suite.org: %s'),

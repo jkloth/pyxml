@@ -19,6 +19,9 @@ Changes in this version, compared to 0.8.2:
           provided by Expat was not freed as required).
         * New convenience classes in the xml.ns module:
           ClosedNamespace, OpenNamespace.
+        * The symbol "_" is no longer inserted into the built-in
+          namespace via the gettext module; I18N support is no longer
+          invasive.
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled

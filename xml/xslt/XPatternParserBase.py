@@ -1,13 +1,9 @@
 import XPattern
 
+from xml.FtCore import get_translator
 
-try:
-    import os, gettext
-    locale_dir = os.path.split(__file__)[0]
-    gettext.install('4Suite', locale_dir)
-except (ImportError,AttributeError,IOError):
-    def _(msg):
-        return msg
+_ = get_translator("xslt")
+
 
 SYNTAX_ERR_MSG = _("Error parsing pattern:\n'%s'\nSyntax error at or near '%s' Line: %d, Production Number: %s")
 INTERNAL_ERR_MSG = _("Error parsing pattern:\n'%s'\nInternal error in processing at or near '%s', Line: %d, Production Number: %s, Exception: %s")

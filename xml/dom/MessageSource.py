@@ -16,13 +16,10 @@ from xml.dom import INVALID_NODE_TYPE_ERR
 # Fourthought Exceptions
 from xml.dom import XML_PARSE_ERR
 
-try:
-    import os, gettext
-    locale_dir = os.path.split(__file__)[0]
-    gettext.install('4Suite', locale_dir)
-except (ImportError, AttributeError, IOError):
-    def _(msg):
-        return msg
+from xml.FtCore import get_translator
+
+_ = get_translator("dom")
+
 
 DOMExceptionStrings = {
     INDEX_SIZE_ERR: _("Index error accessing NodeList or NamedNodeMap"),
