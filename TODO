@@ -1,12 +1,15 @@
 TODO list:
 
 	* Make more passes over the documentation
-	* Produce plain-text versions of the docs
-	* More demo programs (add qtfmt.py)
+	* More demo programs 
 	* saxlib.AttributeList should really support all dictionary behaviour
 	* Flesh out the test suite
-	* Should PyPointers go in this version?
-	* xmllib.py : bugs (different ones) in both fast & slow versions
+	* Should PyPointers be added?
+	* Start working on DOM again (August 18 draft)
 
-After 1.0 final:
-	* Start working on DOM again (July 20 draft)
+test/
+	* Add xmlarch tests to test suite
+
+demo/xbel/	
+	* Implement dump_lynx method in bookmark.py
+
