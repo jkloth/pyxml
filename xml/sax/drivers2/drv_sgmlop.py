@@ -1,7 +1,7 @@
 """
 SAX2 driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.1 2001/08/16 09:08:30 larsga Exp $
+$Id: drv_sgmlop.py,v 1.2 2001/12/14 14:38:57 loewis Exp $
 """
 
 version = "0.1"
@@ -59,6 +59,10 @@ class SaxParser(SGMLParser, XMLReader):
             self._cont_handler.startDocument()
             self.documentStarted = 1
         SGMLParser.feed(self,buffer)
+
+    def prepareParser(self):
+        # not used
+        pass
         
     def close(self):
         """This method is called when the entire XML document has been
