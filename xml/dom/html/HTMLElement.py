@@ -88,7 +88,7 @@ class HTMLElement(Element):
             if clone.localName is None:
                 e.attributes.setNamedItem(clone)
             else:
-                self.attributes.setNamedItemNS(clone)
+                e.attributes.setNamedItemNS(clone)
             clone._4dom_setOwnerElement(self)
         return e
 
