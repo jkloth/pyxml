@@ -150,36 +150,20 @@ if sys.platform == 'win32':
 # on windows, which results in files not being included. Work around
 # this bug by using graft where possible.
 docfiles="""
-recursive-include doc *.html
-recursive-include doc *.tex
-recursive-include doc *.txt
-recursive-include doc *.gif
-recursive-include doc *.css
-recursive-include doc *.api
-recursive-include doc *.web
+recursive-include doc *.html *.tex *.txt *.gif *.css *.api *.web
 
-recursive-include demo README
-recursive-include demo *.py
-recursive-include demo *.xml
-recursive-include demo *.dtd
-recursive-include demo *.html
-recursive-include demo *.htm
+recursive-include demo README demo *.py demo *.xml *.dtd *.html *.htm
 include demo/genxml/data.txt
 include demo/dom/html2html
 include demo/xbel/doc/xbel.bib
 include demo/xbel/doc/xbel.tex
 include demo/xmlproc/catalog.soc
 
-recursive-include test *.py
-recursive-include test *.xml
+recursive-include test *.py *.xml
 include test/test.xml.out
 graft test/output
 
-include ANNOUNCE
-include CREDITS
-include LICENCE
-include README*
-include TODO
+include ANNOUNCE CREDITS LICENCE README* TODO
 """
 
 if doc2xmldoc:
@@ -192,7 +176,7 @@ else:
     xmldocfiles = []
 
 setup (name = "PyXML",
-       version = "0.6.4", # Needs to match xml/__init__.version_info
+       version = "0.6.5", # Needs to match xml/__init__.version_info
        description = "Python/XML package",
        author = "XML-SIG",
        author_email = "xml-sig@python.org",
