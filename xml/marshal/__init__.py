@@ -1,1 +1,1 @@
-__all__ = ['generic', 'wddx', 'xmlrpc']
+__all__ = ['generic', 'wddx']
