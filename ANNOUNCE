@@ -8,14 +8,24 @@ should be considered a beta release, and can be downloaded from
 the following URLs:
 
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.tar.gz
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.win32-py2.1.exe
 http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2.win32-py2.2.exe
-http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2-2.2.i386.rpm
+http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.2-2.2.Suse81.i386.rpm
 
 
 Changes in this version, compared to 0.8.1:
 
-        * Updated to Expat 1.95.6.
+    * Updated to Expat 1.95.6.
+
+    * Support more DOM L3 features in minidom: 
+      isWhitespaceInElementContent, schemaType, isId, 
+      DOMImplementationSource
+
+    * Various bug fixes, including
+      - 609641: minidom nodes not pickleable
+      - 618156: Use character references in XMLGenerator if necessary
+      - 622286: marshal.wddx: 'recordset' element typo
+      - 624420: Can't create 2nd Sax2.Reader
+      - 665486: Implement SAX skippedEntity for Expat
 
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
