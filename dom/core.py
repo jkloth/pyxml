@@ -5,20 +5,12 @@ Reference: http://www.w3.org/TR/WD-DOM/level-one-core
 
 Deviations from the specs:
 
--- there are no classes NodeList, EditableNodeList and NodeEnumerator,
-since node lists are simply implemented as lists.
+-- there is currently no DocumentFragment.
 
--- there are no Attributes nor AttributeList classes, as attrubutes are
-currently implemented by a dictionnary.
-
--- there is currently no DocumentContext.
-
-So, useful classes in this module are Node (abstract) and its (concrete)
-subclasses -- Document, Element, Text, Comment, PI -- all of
-which should be instanciated though a DOMFactory instance.
-
-I have added an alias, ``GI'' for ``tagName'', for compatibility
-with previous work.
+So, useful classes in this module are Node (abstract) and its
+(concrete) subclasses -- Document, Element, Text, Comment,
+ProcessingInstruction -- all of which should be instantiated though
+the relevant createXXX() methods on a Document object.  
 
 Typical usage XXX
 
@@ -33,7 +25,7 @@ import string
 from xml.utils import escape
 
 # References inside square brackets, such as [1.5], are to a section in the
-# August 18th DOM Level One specification.
+# October 1st DOM Level One specification.
 
 #
 # Module-level definitions
