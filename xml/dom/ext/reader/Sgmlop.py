@@ -5,6 +5,14 @@ from xml.dom import Node
 from xml.dom.html import HTML_DTD, HTML_CHARACTER_ENTITIES
 
 DEFAULT_CHARSET = 'ISO-8859-1'
+
+_root = '(?P<root>[a-zA-Z][a-zA-Z0-9]*)'
+_quoted = '("[^"]*")|' + "('[^']*')"
+_sysId = r'\s*(?P<system>' + _quoted + ')'
+_pubId = r'\s*PUBLIC\s*(?P<public>' + _quoted + '(' + _sysId + ')?)'
+_sysId = 'SYSTEM' + _sysId
+_doctype = re.compile('DOCTYPE ' + _root + '(%s|%s)?' % (_pubId, _sysId), re.I)
+
 try:
     unicode()
 except:
@@ -24,6 +32,7 @@ except:
             return wstring.chr(char).utf8()
         except:
             return char
+
 class SgmlopParser:
     def __init__(self, entities=None):
         self.entities = {'amp' : '&',
@@ -112,6 +121,10 @@ class HtmlParser(SgmlopParser):
         self.rootNode = self._ownerDoc.createDocumentFragment()
         self._stack = [self.rootNode]
         self._hasHtml = 0
+        return
+
+    def handle_special(self, data):
+        # This would be a doctype, but HTML DOMs do not use them
         return
 
     def handle_proc(self, target, data):

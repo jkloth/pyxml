@@ -15,14 +15,15 @@ See  http://4suite.com/COPYRIGHT  for license and copyright information
 
 import sys, string, cStringIO
 import xml.dom.ext
-from xml.dom import Entity, DocumentType, Document
-from xml.dom import DocumentType, Document
 from xml.dom import Node
 from xml.dom import implementation
 
 
 class HtmlDomGenerator:
-    def __init__(self, ownerDoc=None, keepAllWs=0):
+    def __init__(self, keepAllWs=0):
+        self._keepAllWs = keepAllWs
+
+    def initState(self, ownerDoc=None):
         """
         If None is passed in as the doc, set up an empty document to act
         as owner and also add all elements to this document
@@ -41,7 +42,6 @@ class HtmlDomGenerator:
         #Set up the stack which keeps track of the nesting of DOM nodes.
         self._nodeStack = []
         self._nodeStack.append(self._rootNode)
-        self._keepAllWs = keepAllWs
         self._currText = ''
         return
 

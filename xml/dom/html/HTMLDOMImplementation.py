@@ -23,7 +23,6 @@ class HTMLDOMImplementation(DOMImplementation.DOMImplementation):
 
     def createHTMLDocument(self, title):
         from xml.dom.html import HTMLDocument
-        #from xml.dom.DocumentType import DocumentType
         doc = HTMLDocument.HTMLDocument()
         h = doc.createElement('HTML')
         doc.appendChild(h)
