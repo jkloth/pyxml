@@ -1,6 +1,6 @@
 """
 An SGML Open catalog file parser.
-$Id: catalog.py,v 1.10 2001/03/27 19:20:46 larsga Exp $
+$Id: catalog.py,v 1.11 2001/04/16 10:58:09 larsga Exp $
 """
 
 import string,sys
@@ -46,6 +46,11 @@ class CatalogApp:
 
     def handle_doctype(self, docelem, sysid):
         pass
+
+    def handle_sgmldecl(self, sysid):
+        '''Called for SGMLDECL catalog entries. These are only used by
+        SGML systems and tell the application where to find the SGML
+        declaration file.'''
     
 # --- Abstract catalog parser with common functionality 
 
@@ -78,7 +83,8 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
         self.entry_hash={ "PUBLIC": ("p","s"), "DELEGATE": ("p","s"),
                           "CATALOG": ("s"), "DOCUMENT": ("s"),
                           "BASE": ("o"), "SYSTEM": ("o","s"), 
-                          "OVERRIDE": ("o"), "DOCTYPE" : ("o", "s") }
+                          "OVERRIDE": ("o"), "DOCTYPE" : ("o", "s"),
+                          "SGMLDECL" : ("s")}
 
     def parseStart(self):
         if self.error_lang:
@@ -131,22 +137,24 @@ class CatalogParser(AbstrCatalogParser,xmlutils.EntityParser):
             self.skip_stuff()
             arglist.append(self.parse_arg())
 
-        if name=="PUBLIC":
+        if name == "PUBLIC":
             self.app.handle_public(arglist[0],arglist[1])
-        elif name=="CATALOG":
+        elif name == "CATALOG":
             self.app.handle_catalog(arglist[0])
-        elif name=="DELEGATE":
+        elif name == "DELEGATE":
             self.app.handle_delegate(arglist[0],arglist[1])
-        elif name=="BASE":
+        elif name == "BASE":
             self.app.handle_base(arglist[0])
-        elif name=="DOCUMENT":
+        elif name == "DOCUMENT":
             self.app.handle_document(arglist[0])
-        elif name=="SYSTEM":
+        elif name == "SYSTEM":
             self.app.handle_system(arglist[0],arglist[1])
-        elif name=="OVERRIDE":
+        elif name == "OVERRIDE":
             self.app.handle_override(arglist[0])
         elif name == "DOCTYPE":
             self.app.handle_doctype(arglist[0], arglist[1])
+        elif name == "SGMLDECL":
+            self.app.handle_sgmldecl(arglist[0])
                     
 # --- A catalog file manager
 
