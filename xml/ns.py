@@ -72,6 +72,47 @@ class DSIG:
     C14N_COMM   = C14N + "#WithComments"
 
 
+class ENC:
+    """ENC, XML-Encryption Syntax and Processing
+
+    ENC (26-Jun-2001) is a W3C Working Draft.  It is specified in
+    http://www.w3.org/TR/xmlenc-core/
+	BASE -- the basic namespace defined by the specification
+	BLOCK_3DES -- The triple-DES symmetric encryption method
+	BLOCK_AES128 -- The 128-bit AES symmetric encryption method
+	BLOCK_AES256 -- The 256-bit AES symmetric encryption method
+	BLOCK_AES192 -- The 192-bit AES symmetric encryption method
+	STREAM_ARCFOUR -- The ARCFOUR symmetric encryption method
+	KT_RSA_1_5 -- The RSA v1.5 key transport method
+	KT_RSA_OAEP -- The RSA OAEP key transport method
+	KA_DH -- The Diffie-Hellman key agreement method
+	WRAP_3DES -- The triple-DES symmetric key wrap method
+	WRAP_AES128 -- The 128-bit AES symmetric key wrap method
+	WRAP_AES256 -- The 256-bit AES symmetric key wrap method
+	WRAP_AES192 -- The 192-bit AES symmetric key wrap method
+	DIGEST_SHA256 -- The SHA-256 digest method
+	DIGEST_SHA512 -- The SHA-512 digest method
+	DIGEST_RIPEMD160 -- The RIPEMD-160 digest method
+    """
+
+    BASE             = "http://www.w3.org/2001/04/xmlenc#"
+    BLOCK_3DES       = BASE + "des-cbc"
+    BLOCK_AES128     = BASE + "aes128-cbc"
+    BLOCK_AES256     = BASE + "aes256-cbc"
+    BLOCK_AES192     = BASE + "aes192-cbc"
+    STREAM_ARCFOUR   = BASE + "arcfour"
+    KT_RSA_1_5       = BASE + "rsa-1_5"
+    KT_RSA_OAEP      = BASE + "rsa-oaep-mgf1p"
+    KA_DH            = BASE + "dh"
+    WRAP_3DES        = BASE + "kw-3des"
+    WRAP_AES128      = BASE + "kw-aes128"
+    WRAP_AES256      = BASE + "kw-aes256"
+    WRAP_AES192      = BASE + "kw-aes192"
+    DIGEST_SHA256    = BASE + "sha256"
+    DIGEST_SHA512    = BASE + "sha512"
+    DIGEST_RIPEMD160 = BASE + "ripemd160"
+
+
 class SCHEMA:
     """SCHEMA, XML Schema
 
