@@ -98,6 +98,17 @@ def testLegalChildren():
     else:
         print "dom.appendChild didn't raise HierarchyRequestErr"
 
+    nodemap = elem.attributes
+    try: nodemap.setNamedItem(text)
+    except HierarchyRequestErr: pass
+    else:
+        print "NamedNodeMap.setNamedItem didn't raise HierarchyRequestErr"
+
+    try: nodemap.setNamedItemNS(text)
+    except HierarchyRequestErr: pass
+    else:
+        print "NamedNodeMap.setNamedItemNS didn't raise HierarchyRequestErr"
+
     elem.appendChild(text)
     dom.unlink()
 
@@ -228,7 +239,14 @@ def testGetAttributeNS(): pass
 
 def testGetAttributeNode(): pass
 
-def testGetElementsByTagNameNS(): pass
+def testGetElementsByTagNameNS():
+    d="""<foo xmlns:minidom="http://pyxml.sf.net/minidom">
+    <minidom:myelem/>
+    </foo>"""
+    dom = parseString(d)
+    elem = dom.getElementsByTagNameNS("http://pyxml.sf.net/minidom","myelem")
+    confirm(len(elem) == 1)
+    dom.unlink()
 
 def testGetEmptyNodeListFromElementsByTagNameNS(): pass
 
