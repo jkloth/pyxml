@@ -1,9 +1,8 @@
 # basic tests
 
-import xmllib
 import sys
 import time, string
-from xml.parsers import sgmlop
+from xml.parsers import sgmlop, xmllib
 
 try:
     FILE, VERBOSE = sys.argv[1], 2
