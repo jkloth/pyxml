@@ -761,6 +761,8 @@ class Namespaces:
                 else:
                     a = minidom.Attr("xmlns", XMLNS_NAMESPACE,
                                      "xmlns", EMPTY_PREFIX)
+                # we're only interested in the URI as text at this point
+                uri = uri or ""
                 d = a.childNodes[0].__dict__
                 d['data'] = d['nodeValue'] = uri
                 d = a.__dict__
