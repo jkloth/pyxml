@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.11 2002/07/09 07:17:27 uche Exp $
+ * $Id: sgmlop.c,v 1.12 2002/07/24 14:17:24 uche Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1228,14 +1228,13 @@ fastfeed(FastSGMLParserObject* self)
             }
             else {
                 /* fallback: handle charref's as data */
-                int ch;
+                int ch = 0;
                 CHAR_T *p;
-                ch = 0;
                 if (*b == 'x') {
                     for (p = b+1; p < e; p++)
                         ch = ch*16 + *p - (*p > 'F' ? 
-					   'a'-1 :(*p > '9' ? 
-						   'A'-1 : '0'));
+					   'a'-10 :(*p > '9' ? 
+						   'A'-10 : '0'));
                 } else {
                     for (p = b; p < e; p++)
                         ch = ch*10 + *p - '0';
@@ -1244,6 +1243,13 @@ fastfeed(FastSGMLParserObject* self)
 		if (self->unicode) {
 		    PyObject *res;
 		    Py_UNICODE uch = ch;
+			 int maxunicode = PyUnicode_GetMax();
+
+		    if (ch > maxunicode) {
+			PyErr_Format(PyExc_ValueError,
+			    "character reference &#x%x; exceeds sys.maxunicode (0x%x)", ch, maxunicode);
+			return -1;
+		    }
 		    res = PyObject_CallFunction(self->handle_data,
 						"u#", &uch, 1);
 		    if (!res)
@@ -1253,11 +1259,11 @@ fastfeed(FastSGMLParserObject* self)
 #endif
 		{
 		    char nch;
-		    if (ch > 128) {
+		    if (ch >= 128) {
 			/* XXX: should utf-8 encode here. */
-			PyErr_SetString(PyExc_ValueError, 
-					"character reference too large");
-			return -1;
+		     PyErr_Format(PyExc_ValueError, 
+				     "character reference &#x%x; exceeds ASCII range", ch);
+		     return -1;
 		    }
 		    nch = ch;
 		    if (callHandleData(self, &nch, 1))
@@ -1464,7 +1470,7 @@ fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, int len)
     }
     strncpy(self->encoding, found, data-found);
     self->encoding[data-found] = '\0';
-    printf("'%s'\n", self->encoding);
+    /*printf("'%s'\n", self->encoding);*/
     return 0;
 }
 
