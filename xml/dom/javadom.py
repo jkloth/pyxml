@@ -3,23 +3,20 @@
 # access them through the same interface as the Python DOM
 # implementation.
 #
-# $Id: javadom.py,v 1.2 2000/05/17 20:02:34 lars Exp $
+# $Id: javadom.py,v 1.3 2000/05/20 11:38:54 lars Exp $
 
 # Supports:
 # - Sun's Java Project X
 # - Xerces
 # - David Brownell's SAX 2.0 Utilities / DOM2
+# - Indelv DOM
+# - SXP
+# - OpenXML
 
 # Todo:
+# - extend test suite
 # - start using _set_up_attributes, or give up as too slow?
-# - implement remaining Python parts of NodeList and NamedNodeMap
-# - more 4DOM-like interface? support _get_* ?
-# - make a test suite
-# - support more DOM implementations
-#   - Sun's JAXP
-#   - find more
 # - support level 2
-# - get rid of FIXMEs
 
 import string
 
@@ -58,7 +55,7 @@ class SunDomImplementation:
     def buildDocumentFile(self, filename):
         return buildDocumentUrl(filetourl(filename))
 
-class XercesDomImplementation:
+class XercesDomImplementation(BaseDomImplementation):
 
     def createDocument(self):
         from org.apache.xerces.dom import DocumentImpl
@@ -70,7 +67,7 @@ class XercesDomImplementation:
         p.parse(source)
         return Document(p.getDocument())
 
-class BrownellDomImplementation:
+class BrownellDomImplementation(BaseDomImplementation):
 
     def createDocument(self):
         from org.brownell.xml.dom import DomDocument
@@ -79,6 +76,50 @@ class BrownellDomImplementation:
     def _parse_from_source(self, source):
         from org.brownell.xml import DomBuilder
         return Document(DomBuilder.createDocument(source))
+
+class IndelvDomImplementation(BaseDomImplementation):
+
+    def createDocument(self):
+        from com.indelv.dom import DOMImpl
+        return Document(DOMImpl.createNewDocument())
+
+    def _parse_from_source(self, source):
+        from com.indelv.dom.util import XMLReader
+        return Document(XMLReader.parseDocument(source))
+
+class SxpDomImplementation:
+
+    def createDocument(self):
+        from fr.loria.xml import DOMFactory
+        return Document(DOMFactory().createDocument())
+
+    def _parse_from_source(self, source):
+        from fr.loria.xml import DocumentLoader
+        loader = DocumentLoader()
+        if source.getCharacterStream() != None:
+            doc = loader.loadDocument(source.getCharacterStream())
+        elif source.getByteStream() != None:
+            doc = loader.loadDocument(source.getByteStream())
+        elif source.getSystemId() != None:
+            doc = loader.loadDocument(source.getSystemId())
+
+        return Document(doc)
+
+class OpenXmlDomImplementation:
+
+    def createDocument(self):
+        from org.openxml.dom import DocumentImpl
+        return Document(DocumentImpl())
+
+    def _parse_from_source(self, source):
+        from org.openxml.dom import SAXBuilder
+        from org.openxml.parser import XMLSAXParser
+
+        builder = SAXBuilder()
+        parser = XMLSAXParser()
+        parser.setDocumentHandler(builder)
+        parser.parse(source)
+        return Document(builder.getDocument())
     
 # ===== Utilities
 
@@ -119,6 +160,13 @@ DOCUMENT_NODE               = 9
 DOCUMENT_TYPE_NODE          = 10
 DOCUMENT_FRAGMENT_NODE      = 11
 NOTATION_NODE               = 12
+
+# ===== DOMException
+
+try:
+    from org.w3c.dom import DOMException
+except ImportError, e:
+    pass
 
 # ===== DOMImplementation
 
@@ -228,8 +276,8 @@ class Document(Node):
     def createTextNode(self, data):
         return Text(self._impl.createTextNode(data))
 
-    def createEntityReference(self, ):
-        return EntityReference(self._impl.createEntityReference())
+    def createEntityReference(self, name):
+        return EntityReference(self._impl.createEntityReference(name))
 
     def createElement(self, name):
         return Element(self._impl.createElement(name))
@@ -288,7 +336,11 @@ class Element(Node):
     # methods
         
     def getAttributeNode(self, name):
-        return Attr(self._impl.getAttributeNode(name))
+        node = self._impl.getAttributeNode(name)
+        if node == None:
+            return node
+        else:
+            return Attr(node)
 
     def setAttributeNode(self, attr):
         self._impl.setAttributeNode(attr._impl)
@@ -371,7 +423,7 @@ class Attr(Node):
 
         self._get_name      = self._impl.getName
         self._get_specified = self._impl.getSpecified
-        self._get_value     = self._impl.setValue
+        self._get_value     = self._impl.getValue
         self._set_value     = self._impl.setValue
 
     def __repr__(self):
@@ -445,14 +497,17 @@ class NodeList:
 
         self.__len__     = self._impl.getLength
         self._get_length = self._impl.getLength
-        self._item       = self._impl.item
+        self.item        = self._impl.item
 
     # Python list methods
         
     def __getitem__(self, ix):
+        if ix < len(self):
+            ix = len(self) + ix
+            
         node = self._impl.item(ix)
-        if node is None:
-            raise IndexError
+        if node == None:
+            raise IndexError, ix
         else:
             return _wrap_node(node)
 
@@ -485,11 +540,38 @@ class NodeList:
     
     def sort(self, *args): 
         raise TypeError, "NodeList instances don't support .sort()"
+    
+    def __add__(self, *args): 
+        raise TypeError, "NodeList instances don't support +"
+    
+    def __radd__(self, *args): 
+        raise TypeError, "NodeList instances don't support +"
 
+    def __mul__(self, *args): 
+        raise TypeError, "NodeList instances don't support *"
+    
+    def __rmul__(self, *args): 
+        raise TypeError, "NodeList instances don't support *"
+
+    def count(self, *args): 
+        raise TypeError, "NodeList instances can't support count without equality"
+    
+    def count(self, *args): 
+        raise TypeError, "NodeList instances can't support index without equality"
+    
+    def __getslice__(self, i, j):
+        if i < len(self):
+            i = len(self) + i
+        if j < len(self):
+            j = len(self) + j
+
+        slice = []
+        for ix in range(i, min(j, len(self))):
+            slice.append(self[ix])
+        return slice
+    
     def __repr__(self):        
         return "<NodeList [ %s ]>" % string.join(map(repr, self), ", ")
-    
-    # FIXME: getslice, add, radd, mul, rmul, count, index
     
 # ===== NamedNodeMap
 
@@ -509,8 +591,8 @@ class NamedNodeMap:
     def setNamedItem(self, node):
         return _wrap_node(self._impl.setNamedItem(node._impl))
 
-    def removedNamedItem(self, name):
-        return _wrap_node(self._impl.removedNamedItem(name))
+    def removeNamedItem(self, name):
+        return _wrap_node(self._impl.removeNamedItem(name))
 
     def item(self, index):
         return _wrap_node(self._impl.item(index))
@@ -518,33 +600,34 @@ class NamedNodeMap:
     # Python dictionary methods
     
     def __getitem__(self, key):
-        node = self._impl.getNamedItem(name)
+        node = self._impl.getNamedItem(key)
+        
         if node is None:
             raise KeyError, key
         else:
             return _wrap_node(node)
 
     def get(self, key, alternative = None):
-        node = self._impl.getNamedItem(name)
+        node = self._impl.getNamedItem(key)
         if node is None:
             return alternative
         else:
             return _wrap_node(node)        
         
     def has_key(self, key):
-        return self._impl.getNamedItem(name) != None
+        return self._impl.getNamedItem(key) != None
 
     def items(self):
         list = []
         for ix in range(self._impl.getLength()):
             node = self._impl.item(ix)
-            list.append((node.getNodeName(), _wrap_node(node)))
+            list.append((node._get_nodeName(), _wrap_node(node)))
         return list
 
     def keys(self):
         list = []
         for ix in range(self._impl.getLength()):
-            list.append(self._impl.item(ix).getNodeName())
+            list.append(self._impl.item(ix)._get_nodeName())
         return list
 
     def values(self):
@@ -553,13 +636,19 @@ class NamedNodeMap:
             list.append(_wrap_node(self._impl.item(ix)))
         return list        
 
+    def __setitem__(self, key, item):
+        assert key == item._impl._get_nodeName()
+        self._impl.setNamedItem(item._impl)
+
+    def update(self, nnm):
+        for v in nnm.values():
+            self._impl.setNamedItem(v._impl)
+    
     def __repr__(self):
         pairs = []
         for pair in self.items():
             pairs.append("'%s' : %s" % pair)
         return "<NamedNodeMap { %s }>" % string.join(pairs, ", ")
-    
-    # FIXME! setitem, update
     
 # ===== Various stuff
 
