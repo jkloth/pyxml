@@ -1147,7 +1147,7 @@ statichere PySequenceMethods PyWString_AsSequence ={
   
 
 statichere PyTypeObject PyWString_Type = {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                /*ob_size*/
   "wstring",                        /*tp_name*/
   sizeof(PyWString),                /*tp_size*/
@@ -1185,6 +1185,8 @@ void
 initwstrop()
 {
   PyObject *m,*d,*s;
+
+  PyWString_Type.ob_type = &PyType_Type;
   m=Py_InitModule4("wstrop",PyWStrop_Methods,PyWStrop_Doc,
 		   0,PYTHON_API_VERSION);
   d = PyModule_GetDict(m);
