@@ -1,4 +1,105 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- 
 
-Jeff Johnson:
-	xml.dom.utils.FileReader class
-	Lots of DOM bug reports
+   This is a partial credits-file of people who have contributed to
+   the Python/XML package.  It is sorted by name, and written as
+   well-formed XML, though no DTD exists for it.  The subelements of a
+   <hacker> element are: <name>, <email>, <home-page>, <public-key>,
+   <task>, and <snail-mail>.
+
+   This list is not complete; if you've been left out, or if you're
+   listed and something you've done hasn't been included, send a note
+   to amk1@bigfoot.com.
+
+-->
+
+<xml-hackers>
+  <xml-hacker>
+    <name> James Clark </name>
+    <task> Expat parser </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Fred L. Drake </name>
+    <task> XBEL maintainer. </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Stefane Fermigier </name>
+    <task> First version of the DOM code. </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Lars Marius Garshol </name>
+    <task> saxlib SAX implementation </task>
+    <task> xmlproc XML parser </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Geir Ove Grønmo </name>
+    <task> xmlarch architectural forms code </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Jack Jansen </name>
+    <task> PyExpat extension module </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Jeff Johnson </name>
+    <task> xml.dom.utils.FileReader class </task>
+    <task> Lots of DOM bug reports </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> A.M. Kuchling </name>
+    <email> amk1@bigfoot.com </email>
+    <home-page> http://starship.python.net/crew/amk/ </home-page>
+    <task> Packaging </task>
+    <task> Massive revisions to the DOM code </task>
+    <task> XML HOWTO </task>
+    <task> XML topic guide (http://www.python.org/topics/xml/) </task>
+    <snail-mail> CNRI, 1895 Preston White Drive, Suite 100, Reston VA, 20191 
+    </snail-mail>
+    <public-key type="gpg">1024D/8BBD77F0 8A1A 67CB B3E5 3972 06DE  3D3B 913B DC5E 8BBD 77F0 </public-key>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Martin von Löwis </name>
+    <task> Unicode wide-string module </task>
+  </xml-hacker>
+  
+  <xml-hacker>
+    <name> Fredrik Lundh </name>
+    <task> sgmlop extension module </task>
+    <task> Modified version of xmllib.py for use with sgmlop </task>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Sjoerd Mullender </name>
+    <task> xmllib.py XML parser </task>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Sean McGrath </name>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Paul Prescod </name>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Guido van Rossum </name>
+    <task> Benevolent dictator </task>
+    <task> Convincing AMK about the __cmp__ method for DOM nodes </task>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Greg Stein </name>
+  </xml-hacker>
+
+  <xml-hacker>
+    <name> Christian Tismer </name>
+  </xml-hacker>
+
+</xml-hackers>
