@@ -151,7 +151,7 @@ class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
             elif o_node[0] == 'unparsedentitydecl':
                 apply(self.unparsedEntityDecl, o_node[1:])
             else:
-                raise "Unknown orphaned node:"+o_node[0]
+                raise Exception("Unknown orphaned node:"+o_node[0])
         self._rootNode = self._ownerDoc
         self._nodeStack.append(self._rootNode)
         return
@@ -224,11 +224,8 @@ class XmlDomGenerator(NsHandler, saxlib.HandlerBase, saxlib.LexicalHandler,
         return
 
     def startDTD(self, doctype, publicID, systemID):
-        if not self._rootNode:
-            self._dt = implementation.createDocumentType(doctype, publicID, systemID)
-            self._orphanedNodes.append(('doctype',))
-        else:
-            raise 'Illegal DocType declaration'
+        self._dt = implementation.createDocumentType(doctype, publicID, systemID)
+        self._orphanedNodes.append(('doctype',))
         return
 
     def comment(self, text):
