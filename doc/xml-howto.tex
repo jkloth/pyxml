@@ -1,6 +1,6 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.18 2002/08/13 09:28:50 afayolle Exp $
+% $Id: xml-howto.tex,v 1.19 2002/08/27 13:27:53 fdrake Exp $
 
 % TODO:
 %    XXX not covered: DOM extensions, scripts
@@ -348,18 +348,32 @@ If you have difficulty installing this software, send a problem report
 to the XML-SIG mailing list describing the problem, or submit a bug report
 at \url{http://sourceforget.net/projects/pyxml}.
 
+One possible problem that some people encounter is a general issue of
+managing a Python installation with 3rd-party compiled extensions:
+If, when importing any of the C extensions provided with PyXML, you
+get an error message saying \samp{undefined symbol:
+PyUnicodeUCS2_}\ldots, then you are using a version of Python built
+using a 4-byte representation for Unicode characters, and PyXML was
+built with a Python that used a 2-byte Unicode character.  Conversely,
+if the error message give a symbol name starting with
+\code{PyUnicodeUCS4_} (note the different digit near the end), the
+extension was built using a 4-byte Unicode character, and Python was
+built using a 2-byte Unicode character.  The Python interpreter and
+all extension code need to be built using the same size Unicode
+character representation.
+
 There are various demonstration programs in the \file{demo/} directory
 of the Python/XML source distribution.  You may wish to look at them
 to get an idea of what's possible with the XML tools, and as a source
 of example code.
 
 
-\subsection{Related Links}
-
-The Python/XML Topic Guide, at
-\url{http://pyxml.sourceforge.net/topics/} is the starting point for
-Python-related XML topics; it links to software, mailing lists,
-documentation, etc.
+\begin{seealso}
+  \seetitle[http://pyxml.sourceforge.net/topics/]{Python/XML Topic Guide}
+           {This Guide is the starting point for Python-related XML
+            topics, and includes links to software, mailing lists,
+            documentation, and other useful resources.}
+\end{seealso}
 
 
 %==========================================================================
