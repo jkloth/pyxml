@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.7 2000/05/15 20:21:49 lars Exp $
+$Id: drv_pyexpat.py,v 1.8 2000/06/08 00:03:17 akuchling Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -26,9 +26,16 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def startElement(self,name,attrs):
         at = {}
-	for i in range(0, len(attrs), 2):
-	    at[attrs[i]] = attrs[i+1]
-	    
+        # Backward compatibility code, for older versions of the 
+        # PyExpat module
+        if type(attrs) == type({}):
+            at = attrs
+        else:
+            # Assume it's a list containing alternating names & values
+            at = {}
+            for i in range(0, len(attrs), 2):
+                at[attrs[i]] = attrs[i+1]
+                
         self.doc_handler.startElement(name,saxutils.AttributeMap(at))
 
     # FIXME: bypass!
