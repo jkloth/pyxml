@@ -39,6 +39,9 @@
 #                    __getattr__() hackery to achieve the same effect,
 #                    but less efficiently.
 #
+#                    defproperty() should be used for each version of
+#                    the relevant _get_<property>() function.
+#
 #   NewStyle      -- base class to cause __slots__ to be honored in
 #                    the new world
 #
@@ -107,6 +110,14 @@ if list is type([]):
 
         def _get_length(self):
             return 0
+
+        def append(self, o):
+            import xml.dom
+            raise xml.dom.HierarchyRequestErr("cannot append to EmptyNodeList")
+
+        def insert(self, i, o):
+            import xml.dom
+            raise xml.dom.HierarchyRequestErr("cannot insert in EmptyNodeList")
 
 else:
     def NodeList():
