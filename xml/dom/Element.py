@@ -108,7 +108,8 @@ class Element(FtNode):
     def setAttributeNode(self, node):
         if node.ownerDocument != self.ownerDocument:
             raise WrongDocumentErr()
-        if node.ownerElement != None:
+        if node.ownerElement not in (None, self):
+            # Already an attribute of another Element object.
             raise InuseAttributeErr()
 
         old = self.attributes.getNamedItem(node.name)
@@ -181,7 +182,8 @@ class Element(FtNode):
     def setAttributeNodeNS(self, node):
         if self.ownerDocument != node.ownerDocument:
             raise WrongDocumentErr()
-        if node.ownerElement != None:
+        if node.ownerElement not in (None, self):
+            # Already an attribute of another Element object.
             raise InuseAttributeErr()
 
         old = self.attributes.getNamedItemNS(node.namespaceURI, node.localName)
