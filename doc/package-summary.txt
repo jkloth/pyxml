@@ -29,6 +29,27 @@ methods not defined in there is not SAX 2.0 compatible.
  * xml.sax.saxutils provides basic implementations of some of the
 interfaces defined in handler and saxlib
 
+ * xml.dom : 4DOM implementation.  A full-featured implementation of DOM level 2 core, HTML, traversal and mutation events
+
+ * xml.dom.ext : extentions to DOM, including tools for serializing and deserializing DOM nodes to/from XML, HTML and XHTML.  (Print/PrettyPrint, ReleaseNode,
+StripXml/StripHtml)
+
+ * xml.dom.html : 4DOM HTML DOM implementation
+
+ * xml.marshal : marshallers for xmlrpc and wddl
+
+ * xml.ns : values of various namespaces
+
+ * xml.schema : trex implementation
+
+ * xml.unicode : utilities for python 1.5.2 backward compatibility
+
+ * xml.utils : date parser + ???
+
+ * xml.xpath : xpath implementation (not released yet) 
+
+ * xml.xslt : xslt implementation (not released yet)
+ 
  * xml.dom.ext.reader.Sax contains a DOM generator that uses a SAX parser,
 with the Reader interface
 
