@@ -85,9 +85,9 @@
 
 """A suite of unit tests for the Python DOM API.
 
-This suite will test a DOM API for compliance with the DOM API, level 2. It
-assumes that the DOM tested supports at least both the Core and XML features. It
-requires PyUnit; see http://pyunit.sourceforge.net/.
+This suite will test a DOM API for compliance with the DOM API, level
+2.  It assumes that the DOM tested supports at least both the Core and
+XML features.  It requires PyUnit; see http://pyunit.sourceforge.net/.
 
 Example for the python minidom (which is an incomplete implementation):
 
@@ -121,24 +121,26 @@ cases = (
 )
 
 def DOMImplementationTestSuite(implementation, parseMethod, verbose=0):
-    """ Create a testsuite for DOM lvl 2 compliance, given a DOM Implementation.
+    """ Create a testsuite for DOM lvl 2 compliance, given a DOM
+    Implementation.
 
-    To test a DOM implementation, hand in a DOMImplementation object, and a
-    method that will take a string holding an XML document and returns a
-    Document Node created from the XML.
+    To test a DOM implementation, hand in a DOMImplementation object,
+    and a method that will take a string holding an XML document and
+    returns a Document Node created from the XML.
 
     Then run the returned unittest testsuite.
 
-    Note that the signature of the parse method is (self, xmlString) and should
-    parse the xml string with namespaces turned on. It will be used to create
-    Nodes which normally cannot be created using the DOM API, like Notations and
-    Entities.
+    Note that the signature of the parse method is (self, xmlString)
+    and should parse the xml string with namespaces turned on. It will
+    be used to create Nodes which normally cannot be created using the
+    DOM API, like Notations and Entities.
 
     """
 
     # First test for minimal feature support
+    # XXX Why???
     assert (implementation.hasFeature('Core', '2.0') and
-        implementation.hasFeature('XML', '2.0')), (
+            implementation.hasFeature('XML', '2.0')), (
         "This DOMImplementation doesn't feature the level 2 Core and XML API.")
 
     suite = unittest.TestSuite()
