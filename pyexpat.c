@@ -40,6 +40,57 @@ PERFORMANCE OF THIS SOFTWARE.
 
 static PyObject *ErrorObject;
 
+/* These functions are copied from the Python 1.5.2 betas; in future versions
+   we can use PySys_WriteStderr() */
+
+static void
+mywrite(name, fp, format, va)
+	char *name;
+	FILE *fp;
+	const char *format;
+	va_list va;
+{
+	PyObject *file;
+	PyObject *error_type, *error_value, *error_traceback;
+
+	PyErr_Fetch(&error_type, &error_value, &error_traceback);
+	file = PySys_GetObject(name);
+	if (file == NULL || PyFile_AsFile(file) == fp)
+		vfprintf(fp, format, va);
+	else {
+		char buffer[1001];
+		if (vsprintf(buffer, format, va) >= sizeof(buffer))
+		    Py_FatalError("PySys_WriteStdout/err: buffer overrun");
+		if (PyFile_WriteString(buffer, file) != 0) {
+			PyErr_Clear();
+			fputs(buffer, fp);
+		}
+	}
+	PyErr_Restore(error_type, error_value, error_traceback);
+}
+
+static void
+#ifdef HAVE_STDARG_PROTOTYPES
+My_WriteStderr(const char *format, ...)
+#else
+My_WriteStderr(va_alist)
+	va_dcl
+#endif
+{
+	va_list va;
+
+#ifdef HAVE_STDARG_PROTOTYPES
+	va_start(va, format);
+#else
+	char *format;
+	va_start(va);
+	format = va_arg(va, char *);
+#endif
+	mywrite("stderr", stderr, format, va);
+	va_end(va);
+}
+
+
 /* ----------------------------------------------------- */
 
 /* Declarations for objects of type xmlparser */
@@ -93,7 +144,7 @@ my_StartElementHandler(userdata, name, atts)
 		if (rv == NULL) {
 			if (self->jmpbuf_valid)
 				longjmp(self->jmpbuf, 1);
-			PySys_WriteStderr("Exception in StartElementHandler()\n");
+			My_WriteStderr("Exception in StartElementHandler()\n");
 			PyErr_Clear();
 		}
 		Py_XDECREF(rv);
@@ -118,7 +169,7 @@ my_EndElementHandler(userdata, name)
 		if (rv == NULL) {
 			if (self->jmpbuf_valid)
 				longjmp(self->jmpbuf, 1);
-			PySys_WriteStderr("Exception in EndElementHandler()\n");
+			My_WriteStderr("Exception in EndElementHandler()\n");
 			PyErr_Clear();
 		}
 		Py_XDECREF(rv);
@@ -145,7 +196,7 @@ my_CharacterDataHandler(userdata, data, len)
 		if (rv == NULL) {
 			if (self->jmpbuf_valid)
 				longjmp(self->jmpbuf, 1);
-			PySys_WriteStderr("Exception in CharacterDataHandler()\n");
+			My_WriteStderr("Exception in CharacterDataHandler()\n");
 			PyErr_Clear();
 		}
 		Py_XDECREF(rv);
@@ -172,7 +223,7 @@ my_ProcessingInstructionHandler(userdata, target, data)
 		if (rv == NULL) {
 			if (self->jmpbuf_valid)
 				longjmp(self->jmpbuf, 1);
-			PySys_WriteStderr("Exception in ProcessingInstructionHandler()\n");
+			My_WriteStderr("Exception in ProcessingInstructionHandler()\n");
 			PyErr_Clear();
 		}
 		Py_XDECREF(rv);
