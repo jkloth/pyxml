@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.11 2000/10/05 19:32:52 loewis Exp $
+$Id: drv_pyexpat.py,v 1.12 2001/01/11 12:50:44 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -14,10 +14,9 @@ version="0.13"
 from xml.sax import saxlib,saxutils
 
 try:
-    import pyexpat
+    from xml.parsers import expat
 except ImportError:
-    # pyexpat not built in core installation, use our own
-    from xml.parsers import pyexpat
+    raise SAXReaderNotAvailable("expat not supported",None)
 
 import urllib,types
 
@@ -57,7 +56,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def parse(self,sysID):
         self.parseFile(urllib.urlopen(sysID),sysID)
-        
+
     def parseFile(self,fileobj,sysID=None):
         self.reset()
         self.sysID=sysID
@@ -71,6 +70,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.parser.Parse("", 1)
             
         self.doc_handler.endDocument()
+        self.close()
 
     # --- Locator methods. Only usable after errors.
 
@@ -90,7 +90,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def __report_error(self):
         errc=self.parser.ErrorCode
-        msg=pyexpat.ErrorString(errc)
+        msg=expat.ErrorString(errc)
         exc=saxlib.SAXParseException(msg,None,self)
         self.err_handler.fatalError(exc)
 
@@ -113,7 +113,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def reset(self):
         self.sysID=None
-        self.parser=pyexpat.ParserCreate()
+        self.parser=expat.ParserCreate()
         self.parser.StartElementHandler = self.startElement
         self.parser.EndElementHandler = self.endElement
         self.parser.CharacterDataHandler = self.characters
@@ -125,8 +125,12 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
             self.__report_error()
 
     def close(self):
+        if self.parser is None:
+            # make sure close is idempotent
+            return
         if self.parser.Parse("", 0) != 1:
             self.__report_error()
+        self.parser = None
         
 # --- An expat driver that uses the lazy map
 
