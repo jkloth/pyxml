@@ -180,8 +180,26 @@ Implementation classes:
 
 Mixin classes:
 
-\class{DOMImplementationLS}
-\class{DocumentLS}
+\begin{classdesc*}{DOMImplementationLS}
+  Class that can be mixed into an implementation of the
+  \class{DOMImplementation} interface.  This implementation provides
+  the \constant{MODE_SYNCHRONOUS} and \constant{MODE_ASYNCHRONOUS}
+  constants and the \method{createDOMBuilder()},
+  \method{createDOMWriter()}, and \method{createDOMInputSource()}
+  methods.  Most DOM implementations should be able to re-use the
+  \method{createDOMInputSource()} method, and will need to override
+  the \method{createDOMBuilder()} method if it will actually be using
+  a different DOM builder.  The \method{createDOMWriter()} method
+  should be usable for all implementations once the \class{DOMWriter}
+  has been implemented, but that has not yet been done in PyXML.
+\end{classdesc*}
+
+\begin{classdesc*}{DocumentLS}
+  Class that can be mixed in to a \class{Document} implementation to
+  provide access to features of the Load/Save interface.  There isn't
+  much that can be provided by this implementation, so most methods
+  raise \exception{NotSupportedErr}.
+\end{classdesc*}
 
 
 \subsection{DOMImplementationLS Extensions}
@@ -276,10 +294,12 @@ following attributes and methods:
   particular value for the feature is supported.
 \end{methoddesc}
 
-The \class{Document} creation aspect of the public API is provided by
+The \class{Document}-creation aspect of the public API is provided by
 these methods:
 
 \begin{methoddesc}[DOMBuilder]{parse}{input}
+  Returns a document based on the \class{DOMInputSource} given as
+  \var{input}.
 \end{methoddesc}
 
 \begin{methoddesc}[DOMBuilder]{parseURI}{uri}
@@ -311,6 +331,62 @@ method will be created.
   \module{xml.parsers.expat} to construct documents using the
   \module{xml.dom.minidom} DOM implementation.
 \end{methoddesc}
+
+\subsection{Subclassing \class{DOMBuilder}}
+
+There are two important aspects to subclassing the \class{DOMBuilder}:
+implementing a useful subclass and getting a \class{DOMImplementation}
+that uses it.
+
+The first aspect is faily easy; to create a \class{DOMBuilder} that
+uses a different parser, use a subclass that overrides the
+\method{_parse_bytestream()} method, documented above.  The
+implementation of a specialized DOM builder may not be trivial, but
+the integration with the provided \class{DOMBuilder} class will be
+reasonably direct.
+
+The second aspect, creating a DOM implementation that uses the new
+\class{DOMBuilder} implementation, is a little more tedious, but not
+excessively so.  The \class{DOMImplementationLS} mixin class can be
+used, and the \method{createDOMBuilder()} method overridden to use the
+new \class{DOMBuilder} implementation.  This makes less sense if you
+want to re-use most of an existing DOM implementation, however.
+
+To use a new \class{DOMBuilder} with existing DOM implementation code,
+such as \module{xml.dom.minidom}, the easiest approach is to subclass
+an existing \class{DOMImplementation} class.  For
+\module{xml.dom.minidom}, this could be done this way:
+
+\begin{verbatim}
+import xml.dom
+
+from xml.dom.minidom import DOMImplementation
+from xml.dom.xmlbuilder import DOMBuilder
+
+class MyDOMBuilder(DOMBuilder):
+    def __init__(self, implementation):
+        self._implementation = implementation
+
+    def _parse_bytestream(self, stream, options):
+        raise xml.dom.NotSupportedErr(
+            "I'm just an example; don't expect much.")
+
+class MyDOMImplementation(DOMImplementation):
+    def createDOMBuilder(self, mode, schemaType):
+        # check for the supported mode and schemaType
+        if schemaType is not None:
+            raise xml.dom.NotSupportedErr(
+                "unsupported schema type: %s" % schemaType)
+        if mode != DOMImplementation.MODE_SYNCHRONOUS:
+            raise xml.dom.NotSupportedErr(
+                "asynchronous loading not supported")
+        return MyDOMBuilder(self)
+
+# minidom just stores the implementation on the class instance,
+# so we need to do the same to override that attribute on instances.
+#
+MyDOMImplementation.implementation = MyDOMImplementation()
+\end{verbatim}
 
 
 %\section{builder}
