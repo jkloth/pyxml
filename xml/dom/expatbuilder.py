@@ -427,7 +427,7 @@ class ExpatBuilder:
                 raise RuntimeError, "unexpected early event type: " + `t`
             doc.insertBefore(node, refnode)
             if (  self._filter and
-                  self._filter.acceptNode(node) == FILTER_REJECT):
+                  self._filter.acceptNode(node) != FILTER_ACCEPT):
                 doc.removeChild(node)
 
 def _normalize_lines(s):
