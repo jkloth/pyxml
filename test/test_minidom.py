@@ -1,14 +1,17 @@
 # test for xml.dom.minidom
 
-from xml.dom.minidom import parse, Node, Document, parseString
-from xml.dom import HierarchyRequestErr
-import xml.parsers.expat
-
 import os.path
 import sys
 import traceback
 from StringIO import StringIO
 from test.test_support import verbose
+
+import xml.dom
+import xml.dom.minidom
+import xml.parsers.expat
+
+from xml.dom.minidom import parse, Node, Document, parseString
+
 
 if __name__ == "__main__":
     base = sys.argv[0]
@@ -79,29 +82,29 @@ def testLegalChildren():
     text = dom.createTextNode('text')
 
     try: dom.appendChild(text)
-    except HierarchyRequestErr: pass
+    except xml.dom.HierarchyRequestErr: pass
     else:
         print "dom.appendChild didn't raise HierarchyRequestErr"
 
     dom.appendChild(elem)
     try: dom.insertBefore(text, elem)
-    except HierarchyRequestErr: pass
+    except xml.dom.HierarchyRequestErr: pass
     else:
         print "dom.appendChild didn't raise HierarchyRequestErr"
 
     try: dom.replaceChild(text, elem)
-    except HierarchyRequestErr: pass
+    except xml.dom.HierarchyRequestErr: pass
     else:
         print "dom.appendChild didn't raise HierarchyRequestErr"
 
     nodemap = elem.attributes
     try: nodemap.setNamedItem(text)
-    except HierarchyRequestErr: pass
+    except xml.dom.HierarchyRequestErr: pass
     else:
         print "NamedNodeMap.setNamedItem didn't raise HierarchyRequestErr"
 
     try: nodemap.setNamedItemNS(text)
-    except HierarchyRequestErr: pass
+    except xml.dom.HierarchyRequestErr: pass
     else:
         print "NamedNodeMap.setNamedItemNS didn't raise HierarchyRequestErr"
 
@@ -305,7 +308,7 @@ def testTooManyDocumentElements():
     elem = doc.createElement("extra")
     try:
         doc.appendChild(elem)
-    except HierarchyRequestErr:
+    except xml.dom.HierarchyRequestErr:
         pass
     else:
         print "Failed to catch expected exception when" \
@@ -505,6 +508,33 @@ def testSAX2DOM():
             text3.parentNode is elm1, "testSAX2DOM - parents")
 
     doc.unlink()
+
+class UserDataHandler:
+    called = 0
+    def handle(self, operation, key, data, src, dst):
+        dst.setUserData(key, data + 1, self)
+        src.setUserData(key, None, None)
+        self.called = 1
+
+def testUserData():
+    n = xml.dom.minidom.Element('e')
+    confirm(n.getUserData("foo") is None)
+    n.setUserData("foo", None, None)
+    confirm(n.getUserData("foo") is None)
+    n.setUserData("foo", 12, 12)
+    n.setUserData("bar", 13, 13)
+    confirm(n.getUserData("foo") == 12)
+    confirm(n.getUserData("bar") == 13)
+    n.setUserData("foo", None, None)
+    confirm(n.getUserData("foo") is None)
+    confirm(n.getUserData("bar") == 13)
+
+    handler = UserDataHandler()
+    n.setUserData("bar", 12, handler)
+    c = n.cloneNode(1)
+    confirm(handler.called
+            and n.getUserData("bar") is None
+            and c.getUserData("bar") == 13)
 
 # --- MAIN PROGRAM
 
