@@ -6,7 +6,7 @@
      you'll need a fancier DTD with more features.  
 
      Version 1.0 : Sep 5 1998
-     A.M. Kuchling (akuchling@acm.org)
+     A.M. Kuchling (amk1@bigfoot.com)
 -->
 
 <!ELEMENT quotations (quotation)*>
