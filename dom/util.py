@@ -1,5 +1,6 @@
 
 import re
+from xml.dom import core
 
 # Various utility functions that are often handy.
 
