@@ -14,18 +14,6 @@ from setupext import Data_Files, install_Data_Files, wininst_request_delete
 # tree.  This is a bit clumsy, but I don't see a better way to do
 # this at the moment.
 
-# Use either unixfilemap or readfilemap depending on the platform
-if sys.platform == 'win32':
-    FILEMAP_SRC = 'extensions/expat/xmlwf/win32filemap.c'
-elif sys.platform[:4] == 'beos':
-    FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
-elif sys.platform[:3] == 'mac':
-    FILEMAP_SRC = 'extensions/expat/xmlwf/readfilemap.c'
-else:
-    # Assume all other platforms are Unix-compatible; this is almost
-    # certainly wrong. :)
-    FILEMAP_SRC = 'extensions/expat/xmlwf/unixfilemap.c'
-
 ext_modules = []
 
 # Rename xml to _xmlplus for Python 2.0
@@ -104,11 +92,7 @@ if build_pyexpat:
                             'extensions/expat/xmlparse']
             sources.extend(['extensions/expat/xmltok/xmltok.c',
                             'extensions/expat/xmltok/xmlrole.c',
-                            'extensions/expat/xmlwf/xmlfile.c',
-                            'extensions/expat/xmlwf/xmlwf.c',
-                            'extensions/expat/xmlwf/codepage.c',
-                            'extensions/expat/xmlparse/xmlparse.c',
-                            FILEMAP_SRC])
+                            'extensions/expat/xmlparse/xmlparse.c'])
             libraries = []
             library_dirs = []
 
@@ -210,7 +194,8 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
                    xml('.marshal'), xml('.unicode'),
                    xml('.parsers'), xml('.parsers.xmlproc'),
                    xml('.sax'), xml('.sax.drivers'),
-                   xml('.sax.drivers2'), xml('.utils'), xml('.schema')
+                   xml('.sax.drivers2'), xml('.utils'), xml('.schema'),
+                   xml('.xpath'), xml('.xslt')
                    ],
 
        ext_modules = ext_modules,
