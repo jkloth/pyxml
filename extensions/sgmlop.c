@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.10 2001/12/30 23:42:40 loewis Exp $
+ * $Id: sgmlop.c,v 1.11 2002/07/09 07:17:27 uche Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1140,9 +1140,15 @@ fastfeed(FastSGMLParserObject* self)
                     goto eol;
             }
             b = t = p;
-            while (ISALNUM(*p) || *p == '.')
-                if (++p >= end)
-                    goto eol;
+            if (self->xml) {
+                while (ISALNUM(*p) || *p == '.' || *p == '-' || *p == '_' || *p == ':')
+                    if (++p >= end)
+                        goto eol;
+            } else {
+                while (ISALNUM(*p) || *p == '.')
+                    if (++p >= end)
+                        goto eol;
+            }
             e = p;
             if (*p == ';')
                 p++;
