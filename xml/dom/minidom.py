@@ -102,6 +102,13 @@ class Node:
             newChild.parentNode = self
 
     def appendChild(self, node):
+        if self.childNodes:
+            last = self.lastChild
+            node.previousSibling = last
+            last.nextSibling = node
+        else:
+            node.previousSibling = None
+        node.nextSibling = None
         self.childNodes.append(node)
         return node
 
@@ -129,6 +136,8 @@ class Node:
             self.childNodes[-1].unlink()
             del self.childNodes[-1] # probably not most efficient!
         self.childNodes = None
+        self.previousSibling = None
+        self.nextSibling = None
         if self.attributes:
             for attr in self._attrs.values():
                 self.removeAttributeNode(attr)
@@ -392,7 +401,7 @@ class Text(Node):
 
 def _nssplit(qualifiedName):
     import string
-    fields = string.split(qualifiedName,':', 1) # 1.5 compatibility
+    fields = string.split(qualifiedName,':', 1)
     if len(fields) == 2:
         return fields
     elif len(fields) == 1:
