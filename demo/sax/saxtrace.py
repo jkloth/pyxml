@@ -61,7 +61,7 @@ class SAXtracer:
 # --- Main prog
 
 pf=saxexts.ParserFactory()
-p=pf.make_parser("xmlproc")
+p=pf.make_parser("xml.sax.drivers.drv_xmlproc")
 
 p.setDocumentHandler(SAXtracer("doc_handler"))
 p.setDTDHandler(SAXtracer("dtd_handler"))

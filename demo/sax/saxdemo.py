@@ -33,7 +33,7 @@ else:
 
 for (arg,val) in args:
     if arg=="-d":
-        driver=val
+        driver="xml.sax.drivers.drv_" + val
     elif arg=="-e":
         esis=1
     elif arg=="-s":

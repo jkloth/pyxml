@@ -18,7 +18,7 @@ if len(sys.argv)<3:
 print "\nLoading parser..."
 
 try:
-    p=saxexts.make_parser(sys.argv[1])
+    p=saxexts.make_parser("xml.sax.drivers.drv_" + sys.argv[1])
 except saxlib.SAXException,e:
     print "ERROR: Parser not available"
     sys.exit(1)

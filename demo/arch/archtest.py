@@ -51,13 +51,13 @@ if opts.has_key("--validate"):
 
 else:
     pf=saxexts.ParserFactory([
-        "xmlproc",
-        "pyexpat",
-        "sgmlop", 
-        "xmllib", 
-        "xmltok",
-        "xmltoolkit",
-        "xmldc"])
+        "xml.sax.drivers.drv_xmlproc",
+        "xml.sax.drivers.drv_pyexpat",
+        "xml.sax.drivers.drv_sgmlop", 
+        "xml.sax.drivers.drv_xmllib", 
+        "xml.sax.drivers.drv_xmltok",
+        "xml.sax.drivers.drv_xmltoolkit",
+        "xml.sax.drivers.drv_xmldc"])
 
 # Create parser
 parser = pf.make_parser()
