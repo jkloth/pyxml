@@ -24,7 +24,7 @@ _TupleType = type(())
 
 
 class Node(xml.dom.Node, GetattrMagic):
-    _makeParentNodes = 1
+    _make_parent_nodes = 1
     namespaceURI = None # this is non-null only for elements and attributes
     parentNode = None
     ownerDocument = None
@@ -77,7 +77,7 @@ class Node(xml.dom.Node, GetattrMagic):
                 self.insertBefore(c, refChild)
             ### The DOM does not clearly specify what to return in this case
             return newChild
-        if newChild.nodeType not in self.childNodeTypes:
+        if newChild.nodeType not in self._child_node_types:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(newChild), repr(self)))
         if newChild.parentNode is not None:
@@ -98,7 +98,7 @@ class Node(xml.dom.Node, GetattrMagic):
                 newChild.previousSibling = node
             else:
                 newChild.previousSibling = None
-            if self._makeParentNodes:
+            if self._make_parent_nodes:
                 newChild.parentNode = self
         return newChild
 
@@ -108,12 +108,12 @@ class Node(xml.dom.Node, GetattrMagic):
                 self.appendChild(c)
             ### The DOM does not clearly specify what to return in this case
             return node
-        if node.nodeType not in self.childNodeTypes:
+        if node.nodeType not in self._child_node_types:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(node), repr(self)))
         if node.parentNode is not None:
             node.parentNode.removeChild(node)
-        _appendChild(self, node)
+        _append_child(self, node)
         node.nextSibling = None
         return node
 
@@ -122,7 +122,7 @@ class Node(xml.dom.Node, GetattrMagic):
             refChild = oldChild.nextSibling
             self.removeChild(oldChild)
             return self.insertBefore(newChild, refChild)
-        if newChild.nodeType not in self.childNodeTypes:
+        if newChild.nodeType not in self._child_node_types:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(newChild), repr(self)))
         if newChild.parentNode is not None:
@@ -134,7 +134,7 @@ class Node(xml.dom.Node, GetattrMagic):
         except ValueError:
             raise xml.dom.NotFoundErr()
         self.childNodes[index] = newChild
-        if self._makeParentNodes:
+        if self._make_parent_nodes:
             newChild.parentNode = self
             oldChild.parentNode = None
         newChild.nextSibling = oldChild.nextSibling
@@ -158,7 +158,7 @@ class Node(xml.dom.Node, GetattrMagic):
             oldChild.previousSibling.nextSibling = oldChild.nextSibling
         oldChild.nextSibling = oldChild.previousSibling = None
 
-        if self._makeParentNodes:
+        if self._make_parent_nodes:
             oldChild.parentNode = None
         return oldChild
 
@@ -213,7 +213,7 @@ class Node(xml.dom.Node, GetattrMagic):
             return None
 
     def _get_localName(self):
-        #Overridden in Element and Attr where localName can be Non-Null
+        # Overridden in Element and Attr where localName can be Non-Null
         return None
 
     # The "user data" functions use a dictionary that is only present
@@ -266,7 +266,7 @@ defproperty(Node, "lastChild",  doc="Last child node, or None.")
 defproperty(Node, "localName", doc="Namespace-local name of this node.")
 
 
-def _appendChild(self, node):
+def _append_child(self, node):
     # fast path with less checks; usable by DOM builders if careful
     childNodes = self.childNodes
     if childNodes:
@@ -274,7 +274,7 @@ def _appendChild(self, node):
         node.previousSibling = last
         last.nextSibling = node
     childNodes.append(node)
-    if self._makeParentNodes:
+    if self._make_parent_nodes:
         node.parentNode = self
 
 def _write_data(writer, data):
@@ -283,21 +283,21 @@ def _write_data(writer, data):
     data = data.replace("\"", "&quot;").replace(">", "&gt;")
     writer.write(data)
 
-def _getElementsByTagNameHelper(parent, name, rc):
+def _get_elements_by_tagName_helper(parent, name, rc):
     for node in parent.childNodes:
         if node.nodeType == Node.ELEMENT_NODE and \
             (name == "*" or node.tagName == name):
             rc.append(node)
-        _getElementsByTagNameHelper(node, name, rc)
+        _get_elements_by_tagName_helper(node, name, rc)
     return rc
 
-def _getElementsByTagNameNSHelper(parent, nsURI, localName, rc):
+def _get_elements_by_tagName_ns_helper(parent, nsURI, localName, rc):
     for node in parent.childNodes:
         if node.nodeType == Node.ELEMENT_NODE:
             if ((localName == "*" or node.localName == localName) and
                 (nsURI == "*" or node.namespaceURI == nsURI)):
                 rc.append(node)
-            _getElementsByTagNameNSHelper(node, nsURI, localName, rc)
+            _get_elements_by_tagName_ns_helper(node, nsURI, localName, rc)
     return rc
 
 class DocumentFragment(Node):
@@ -306,13 +306,13 @@ class DocumentFragment(Node):
     nodeValue = None
     attributes = None
     parentNode = None
-    childNodeTypes = (Node.ELEMENT_NODE,
-                      Node.TEXT_NODE,
-                      Node.CDATA_SECTION_NODE,
-                      Node.ENTITY_REFERENCE_NODE,
-                      Node.PROCESSING_INSTRUCTION_NODE,
-                      Node.COMMENT_NODE,
-                      Node.NOTATION_NODE)
+    _child_node_types = (Node.ELEMENT_NODE,
+                         Node.TEXT_NODE,
+                         Node.CDATA_SECTION_NODE,
+                         Node.ENTITY_REFERENCE_NODE,
+                         Node.PROCESSING_INSTRUCTION_NODE,
+                         Node.COMMENT_NODE,
+                         Node.NOTATION_NODE)
 
     def __init__(self):
         self.childNodes = NodeList()
@@ -322,8 +322,9 @@ class Attr(Node):
     nodeType = Node.ATTRIBUTE_NODE
     attributes = None
     ownerElement = None
-    childNodeTypes = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
     specified = 0
+
+    _child_node_types = (Node.TEXT_NODE, Node.ENTITY_REFERENCE_NODE)
 
     def __init__(self, qName, namespaceURI=EMPTY_NAMESPACE, localName=None,
                  prefix=None):
@@ -341,6 +342,9 @@ class Attr(Node):
 
     def _get_localName(self):
         return self.nodeName.split(":", 1)[-1]
+
+    def _get_name(self):
+        return self.name
 
     def _get_specified(self):
         return self.specified
@@ -440,7 +444,6 @@ class NamedNodeMap(NewStyle, GetattrMagic):
         else:
             return cmp(id(self), id(other))
 
-    #FIXME: is it appropriate to return .value?
     def __getitem__(self, attname_or_tuple):
         if isinstance(attname_or_tuple, _TupleType):
             return self._attrsNS[attname_or_tuple]
@@ -515,9 +518,12 @@ AttributeList = NamedNodeMap
 class Element(Node):
     nodeType = Node.ELEMENT_NODE
     nodeValue = None
-    childNodeTypes = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
-                      Node.COMMENT_NODE, Node.TEXT_NODE,
-                      Node.CDATA_SECTION_NODE, Node.ENTITY_REFERENCE_NODE)
+    _child_node_types = (Node.ELEMENT_NODE,
+                         Node.PROCESSING_INSTRUCTION_NODE,
+                         Node.COMMENT_NODE,
+                         Node.TEXT_NODE,
+                         Node.CDATA_SECTION_NODE,
+                         Node.ENTITY_REFERENCE_NODE)
 
     def __init__(self, tagName, namespaceURI=EMPTY_NAMESPACE, prefix=None,
                  localName=None):
@@ -536,6 +542,9 @@ class Element(Node):
 
     def _get_localName(self):
         return self.tagName.split(":", 1)[-1]
+
+    def _get_tagName(self):
+        return self.tagName
 
     def unlink(self):
         for attr in self._attrs.values():
@@ -585,7 +594,7 @@ class Element(Node):
         old = self._attrs.get(attr.name, None)
         if old:
             old.unlink()
-        _setAttributeNode(self, attr)
+        _set_attribute_node(self, attr)
 
         if old is not attr:
             # It might have already been part of this node, in which case
@@ -622,11 +631,11 @@ class Element(Node):
         return self._attrsNS.has_key((namespaceURI, localName))
 
     def getElementsByTagName(self, name):
-        return _getElementsByTagNameHelper(self, name, NodeList())
+        return _get_elements_by_tagName_helper(self, name, NodeList())
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        return _getElementsByTagNameNSHelper(self, namespaceURI, localName,
-                                             NodeList())
+        return _get_elements_by_tagName_ns_helper(
+            self, namespaceURI, localName, NodeList())
 
     def __repr__(self):
         return "<DOM Element: %s at %s>" % (self.tagName, id(self))
@@ -668,7 +677,7 @@ defproperty(Element, "localName",
             doc="Namespace-local name of this element.")
 
 
-def _setAttributeNode(self, attr):
+def _set_attribute_node(self, attr):
     self._attrs[attr.name] = attr
     self._attrsNS[(attr.namespaceURI, attr.localName)] = attr
 
@@ -925,13 +934,6 @@ class CDATASection(Text):
         writer.write("<![CDATA[%s]]>" % self.data)
 
 
-def _nssplit(qualifiedName):
-    fields = qualifiedName.split(':', 1)
-    if len(fields) == 2:
-        return fields
-    elif len(fields) == 1:
-        return (None, fields[0])
-
 class ReadOnlySequentialNamedNodeMap(NewStyle, GetattrMagic):
     __slots__ = '_seq',
 
@@ -986,7 +988,22 @@ defproperty(ReadOnlySequentialNamedNodeMap, "length",
             doc="Number of entries in the NamedNodeMap.")
 
 
-class DocumentType(Childless, Node):
+class Identified:
+    """Mix-in class that supports the publicId and systemId attributes."""
+
+    __slots__ = 'publicId', 'systemId'
+
+    def _identified_mixin_init(self, publicId, systemId):
+        self.publicId = publicId
+        self.systemId = systemId
+
+    def _get_publicId(self):
+        return self.publicId
+
+    def _get_systemId(self):
+        return self.systemId
+
+class DocumentType(Identified, Childless, Node):
     nodeType = Node.DOCUMENT_TYPE_NODE
     nodeValue = None
     name = None
@@ -1002,18 +1019,8 @@ class DocumentType(Childless, Node):
             self.name = localname
         self.nodeName = self.name
 
-class Identified:
-    """Mix-in class that supports the publicId and systemId attributes."""
-
-    def _identified_mixin_init(self, publicId, systemId):
-        self.publicId = publicId
-        self.systemId = systemId
-
-    def _get_publicId(self):
-        return self.publicId
-
-    def _get_systemId(self):
-        return self.systemId
+    def _get_internalSubset(self):
+        return self.internalSubset
 
 class Entity(Identified, Node):
     attributes = None
@@ -1029,6 +1036,15 @@ class Entity(Identified, Node):
         self.notationName = notation
         self.childNodes = NodeList()
         self._identified_mixin_init(publicId, systemId)
+
+    def _get_actualEncoding(self):
+        return self.actualEncoding
+
+    def _get_encoding(self):
+        return self.encoding
+
+    def _get_version(self):
+        return self.version
 
 class Notation(Identified, Childless, Node):
     nodeType = Node.NOTATION_NODE
@@ -1061,7 +1077,7 @@ class DOMImplementation(DOMImplementationLS):
         if doctype and doctype.parentNode is not None:
             raise xml.dom.WrongDocumentErr(
                 "doctype object owned by another DOM tree")
-        doc = self._createDocument()
+        doc = self._create_document()
 
         add_root_element = not (namespaceURI is None
                                 and qualifiedName is None
@@ -1115,10 +1131,13 @@ class DOMImplementation(DOMImplementationLS):
             return None
 
     # internal
-    def _createDocument(self):
+    def _create_document(self):
         return Document()
 
 class Document(Node, DocumentLS):
+    _child_node_types = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
+                         Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
+
     nodeType = Node.DOCUMENT_NODE
     nodeName = "#document"
     nodeValue = None
@@ -1128,8 +1147,6 @@ class Document(Node, DocumentLS):
     previousSibling = nextSibling = None
 
     implementation = DOMImplementation()
-    childNodeTypes = (Node.ELEMENT_NODE, Node.PROCESSING_INSTRUCTION_NODE,
-                      Node.COMMENT_NODE, Node.DOCUMENT_TYPE_NODE)
 
     # Document attributes from Level 3 (WD 9 April 2002)
 
@@ -1144,8 +1161,32 @@ class Document(Node, DocumentLS):
     def __init__(self):
         self.childNodes = NodeList()
 
+    def _get_actualEncoding(self):
+        return self.actualEncoding
+
+    def _get_doctype(self):
+        return self.doctype
+
+    def _get_documentURI(self):
+        return self.documentURI
+
+    def _get_encoding(self):
+        return self.encoding
+
+    def _get_errorHandler(self):
+        return self.errorHandler
+
+    def _get_standalone(self):
+        return self.standalone
+
+    def _get_strictErrorChecking(self):
+        return self.strictErrorChecking
+
+    def _get_version(self):
+        return self.version
+
     def appendChild(self, node):
-        if node.nodeType not in self.childNodeTypes:
+        if node.nodeType not in self._child_node_types:
             raise xml.dom.HierarchyRequestErr(
                 "%s cannot be child of %s" % (repr(node), repr(self)))
         if node.parentNode is not None:
@@ -1239,11 +1280,11 @@ class Document(Node, DocumentLS):
         return None
 
     def getElementsByTagName(self, name):
-        return _getElementsByTagNameHelper(self, name, NodeList())
+        return _get_elements_by_tagName_helper(self, name, NodeList())
 
     def getElementsByTagNameNS(self, namespaceURI, localName):
-        return _getElementsByTagNameNSHelper(self, namespaceURI, localName,
-                                             NodeList())
+        return _get_elements_by_tagName_ns_helper(
+            self, namespaceURI, localName, NodeList())
 
     def isSupported(self, feature, version):
         return self.implementation.hasFeature(feature, version)
