@@ -185,6 +185,33 @@ Mixin classes:
 \class{DOMImplementationLS}
 \class{DocumentLS}
 
+
+\subsection{DOMImplementationLS Extensions}
+
+The \class{DOMImplementationLS} mixin class is designed to be used in
+an implementation of the \class{DOMImplementation} interface.  This
+class provides the constants \constant{MODE_SYNCHRONOUS} and
+\constant{MODE_ASYNCHRONOUS}, and the following methods:
+
+\begin{methoddesc}[DOMImplementationLS]{createDOMBuilder}{mode, schemaType}
+  Returns a \class{DOMBuilder} instance.  Specific DOM implementations
+  will usually need to override this to return a specialized subclass
+  of the \class{DOMBuilder} class; see the documentation on the
+  \class{DOMBuilder} for information on how and when to write a
+  subclass of that.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMImplementationLS]{createDOMWriter}{}
+  For now, raises \exception{NotImplementedError} since the writer
+  interface has not been implemented yet.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMImplementationLS]{createDOMInputSource}{}
+  Returns a \class{DOMInputSource} instance with all attributes set to
+  \code{None}.
+\end{methoddesc}
+
+
 \subsection{DocumentLS Extensions}
 
 The \class{DocumentLS} mixin class for a \class{Document} adds the
@@ -214,6 +241,73 @@ The following attribute is also added:
   methods will operate in a synchronous mode.
   PyXML does not support setting this to true.
 \end{memberdesc}
+
+
+\subsection{DOMBuilder Objects}
+
+The \class{DOMBuilder} class provides support for configuring the DOM
+construction process, and allows alternate DOM construction methods to
+be provided by subclasses.
+
+The general public API has two aspects, configuration and
+\class{Document} creation.  The configuration aspect provides the
+following attributes and methods:
+
+\begin{methoddesc}[DOMBuilder]{canSetFeature}{name, state}
+  Return true if the feature \var{name} can be set to \var{state},
+  otherwise returns false.  If feature \var{name} is not supported,
+  returns false.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMBuilder]{getFeature}{name}
+  Returns the state for the feature \var{name}.  If \var{name} is
+  unrecognized or not supported, \exception{xml.dom.NotFoundErr} is
+  raised.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMBuilder]{setFeature}{name, state}
+  Set the feature \var{name} to \var{state}.  If feature \var{name} is
+  not recognized, \exception{xml.dom.NotFoundErr} is raised; if the
+  specific state requested is not supported,
+  \exception{xml.dom.NotSupportedErr} is raised.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMBuilder]{supportsFeature}{name}
+  Returns true if the feature \var{name} is supported at all,
+  otherwise returns false.  A true return does not imply that any
+  particular value for the feature is supported.
+\end{methoddesc}
+
+The \class{Document} creation aspect of the public API is provided by
+these methods:
+
+\begin{methoddesc}[DOMBuilder]{parse}{input}
+\end{methoddesc}
+
+\begin{methoddesc}[DOMBuilder]{parseURI}{uri}
+  Returns a document from the URI given by \var{uri}.
+\end{methoddesc}
+
+\begin{methoddesc}[DOMBuilder]{parseWithContext}{input, cnode, action}
+  \note{Not implemented in the current version.}
+
+  Legal values for \var{action} are given by the constants
+  \constant{ACTION_REPLACE}, \constant{ACTION_APPEND_AS_CHILDREN},
+  \constant{ACTION_INSERT_AFTER}, and \constant{ACTION_INSERT_BEFORE},
+  all defined on the \class{DOMBuilder} class.
+\end{methoddesc}
+
+Subclasses are expected to define the following method to determine
+how the \class{Document} instances returned by the \method{parse()}
+method will be created.
+
+\begin{methoddesc}[DOMBuilder]{_parse_bytestream}{stream, options}
+  Returns a \class{Document} instance parsed from the file object
+  given as \var{stream} using the configuration options in the
+  \var{options} object.  The default implementation  uses
+  \module{xml.parsers.expat} to construct documents using the
+  \module{xml.dom.minidom} DOM implementation.
+\end{methoddesc}
 
 
 %\section{builder}
