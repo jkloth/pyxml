@@ -83,6 +83,7 @@ class HierarchyRequestErr(DOMException):
 
 class WrongDocumentErr(DOMException):
     code = WRONG_DOCUMENT_ERR
+    __init__ = DOMException._derived_init
 
 class InvalidCharacterErr(DOMException):
     code = INVALID_CHARACTER_ERR
