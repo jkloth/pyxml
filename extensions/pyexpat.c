@@ -10,6 +10,14 @@
 #include "expat.h"
 
 #ifndef PyDoc_STRVAR
+
+/*
+ * fdrake says:
+ * Don't change the PyDoc_STR macro definition to (str), because
+ * '''the parentheses cause compile failures 
+ * ("non-constant static initializer" or something like that) 
+ * on some platforms (Irix?)'''
+ */ 
 #define PyDoc_STR(str)         str
 #define PyDoc_VAR(name)        static char name[]
 #define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
@@ -18,6 +26,7 @@
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
 /* In Python 2.0 and  2.1, disabling Unicode was not possible. */
 #define Py_USING_UNICODE
+#define NOFIX_TRACE
 #endif
 
 enum HandlerTypes {
@@ -270,6 +279,35 @@ getcode(enum HandlerTypes slot, char* func_name, int lineno)
     return NULL;
 }
 
+#ifndef NOFIX_TRACE
+static int
+trace_frame(PyThreadState *tstate, PyFrameObject *f, int code, PyObject *val)
+{
+    int result = 0;
+    if (!tstate->use_tracing || tstate->tracing)
+	return 0;
+    if (tstate->c_profilefunc != NULL) {
+	tstate->tracing++;
+	result = tstate->c_profilefunc(tstate->c_profileobj,
+				       f, code , val);
+	tstate->use_tracing = ((tstate->c_tracefunc != NULL)
+			       || (tstate->c_profilefunc != NULL));
+	tstate->tracing--;
+	if (result)
+	    return result;
+    }
+    if (tstate->c_tracefunc != NULL) {
+	tstate->tracing++;
+	result = tstate->c_tracefunc(tstate->c_traceobj,
+				     f, code , val);
+	tstate->use_tracing = ((tstate->c_tracefunc != NULL)
+			       || (tstate->c_profilefunc != NULL));
+	tstate->tracing--;
+    }	
+    return result;
+}
+#endif
+
 static PyObject*
 call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 {
@@ -279,6 +317,7 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
 
     if (c == NULL)
         return NULL;
+    
     f = PyFrame_New(
                     tstate,			/*back*/
                     c,				/*code*/
@@ -288,9 +327,23 @@ call_with_frame(PyCodeObject *c, PyObject* func, PyObject* args)
     if (f == NULL)
         return NULL;
     tstate->frame = f;
+#ifndef NOFIX_TRACE
+    if (trace_frame(tstate, f, PyTrace_CALL, Py_None)) {
+	Py_DECREF(f);
+	return NULL;
+    }
+#endif
     res = PyEval_CallObject(func, args);
     if (res == NULL && tstate->curexc_traceback == NULL)
         PyTraceBack_Here(f);
+#ifndef NOFIX_TRACE
+    else {
+	if (trace_frame(tstate, f, PyTrace_RETURN, res)) {
+	    Py_XDECREF(res);
+	    res = NULL;
+	}
+    }
+#endif
     tstate->frame = f->f_back;
     Py_DECREF(f);
     return res;
@@ -1666,7 +1719,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.64 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.65 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
