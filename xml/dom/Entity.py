@@ -32,18 +32,18 @@ class Entity(FtNode):
         self.__dict__['publicId'] = publicId
         self.__dict__['systemId'] = systemId
         self.__dict__['notationName'] = notationName
-        
+
     ### Attribute Methods ###
 
     def _get_systemId(self):
         return self.systemId
-    
+
     def _get_publicId(self):
         return self.publicId
 
     def _get_notationName(self):
         return self.notationName
-        
+
    ### Overridden Methods ###
 
     def __repr__(self):

@@ -43,7 +43,7 @@ class HTMLTextAreaElement(HTMLElement):
 
     def _get_defaultValue(self):
         if not self.firstChild:
-            return 
+            return
         if self.firstChild == self.lastChild:
             return self.firstChild.data
         self.normalize()
@@ -118,7 +118,7 @@ class HTMLTextAreaElement(HTMLElement):
 
     def _get_value(self):
         if not self.firstChild:
-            return 
+            return
         if self.firstChild == self.lastChild:
             return self.firstChild.data
         self.normalize()
@@ -181,4 +181,3 @@ class HTMLTextAreaElement(HTMLElement):
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                      HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())
-

@@ -39,7 +39,7 @@ class CharacterData(FtNode):
         self._length = len(data)
         self._4dom_fireMutationEvent('DOMCharacterDataModified',
                                      prevValue=old_value,
-                                     newValue=data)        
+                                     newValue=data)
 
     def _get_length(self):
         return self._length
@@ -51,7 +51,7 @@ class CharacterData(FtNode):
             self._set_data(self.__dict__['__nodeValue'] + arg)
             self._4dom_fireMutationEvent('DOMSubtreeModified')
         return
-        
+
     def deleteData(self, offset, count):
         if count < 0 or offset < 0 or offset > self._length:
             raise IndexSizeErr()
@@ -72,7 +72,7 @@ class CharacterData(FtNode):
         self._4dom_fireMutationEvent('DOMSubtreeModified')
         return
 
-    def replaceData(self, offset, count, arg):  
+    def replaceData(self, offset, count, arg):
         if not IsDOMString(arg):
             raise SyntaxErr()
         if count < 0 or offset < 0 or offset > self._length:

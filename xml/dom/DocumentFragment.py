@@ -43,4 +43,3 @@ class DocumentFragment(FtNode):
     def __getinitargs__(self):
         return (self.ownerDocument,
                 )
-

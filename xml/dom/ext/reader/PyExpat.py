@@ -58,7 +58,7 @@ class Reader(reader.Reader):
         self.parser.NotationDeclHandler = self.notationDecl
         self.parser.UnparsedEntityDeclHandler = self.unparsedEntityDecl
         return
-    
+
     def fromStream(self, stream, ownerDoc=None):
         self.initParser()
         self.initState(ownerDoc)
@@ -219,4 +219,3 @@ class Reader(reader.Reader):
         new_notation = self._ownerDoc.getFactory().createEntity(self._ownerDoc,  publicId, systemId, notationName)
         self._ownerDoc.getDocumentType().getEntities().setNamedItem(new_notation)
         return
-

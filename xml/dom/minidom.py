@@ -87,11 +87,11 @@ class Node(_Node):
         return writer.getvalue()
 
     def toprettyxml(self, indent="\t", newl="\n"):
-      # indent = the indentation string to prepend, per level
-      # newl = the newline string to append
-      writer = _get_StringIO()
-      self.writexml(writer, "", indent, newl)
-      return writer.getvalue()
+        # indent = the indentation string to prepend, per level
+        # newl = the newline string to append
+        writer = _get_StringIO()
+        self.writexml(writer, "", indent, newl)
+        return writer.getvalue()
 
     def hasChildNodes(self):
         if self.childNodes:

@@ -30,7 +30,7 @@ class EventException:
     def __init__(self, code):
         self.code = code
 
-        
+
 class EventTarget:
     """
     """
@@ -49,7 +49,7 @@ class EventTarget:
         else:
             if listener not in self.listeners[etype]:
                 self.listeners[etype].append(listener)
-            
+
         return
 
     def removeEventListener(self, etype, listener, useCapture):
@@ -60,7 +60,7 @@ class EventTarget:
         # The actual work is done in the implementing class
         # since EventTarget has no idea of the DOM hierarchy
         pass
-        
+
 
 class EventListener:
     def __init__(self):
@@ -128,4 +128,3 @@ class MutationEvent(Event):
         #No mutation events are cancelable
         self.cancelable = 0
         return
-

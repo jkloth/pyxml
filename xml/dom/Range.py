@@ -48,7 +48,7 @@ class Range:
         self.__dict__['endOffset'] = 0
         self.__dict__['collapsed'] = 1
         self.__dict__['commonAncestorContainer'] = ownerDocument
-        
+
         self.__dict__['detached'] = 0
 
 
@@ -86,14 +86,14 @@ class Range:
                 data = self.startContainer.substringData(self.startOffset,1+self.endOffset-self.startOffset)
                 tx = self._ownerDocument.createTextNode(data)
                 df.appendChild(tx)
-        
+
             else:
                 #Clone a set number of children
                 numDel = self.endOffset - self.startOffset+1
                 for ctr in range(numDel):
                     c = self.startContainer.childNodes[self.startOffset+ctr].cloneNode(1)
                     df.appendChild(c)
-            
+
         elif self.startContainer == self.commonAncestorContainer:
             #Clone up the endContainer
             #From the start to the end
@@ -147,7 +147,7 @@ class Range:
                                                 Node.COMMENT_NODE,
                                                 Node.PROCESSING_INSTRUCTION_NODE]:
                 #Adjust the character data
-                
+
                 copyData = self.startContainer.substringData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
             else:
                 numDel = len(self.startContainer.childNodes) - self.startOffset
@@ -196,7 +196,7 @@ class Range:
                                                 Node.COMMENT_NODE,
                                                 Node.PROCESSING_INSTRUCTION_NODE]:
                 #Adjust the character data
-                
+
                 startCopyData = self.startContainer.substringData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
             else:
                 numDel = len(self.startContainer.childNodes) - self.startOffset
@@ -276,7 +276,7 @@ class Range:
                 c = startAncestorChild.parentNode.childNodes[ctr]
                 df.appendChild(c.cloneNode(1))
             df.appendChild(newEnd)
-            
+
 
         #Adjust the containers
         #FIXME What the heck is the spec talking about??
@@ -370,14 +370,14 @@ class Range:
                                                 Node.PROCESSING_INSTRUCTION_NODE]:
                 #Adjust the character data
                 self.startContainer.deleteData(self.startOffset,1+self.endOffset-self.startOffset)
-        
+
             else:
                 #Delete a set number of children
                 numDel = self.endOffset - self.startOffset+1
                 for ctr in range(numDel):
                     c = self.startContainer.removeChild(self.startContainer.childNodes[self.startOffset])
                     ReleaseNode(c)
-            
+
             self.__dict__['endContainer'] = self.startContainer
             self.__dict__['endOffset'] = self.endContainer
             self.__dict__['commonAncestorContainer'] = self.endContainer
@@ -420,7 +420,7 @@ class Range:
                 for ctr in range(numDel):
                     c = self.startContainer.removeChild(self.startContainer.childNodes[self.startOffset])
                     ReleaseNode(c)
-                
+
             cur = self.startContainer
             while cur.parentNode != self.commonAncestorContainer:
                 while cur.nextSibling:
@@ -504,7 +504,7 @@ class Range:
         del self.endOffset
         del self.collapsed
         del self.commonAncestorContainer
-                
+
     def extractContents(self):
         """Extract the contents defined by this range"""
 
@@ -526,7 +526,7 @@ class Range:
 
                 tx = self._ownerDocument.createTextNode(data)
                 df.appendChild(tx)
-        
+
             else:
                 #Extrace a set number of children
 
@@ -534,7 +534,7 @@ class Range:
                 for ctr in range(numDel):
                     c = self.startContainer.removeChild(self.startContainer.childNodes[self.startOffset])
                     df.appendChild(c)
-            
+
         elif self.startContainer == self.commonAncestorContainer:
             #Delete up the endContainer
             #From the start to the end
@@ -590,7 +590,7 @@ class Range:
                                                 Node.COMMENT_NODE,
                                                 Node.PROCESSING_INSTRUCTION_NODE]:
                 #Adjust the character data
-                
+
                 copyData = self.startContainer.substringData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
                 self.startContainer.deleteData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
             else:
@@ -641,7 +641,7 @@ class Range:
                                                 Node.COMMENT_NODE,
                                                 Node.PROCESSING_INSTRUCTION_NODE]:
                 #Adjust the character data
-                
+
                 startCopyData = self.startContainer.substringData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
                 self.startContainer.deleteData(self.startOffset,1+len(self.startContainer.data)-self.startOffset)
             else:
@@ -718,7 +718,7 @@ class Range:
                 c = cur.parentNode.removeChild(cur.nextSibling)
                 df.appendChild(c)
             df.appendChild(newEnd)
-                
+
 
         #Adjust the containers
         #FIXME What the heck is the spec talking about??
@@ -759,9 +759,9 @@ class Range:
         else:
             curNode = self.startContainer.childNodes[self.startOffset]
             self.startContainer.insertBefore(newNode,curNode.nextSibling)
-        
 
-            
+
+
     def selectNode(self,refNode):
         """Select a node"""
         if self.detached:
@@ -772,14 +772,14 @@ class Range:
         self.__dict__['startContainer'] = refNode.parentNode
         self.__dict__['endContainer'] = refNode.parentNode
 
-        
+
         index = refNode.parentNode.childNodes.index(refNode)
         self.__dict__['startOffset'] = index
         self.__dict__['endOffset'] = index+1
 
         self.__dict__['collapsed'] = 0
         self.__dict__['commonAncestorContainer'] = refNode.parentNode
-        
+
 
     def selectNodeContents(self,refNode):
         """Select a node"""
@@ -792,13 +792,13 @@ class Range:
         self.__dict__['startContainer'] = refNode
         self.__dict__['endContainer'] = refNode
 
-        
+
         self.__dict__['startOffset'] = 0
         self.__dict__['endOffset'] = len(refNode.childNodes)
 
         self.__dict__['collapsed'] = self.startOffset == self.endOffset
         self.__dict__['commonAncestorContainer'] = refNode
-        
+
 
 
     def setEnd(self,parent,offset):
@@ -809,7 +809,7 @@ class Range:
             raise InvalidStateErr()
 
         self.__validateBoundary(parent,offset)
-        
+
         self.__dict__['endContainer'] = parent
         self.__dict__['endOffset'] = offset
 
@@ -850,14 +850,14 @@ class Range:
             raise InvalidStateErr()
 
         self.__validateBoundary(parent,offset)
-        
+
         self.__dict__['startContainer'] = parent
         self.__dict__['startOffset'] = offset
 
 
         pos = self.__comparePositions(parent,offset,self.endContainer,self.endOffset)
         self.__dict__['collapsed'] = (pos == self.POSITION_EQUAL)
-        
+
         if pos == self.POSITION_GREATER_THAN:
             self.__dict__['endContainer'] = parent
             self.__dict__['endOffset'] = offset
@@ -907,7 +907,7 @@ class Range:
             if self.commonAncestorContainer not in [self.endContainer,self.endContainer.parentNode]:
                 #This is partially selected because our parent is not the common ancestor
                 raise BadBoundaryPointsErr()
-            
+
         #All good, do the insert
         #Remove children from newPArent
         for c in newParent.childNodes:
@@ -928,7 +928,7 @@ class Range:
 
         df = self.cloneContents()
 
-        
+
         res = self.__recurseToString(df)
 
 
@@ -945,8 +945,8 @@ class Range:
 
         if not hasattr(node,'nodeType'):
             raise InvalidNodeTypeErr()
-            
-        
+
+
         #Check for proper node type
         curNode = node
         while curNode:
@@ -991,7 +991,7 @@ class Range:
                              Node.ENTITY_NODE,
                              Node.NOTATION_NODE,
                              ]:
-            
+
             raise InvalidNodeTypeErr()
 
 
@@ -1020,7 +1020,7 @@ class Range:
                     return self.POSITION_LESS_THAN
                 else:
                     return self.POSITION_GREATER_THAN
-        
+
         #CASE 3
         aAncestors = []
         cur = aContainer
@@ -1035,8 +1035,8 @@ class Range:
                     return self.POSITION_LESS_THAN
                 else:
                     return self.POSITION_GREATER_THAN
-        
-                
+
+
 
         #CASE 4
         #Check the "Following axis" of A.
@@ -1057,7 +1057,7 @@ class Range:
 
         #Not in the following, return POSITION_LESS_THAN
         return self.POSITION_GREATER_THAN
-    
+
     def __checkDescendants(self,sib,b):
         for c in sib.childNodes:
             if c == b: return 1
@@ -1069,7 +1069,7 @@ class Range:
 
         if self.startContainer == self.endContainer:
             self.__dict__['commonAncestorContainer'] = self.startContainer
-        
+
         startAncestors = []
         cur = self.startContainer
         while cur:

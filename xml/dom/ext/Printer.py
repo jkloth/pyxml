@@ -233,7 +233,7 @@ class PrintVisitor(Visitor):
                     else:
                         xmlns = " xmlns='%s'" % nss[prefix]
                     namespaces = namespaces + xmlns
-                    
+
                 self._namespaces[-1][prefix] = nss[prefix]
             self.stream.write(namespaces)
         for attr in node.attributes.values():

@@ -74,4 +74,3 @@ class Reader:
     def releaseNode(self, node):
         "Free a DOM tree"
         node and ReleaseNode(node)
-

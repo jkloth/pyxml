@@ -37,16 +37,16 @@ class HTMLFormElement(HTMLElement):
     ### Attribute Methods ###
 
     def _get_acceptCharset(self):
-           return self.getAttribute('ACCEPT-CHARSET')
+        return self.getAttribute('ACCEPT-CHARSET')
 
     def _set_acceptCharset(self,acceptcharset):
-           self.setAttribute('ACCEPT-CHARSET',acceptcharset)
+        self.setAttribute('ACCEPT-CHARSET',acceptcharset)
 
     def _get_action(self):
-           return self.getAttribute('ACTION')
+        return self.getAttribute('ACTION')
 
     def _set_action(self,action):
-           self.setAttribute('ACTION',action)
+        self.setAttribute('ACTION',action)
 
     def _get_elements(self):
         #Make a collection of control elements
@@ -58,39 +58,39 @@ class HTMLFormElement(HTMLElement):
         return implementation._4dom_createHTMLCollection(l)
 
     def _get_encType(self):
-           return self.getAttribute('ENCTYPE')
+        return self.getAttribute('ENCTYPE')
 
     def _set_encType(self,enctype):
-           self.setAttribute('ENCTYPE',enctype)
+        self.setAttribute('ENCTYPE',enctype)
 
     def _get_length(self):
         return self._get_elements().length
 
     def _get_method(self):
-           return string.capitalize(self.getAttribute('METHOD'))
+        return string.capitalize(self.getAttribute('METHOD'))
 
     def _set_method(self,method):
-           self.setAttribute('METHOD',method)
+        self.setAttribute('METHOD',method)
 
     def _get_name(self):
-           return self.getAttribute('NAME')
+        return self.getAttribute('NAME')
 
     def _set_name(self,name):
-           self.setAttribute('NAME',name)
+        self.setAttribute('NAME',name)
 
     def _get_target(self):
-           return self.getAttribute('TARGET')
+        return self.getAttribute('TARGET')
 
     def _set_target(self,target):
-           self.setAttribute('TARGET',target)
+        self.setAttribute('TARGET',target)
 
     ### Methods ###
 
     def reset(self):
-           pass
+        pass
 
     def submit(self):
-           pass
+        pass
 
     ### Attribute Access Mappings ###
 

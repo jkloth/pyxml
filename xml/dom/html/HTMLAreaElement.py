@@ -108,4 +108,3 @@ class HTMLAreaElement(HTMLElement):
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                      HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())
-

@@ -63,7 +63,7 @@ class HTMLCollection(UserList.UserList):
                 # We found a node with NAME attribute, but we have to wait
                 # until all nodes are done (one might have an ID that matches)
                 found_node = node
-        print 'found:', found_node 
+        print 'found:', found_node
         return found_node
 
     ### Overridden Methods ###

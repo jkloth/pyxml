@@ -1,5 +1,3 @@
-
-
 HTML_4_STRICT_INLINE = ['TT', 'I', 'B', 'BIG', 'SMALL', 'EM', 'STRONG', 'DFN', 'CODE', 'SAMP', 'KBD', 'VAR', 'CITE', 'ABBR', 'ACRONYM', 'A', 'IMG', 'OBJECT', 'SCRIPT', 'MAP', 'Q', 'SUB', 'SUP' 'SPAN', 'BDO', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL', 'BUTTON']
 
 HTML_4_TRANSITIONAL_INLINE = ['TT', 'I', 'B', 'U', 'S', 'STRIKE', 'BIG', 'SMALL', 'EM', 'STRONG', 'DFN', 'CODE', 'SAMP', 'KBD', 'VAR', 'CITE', 'ABBR', 'ACRONYM', 'A', 'IMG', 'APPLET', 'OBJECT', 'FONT', 'BASEFONT', 'SCRIPT', 'MAP', 'Q', 'SUB', 'SUP', 'SPAN', 'BDO', 'IFRAME', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL', 'BUTTON']
@@ -429,7 +427,7 @@ except ImportError:
         #This version would skip all untranslatable chars: see wstrop.c
         #text = ws.encode(encoding, 1)
         return text
-    
+
     def ConvertChar(m):
         char = ((int(ord(m.group(1))) & 0x03) << 6) | (int(ord(m.group(2))) & 0x3F)
         if HTML_CHARACTER_ENTITIES.has_key(char):
@@ -472,4 +470,3 @@ def TranslateHtmlCdata(characters, encoding='UTF-8', prev_chars=''):
 
 
 SECURE_HTML_ELEMS = ["A", "P", "BR", "B", "I", "DIV", "STRONG", "EM", "BLOCKQUOTE", "UL", "OL", "LI", "DL", "DD", "DT", "TT"]
-

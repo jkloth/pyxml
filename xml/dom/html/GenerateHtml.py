@@ -7,8 +7,8 @@ try:
 except ImportError:
     print 'You need to have PyXML installed to run this program'
     sys.exit(1)
-        
-    
+
+
 def Generate(fileName,
              output_dir=None,
              program_name=None

@@ -121,7 +121,7 @@ class HTMLDocument(Document):
             title_node.normalize()
             if title_node.firstChild:
                 title_node.firstChild.data = title
-                return 
+                return
         else:
             title_node = self.createElement('TITLE')
             self._4dom_getHead().appendChild(title_node)

@@ -131,7 +131,7 @@ class Element(FtNode):
         return old
 
     ### DOM Level 2 Methods ###
-    
+
     def getAttributeNS(self, namespaceURI, localName):
         attr = self.attributes.getNamedItemNS(namespaceURI, localName)
         return attr and attr.value or ''

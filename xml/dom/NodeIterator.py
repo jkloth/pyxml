@@ -46,7 +46,7 @@ class NodeIterator:
 
     def _get_whatToShow(self):
         return self.whatToShow
-    
+
     def nextNode(self):
         if self._detached:
             raise InvalidStateErr()
@@ -66,7 +66,7 @@ class NodeIterator:
             self._checkFilter(prev_node) == NodeFilter.FILTER_ACCEPT)):
             prev_node = self._regress()
         return prev_node
-        
+
     def detach(self):
         self._detached = 1
 

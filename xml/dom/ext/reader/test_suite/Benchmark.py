@@ -1,12 +1,9 @@
-
-
-
 from xml.dom.ext.reader import Sax2
 
 def Benchmark(fileName):
 
     return Sax2.FromXmlFile(fileName)
-    
+
 
 
 

@@ -193,14 +193,14 @@ class FtNode(Event.EventTarget, Node):
             self.__dict__['__childNodes'][index] = newChild
             if newChild.parentNode is not None:
                 newChild.parentNode.removeChild(newChild)
-                
+
             newChild._4dom_setHierarchy(self,
                                         oldChild.previousSibling,
                                         oldChild.nextSibling)
 
             oldChild._4dom_fireMutationEvent('DOMNodeRemoved',relatedNode=self)
             oldChild._4dom_setHierarchy(None, None, None)
-            
+
             newChild._4dom_fireMutationEvent('DOMNodeInserted',relatedNode=self)
             self._4dom_fireMutationEvent('DOMSubtreeModified')
         return oldChild
@@ -259,7 +259,7 @@ class FtNode(Event.EventTarget, Node):
             # Children of EntRefs are cloned readOnly
             if self.nodeType == Node.ENTITY_REFERENCE_NODE:
                 readOnly = 1
-                
+
             for child in self.childNodes:
                 new_child = child.cloneNode(1, newOwner, readOnly)
                 clone.appendChild(new_child)
@@ -335,16 +335,16 @@ class FtNode(Event.EventTarget, Node):
                     listener.handleEvent(evt)
                 if not evt._4dom_propagate:
                     break
-                
+
         return evt._4dom_preventDefaultCalled
 
 
     ### Unsupported, undocumented DOM Level 3 methods ###
     ### documented in the Python binding ###
-    
+
     def isSameNode(other):
         return self == other
-    
+
     ### Internal Methods ###
 
     #Functions not defined in the standard
@@ -365,7 +365,7 @@ class FtNode(Event.EventTarget, Node):
                                   relatedNode,prevValue,newValue,attrName)
             evt.attrChange = attrChange
             evt.target.dispatchEvent(evt)
-            
+
     def _4dom_validateNode(self, newNode):
         if not newNode.nodeType in self.__class__._allowedChildren:
             raise HierarchyRequestErr()
@@ -411,7 +411,7 @@ class FtNode(Event.EventTarget, Node):
 
     def __getstate__(self):
         return self.__dict__['__childNodes']
-    
+
     def __setstate__(self, children):
         self.__dict__['__childNodes'].extend(list(children))
         prev = None

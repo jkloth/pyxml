@@ -61,7 +61,7 @@ class HTMLScriptElement(HTMLElement):
 
     def _get_text(self):
         if not self.firstChild:
-            return 
+            return
         if self.firstChild == self.lastChild:
             return self.firstChild.data
         self.normalize()
@@ -113,4 +113,3 @@ class HTMLScriptElement(HTMLElement):
 
     _readOnlyAttrs = filter(lambda k,m=_writeComputedAttrs: not m.has_key(k),
                      HTMLElement._readOnlyAttrs + _readComputedAttrs.keys())
-

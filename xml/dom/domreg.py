@@ -24,7 +24,7 @@ def registerDOMImplementation(name, factory):
     interface. The factory function can either return the same object,
     or a new one (e.g. if that implementation supports some
     customization)."""
-    
+
     registered[name] = factory
 
 def _good_enough(dom, features):
@@ -46,7 +46,7 @@ def getDOMImplementation(name = None, features = ()):
     find one with the required feature set. If no implementation can
     be found, raise an ImportError. The features list must be a sequence
     of (feature, version) pairs which are passed to hasFeature."""
-    
+
     import os
     creator = None
     mod = well_known_implementations.get(name)

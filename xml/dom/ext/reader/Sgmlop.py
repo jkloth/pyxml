@@ -45,7 +45,7 @@ class SgmlopParser:
     def parse(self, stream):
         self._parser.parse(stream.read())
         return
-    
+
     def handle_special(self, data):
         """Handles <!...> directives"""
         raise NotImplementedError('handle_special: data=%s' % data)
@@ -91,7 +91,7 @@ class SgmlopParser:
 
     def unknown_endtag(self, name): pass
     def unknown_entityref(self, name): pass
-    
+
 g_reCharset = re.compile(r'charset\s*=\s*(?P<charset>[a-zA-Z0-9_\-]+)')
 
 HTML_ENTITIES = {}
@@ -125,7 +125,7 @@ class HtmlParser(SgmlopParser):
         if not HTML_DTD.has_key(lowerTagName):
             # Skip any tags not defined in HTML 4.01
             return
-        
+
         element = self._ownerDoc.createElement(unicodeTagName)
 
         # Allows for multiple META tags in a document
@@ -139,12 +139,12 @@ class HtmlParser(SgmlopParser):
                         match = g_reCharset.search(value)
                         if match:
                             self._charset = match.group('charset')
-                        
+
         # Add any attributes to the tag
         for (name, value) in attrs:
             element.setAttribute(unicode(name, self._charset),
                                  unicode(value, self._charset))
-        
+
         # Look for its parent
         for i in range(1, len(self._stack)):
             parent = self._stack[-i]
@@ -265,4 +265,3 @@ class XmlParser(SgmlopParser):
             del self._namespaces[prefix]
         self._stack[-1].appendChild(element)
         return
-

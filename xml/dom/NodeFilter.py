@@ -36,4 +36,3 @@ class NodeFilter:
 
     def acceptNode(self, node):
         raise TypeError("Please define and use a subclass.")
-

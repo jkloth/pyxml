@@ -45,7 +45,7 @@ class XHtmlPrintVisitor(Printer.PrintVisitor):
         self.visitDocumentType(XHtmlDocType(node.doctype))
         self.visitNodeList(node.childNodes, exclude=node.doctype)
         return
-    
+
     def visitAttr(self, node):
         Printer.PrintVisitor.visitAttr(self, XHtmlAttr(node))
         return

@@ -93,5 +93,3 @@ class HtmlDomGenerator:
 
     def fatalError(self, exception):
         raise exception
-
-

@@ -25,13 +25,13 @@ class Notation(FtNode):
         self.__dict__['systemId'] = systemId
 
     ### Attribute Methods ###
-        
+
     def _get_systemId(self):
         return self.systemId
-    
+
     def _get_publicId(self):
         return self.publicId
-        
+
     ### Overridden Methods ###
 
     def __repr__(self):

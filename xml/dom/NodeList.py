@@ -58,5 +58,3 @@ class NodeList(UserList.UserList):
             st = st + repr(self[-1])
         st = st + ']>'
         return st
-
-

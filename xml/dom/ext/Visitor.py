@@ -71,4 +71,3 @@ class PreOrderWalker(WalkerInterface):
 #Set the default Walker class to the PreOrderWalker.
 #User can change this according to preferences
 Walker = PreOrderWalker
-

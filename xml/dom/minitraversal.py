@@ -32,4 +32,3 @@ class Document(minidom.Document):
 
 def getDOMImplementation():
     return Document.implementation
-

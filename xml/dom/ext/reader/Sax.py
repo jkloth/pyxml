@@ -137,7 +137,7 @@ class Reader(reader.Reader):
 
 
 ########################## Deprecated ##############################
-    
+
 def FromXmlStream(stream, ownerDocument=None, validate=0, keepAllWs=0,
                   catName=None, saxHandlerClass=XmlDomGenerator, parser=None):
     reader = Reader(validate, keepAllWs, catName, saxHandlerClass, parser)
@@ -169,4 +169,3 @@ def FromXmlUrl(url, ownerDocument=None, validate=0, keepAllWs=0,
                        saxHandlerClass, parser)
     fp.close()
     return rv
-

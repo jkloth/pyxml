@@ -44,7 +44,7 @@ class Reader(reader.Reader):
                 # Empty out the document
                 node = doc.removeChild(doc.firstChild)
                 ReleaseNode(node)
-                
+
             # Convert to a document
             while frag.firstChild:
                 child = frag.firstChild
@@ -85,4 +85,3 @@ def FromHtmlUrl(url, ownerDoc=None, charset=''):
 
 def FromHtml(text, ownerDoc=None, charset=''):
     return Reader().fromString(text, ownerDoc, charset)
-

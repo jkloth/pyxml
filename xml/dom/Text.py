@@ -41,4 +41,3 @@ class Text(CharacterData):
             else:
                 parent.appendChild(node)
         return node
-

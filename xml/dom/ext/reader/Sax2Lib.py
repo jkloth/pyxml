@@ -84,11 +84,11 @@ class EntityRefList:
     def getLength(self):
         "Return the number of Entity Ref pointers"
         pass
-        
+
     def getEntityName(self, index):
         "Return the name of the entity reference at the given index"
         pass
-        
+
     def getEntityRefStart(self, index):
         """
         Return the string start position of the entity reference
@@ -120,7 +120,7 @@ class DTDDeclHandler:
     ATTRIBUTE_IMPLIED = 2
     ATTRIBUTE_REQUIRED = 3
     ATTRIBUTE_FIXED = 4
-    
+
     handlerId = 'http://xml.org/sax/handlers/dtd-decl'
 
     def elementDecl(self, name, modelType, model):
@@ -192,7 +192,7 @@ class NamespaceHandler:
 
 class ModParser(saxlib.Parser):
     """
-    All methods may raise 
+    All methods may raise
     SAXNotSupportedException
     """
     def setFeature(self, featureID, state):
@@ -250,7 +250,7 @@ CoreProperties = [
 #Get the DOM node currently being visited, if the SAX parser is
 #iterating over a DOM tree.  If the parser recognises and supports
 #this property but is not currently visiting a DOM node, it should
-#return null (this is a good way to check for availability before the 
+#return null (this is a good way to check for availability before the
 #parse begins).
 
 'http://xml.org/sax/properties/xml-string'

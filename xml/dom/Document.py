@@ -51,7 +51,7 @@ class Document(FtNode):
                                             Node.DOCUMENT_TYPE_NODE:'__doctype'
                                             }
         self._4dom_setDocumentType(doctype)
-        
+
     ### Attribute Methods ###
 
     def _get_doctype(self):
@@ -110,7 +110,7 @@ class Document(FtNode):
 
         from ProcessingInstruction import ProcessingInstruction
         return ProcessingInstruction(self, target, data);
-    
+
     def createTextNode(self, data):
         from Text import Text
         return Text(self, data)
@@ -126,7 +126,7 @@ class Document(FtNode):
             if tagName == '*' or root.tagName == tagName:
                 nodeList.append(root)
             nodeList.extend(list(root.getElementsByTagName(tagName)))
-        return nodeList                          
+        return nodeList
 
 
     ### DOM Level 2 Methods ###
@@ -184,7 +184,7 @@ class Document(FtNode):
                 nodeList.append(root)
             nodeList.extend(list(root.getElementsByTagNameNS(namespaceURI,
                                                              localName)))
-        return nodeList                          
+        return nodeList
 
     ### Document Traversal Factory Functions ###
 
@@ -197,7 +197,7 @@ class Document(FtNode):
         return TreeWalker(root, whatToShow, filter, entityReferenceExpansion)
 
     ### Document Event Factory Functions ###
-    
+
     def createEvent(self,eventType):
         import Event
         if eventType in Event.supportedEvents:

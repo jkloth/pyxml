@@ -33,7 +33,7 @@ class FtDomException(DOMException):
         apply(DOMException.__init__,(self,)+ args)
         return
 
-        
+
 NodeTypeDict = {
     Node.ELEMENT_NODE : "Element",
     Node.ATTRIBUTE_NODE : "Attr",
@@ -94,7 +94,7 @@ def XHtmlPrettyPrint(root, stream=sys.stdout, encoding='UTF-8', indent='  '):
 
 def XHtmlPrint(root, stream=sys.stdout, encoding='UTF-8'):
     XHtmlPrettyPrint(root, stream, encoding, '')
-    
+
 
 def ReleaseNode(node):
     cn = node.childNodes[:]
@@ -271,4 +271,3 @@ def SeekNss(node, nss=None):
                     nss[attr.localName] = attr.value
             SeekNss(child, nss)
     return nss
-
