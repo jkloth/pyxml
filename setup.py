@@ -9,6 +9,7 @@ import sys, os, string
 from distutils.core import setup, Extension
 from setupext import Data_Files, install_Data_Files, wininst_request_delete
 from distutils.sysconfig import get_config_var, get_config_vars
+from distutils.sysconfig import parse_config_h, get_config_h_filename
 
 # I want to override the default build directory so the extension
 # modules are compiled and placed in the build/xml directory
@@ -115,7 +116,13 @@ else:
         ])
     libraries = []
     library_dirs = []
-    
+
+config_h = get_config_h_filename()
+config_h_vars = parse_config_h(open(config_h))
+for feature_macro in ['HAVE_MEMMOVE', 'HAVE_BCOPY']:
+    if config_h_vars.has_key(feature_macro):
+        define_macros.append((feature_macro, '1'))
+
 ext_modules.append(
     Extension(xml('.parsers.pyexpat'),
               define_macros=define_macros,
