@@ -8,7 +8,10 @@ from generic import *
 class TruthValue:
     def __init__(self, value): self.value = value
     def __nonzero__(self): return self.value
-    
+    def __repr__(self):
+        if self.value: return "<TruthValue instance: True>" 
+        else: return "<TruthValue instance: False>" 
+
 TRUE = TruthValue(1)
 FALSE = TruthValue(0)
 
@@ -143,7 +146,7 @@ dump = _m.dump ; dumps = _m.dumps
 _um = WDDXUnmarshaller()
 load = _um.load ; loads = _um.loads
     
-if __name__ == '__main__':
+def runtests():
     print "Testing WDDX marshalling..."
     recordset = RecordSet( ['NAME', 'AGE'],
 	                   ['John Doe', 'Jane Doe'],
@@ -164,3 +167,6 @@ if __name__ == '__main__':
     test(load, loads, dump, dumps,
 	 [(1,3,"five",7)], do_assert=0
 	)
+
+if __name__ == '__main__':
+    runtests()

@@ -10,6 +10,9 @@ from generic import *
 class TruthValue:
     def __init__(self, value): self.value = value
     def __nonzero__(self): return self.value
+    def __repr__(self):
+        if self.value: return "<TruthValue instance: True>" 
+        else: return "<TruthValue instance: False>" 
     
 TRUE = TruthValue(1)
 FALSE = TruthValue(0)
@@ -105,7 +108,7 @@ dump = _m.dump ; dumps = _m.dumps
 _um = XMLRPCUnmarshaller()
 load = _um.load ; loads = _um.loads
 
-if __name__ == '__main__':
+def runtests():
     print "Testing XML-RPC marshalling..."
     test(load, loads, dump, dumps,
          [TRUE, FALSE, 1, 19.72,  
@@ -117,4 +120,6 @@ if __name__ == '__main__':
          ]
         )
 
+if __name__ == '__main__':
+    runtests()
 
