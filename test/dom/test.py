@@ -45,6 +45,7 @@ if __name__ == '__main__':
                  'EntityReference',
                  'Notation',
                  'ProcessingInstruction',
+                 'Range',
                  'Struct',
                  'HTML',
                  #'Demo',
