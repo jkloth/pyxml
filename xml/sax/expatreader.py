@@ -1,4 +1,4 @@
-"""
+revsion 1.."""
 SAX driver for the Pyexpat C module.  This driver works with
 pyexpat.__version__ == '2.22'.
 """
@@ -7,6 +7,7 @@ version = "0.20"
 
 from xml.sax._exceptions import *
 from xml.sax.handler import feature_validation, feature_namespaces
+from xml.sax.handler import feature_namespace_prefixes
 from xml.sax.handler import feature_external_ges, feature_external_pes
 from xml.sax.handler import feature_string_interning, property_xml_string
 
@@ -71,7 +72,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         if name == feature_namespaces:
             return self._namespaces
         elif name in (feature_validation, feature_external_pes,
-                      feature_string_interning):
+                      feature_string_interning, feature_namespace_prefixes):
             return 0
         elif name == feature_external_ges:
             return self._external_ges
@@ -94,6 +95,9 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
         elif name == feature_string_interning:
             if state:
                 raise SAXNotSupportedException("expat does not intern strings")
+        elif name == feature_namespace_prefixes:
+            if state:
+                raise SAXNotSupportedException("expat does not report namespace prefixes")
         else:
             raise SAXNotRecognizedException("Feature '%s' not recognized" %
                                             name)
