@@ -6,6 +6,9 @@
 #
 # History:
 # $Log: Printer.py,v $
+# Revision 1.2  2000/06/06 01:44:07  amkcvs
+# Fix syntax error
+#
 # Revision 1.1  2000/06/06 01:36:07  amkcvs
 # Added 4DOM code as provided; I haven't tested it to see if something
 #    broke in the process.
@@ -422,7 +425,7 @@ class PrettyPrintVisitor(Visitor):
         elif node.ownerDocument.isXml():
             st = st + '/>'
         elif node.tagName not in HTML_FORBIDDEN_END:
-            st = st '></%s>' % node.tagName
+            st = st + '></%s>' % node.tagName
         else:
             st = st + '>'
         del self.__namespaces[-1]
