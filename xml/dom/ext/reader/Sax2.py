@@ -18,7 +18,7 @@ from xml.dom import Entity, DocumentType, Document
 from xml.dom import Node
 from xml.dom import implementation
 from xml.dom.ext import SplitQName, ReleaseNode
-from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE
+from xml.dom import XML_NAMESPACE, XMLNS_NAMESPACE, EMPTY_NAMESPACE
 from xml.dom import Element
 from xml.dom import Attr
 from xml.dom.ext import reader
@@ -26,7 +26,7 @@ from xml.dom.ext import reader
 
 class NsHandler:
     def initState(self, ownerDoc=None):
-        self._namespaces = {'xml': XML_NAMESPACE}
+        self._namespaces = {'xml': XML_NAMESPACE,'':EMPTY_NAMESPACE}
         self._namespaceStack = []
         return
 
@@ -97,6 +97,9 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
         self._rootNode = None
         #Set up the stack which keeps track of the nesting of DOM nodes.
         self._nodeStack = []
+        self._nsuri2pref = {EMPTY_NAMESPACE:[None]}
+        self._pref2nsuri = {None:[EMPTY_NAMESPACE]}
+        self._new_prefix_mappings = []
         if ownerDoc:
             self._ownerDoc = ownerDoc
             #Create a docfrag to hold all the generated nodes.
@@ -179,20 +182,72 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
             self._orphanedNodes.append(('pi', target, data))
         return
 
+    def startPrefixMapping(self,prefix,uri):
+        try:
+            map = self._pref2nsuri[prefix]
+        except:
+            map = []
+            self._pref2nsuri[prefix] = map
+        map.append(uri)
+
+        try:
+            map = self._nsuri2pref[uri]
+        except:
+            map = []
+            self._nsuri2pref[uri] = map
+        map.append(prefix)
+        self._new_prefix_mappings.append((prefix,uri))
+##        print 'startPrefixMapping',prefix,uri
+##        print 'pref->uri',self._pref2nsuri
+##        print 'uri->pref',self._nsuri2pref
+
+    def endPrefixMapping(self,prefix):
+##        print 'endPrefixMapping',prefix
+##        print 'pref->uri',self._pref2nsuri
+##        print 'uri->pref',self._nsuri2pref
+
+        uri = self._pref2nsuri[prefix][-1]
+        del self._pref2nsuri[prefix][-1]
+        del self._nsuri2pref[uri][-1]
+        if not self._pref2nsuri[prefix]:
+            del self._pref2nsuri[prefix]
+        if not self._nsuri2pref[uri]:
+            del self._nsuri2pref[uri]
+
     def startElementNS(self, name, qname, attribs):
+        self._completeTextNode()
         namespace = name[0]
         local = name[1]
+        if qname is None:
+            if self._nsuri2pref[namespace][-1]:
+                qname = string.join((self._nsuri2pref[namespace][-1],local),':')
+            else :
+                qname = local
         if self._ownerDoc:
             new_element = self._ownerDoc.createElementNS(namespace, qname)
         else:
             self._initRootNode(namespace, qname)
             new_element = self._ownerDoc.documentElement
 
-        for attr_qname in attribs.getQNames():
-            attr_ns = attribs.getNameByQName(attr_qname)[0]
+        for ((attr_ns,lname),value) in attribs.items():
+            if attr_ns is not None:
+                # FIXME : get the try out of the loop
+                try:
+                    attr_qname = attribs.getQNameByName((attr_ns,lname))
+                except KeyError: # pyexpat doesn't report qnames...
+                    attr_qname = string.join((self._nsuri2pref[namespace][-1],lname),':') 
+            else:
+                attr_qname = lname
             attr = self._ownerDoc.createAttributeNS(attr_ns, attr_qname)
-            attr.value = attribs.getValueByQName(attr_qname)
+            attr.value = value
             new_element.setAttributeNodeNS(attr)
+
+        for (prefix,uri) in self._new_prefix_mappings:
+            if prefix is  None :
+                new_element.setAttributeNS(XMLNS_NAMESPACE,'xmlns',uri or '')
+            else:
+                new_element.setAttributeNS(XMLNS_NAMESPACE,'xmlns'+':'+prefix,uri)
+        self._new_prefix_mappings = []
         self._nodeStack.append(new_element)
         return
 
