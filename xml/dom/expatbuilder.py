@@ -33,7 +33,17 @@ from xml.parsers import expat
 from xml.dom.minidom import _append_child, _set_attribute_node
 from xml.dom.NodeFilter import NodeFilter
 
-from xml.dom.minicompat import *   # True, False, NewStyle
+from xml.dom.minicompat import *   # True, False, NewStyle, isinstance
+
+try:
+    from types import StringTypes
+except ImportError:
+    try:
+        from types import UnicodeType
+    except ImportError:
+        StringTypes = type(''),
+    else:
+        StringTypes = type(''), UnicodeType
 
 TEXT_NODE = Node.TEXT_NODE
 CDATA_SECTION_NODE = Node.CDATA_SECTION_NODE
@@ -871,10 +881,12 @@ def parse(file, namespaces=1):
     else:
         builder = ExpatBuilder()
 
-    if isinstance(file, type('')):
+    if isinstance(file, StringTypes):
         fp = open(file, 'rb')
-        result = builder.parseFile(fp)
-        fp.close()
+        try:
+            result = builder.parseFile(fp)
+        finally:
+            fp.close()
     else:
         result = builder.parseFile(file)
     return result
@@ -903,10 +915,12 @@ def parseFragment(file, context, namespaces=1):
     else:
         builder = FragmentBuilder(context)
 
-    if isinstance(file, type('')):
+    if isinstance(file, StringTypes):
         fp = open(file, 'rb')
-        result = builder.parseFile(fp)
-        fp.close()
+        try:
+            result = builder.parseFile(fp)
+        finally:
+            fp.close()
     else:
         result = builder.parseFile(file)
     return result
