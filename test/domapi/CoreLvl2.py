@@ -115,8 +115,8 @@ class DOMImplementationReadTestCase(TestCaseBase):
         checkAttribute(newDoc, 'nodeType', Node.DOCUMENT_NODE)
         checkAttribute(newDoc, 'doctype', None)
         checkAttributeNot(newDoc, 'documentElement', None)
-        assert newDoc.implementation is self.implementation, (
-            'Created Document has different implementation.')
+        self.assert_(newDoc.implementation is self.implementation,
+                     'Created Document has different implementation.')
         checkAttribute(newDoc.documentElement, 'namespaceURI', None)
         checkAttribute(newDoc.documentElement, 'tagName', self.TEST_LOCAL_NAME)
 
@@ -138,65 +138,37 @@ class DOMImplementationReadTestCase(TestCaseBase):
         checkAttributeSameNode(newDoc, 'doctype', docType)
 
     def checkCreateDocumentIllegalCharacterErr(self):
-        try:
-            self.implementation.createDocument(self.TEST_NAMESPACE,
-                '4_prefix:5_illegal', None)
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Document with illegal qualified name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.implementation.createDocument,
+                          self.TEST_NAMESPACE, '4_prefix:5_illegal', None)
 
     def checkCreateDocumentMalformedQA(self):
-        try:
-            self.implementation.createDocument(self.TEST_NAMESPACE,
-                'malformed:qualfied:name', None)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created document with a malformed qualified name."
-
-        try:
-            self.implementation.createDocument(self.TEST_NAMESPACE,
-                ':malformed_qn', None)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created document with a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocument,
+                          self.TEST_NAMESPACE, 'malformed:qualfied:name', None)
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocument,
+                          self.TEST_NAMESPACE, ':malformed_qn', None)
 
     def checkCreateDocumentWithPrefixNoNamespace(self):
-        try:
-            self.implementation.createDocument(None, self.TEST_QUALIFIED_NAME,
-                None)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created document with a prefix but no namespace."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocument,
+                          None, self.TEST_QUALIFIED_NAME, None)
 
     def checkCreateDocumentWithXMLPrefixWrongNamespace(self):
-        try:
-            self.implementation.createDocument(self.TEST_NAMESPACE, 'xml:nope',
-                None)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, (
-                "Created document with a 'xml' prefix but not the XML "
-                "namespace.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocument,
+                          self.TEST_NAMESPACE, 'xml:nope', None)
 
     def checkCreateDocumentWithUsedDocType(self):
         docType = self.implementation.createDocumentType(
             self.TEST_QUALIFIED_NAME, 'uri:public', 'uri:system')
         self.implementation.createDocument(None, self.TEST_LOCAL_NAME,
             docType)
-        try:
-            self.implementation.createDocument(None, self.TEST_LOCAL_NAME,
-                docType)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, (
-                "Used a doctype that was already in use to create a new "
-                "Document.")
+
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.implementation.createDocument,
+                          None, self.TEST_LOCAL_NAME, docType)
 
     def checkCreateDocumentType(self):
         docType = self.implementation.createDocumentType(
@@ -211,30 +183,18 @@ class DOMImplementationReadTestCase(TestCaseBase):
         checkLength(docType.notations, 0)
 
     def checkCreateDocumentTypeIllegalCharacterErr(self):
-        try:
-            self.implementation.createDocumentType('4_prefix:5_illegal',
-                'uri:public', 'uri:system')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Document Type with illegal qualified name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.implementation.createDocumentType,
+                          '4_prefix:5_illegal', 'uri:public', 'uri:system')
 
     def checkCreateDocumentTypeMalformedQA(self):
-        try:
-            self.implementation.createDocumentType('malformed:qualfied:name',
-                'uri:public', 'uri:system')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Document Type with a malformed qualified name."
-
-        try:
-            self.implementation.createDocumentType(':malformed_qn',
-                'uri:public', 'uri:system')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Document Type with a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocumentType,
+                          'malformed:qualfied:name', 'uri:public',
+                          'uri:system')
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.implementation.createDocumentType,
+                          ':malformed_qn', 'uri:public', 'uri:system')
 
 
 # --- Node
@@ -302,8 +262,8 @@ class NodeReadTestCaseBase(TestCaseBase):
             checkAttribute(noNS, 'prefix', None)
 
     def hasAttributes(self):
-        assert not self.node.hasAttributes(), \
-               "hasAttributes returned 'true' when 'false' was expected."
+        self.failIf(self.node.hasAttributes(),
+                    "hasAttributes returned 'true' when 'false' was expected.")
 
     featureMatrix = _DOMImplCase.featureMatrix
 
@@ -315,13 +275,18 @@ class NodeReadTestCaseBase(TestCaseBase):
 
             expect = ((feature, level) in self.supportedFeatures)
 
-            assert result1 == result2 and result1 == result3, (
+            self.assertEqual(
+                result1, result2,
+                "Different results from different case feature string.")
+            self.assertEqual(
+                result1, result3,
                 "Different results from different case feature string.")
 
-            assert (result1 and 1 or 0) == expect, (
+            self.assertEqual(
+                (result1 and 1 or 0), expect,
                 "Test for %s, version %s should have returned %s, "
                 "returned %s" % (repr(feature), repr(level), repr(expect),
-                    repr(result1)))
+                                 repr(result1)))
 
 
 class NodeWriteTestCaseBase(TestCaseBase):
@@ -372,7 +337,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         except xml.dom.InvalidCharacterErr:
             pass
         else:
-            assert 0, "Setting of illegal prefix succeeded."
+            self.fail("Setting of illegal prefix succeeded.")
 
     def checkPrefixMalformedPrefix(self):
         if self.node.nodeType in self.readOnlyNodeList:
@@ -387,7 +352,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         except xml.dom.NamespaceErr:
             pass
         else:
-            assert 0, "Setting of malformed prefix with ':' succeeded."
+            self.fail("Setting of malformed prefix with ':' succeeded.")
 
     def checkPrefixNamespaceErr(self):
         if self.node.nodeType in self.readOnlyNodeList:
@@ -402,7 +367,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         except xml.dom.NamespaceErr:
             pass
         else:
-            assert 0, 'Changing prefix on Node without namespace succeeded.'
+            self.fail('Changing prefix on Node without namespace succeeded.')
 
     def checkPrefixXMLNamespace(self):
         if self.node.nodeType in self.readOnlyNodeList:
@@ -417,15 +382,14 @@ class NodeWriteTestCaseBase(TestCaseBase):
         except xml.dom.NamespaceErr:
             pass
         else:
-            assert 0, ("Changing prefix to 'xml' on Node without "
-                       "W3C XML namespace succeeded.")
+            self.fail("Changing prefix to 'xml' on Node without"
+                      " W3C XML namespace succeeded.")
 
     def checkPrefixXMLNSNamespace(self):
         if self.node.nodeType in self.readOnlyNodeList:
             return
 
-        if self.node.nodeType not in (Node.ATTRIBUTE_NODE,
-                Node.ELEMENT_NODE):
+        if self.node.nodeType not in (Node.ATTRIBUTE_NODE, Node.ELEMENT_NODE):
             return
 
         if self.node.nodeType == Node.ATTRIBUTE_NODE:
@@ -434,8 +398,8 @@ class NodeWriteTestCaseBase(TestCaseBase):
             except xml.dom.NamespaceErr:
                 pass
             else:
-                assert 0, ("Changing prefix to 'xmlns' on Attribute without "
-                           "W3C XML Namespaces namespace succeeded.")
+                self.fail("Changing prefix to 'xmlns' on Attribute without"
+                          " W3C XML Namespaces namespace succeeded.")
 
 
 # --- Document
@@ -447,12 +411,8 @@ class DocumentReadTestCase(NodeReadTestCaseBase):
 
     def checkImportNode(self):
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
-        try:
-            foreignDoc.importNode(self.document, 0)
-        except xml.dom.NotSupportedErr:
-            pass
-        else:
-            assert 0, "Was allowed to import a Document Node."
+        self.assertRaises(xml.dom.NotSupportedErr,
+                          foreignDoc.importNode, self.document, 0)
 
 
 class DocumentWriteTestCase(NodeWriteTestCaseBase):
@@ -498,31 +458,31 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         for name in names:
             add(name)
             add(name)
-        assert len(result) == len(allnames) + 1
+        self.assertEqual(len(result), len(allnames) + 1)
         for name, element in map(None, allnames, result[1:]):
-            assert name == element.localName
+            self.assertEqual(name, element.localName)
 
         # find all elements in one namespace in the right order
         result = doc.getElementsByTagNameNS('uri:1', '*')
-        assert len(result) == len(names)
+        self.assertEqual(len(result), len(names))
         for name, element in map(None, names, result):
-            assert name == element.localName
+            self.assertEqual(name, element.localName)
 
         # find single element, top
         result = doc.getElementsByTagNameNS('uri:1', 'a')
-        assert len(result) == 1
-        assert result[0].tagName == 'one:a'
+        checkLength(result, 1)
+        self.assertEqual(result[0].tagName, 'one:a')
 
         # find single element somewhere in tree
         result = doc.getElementsByTagNameNS('uri:2', 'h')
-        assert len(result) == 1
-        assert result[0].tagName == 'two:h'
+        checkLength(result, 1)
+        self.assertEqual(result[0].tagName, 'two:h')
 
         # find elements in the tree from all namespaces
         result = doc.getElementsByTagNameNS('*', 'f')
-        assert len(result) == 2
-        assert result[0].tagName == 'one:f'
-        assert result[1].tagName == 'two:f'
+        checkLength(result, 2)
+        self.assertEqual(result[0].tagName, 'one:f')
+        self.assertEqual(result[1].tagName, 'two:f')
 
     def checkNormalize(self):
         doc = self.document
@@ -568,29 +528,29 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         # Now test
         doc.normalize()
 
-        checkAttribute(docEl.childNodes, 'length', 9)
-        checkAttribute(subEl.childNodes, 'length', 3)
-        checkAttribute(attr.childNodes, 'length', 1)
+        checkLength(docEl.childNodes, 9)
+        checkLength(subEl.childNodes, 3)
+        checkLength(attr.childNodes, 1)
 
         checkAttribute(docEl.childNodes[0], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[0], 'data', 'This is a test.')
 
         checkAttribute(docEl.childNodes[1], 'nodeType',
-            Node.CDATA_SECTION_NODE)
+                       Node.CDATA_SECTION_NODE)
         checkAttribute(docEl.childNodes[2], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[3], 'nodeType',
-            Node.COMMENT_NODE)
+                       Node.COMMENT_NODE)
         checkAttribute(docEl.childNodes[4], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[5], 'nodeType',
-            Node.ELEMENT_NODE)
+                       Node.ELEMENT_NODE)
         checkAttribute(docEl.childNodes[6], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[7], 'nodeType',
-            Node.PROCESSING_INSTRUCTION_NODE)
+                       Node.PROCESSING_INSTRUCTION_NODE)
         checkAttribute(docEl.childNodes[8], 'nodeType', Node.TEXT_NODE)
 
         checkAttribute(subEl.childNodes[0], 'nodeType', Node.TEXT_NODE)
         checkAttribute(subEl.childNodes[1], 'nodeType',
-            Node.ENTITY_REFERENCE_NODE)
+                       Node.ENTITY_REFERENCE_NODE)
         checkAttribute(subEl.childNodes[2], 'nodeType', Node.TEXT_NODE)
 
         checkAttribute(subEl.childNodes[0], 'data', 'To be or')
@@ -600,7 +560,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateAttributeNS(self):
         attr = self.document.createAttributeNS(self.TEST_NAMESPACE,
-            self.TEST_QUALIFIED_NAME)
+                                               self.TEST_QUALIFIED_NAME)
 
         checkAttribute(attr, 'nodeType', Node.ATTRIBUTE_NODE)
         checkAttribute(attr, 'name', self.TEST_QUALIFIED_NAME)
@@ -612,7 +572,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateAttributeNSNoPrefix(self):
         attr = self.document.createAttributeNS(self.TEST_NAMESPACE,
-            self.TEST_LOCAL_NAME)
+                                               self.TEST_LOCAL_NAME)
 
         checkAttribute(attr, 'name', self.TEST_LOCAL_NAME)
         checkAttribute(attr, 'localName', self.TEST_LOCAL_NAME)
@@ -620,65 +580,37 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(attr, 'namespaceURI', self.TEST_NAMESPACE)
 
     def checkCreateAttributeNSIllegalCharacter(self):
-        try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE,
-                '4_prefix:5_illegal')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Attribute with illegal qualified name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.document.createAttributeNS,
+                          self.TEST_NAMESPACE, '4_prefix:5_illegal')
 
     def checkCreateAttributeNSMalformedQA(self):
-        try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE,
-                'malformed:qualfied:name')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Attribute with a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createAttributeNS,
+                          self.TEST_NAMESPACE, 'malformed:qualfied:name')
 
-        try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE,
-                ':malformed_qn')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Attribute with a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createAttributeNS,
+                          self.TEST_NAMESPACE, ':malformed_qn')
 
     def checkCreateAttributeNSPrefixNoNamespace(self):
-        try:
-            self.document.createAttributeNS(None,
-                self.TEST_QUALIFIED_NAME)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Attribute with a prefix but no namespace."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createAttributeNS,
+                          None, self.TEST_QUALIFIED_NAME)
 
     def checkCreateAttributeNSXMLNamespace(self):
-        try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE,
-                'xml:nope')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, (
-                "Created Attribute with a 'xml' prefix but not the XML "
-                "namespace.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createAttributeNS,
+                          self.TEST_NAMESPACE, 'xml:nope')
 
     def checkCreateAttributeNSXMLNamespace(self):
-        try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE,
-                'xmlns:nope')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, (
-                "Created Attribute with a 'xmlns' prefix but not the XML "
-                "Namespaces namespace.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createAttributeNS,
+                          self.TEST_NAMESPACE, 'xmlns:nope')
 
     def checkCreateElementNS(self):
         el = self.document.createElementNS(self.TEST_NAMESPACE,
-            self.TEST_QUALIFIED_NAME)
+                                           self.TEST_QUALIFIED_NAME)
 
         checkAttribute(el, 'nodeType', Node.ELEMENT_NODE)
         checkAttribute(el, 'tagName', self.TEST_QUALIFIED_NAME)
@@ -689,7 +621,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateElementNSNoPrefix(self):
         el = self.document.createElementNS(self.TEST_NAMESPACE,
-            self.TEST_LOCAL_NAME)
+                                           self.TEST_LOCAL_NAME)
 
         checkAttribute(el, 'tagName', self.TEST_LOCAL_NAME)
         checkAttribute(el, 'localName', self.TEST_LOCAL_NAME)
@@ -697,48 +629,27 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(el, 'namespaceURI', self.TEST_NAMESPACE)
 
     def checkCreateElementNSIllegalCharacter(self):
-        try:
-            self.document.createElementNS(self.TEST_NAMESPACE,
-                '4_prefix:5_illegal')
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Created Element with illegal qualified name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.document.createElementNS,
+                          self.TEST_NAMESPACE, '4_prefix:5_illegal')
 
     def checkCreateElementNSMalformedQA(self):
-        try:
-            self.document.createElementNS(self.TEST_NAMESPACE,
-                'malformed:qualfied:name')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Element with a malformed qualified name."
-        try:
-            self.document.createElementNS(self.TEST_NAMESPACE, ':malformed_qn')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Element with a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createElementNS,
+                          self.TEST_NAMESPACE, 'malformed:qualfied:name')
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createElementNS,
+                          self.TEST_NAMESPACE, ':malformed_qn')
 
     def checkCreateElementNSPrefixNoNamespace(self):
-        try:
-            self.document.createElementNS(None,
-                self.TEST_QUALIFIED_NAME)
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Created Element with a prefix but no namespace."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createElementNS,
+                          None, self.TEST_QUALIFIED_NAME)
 
     def checkCreateElementNSXMLNamespace(self):
-        try:
-            self.document.createElementNS(self.TEST_NAMESPACE,
-                'xml:nope')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, (
-                "Created Element with a 'xml' prefix but not the XML "
-                "namespace.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.document.createElementNS,
+                          self.TEST_NAMESPACE, 'xml:nope')
 
 
 class GetElementByIdTestCase(TestCaseBase):
@@ -787,18 +698,19 @@ class ElementReadTestCase(NodeReadTestCaseBase):
             self.TEST_NAMESPACE, self.TEST_QUALIFIED_NAME)
 
     def checkGetAttributeNS(self):
-        assert self.element.getAttributeNS("uri:bugga", "ugga") == "", \
-               "non-existant attribute should return ''"
+        self.assertEqual(self.element.getAttributeNS("uri:bugga", "ugga"), "",
+                         "non-existant attribute should return ''")
 
     def checkGetAttributeNodeNS(self):
-        assert self.element.getAttributeNodeNS("uri:bugga", "ugga") is None, \
-               "non-existant attribute should return None"
+        self.assert_(
+            self.element.getAttributeNodeNS("uri:bugga", "ugga") is None,
+            "non-existant attribute should return None")
 
     def checkCloneNode(self):
         el = self.element
         clone = el.cloneNode(0)
 
-        assert not isSameNode(el, clone), "Clone is same Node as original."
+        self.failIf(isSameNode(el, clone), "Clone is same Node as original.")
         checkAttribute(clone, 'localName', el.localName)
         checkAttribute(clone, 'namespaceURI', el.namespaceURI)
         checkAttribute(clone, 'prefix', el.prefix)
@@ -817,8 +729,10 @@ class ElementReadTestCase(NodeReadTestCaseBase):
         clone = foreignDoc.importNode(self.element, 0)
         deepClone = foreignDoc.importNode(self.element, 1)
 
-        assert not isSameNode(el, clone), "Clone is same Node as original."
-        assert not isSameNode(el, deepClone), "Clone is same Node as original."
+        self.failIf(isSameNode(el, clone),
+                    "Clone is same Node as original.")
+        self.failIf(isSameNode(el, deepClone),
+                    "Clone is same Node as original.")
 
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
@@ -872,28 +786,28 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
             self.TEST_QUALIFIED_NAME)
 
     def checkHasAttribute(self):
-        assert not self.element.hasAttribute('ugga'), \
-               "Test for non-exisiting attribute returned true."
+        self.failIf(self.element.hasAttribute('ugga'),
+                    "Test for non-exisiting attribute returned true.")
 
         self.element.setAttribute("ugga", "foo")
 
-        assert self.element.hasAttribute('ugga'), \
-               "Test for exisiting attribute returned false."
+        self.assert_(self.element.hasAttribute('ugga'),
+                     "Test for exisiting attribute returned false.")
 
     def checkSetAttributeNS(self):
         self.element.setAttributeNS("uri:bugga", "b:ugga", "foo")
         self.element.setAttributeNS("uri:bar", "bar:ugga", "baz")
 
-        assert self.element.hasAttributeNS("uri:bar", "ugga"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(self.element.hasAttributeNS("uri:bar", "ugga"),
+                     "Test for presence of created attribute returned false.")
         value = self.element.getAttributeNS("uri:bugga", "ugga")
-        assert value == 'foo', (
-            "Incorrect attr value returned. Expected 'foo', got %s"
-                % repr(value))
+        self.assertEqual(value, 'foo',
+                         "Incorrect attr value returned. Expected 'foo', got "
+                         + repr(value))
         node = self.element.getAttributeNodeNS("uri:bugga", "ugga")
-        assert node.prefix == 'b', (
-            "New Attr node has incorrect prefix, expected 'b', got "
-            "%s" % repr(node.prefix))
+        self.assertEqual(node.prefix, 'b',
+                         "New Attr has incorrect prefix, expected 'b', got "
+                         + repr(node.prefix))
 
     #"Note that because the DOM does no lexical checking, the empty string
     #will be treated as a real namespace URI in DOM Level 2 methods.
@@ -905,16 +819,16 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
     def checkSetAttributeEmptyNS(self):
         self.element.setAttributeNS(None, "ugga", "foo")
 
-        assert self.element.hasAttributeNS(None, "ugga"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(self.element.hasAttributeNS(None, "ugga"),
+                     "Test for presence of created attribute returned false.")
         value = self.element.getAttributeNS(None, "ugga")
-        assert value == 'foo', (
-            "Incorrect attr value returned. Expected 'foo', got %s"
-                % repr(value))
+        self.assertEqual(value, 'foo',
+                         "Incorrect attr value returned. Expected 'foo', got "
+                         + repr(value))
         node = self.element.getAttributeNodeNS(None, "ugga")
-        assert node.prefix == None, (
-            "New Attr node has incorrect prefix, expected None, got "
-            "%s" % repr(node.prefix))
+        self.assert_(node.prefix is None,
+                     "New Attr node has incorrect prefix, expected None, got "
+                     + repr(node.prefix))
 
     def checkSetAttributeNSDifferentPrefix(self):
         self.element.setAttributeNS("uri:bugga", "b:ugga", "foo")
@@ -922,26 +836,27 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         self.element.setAttributeNS("uri:bugga", "c:ugga", "new value")
 
-        assert self.element.hasAttributeNS("uri:bar", "ugga"), (
-               "Test for presence of created attribute returned false.")
+        self.assert_(self.element.hasAttributeNS("uri:bar", "ugga"),
+                     "Test for presence of created attribute returned false.")
         value = self.element.getAttributeNS("uri:bugga", "ugga")
-        assert value == 'new value', (
-               "Incorrect attr value returned. Expected 'new value', got "
-               "%s" % repr(value))
+        self.assertEqual(
+            value, 'new value',
+            "Wrong attr value returned. Expected 'new value', got "
+            + repr(value))
         node = self.element.getAttributeNodeNS("uri:bugga", "ugga")
-        assert node.prefix == 'c', (
-            "New Attr node has incorrect prefix, expected 'c', got "
-            "%s" % repr(node.prefix))
+        self.assertEqual(node.prefix, 'c',
+                         "New Attr has incorrect prefix, expected 'c', got "
+                         + repr(node.prefix))
 
     def checkSetAttributeNSNoPrefix(self):
         self.element.setAttributeNS(TEST_NAMESPACE, 'foo', 'bar')
 
-        assert self.element.hasAttributeNS(TEST_NAMESPACE, "foo"), (
-               "Test for presence of created attribute returned false.")
+        self.assert_(self.element.hasAttributeNS(TEST_NAMESPACE, "foo"),
+                     "Test for presence of created attribute returned false.")
         value = self.element.getAttributeNS(TEST_NAMESPACE, "foo")
-        assert value == 'bar', (
-               "Incorrect attr value returned. Expected 'bar', got "
-               "%s" % repr(value))
+        self.assertEqual(value, 'bar',
+                         "Incorrect attr value returned. Expected 'bar', got "
+                         + repr(value))
         node = self.element.getAttributeNodeNS(TEST_NAMESPACE, "foo")
         checkAttribute(node, 'prefix', None)
 
@@ -949,66 +864,43 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         XMLNSNamespace = 'http://www.w3.org/2000/xmlns/'
         self.element.setAttributeNS(XMLNSNamespace, 'xmlns', TEST_NAMESPACE)
 
-        assert self.element.hasAttributeNS(XMLNSNamespace, "xmlns"), (
-               "Test for presence of created xmlns attribute returned false.")
+        self.assert_(
+            self.element.hasAttributeNS(XMLNSNamespace, "xmlns"),
+            "Test for presence of created xmlns attribute returned false.")
         value = self.element.getAttributeNS(XMLNSNamespace, "xmlns")
-        assert value == TEST_NAMESPACE, (
-               "Incorrect attr value returned. Expected %s, got "
-               "%s" % (`TEST_NAMESPACE`, `value`))
+        self.assertEqual(value, TEST_NAMESPACE,
+                         "Incorrect attr value returned. Expected %s, got "
+                         + repr((`TEST_NAMESPACE`, `value`)))
         node = self.element.getAttributeNodeNS(XMLNSNamespace, "xmlns")
         checkAttribute(node, 'prefix', None)
 
     def checkSetAttributeNSIllegalCharacter(self):
-        try:
-            self.element.setAttributeNS("uri:bugga", "5_b:ugga", "illegal")
-        except xml.dom.InvalidCharacterErr:
-            pass
-        else:
-            assert 0, "Was allowed to use an illegal attribute name."
+        self.assertRaises(xml.dom.InvalidCharacterErr,
+                          self.element.setAttributeNS,
+                          "uri:bugga", "5_b:ugga", "illegal")
 
     def checkSetAttributeNSMalformedQA(self):
-        try:
-            self.element.setAttributeNS("uri:bugga", 'malformed:qualfied:name',
-                "malformed")
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Was allowed to use a malformed qualified name."
-        try:
-            self.element.setAttributeNS("uri:bugga", ':malformed_qn',
-                "malformed")
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, "Was allowed to use a malformed qualified name."
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.element.setAttributeNS,
+                          "uri:bugga", 'malformed:qualfied:name', "malformed")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.element.setAttributeNS,
+                          "uri:bugga", ':malformed_qn', "malformed")
 
     def checkSetAttributeNSPrefixNoNamespace(self):
-        try:
-            self.element.setAttributeNS(None, 'prefix:localName', 'Nono')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, (
-                'Using a null namespace and a prefix for an '
-                'attribute succeeded.')
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.element.setAttributeNS,
+                          None, 'prefix:localName', 'Nono')
 
     def checkSetAttributeNSXMLNamespace(self):
-        try:
-            self.element.setAttributeNS('uri:unknown', 'xml:localName', 'Nono')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, ("Using the prefix 'xml' for an attribute without "
-                       "W3C XML namespace succeeded.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.element.setAttributeNS,
+                          'uri:unknown', 'xml:localName', 'Nono')
 
     def checkSetAttributeNSXMLNSNamespace(self):
-        try:
-            self.element.setAttributeNS('uri:unknown', 'xmlns:localName', 'No')
-        except xml.dom.NamespaceErr:
-            pass
-        else:
-            assert 0, ("Using the prefix 'xmlns' for an attribute without "
-                       "W3C XML Namespaces namespace succeeded.")
+        self.assertRaises(xml.dom.NamespaceErr,
+                          self.element.setAttributeNS,
+                          'uri:unknown', 'xmlns:localName', 'No')
 
     def checkSetAttributeNodeNS(self):
         node1 = self.document.createAttributeNS("uri:bugga", "b:ugga")
@@ -1017,20 +909,20 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         returnValue = self.element.setAttributeNode(node1)
         self.element.setAttributeNode(node2)
 
-        assert returnValue is None, (
-            "setAttributeNodeNS returned %s" % repr(returnValue))
+        self.assert_(returnValue is None,
+                     "setAttributeNodeNS returned " + repr(returnValue))
 
-        assert self.element.hasAttributeNS("uri:bar", "ugga"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(self.element.hasAttributeNS("uri:bar", "ugga"),
+                     "Test for presence of created attribute returned false.")
 
         value = self.element.getAttributeNS("uri:bugga", "ugga")
-        assert value == 'foo', \
-               ("Incorrect attr value returned. Expected 'foo', got %s"
-                % repr(value))
+        self.assertEqual(value, 'foo',
+                         "Incorrect attr value returned. Expected 'foo', got "
+                         + repr(value))
 
         node = self.element.getAttributeNodeNS("uri:bugga", "ugga")
-        assert isSameNode(node1, node), \
-               "Incorrect node returned from getAttributeNodeNS."
+        self.assert_(isSameNode(node1, node),
+                     "Incorrect node returned from getAttributeNodeNS.")
 
     def checkSetAttributeNodeNSReplaceExisting(self):
         # Try a new node with same namespaceURI and localname, but differing
@@ -1040,33 +932,23 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         node2 = self.document.createAttributeNS("uri:bugga", "c:ugga")
 
         returnValue = self.element.setAttributeNodeNS(node2)
-        if returnValue is None:
-            assert 0, "setAttributeNodeNS did not replace original attribute"
-        assert isSameNode(node1, returnValue), (
-            "setAttributeNodeNS returned %s" % repr(returnValue))
+        self.failIf(returnValue is None,
+                    "setAttributeNodeNS did not replace original attribute")
+        self.assert_(isSameNode(node1, returnValue),
+                     "setAttributeNodeNS returned " + repr(returnValue))
 
     def checkSetAttributeNodeNSWrongDocument(self):
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
         foreignAttr = foreignDoc.createAttributeNS('uri:spam', 'spam:eggs')
-        try:
-            self.element.setAttributeNodeNS(foreignAttr)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, "Was allowed to setAttributeNodeNS with a foreign Attr."
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.element.setAttributeNodeNS, foreignAttr)
 
     def checkSetAttributeNodeNSAlreadyInUse(self):
         otherElement = self.document.createElement('foo')
         otherAttr = self.document.createAttributeNS('uri:spam', 'spam:eggs')
         otherElement.setAttributeNodeNS(otherAttr)
-        try:
-            self.element.setAttributeNodeNS(otherAttr)
-        except xml.dom.InuseAttributeErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to setAttributeNodeNS with an Attr already in "
-                "use.")
+        self.assertRaises(xml.dom.InuseAttributeErr,
+                          self.element.setAttributeNodeNS, otherAttr)
 
     def checkRemoveAttributeNS(self):
         node1 = self.document.createAttributeNS("uri:bugga", "b:ugga")
@@ -1076,11 +958,13 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         self.element.removeAttributeNS("uri:bugga", "ugga")
 
-        assert not self.element.hasAttributeNS("uri:bugga", "ugga"), \
-               "Test for presence of created attribute still returns true."
+        self.failIf(
+            self.element.hasAttributeNS("uri:bugga", "ugga"),
+            "Test for presence of created attribute still returns true.")
 
-        assert self.element.hasAttributeNS("uri:bar", "ugga"), \
-               "Test for presence of created attribute returned false."
+        self.assert_(
+            self.element.hasAttributeNS("uri:bar", "ugga"),
+            "Test for presence of created attribute returned false.")
 
     def checkGetElementsByTagNameNS(self):
         doc = self.document
@@ -1121,31 +1005,31 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         for name in names:
             add(name)
             add(name)
-        assert len(result) == len(allnames)
+        self.assertEqual(len(result), len(allnames))
         for name, element in map(None, allnames, result):
-            assert name == element.localName
+            self.assertEqual(name, element.localName)
 
         # find all elements in one namespace in the right order
         result = el.getElementsByTagNameNS('uri:1', '*')
-        assert len(result) == len(names)
+        self.assertEqual(len(result), len(names))
         for name, element in map(None, names, result):
-            assert name == element.localName
+            self.assertEqual(name, element.localName)
 
         # find single element, top
         result = el.getElementsByTagNameNS('uri:1', 'a')
-        assert len(result) == 1
-        assert result[0].tagName == 'one:a'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'one:a')
 
         # find single element somewhere in tree
         result = el.getElementsByTagNameNS('uri:2', 'h')
-        assert len(result) == 1
-        assert result[0].tagName == 'two:h'
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].tagName, 'two:h')
 
         # find elements in the tree from all namespaces
         result = el.getElementsByTagNameNS('*', 'f')
-        assert len(result) == 2
-        assert result[0].tagName == 'one:f'
-        assert result[1].tagName == 'two:f'
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].tagName, 'one:f')
+        self.assertEqual(result[1].tagName, 'two:f')
 
     def checkNormalize(self):
         doc = self.document
@@ -1190,10 +1074,10 @@ class CharacterDataReadTestCaseBase(NodeReadTestCaseBase):
         clone = foreignDoc.importNode(self.chardata, 0)
         deepClone = foreignDoc.importNode(self.chardata, 1)
 
-        assert not isSameNode(self.chardata, clone), (
-            "Clone is same as original.")
-        assert not isSameNode(self.chardata, deepClone), (
-            "Clone is same as original.")
+        self.failIf(isSameNode(self.chardata, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.chardata, deepClone),
+                    "Clone is same as original.")
 
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
@@ -1256,7 +1140,7 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         attr = self.attr
         clone = attr.cloneNode(0)
 
-        assert not isSameNode(attr, clone), "Clone is same Node as original."
+        self.failIf(isSameNode(attr, clone), "Clone is same Node as original.")
         checkAttribute(clone, 'localName', attr.localName)
         checkAttribute(clone, 'namespaceURI', attr.namespaceURI)
         checkAttribute(clone, 'prefix', attr.prefix)
@@ -1276,9 +1160,10 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         clone = foreignDoc.importNode(self.attr, 0)
         deepClone = foreignDoc.importNode(self.attr, 1)
 
-        assert not isSameNode(self.attr, clone), "Clone is same as original."
-        assert not isSameNode(self.attr, deepClone), (
-            "Clone is same as original.")
+        self.failIf(isSameNode(self.attr, clone),
+                    "Clone is same as original.")
+        self.failIf(isSameNode(self.attr, deepClone),
+                    "Clone is same as original.")
 
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
@@ -1355,8 +1240,10 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
             self.TEST_NAMESPACE, self.TEST_LOCAL_NAME)
 
         # element attr
-        assert self.document.documentElement.getAttributeNS(
-            self.TEST_NAMESPACE, self.TEST_LOCAL_NAME) == 'eggs', (
+        value = self.document.documentElement.getAttributeNS(
+            self.TEST_NAMESPACE, self.TEST_LOCAL_NAME)
+        self.assertEqual(
+            value, 'eggs',
             "changing prefix and value on attr didn't change original attr")
         # orig attr
         checkAttribute(self.attr, 'nodeName', newQname)
@@ -1382,11 +1269,12 @@ class DefaultAttrTestCase(TestCaseBase):
     def checkCreateElementNS(self):
         el = self.document.createElementNS(TEST_NAMESPACE, 'doc')
 
-        assert el.hasAttribute('foo'), (
-            'Newly created Element Node should have default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
+        self.assert_(el.hasAttribute('foo'),
+                     'Newly created Element should have default attribute.')
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
             "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % el.getAttribute('foo'))
+            "found " + repr(el.getAttribute('foo')))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
     def checkImportNode(self):
@@ -1401,9 +1289,9 @@ class DefaultAttrTestCase(TestCaseBase):
 
         el = newDoc.importNode(self.document.documentElement, 0)
 
-        assert not el.hasAttribute('foo'), (
-            "Default attribute retained when importing into document that "
-            "doesn't specify the default attribute.")
+        self.failIf(el.hasAttribute('foo'),
+                    "Default attribute retained when importing into document"
+                    " that doesn't specify the default attribute.")
 
     def checkImportNodeToDefault(self):
         newDoc = self.implementation.createDocument(None, 'baz', None)
@@ -1411,11 +1299,13 @@ class DefaultAttrTestCase(TestCaseBase):
 
         el = self.document.importNode(newEl, 0)
 
-        assert el.hasAttribute('foo'), (
+        self.assert_(
+            el.hasAttribute('foo'),
             'Imported Element Node should have default attribute.')
-        assert el.getAttribute('foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % repr(el.getAttribute('foo')))
+        self.assertEqual(
+            el.getAttribute('foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttribute('foo')))
         checkAttribute(el.getAttributeNode('foo'), 'specified', 0)
 
 
@@ -1433,26 +1323,29 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
     def checkHasAttributeNS(self):
         el = self.document.documentElement
 
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
-            'Default attribute not found.')
+        self.assert_(el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
+                     'Default attribute not found.')
 
     def checkGetAttributeNS(self):
         el = self.document.documentElement
 
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
+        self.assertEqual(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
 
     def checkCreateElementNS(self):
         el = self.document.createElementNS(TEST_NAMESPACE, 'doc')
 
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
+        self.assert_(
+            el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
             'Newly created Element Node should have default attribute.')
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % el.getAttributeNS(TEST_NAMESPACE, 'foo'))
+        self.assertEqual(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
         checkAttribute(el.getAttributeNodeNS(TEST_NAMESPACE, 'foo'),
-            'specified', 0)
+                       'specified', 0)
 
     def checkImportNodeToDefault(self):
         newDoc = self.implementation.createDocument(None, 'baz', None)
@@ -1460,17 +1353,19 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
 
         el = self.document.importNode(newEl, 0)
 
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
+        self.assert_(
+            el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
             'Imported Element Node should have default attribute.')
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
+        self.assertEqual(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
         checkAttribute(el.getAttributeNodeNS(TEST_NAMESPACE, 'foo'),
-            'specified', 0)
+                       'specified', 0)
 
     def checkChangePrefixUnspecified(self):
-        attr = self.document.documentElement.getAttributeNodeNS(TEST_NAMESPACE,
-            'foo')
+        attr = self.document.documentElement.getAttributeNodeNS(
+            TEST_NAMESPACE, 'foo')
         attr.prefix = 'test'
 
         # Changing the prefix of a default attribute shouldn't make a new
@@ -1479,7 +1374,8 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
         # http://www.zope.org/Members/karl/ParsedXML/ParsedXMLTracker/60
         # Waiting for consensus from DOM WG. Changing the prefix *should* make
         # a new Attr node appear it seems. I am not convinced yet.
-        assert attr.ownerElement.attributes.length == 1, (
+        self.assertEqual(
+            attr.ownerElement.attributes.length, 1,
             "Changing the prefix of a default attribute caused a new default "
             "attribute node to be created.")
 
@@ -1487,15 +1383,16 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
         checkAttribute(attr, 'specified', 0)
 
     def checkChangePrefixSpecified(self):
-        self.document.documentElement.setAttributeNS(TEST_NAMESPACE, 'foo',
-            'newValue')
-        attr = self.document.documentElement.getAttributeNodeNS(TEST_NAMESPACE,
-            'foo')
+        self.document.documentElement.setAttributeNS(
+            TEST_NAMESPACE, 'foo', 'newValue')
+        attr = self.document.documentElement.getAttributeNodeNS(
+            TEST_NAMESPACE, 'foo')
         attr.prefix = 'test'
 
         # Changing the prefix of a specified attribute shouldn't make a new
         # unspecified (default) attribute node appear.
-        assert attr.ownerElement.attributes.length == 2, (
+        self.assertEqual(
+            attr.ownerElement.attributes.length, 2,
             "Changing the prefix of a specified attribute caused a new "
             "default attribute node to be created.")
 
@@ -1505,14 +1402,15 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
         el.setAttributeNS(TEST_NAMESPACE, 'foo', 'baz')
 
         el.removeAttributeNS(TEST_NAMESPACE, 'foo')
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
-            'Removing specified attribute should '
-            'bring back default attribute.')
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute foud, expected 'bar', "
-            "found %s" % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
+        self.assert_(
+            el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
+            'Removing specified attribute should restore default attribute.')
+        self.assertEqual(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute foud, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
         checkAttribute(el.getAttributeNodeNS(TEST_NAMESPACE, 'foo'),
-            'specified', 0)
+                       'specified', 0)
 
     def checkRemoveAttributeNode(self):
         el = self.document.documentElement
@@ -1522,14 +1420,15 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
         el.setAttributeNodeNS(newAttr)
 
         el.removeAttributeNode(newAttr)
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
-            'Removing specified attribute should bring back default '
-            'attribute.')
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', "
-            "found %s" % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
+        self.assert_(
+            el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
+            'Removing specified attribute should restore default attribute.')
+        self.assert_(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
         checkAttribute(el.getAttributeNodeNS(TEST_NAMESPACE, 'foo'),
-            'specified', 0)
+                       'specified', 0)
 
     def checkRemoveNamedItemNS(self):
         el = self.document.documentElement
@@ -1537,13 +1436,15 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
         el.setAttributeNS(TEST_NAMESPACE, 'foo', 'baz')
 
         el.attributes.removeNamedItemNS(TEST_NAMESPACE, 'foo')
-        assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), \
-            'Removing specified attribute should bring back default attribute.'
-        assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
-            "Wrong value of default attribute found, expected 'bar', found %s"
-            % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
+        self.assert_(
+            el.hasAttributeNS(TEST_NAMESPACE, 'foo'),
+            'Removing specified attribute should restore default attribute.')
+        self.assertEqual(
+            el.getAttributeNS(TEST_NAMESPACE, 'foo'), 'bar',
+            "Wrong value of default attribute found, expected 'bar', found "
+            + repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
         checkAttribute(el.getAttributeNodeNS(TEST_NAMESPACE, 'foo'),
-            'specified', 0)
+                       'specified', 0)
 
     def checkSetAttributeNS(self):
         el = self.document.documentElement
@@ -1578,9 +1479,10 @@ class DocumentFragmentReadTestCase(NodeReadTestCaseBase):
         clone = foreignDoc.importNode(frag, 0)
         deepClone = foreignDoc.importNode(frag, 1)
 
-        assert not isSameNode(frag, clone), "Clone is same Node as original."
-        assert not isSameNode(frag, deepClone), (
-            "Clone is same Node as original.")
+        self.failIf(isSameNode(frag, clone),
+                    "Clone is same Node as original.")
+        self.failIf(isSameNode(frag, deepClone),
+                    "Clone is same Node as original.")
 
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
@@ -1625,38 +1527,35 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
         node = self.map.getNamedItemNS(self.TEST_NAMESPACE,
             self.TEST_LOCAL_NAME)
 
-        assert node is not None, "getNamedItemNS didn't retrieve attribute."
-        assert isSameNode(node, self.attribute), (
-            "getNamedItemNS retrieved incorrect attribute.")
+        self.assert_(node is not None,
+                     "getNamedItemNS didn't retrieve attribute.")
+        self.assert_(isSameNode(node, self.attribute),
+                     "getNamedItemNS retrieved incorrect attribute.")
 
     def checkGetNamedItemNSWrongNamespace(self):
         node = self.map.getNamedItemNS('uri:foo', self.TEST_LOCAL_NAME)
-        assert node is None, "getNamedItemNS returned an attribute."
+        self.assert_(node is None, "getNamedItemNS returned an attribute.")
 
     def checkGetNamedItemNSWrongLocalname(self):
         node = self.map.getNamedItemNS(self.TEST_NAMESPACE, 'bar')
-        assert node is None, "getNamedItemNS returned an attribute."
+        self.assert_(node is None, "getNamedItemNS returned an attribute.")
 
     def checkRemoveNamedItemNS(self):
         node = self.map.removeNamedItemNS(self.TEST_NAMESPACE,
             self.TEST_LOCAL_NAME)
 
-        assert node is not None, (
-            "removeNamedItemNS didn't return an attribute.")
-        assert isSameNode(node, self.attribute), (
-            "removeNamedItemNS returned incorrect attribute.")
-        assert self.map.getNamedItemNS(self.TEST_NAMESPACE,
-            self.TEST_LOCAL_NAME) is None, "Attribute was not removed."
+        self.assert_(node is not None,
+                     "removeNamedItemNS didn't return an attribute.")
+        self.assert_(isSameNode(node, self.attribute),
+                     "removeNamedItemNS returned incorrect attribute.")
+        n = self.map.getNamedItemNS(self.TEST_NAMESPACE, self.TEST_LOCAL_NAME)
+        self.assert_(n is None, "Attribute was not removed.")
         checkLength(self.map, 0)
 
     def checkRemoveNamedItemNSNotFound(self):
         # Exceptions
-        try:
-            self.map.removeNamedItemNS('uri:foo', 'bar:baz')
-        except xml.dom.NotFoundErr:
-            pass
-        else:
-            assert 0, "Removal of non-existent item succeeded."
+        self.assertRaises(xml.dom.NotFoundErr,
+                          self.map.removeNamedItemNS, 'uri:foo', 'bar:baz')
 
     def checkSetNamedItemNS(self):
         newAttr = self.document.createAttributeNS(self.TEST_NAMESPACE,
@@ -1664,11 +1563,13 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
         newAttr.value = 'spam'
 
         retVal = self.map.setNamedItemNS(newAttr)
-        assert retVal is None, "setNamedItemNS returned %s" % repr(retVal)
+        self.assert_(retVal is None,
+                     "setNamedItemNS returned " + repr(retVal))
         checkLength(self.map, 2)
-        assert isSameNode(self.map.getNamedItemNS(self.TEST_NAMESPACE,
-            'someAttr'), newAttr), (
-                "setNamedItemNS store seems to have failed, can't retrieve.")
+        n = self.map.getNamedItemNS(self.TEST_NAMESPACE, 'someAttr')
+        self.assert_(
+            isSameNode(n, newAttr),
+            "setNamedItemNS store seems to have failed, can't retrieve.")
 
     def checkSetNamedItemNSReplaceExisting(self):
         newAttr = self.document.createAttributeNS(self.TEST_NAMESPACE,
@@ -1679,46 +1580,31 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
         anotherAttr.value = 'eggs'
 
         retVal = self.map.setNamedItemNS(newAttr)
-        assert retVal is not None, "setNamedItemNS returned None"
-        assert isSameNode(retVal, newAttr), (
-            "setNamedItemNS didn't return replaced Node.")
+        self.failIf(retVal is None, "setNamedItemNS returned None")
+        self.assert_(isSameNode(retVal, newAttr),
+                     "setNamedItemNS didn't return replaced Node.")
         checkLength(self.map, 2)
 
     def checkSetNamedItemNSWrongDocument(self):
         newDoc = self.implementation.createDocument(None, 'foo', None)
-        foreignAttr = newDoc.createAttributeNS(self.TEST_NAMESPACE,
-            self.TEST_QUALIFIED_NAME)
-        try:
-            self.map.setNamedItem(foreignAttr)
-        except xml.dom.WrongDocumentErr:
-            pass
-        else:
-            assert 0, "Was allowed to add foreign Node to NamedNodeMap."
+        foreignAttr = newDoc.createAttributeNS(
+            self.TEST_NAMESPACE, self.TEST_QUALIFIED_NAME)
+        self.assertRaises(xml.dom.WrongDocumentErr,
+                          self.map.setNamedItem, foreignAttr)
 
     def checkSetNamedItemNSAlreadyInUse(self):
         el = self.document.createElement('someElement')
-        attr = self.document.createAttributeNS(self.TEST_NAMESPACE,
-            self.TEST_QUALIFIED_NAME)
+        attr = self.document.createAttributeNS(
+            self.TEST_NAMESPACE, self.TEST_QUALIFIED_NAME)
         el.setAttributeNode(attr)
-        try:
-            self.map.setNamedItem(attr)
-        except xml.dom.InuseAttributeErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to add attribute already in use to NamedNodeMap.")
+        self.assertRaises(xml.dom.InuseAttributeErr,
+                          self.map.setNamedItem, attr)
 
     def checkSetNamedItemNSHierarchyRequestErr(self):
         # See DOM erratum core-4.
         element = self.document.createElementNS(TEST_NAMESPACE, 'foo:bar')
-        try:
-            self.map.setNamedItemNS(element)
-        except xml.dom.HierarchyRequestErr:
-            pass
-        else:
-            assert 0, (
-                "Was allowed to add a Node Type not belonging in this "
-                "NamedNodeMap (an Element Node to a map of attributes).")
+        self.assertRaises(xml.dom.HierarchyRequestErr,
+                          self.map.setNamedItemNS, element)
 
 
 cases = buildCases(__name__, 'Core', '2.0')
