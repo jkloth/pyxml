@@ -712,7 +712,7 @@ class Element(Node):
         if old1:
             self.removeAttributeNode(old1)
         old2 = self._attrsNS.get((attr.namespaceURI, attr.localName), None)
-        if old2:
+        if old2 and old2 is not old1:
             self.removeAttributeNode(old2)
         _set_attribute_node(self, attr)
 
