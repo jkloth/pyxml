@@ -39,8 +39,10 @@ class Marshaller(saxlib.HandlerBase):
     # The four basic functions that form the caller's interface
     def dump(self, value, file):
         "Write the value on the open file"
-        L = self._marshal(value, {} )
-        L = ( [self.PROLOGUE + self.DTD + '<' + self.tag_root + '>'] +
+        dict = { 'id':1 }
+	root_tag = self.m_root(value, dict)
+        L = self._marshal(value, dict )
+        L = ( [self.PROLOGUE + self.DTD] + root_tag + 
               L +
               ['</' + self.tag_root + '>'] )
         
@@ -50,7 +52,7 @@ class Marshaller(saxlib.HandlerBase):
 
     def dumps(self, value):
         "Marshal value, returning the resulting string"
-        dict = {}
+        dict = {'id':1}
 	root_tag = self.m_root(value, dict)
         L = self._marshal(value, dict )
         L = ( [self.PROLOGUE + self.DTD] + root_tag +
@@ -97,7 +99,7 @@ class Marshaller(saxlib.HandlerBase):
     def m_reference(self, value, dict):
         # This object has already been marshalled, so
         # emit a reference element.
-        i = str( id(value) )
+        i = dict[ str(id(value)) ]
         return [ '<' + self.tag_reference + ' id="i%s"/>' % (i, ) ]
 
     def m_string(self, value, dict):
@@ -137,7 +139,8 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_list(self, value, dict):
         name = self.tag_list ; L = []
-        i = str(id(value)) ; dict[ i ] = value
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict[ str(id(value)) ] = i ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' % (i,))
         for elem in value:
             L = L + self._marshal(elem, dict)
@@ -146,7 +149,8 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_dictionary(self, value, dict):
         name = self.tag_dictionary ; L = []
-        i = str( id(value) ) ; dict[ i ] = value
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict[ str(id(value)) ] = i ; dict[ i ] = value
         L.append( '<' + name + ' id="i%s">' %(i,) )
         for key, v in value.items():
             L = L + self._marshal(key, dict)
@@ -180,7 +184,8 @@ class Marshaller(saxlib.HandlerBase):
 
     def m_instance(self, value, dict):
         name = self.tag_instance ; L = []
-        i = str(id(value)) ; dict[ i ] = value
+        dict['id'] = dict['id'] + 1 ; i = str(dict['id']) 
+        dict[ str(id(value)) ] = i ; dict[ i ] = value
 	cls = value.__class__
 	L.append( '<%s id="i%s" module="%s" class="%s">' 
 	         % (name, i, cls.__module__, cls.__name__) )
@@ -491,22 +496,24 @@ def test(load, loads, dump, dumps, test_values,
         if do_assert:
             assert item==output and item==output2 and output==output2
 
+# Classes used in the test suite
+class _A: 
+    def __repr__(self): return '<A instance>'
+class _B: 
+    def __repr__(self): return '<B instance>'
 
-if __name__ == '__main__':
+def runtests():
     print "Testing XML marshalling..."
 
     L = [None, 1, pow(2,123L), 19.72, 1+5j, 
          "here is a string & a <fake tag>",
          (1,2,3), 
          ['alpha', 'beta', 'gamma'],
-         {'key':'value', 1:2}, 
-         test.func_code 
+         {'key':'value', 1:2}
 	 ]
     test(load, loads, dump, dumps, L)
 
-    class A: pass
-    class B: pass
-    instance = A() ; instance.subobject = B() 
+    instance = _A() ; instance.subobject = _B() 
     instance.subobject.list=[None, 1, pow(2,123L), 19.72, 1+5j, 
                              "here is a string & a <fake tag>"]
     instance.self = instance
@@ -518,3 +525,6 @@ if __name__ == '__main__':
 	              '<fake tag>', 1+5j ]
     recursive_list.append( recursive_list )
     test(load, loads, dump, dumps, [ recursive_list ], do_assert=0)
+
+if __name__ == '__main__':
+    runtests()
