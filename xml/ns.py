@@ -32,11 +32,13 @@ class SOAP:
     http://www.w3.org/TR/SOAP
 	ENV -- namespace for the SOAP envelope
 	ENC -- namespace for the SOAP encoding in section 5
+	ACTOR_NEXT -- the URI for the "next" actor
     (Note that no BASE is defined.)
     """
 
     ENV         = "http://schemas.xmlsoap.org/soap/envelope/"
     ENC         = "http://schemas.xmlsoap.org/soap/encoding/"
+    ACTOR_NEXT  = "http://schemas.xmlsoap.org/soap/actor/next"
 
 
 class DSIG:
@@ -73,7 +75,7 @@ class DSIG:
 class SCHEMA:
     """SCHEMA, XML Schema
 
-    XML Schema (30-Mar-2001) is a W3C proposed recommendation.  It is
+    XML Schema (30-Mar-2001) is a W3C candidate recommendation.  It is
     specified in http://www.w3.org/TR/xmlschema-1 (Structures) and
     http://www.w3.org/TR/xmlschema-2 (Datatypes). Schema has been under
     development for a comparitively long time, and other standards have
