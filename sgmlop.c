@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.3 1998/10/09 02:02:39 amk Exp $
+ * $Id: sgmlop.c,v 1.4 1998/10/22 22:46:04 amk Exp $
  *
  * The sgmlop accelerator module
  *
@@ -860,7 +860,7 @@ attrparse(const CHAR_T* p, int len, int xml)
             PyObject* res;
             res = PyTuple_New(2);
             PyTuple_SET_ITEM(res, 0, key);
-            PyTuple_SET_ITEM(res, 0, value);
+            PyTuple_SET_ITEM(res, 1, value);
             if (PyList_Append(attrs, res) < 0) {
                 Py_DECREF(res);
                 goto err;
