@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: handler.py,v 1.2 2000/12/28 19:57:06 loewis Exp $
+$Id: handler.py,v 1.3 2001/08/31 07:24:53 larsga Exp $
 """
 
 version = '2.0beta'
@@ -144,7 +144,10 @@ class ContentHandler:
         (uri, localname) tuple, the qname parameter the raw XML 1.0
         name used in the source document, and the attrs parameter
         holds an instance of the Attributes class containing the
-        attributes of the element."""
+        attributes of the element.
+
+        The uri part of the name tuple is None for elements which have
+        no namespace."""
 
     def endElementNS(self, name, qname):
         """Signals the end of an element in namespace mode.
