@@ -7,7 +7,7 @@
 
 Usage:  %(program)s [--dom|--sax|--write] [infile [outfile]]
 """
-__version__ = '$Revision: 1.2 $'
+__version__ = '$Revision: 1.3 $'
 
 import getopt
 import os
@@ -17,7 +17,7 @@ import sys
 # Note that we only need one of these for any given version of the
 # processing class.
 #
-import xml.dom.core
+from xml.dom.DOMImplementation import implementation
 import xml.sax.writer
 import xml.utils
 
@@ -120,14 +120,17 @@ class DOMProcess(BaseProcess):
     finishOutput() method.
     """
     def initOutput(self):
-        self.document = xml.dom.core.createDocument()
+        # Create a new document with no namespace uri, qualified name,
+        # or document type
+        self.document = implementation.createDocument(None,None,None)
         self.personnel = self.document.createElement("personnel")
         self.document.appendChild(self.personnel)
 
     def addRecord(self, lname, fname, type):
         doc = self.document
         self.personnel.appendChild(doc.createTextNode("\n  "))
-        emp = doc.createElement("employee", {"type": type})
+        emp = doc.createElement("employee")
+        emp.setAttribute("type", type)
         self.personnel.appendChild(emp)
         emp.appendChild(doc.createTextNode("\n    "))
         ln = doc.createElement("lname")
@@ -142,7 +145,9 @@ class DOMProcess(BaseProcess):
     def finishOutput(self):
         t = self.document.createTextNode("\n")
         self.personnel.appendChild(t)
-        self.outfp.write(self.document.toxml())
+        # XXX toxml not supported by 4DOM
+        # self.outfp.write(self.document.toxml())
+        xml.dom.ext.PrettyPrint(self.document, self.outfp)
         self.outfp.write("\n")
 
 

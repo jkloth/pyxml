@@ -217,7 +217,8 @@ class QuotationDocHandler(saxlib.HandlerBase):
 
             # Undo the UTF-8 encoding, converting to ISO Latin1, which
             # is the default character set used for HTML.
-            s = unicode(s,'utf-8')
+            if type(s) == types.StringType:
+                s = unicode(s,'utf-8')
             s = s.encode('latin-1')
 
             self.newqt.stack[-1] = self.newqt.stack[-1] + s

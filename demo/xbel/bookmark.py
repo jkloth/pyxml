@@ -3,7 +3,7 @@ Classes to store bookmarks and dump them to XBEL.
 """
 
 import sys,string
-from xml.utils import escape
+from xml.sax.saxutils import escape
 
 # --- Class for bookmark container
 
