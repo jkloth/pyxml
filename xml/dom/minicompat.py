@@ -1,10 +1,48 @@
 """Python version compatibility support for minidom."""
 
-# XXX This module needs more explanation!
-# It should only be imported using "import *".
+# This module should only be imported using "import *".
+#
+# The following names are defined:
+#
+#   isinstance    -- version of the isinstance() function that accepts
+#                    tuples as the second parameter regardless of the
+#                    Python version
+#
+#   NodeList      -- lightest possible NodeList implementation
+#
+#   EmptyNodeList -- lightest possible NodeList that is guarateed to
+#                    remain empty (immutable)
+#
+#   StringTypes   -- tuple of defined string types
+#
+#   GetattrMagic  -- base class used to make _get_<attr> be magically
+#                    invoked when available
+#   defproperty   -- function used in conjunction with GetattrMagic;
+#                    using these together is needed to make them work
+#                    as efficiently as possible in both Python 2.2+
+#                    and older versions.  For example:
+#
+#                        class MyClass(GetattrMagic):
+#                            def _get_myattr(self):
+#                                return something
+#
+#                        defproperty(MyClass, "myattr",
+#                                    "return some value")
+#
+#                    For Python 2.2 and newer, this will construct a
+#                    property object on the class, which avoids
+#                    needing to override __getattr__().  It will only
+#                    work for read-only attributes.
+#
+#                    For older versions of Python, inheriting from
+#                    GetattrMagic will use the traditional
+#                    __getattr__() hackery to achieve the same effect,
+#                    but less efficiently.
+#
+#   True, False   -- only for Python 2.2 and earlier
 
 __all__ = ["isinstance", "NodeList", "EmptyNodeList", "NewStyle",
-           "StringTypes", "TupleType", "defproperty", "GetattrMagic"]
+           "StringTypes", "defproperty", "GetattrMagic"]
 
 try:
     unicode
@@ -12,8 +50,6 @@ except NameError:
     StringTypes = type(''),
 else:
     StringTypes = type(''), type(unicode(''))
-
-TupleType = type(StringTypes)
 
 
 # define True and False only if not defined as built-ins
