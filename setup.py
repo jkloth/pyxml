@@ -206,5 +206,7 @@ This version of PyXML was tested with Python 2.0 and 1.5.2.
                    xml('.sax.drivers2'), xml('.utils')
                    ],
 
-       ext_modules = ext_modules
+       ext_modules = ext_modules,
+
+       scripts = ['scripts/xmlproc_parse', 'scripts/xmlproc_val']
        )
