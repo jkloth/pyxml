@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """install_data.py
 
 Provides a more sophisticated facility to install data files

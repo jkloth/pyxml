@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 # This file contains the lists of error messages used by xmlproc
 
 import string

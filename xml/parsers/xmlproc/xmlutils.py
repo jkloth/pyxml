@@ -1,8 +1,9 @@
+# -*- coding: iso-8859-1 -*-
 """
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.32 2002/05/15 14:49:25 akuchling Exp $
+# $Id: xmlutils.py,v 1.33 2002/08/22 17:03:14 fdrake Exp $
 
 import string,re,urlparse,os,sys,types
 
