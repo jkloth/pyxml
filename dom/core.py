@@ -812,6 +812,7 @@ class Document(Node):
         return self.documentType
     def get_implementation(self):
         return self.DOMImplementation
+
     def get_documentElement(self):
         doc = None
         for elem in self._node.children:
@@ -820,7 +821,7 @@ class Document(Node):
                     doc = Element(elem, self, self)
                 else:
                     raise HierarchyRequestException, \
-                          "Can't add %s; too many Element children of Document" % (repr(newChild),)
+                          "Too many Element children of Document" 
         return doc
     def get_document(self):
         return self
