@@ -118,6 +118,7 @@ static PyObject *conv_atts_using_string( XML_Char **atts){
 	return attrs_obj;
 }
 
+#if !(PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6)
 static PyObject *conv_atts_using_unicode( XML_Char **atts){
         PyObject *attrs_obj=NULL;
         XML_Char **attrs_p, **attrs_k;
@@ -181,6 +182,7 @@ static PyObject *conv_string_len_to_unicode( const XML_Char *str, int len ) {
 			       len, 
 			       "strict" );
 }
+#endif
 
 /* Convert a string of XML_Chars into an 8-bit Python string.
    Returns None if str is a null pointer. */
@@ -236,8 +238,13 @@ static RC my_##NAME##Handler PARAMS {\
 	return RETURN; \
 }
 
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+#define STRING_CONV_FUNC conv_string_to_utf8
+#else
+/* Python 1.6 and later versions */
 #define STRING_CONV_FUNC (self->returns_unicode \
                           ? conv_string_to_unicode : conv_string_to_utf8)
+#endif
 
 #define VOID_HANDLER( NAME, PARAMS, PARAM_FORMAT ) \
 	RC_HANDLER( void, NAME, PARAMS, ;, PARAM_FORMAT, ;, ;,\
@@ -248,12 +255,20 @@ static RC my_##NAME##Handler PARAMS {\
 			rc = PyInt_AsLong( rv );, rc, \
 	(xmlparseobject *)userData )
 
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+VOID_HANDLER( StartElement, 
+		(void *userData, const XML_Char *name, const XML_Char **atts ), 
+                ("(O&O&)", STRING_CONV_FUNC, name, 
+		 conv_atts_using_string, atts ) )
+#else
+/* Python 1.6 and later */
 VOID_HANDLER( StartElement, 
 		(void *userData, const XML_Char *name, const XML_Char **atts ), 
                 ("(O&O&)", STRING_CONV_FUNC, name, 
 		 (self->returns_unicode  
 		  ? conv_atts_using_unicode 
 		  : conv_atts_using_string), atts ) )
+#endif
 
 VOID_HANDLER( EndElement, 
 		(void *userData, const XML_Char *name ), 
@@ -265,11 +280,17 @@ VOID_HANDLER( ProcessingInstruction,
 		const XML_Char *data),
                 ("(O&O&)",STRING_CONV_FUNC,target, STRING_CONV_FUNC,data ))
 
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
 VOID_HANDLER( CharacterData, 
-		(void *userData, const XML_Char *data, int len), 
-                ("(O)", (self->returns_unicode 
-			 ? conv_string_len_to_unicode(data,len) 
-			 : conv_string_len_to_utf8(data,len) ) ) )
+	      (void *userData, const XML_Char *data, int len), 
+	      ("(O)", conv_string_len_to_utf8(data,len) ) )
+#else
+VOID_HANDLER( CharacterData, 
+	      (void *userData, const XML_Char *data, int len), 
+	      ("(O)", (self->returns_unicode 
+		       ? conv_string_len_to_unicode(data,len) 
+		       : conv_string_len_to_utf8(data,len) ) ) )
+#endif
 
 VOID_HANDLER( UnparsedEntityDecl,
 		(void *userData, 
@@ -316,17 +337,27 @@ VOID_HANDLER( EndCdataSection,
                (void *userData),
 		("()" ))
 
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
 VOID_HANDLER( Default,
-		(void *userData,  const XML_Char *s, int len),
-                ("(O)", (self->returns_unicode 
-			 ? conv_string_len_to_unicode(s,len) 
-			 : conv_string_len_to_utf8(s,len) ) ) )
+	      (void *userData,  const XML_Char *s, int len),
+	      ("(O)", conv_string_len_to_utf8(s,len) ) )
 
 VOID_HANDLER( DefaultHandlerExpand,
-		(void *userData,  const XML_Char *s, int len),
-                ("(O)", (self->returns_unicode 
-			 ? conv_string_len_to_unicode(s,len) 
-			 : conv_string_len_to_utf8(s,len) ) ) )
+	      (void *userData,  const XML_Char *s, int len),
+	      ("(O)", conv_string_len_to_utf8(s,len) ) )
+#else
+VOID_HANDLER( Default,
+	      (void *userData,  const XML_Char *s, int len),
+	      ("(O)", (self->returns_unicode 
+		       ? conv_string_len_to_unicode(s,len) 
+		       : conv_string_len_to_utf8(s,len) ) ) )
+
+VOID_HANDLER( DefaultHandlerExpand,
+	      (void *userData,  const XML_Char *s, int len),
+	      ("(O)", (self->returns_unicode 
+		       ? conv_string_len_to_unicode(s,len) 
+		       : conv_string_len_to_utf8(s,len) ) ) )
+#endif
 
 INT_HANDLER( NotStandalone, 
 		(void *userData), 
@@ -577,16 +608,20 @@ newxmlparseobject( char *encoding, char *namespace_separator){
 	int i;
 	xmlparseobject *self;
 	
-#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION <= 6
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
 	self = PyObject_NEW(xmlparseobject, &Xmlparsetype);
+	if (self == NULL)
+		return NULL;
+
+	self->returns_unicode = 0;
 #else
         /* Code for versions 1.6 and later */
         self = PyObject_New(xmlparseobject, &Xmlparsetype);
-#endif
 	if (self == NULL)
 		return NULL;
 
 	self->returns_unicode = 1;
+#endif
 	if (namespace_separator) {
 		self->itself = XML_ParserCreateNS(encoding, 
 						*namespace_separator);
@@ -713,7 +748,15 @@ xmlparse_setattr( xmlparseobject *self, char *name, PyObject *v)
         if (strcmp(name, "returns_unicode") == 0) {
 		PyObject *intobj = PyNumber_Int(v);
 		if (intobj == NULL) return -1;
-		if (PyInt_AsLong(intobj)) self->returns_unicode = 1;
+		if (PyInt_AsLong(intobj)) {
+#if PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION < 6
+		  PyErr_SetString(PyExc_ValueError, 
+			 "Cannot return Unicode strings in Python 1.5");
+		  return -1;
+#else
+		  self->returns_unicode = 1;
+#endif
+		}
 		else                      self->returns_unicode = 0;
 		Py_DECREF(intobj);
 		return 0;
@@ -812,7 +855,7 @@ static char pyexpat_module_documentation[] =
 void
 initpyexpat(){
 	PyObject *m, *d;
-        char *rev="$Revision: 1.8 $";
+        char *rev="$Revision: 1.9 $";
 	PyObject *errors_module, *errors_dict;
 
 	Xmlparsetype.ob_type = &PyType_Type;
