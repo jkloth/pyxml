@@ -101,7 +101,7 @@ int utf8_isName3(const ENCODING *enc, const char *p)
 static
 int utf8_isNmstrt2(const ENCODING *enc, const char *p)
 {
-  return UTF8_GET_NAMING2(namePages, (const unsigned char *)p);
+  return UTF8_GET_NAMING2(nmstrtPages, (const unsigned char *)p);
 }
 
 static
@@ -965,7 +965,7 @@ struct unknown_encoding {
   int (*convert)(void *userData, const char *p);
   void *userData;
   unsigned short utf16[256];
-  unsigned char utf8[256][4];
+  char utf8[256][4];
 };
 
 int XmlSizeOfUnknownEncoding()
@@ -1008,7 +1008,7 @@ void unknown_toUtf8(const ENCODING *enc,
 {
   char buf[XML_UTF8_ENCODE_MAX];
   for (;;) {
-    const unsigned char *utf8;
+    const char *utf8;
     int n;
     if (*fromP == fromLim)
       break;

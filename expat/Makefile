@@ -16,8 +16,6 @@ OBJS=xmltok/xmltok.o \
 EXE=
 
 all: xmlwf/xmlwf$(EXE)
-libexpat.a: $(OBJS)
-	ar cr libexpat.a $(OBJS)
 
 xmlwf/xmlwf$(EXE): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
@@ -39,3 +37,7 @@ xmltok/xmltok.o: xmltok/nametab.h
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+libexpat.a: $(OBJS)
+	ar cr libexpat.a $(OBJS)
+
