@@ -27,11 +27,13 @@ def handle_sdata(sdata):
 
 class EsisBuilder(Builder):
     
-    def __init__(self):
+    def __init__(self, convert=str):
         Builder.__init__(self)
         self.attr_store = {}
         self.id_store = {}
         #self.sdata_handler = handle_sdata
+        # convert may, for example, be used to handle case conversion 
+        self.convert = convert
 
     def feed(self, data):
         for line in string.split(data, '\n'):
@@ -41,6 +43,7 @@ class EsisBuilder(Builder):
             text = line[1:]
 
             if event == '(':
+                text = self.convert(text)
                 element = self.document.createElement(text, self.attr_store)
                 self.attr_store = {}
                 self.push(element)
@@ -50,9 +53,8 @@ class EsisBuilder(Builder):
 
             elif event == 'A':
                 l = re.split(' ', text, 2)
-                name = l[0]
-                value = ESISDecode(l[2])
-                self.attr_store[name] = value
+                if l[1] != 'IMPLIED':
+                    self.attr_store[self.convert(l[0])] = ESISDecode(l[2])
 
             elif event == '-':
                 text = self.document.createText(ESISDecode(text))
