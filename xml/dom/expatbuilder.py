@@ -903,7 +903,8 @@ class InternalSubsetExtractor(ExpatBuilder):
             raise ParseEscape()
 
     def end_doctype_decl_handler(self):
-        self.subset = ''.join(self.subset)
+        s = ''.join(self.subset).replace('\r\n', '\n').replace('\r', '\n')
+        self.subset = s
         raise ParseEscape()
 
     def start_element_handler(self, name, attrs):
