@@ -16,7 +16,7 @@ http://prdownloads.sourceforge.net/pyxml/PyXML-0.8.4-2.2.Suse82.i386.rpm
 
 Changes in this version, compared to 0.8.3:
 
-  * Expat 1.95.7 is provided.
+  * Expat 1.95.8 is provided.
   * Added Dublin Core Metadata Initiative (DCMI) namespaces to the
     xml.ns module.
 
