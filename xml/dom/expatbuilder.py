@@ -209,6 +209,15 @@ class ExpatBuilder:
                                    has_internal_subset):
         self._pre_doc_events.append(("doctype",))
         self._doctype_args = (doctypeName, publicId, systemId)
+        if has_internal_subset:
+            self._parser.CommentHandler = None
+            self._parser.ProcessingInstructionHandler = None
+            self._parser.EndDoctypeDeclHandler = self.end_doctype_decl_handler
+
+    def end_doctype_decl_handler(self):
+        if self._options.comments:
+            self._parser.CommentHandler = self.comment_handler
+        self._parser.ProcessingInstructionHandler = self.pi_handler
 
     def pi_handler(self, target, data):
         if self.document is None:

@@ -110,6 +110,15 @@ class Tests(unittest.TestCase):
                             "iso-8859-1")
         self.check_resolver(("text", "plain", ["charset=UTF-8"]), "utf-8")
 
+    def test_internal_subset_isolation(self):
+        document = self.builder.parse(self.makeSource(
+            "<!DOCTYPE doc ["
+            "<!-- comment --> <?pi foo?>"
+            "]><doc/>"
+            ))
+        s = document.toxml()
+        self.assertEqual(s, '<?xml version="1.0" ?>\n<doc/>')
+
 
 DUMMY_URL = "http://xml.python.org/dummy.xml"
 
