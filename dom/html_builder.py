@@ -71,6 +71,9 @@ class HtmlBuilder(SGMLParser, Builder):
                 #print 'ending', tag
 
                 while self.stack:
+                        if tag not in self.stack:
+                                #print "ignoring end tag with no start", tag
+                                break
                         if tag in self.empties:
                                 continue
                         start_tag = self.stack[-1]
