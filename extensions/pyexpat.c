@@ -1512,7 +1512,7 @@ PyModule_AddStringConstant(PyObject *m, char *name, char *value)
 static PyObject *
 get_version_string(void)
 {
-    static char *rcsid = "#Revision: 2.51 $";
+    static char *rcsid = "#Revision: 2.54 $";
     char *rev = rcsid;
     int i = 0;
 
@@ -1708,11 +1708,11 @@ pyxml_UpdatePairedHandlers(xmlparseobject *self,
     void *end_handler = NULL;
 
     if (self->handlers[startHandler]
-        && self->handlers[endHandler] != Py_None) {
+        && self->handlers[startHandler] != Py_None) {
         start_handler = handler_info[startHandler].handler;
     }
-    if (self->handlers[EndElement]
-        && self->handlers[EndElement] != Py_None) {
+    if (self->handlers[endHandler]
+        && self->handlers[endHandler] != Py_None) {
         end_handler = handler_info[endHandler].handler;
     }
     setter(self->itself, start_handler, end_handler);
