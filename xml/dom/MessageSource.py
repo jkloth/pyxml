@@ -4,6 +4,7 @@ from xml.dom import WRONG_DOCUMENT_ERR, INVALID_CHARACTER_ERR, NO_DATA_ALLOWED_E
 from xml.dom import NO_MODIFICATION_ALLOWED_ERR, NOT_FOUND_ERR, NOT_SUPPORTED_ERR
 from xml.dom import INUSE_ATTRIBUTE_ERR, INVALID_STATE_ERR, SYNTAX_ERR
 from xml.dom import INVALID_MODIFICATION_ERR, NAMESPACE_ERR, INVALID_ACCESS_ERR
+from xml.dom import VALIDATION_ERR
 
 # EventException
 from xml.dom import UNSPECIFIED_EVENT_TYPE_ERR
@@ -39,6 +40,7 @@ DOMExceptionStrings = {
     INVALID_MODIFICATION_ERR: _("Attempt to modify the type of a node"),
     NAMESPACE_ERR: _("Invalid or illegal namespace operation"),
     INVALID_ACCESS_ERR: _("Object does not support this operation or parameter"),
+    VALIDATION_ERR: _("Operation would invalidate partial validity constraint"),
     }
 
 EventExceptionStrings = {

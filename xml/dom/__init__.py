@@ -76,11 +76,14 @@ NO_MODIFICATION_ALLOWED_ERR    = 7
 NOT_FOUND_ERR                  = 8
 NOT_SUPPORTED_ERR              = 9
 INUSE_ATTRIBUTE_ERR            = 10
+# DOM Level 2
 INVALID_STATE_ERR              = 11
 SYNTAX_ERR                     = 12
 INVALID_MODIFICATION_ERR       = 13
 NAMESPACE_ERR                  = 14
 INVALID_ACCESS_ERR             = 15
+# DOM Level 3
+VALIDATION_ERR                 = 16
 
 # EventException codes
 UNSPECIFIED_EVENT_TYPE_ERR     = 0
@@ -193,6 +196,10 @@ class NamespaceErr(DOMException):
 class InvalidAccessErr(DOMException):
     def __init__(self, msg=''):
         DOMException.__init__(self, INVALID_ACCESS_ERR, msg)
+
+class ValidationErr(DOMException):
+    def __init__(self, msg=''):
+        DOMException.__init__(self, VALIDATION_ERR, msg)
 
 class UnspecifiedEventTypeErr(EventException):
     def __init__(self, msg=''):
