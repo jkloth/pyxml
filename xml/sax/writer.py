@@ -40,7 +40,7 @@ elements which have no content.  This is needed to properly support
 XML and XHTML.
 
 """
-__version__ = '$Revision: 1.8 $'
+__version__ = '$Revision: 1.9 $'
 
 import string
 
@@ -373,11 +373,12 @@ class XmlWriter:
         pass
 
     def processingInstruction(self, target, data):
+        self._check_pending_content()
         s = "%s%s %s%s" % (self.__syntax.pio, target, data, self.__syntax.pic)
         prefix = self._prefix[:-self.indentation] \
                  + (" " * self.indentEndTags)
         if "\n" in s:
-            pos = string.rfind(s, "\n")
+            p = string.rfind(s, "\n")
             if self._flowing and not self._packing:
                 self._write(prefix + s + "\n")
                 self._offset = 0
@@ -389,7 +390,7 @@ class XmlWriter:
             self._offset = 0
         else:
             self._write(s)
-            self._offset = len(s) - (p + 1)
+            self._offset = self._offset + len(s)
 
 
     # This doesn't actually have a SAX equivalent, so we'll use it as
