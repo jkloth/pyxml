@@ -48,6 +48,7 @@ class Reader(reader.Reader):
 
     def initParser(self):
         self.parser = expat.ParserCreate()
+        self.parser.buffer_text = 1
         self.parser.StartElementHandler = self.startElement
         self.parser.EndElementHandler = self.endElement
         self.parser.CharacterDataHandler = self.characters
