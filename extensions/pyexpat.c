@@ -878,10 +878,11 @@ readinst(char *buf, int buf_size, PyObject *meth)
     PyTuple_SET_ITEM(arg, 0, bytes);
 
 #if PY_VERSION_HEX < 0x02020000
-    if ((str = PyObject_CallObject(meth, arg)) == NULL)
+    str = PyObject_CallObject(meth, arg);
 #else
-    if ((str = PyObject_Call(meth, arg, NULL)) == NULL)
+    str = PyObject_Call(meth, arg, NULL);
 #endif
+    if (str == NULL)
         goto finally;
 
     /* XXX what to do if it returns a Unicode string? */
@@ -1796,7 +1797,7 @@ MODULE_INITFUNC(void)
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
     /* THIS IS FOR USE IN PyXML ONLY.  */
-    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.73 $");
+    PyModule_AddStringConstant(m, "pyxml_expat_version", "$Revision: 1.74 $");
 
     sys_modules = PySys_GetObject("modules");
     d = PyModule_GetDict(m);
