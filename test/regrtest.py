@@ -104,14 +104,15 @@ def main( tests = None, testdir = None ):
         print string.join(skipped)
     return len(bad) > 0
 
+#  Not in PyXML...
 STDTESTS = [
-    'test_grammar',
-    'test_opcodes',
-    'test_operations',
-    'test_builtin',
-    'test_exceptions',
-    'test_types',
-   ]
+#      'test_grammar',
+#      'test_opcodes',
+#      'test_operations',
+#      'test_builtin',
+#      'test_exceptions',
+#      'test_types',
+    ]
 
 NOTTESTS = [
     'test_support',
