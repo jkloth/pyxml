@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.3 2000/07/14 21:08:38 effbot Exp $
+ * $Id: sgmlop.c,v 1.4 2000/09/27 18:45:59 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -1283,6 +1283,8 @@ attrparse(const CHAR_T* p, int len, int xml)
             value = Py_None;
         else
             value = key; /* in SGML mode, default is same as key */
+
+        Py_INCREF(value);
 
         while (p < end && ISSPACE(*p))
             p++;
