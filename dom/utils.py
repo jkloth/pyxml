@@ -107,3 +107,113 @@ def collapse_whitespace (node, func = WS_BOTH):
     # end: while stack not empty
 
 # end collapse_whitespace
+
+
+class FileReader:
+    """This class makes it really easy to get a DOM tree from a 
+    file.  
+
+    The following subclass would allow an HTML or XML file to be
+    pretty printed with a single line of code (a pretty silly example
+    but it's just an example):
+
+    class DomDumper(FileReader)
+         def __init__(self,filename):
+              FileReader.__init__(self,filename)
+              self.dom.dump()
+
+    d = DomDumper(sys.argv[1])
+    """
+
+    def __init__(self,filename=None):
+        self.filename = filename
+        if filename is not None:
+            self.document = self.readFile(filename)
+
+    def readFile(self, filename, file = None):
+        """Given an XML, HTML, or SGML filename with appropriate
+        file extension, return the DOM document."""
+
+        type = self.getFileType(filename)
+        if file is None:
+            file = open(filename,'r')
+            dom = self.readStream(file,type)
+            file.close()
+        else:
+            dom = self.readStream(file,type)
+        return dom
+
+    def readStream(self,stream,type='XML'):
+        if type == 'XML':
+            dom = self.readXml(stream)
+        elif type == 'HTML':
+            dom = self.readHtml(stream)
+        elif type == 'SGML':
+            dom = self.readSgml(stream)
+        else:
+            dom = None
+        return dom
+
+    def readXml(self,stream,parserName=None):
+        """parserName could be 'pyexpat', 'sgmlop', etc."""
+        from xml.sax import saxexts
+        from xml.dom.sax_builder import SaxBuilder
+        p = saxexts.make_parser(parserName)
+        dh = SaxBuilder()
+        p.setDocumentHandler(dh)
+        p.feed(stream.read())
+        doc = dh.document
+        p.close()
+        return doc
+
+    def readHtml(self,stream):
+        from xml.dom import html_builder
+        b = html_builder.HtmlBuilder()
+        b.feed(stream.read())
+        b.close()
+        doc = b.document
+        # There was some bug that prevents the builder from
+        # freeing itself (maybe it has already been fixed?).
+        # The next two lines break its references to the DOM
+        # tree so that it can be freed.
+        b.document = None
+        b.current_element = None
+        return doc
+    
+    def readSgml(self, stream):
+        # Don't know much about this part.  This could call SX to
+        # convert the SGML to XML, then read it in.  That's what I
+        # do for some SGML files I need to convert.  Any suggestions?
+        print "This is not implemented."
+
+    def getFileType(self,filename):
+        """Given a filename, figure out if the file contains XML,
+        HTML, or SGML.  For now, use the file extension to make the
+        determination.""" 
+
+        import os
+        filename = string.lower(filename)
+        (name,ext) = os.path.splitext(filename)
+        
+        if ext in ('.htm','.html'):
+            type = 'HTML'
+        elif ext in ('.sgm','.sgml'):
+            type = 'SGML'
+        elif ext == '.xml':
+            type = 'XML'
+        else:
+            type = '' # should this return None instead?
+        return type
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) == 2:
+        d = FileReader()
+        dom = d.readFile(sys.argv[1])
+        print dom.toxml()
+#        dom.dump()
+    else:
+        print "Usage: python %s <?ML filename>" % sys.argv[0]
+
+
