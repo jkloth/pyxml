@@ -1,261 +1,335 @@
 #! /usr/bin/env python
 '''XML Canonicalization
 
-This module generates canonical XML, as defined in
-    http://www.w3.org/TR/xml-c14n
+This module generates canonical XML of a document or element.
+    http://www.w3.org/TR/2001/REC-xml-c14n-20010315
+and includes a prototype of exclusive canonicalization
+    http://www.w3.org/Signature/Drafts/xml-exc-c14n
 
-It is limited in that it can only canonicalize an element and all its
-children; general document subsets are not supported.
+Requires PyXML 0.7.0 or later.
+
+Known issues if using Ft.Lib.pDomlette:
+    1. Unicode
+    2. does not white space normalize attributes of type NMTOKEN and ID?
+    3. seems to be include "\n" after importing external entities?
+
+Note, this version processes a DOM tree, and consequently it processes
+namespace nodes as attributes, not from a node's namespace axis. This
+permits simple document and element canonicalization without
+XPath. When XPath is used, the XPath result node list is passed and used to
+determine if the node is in the XPath result list, but little else.
+
+Authors:
+    "Joseph M. Reagle Jr." <reagle@w3.org>
+    "Rich Salz" <rsalz@zolera.com>
+
+$Date: 2001/08/02 18:52:05 $ by $Author: rsalz $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
-Distributed under the terms of the Python 2.0 Copyright or later.'''
+Copyright 2001, MIT. All Rights Reserved.
+
+Distributed under the terms of:
+  Python 2.0 License or later.
+  http://www.python.org/2.0.1/license.html
+or
+  W3C Software License
+  http://www.w3.org/Consortium/Legal/copyright-software-19980720
+'''
 
 from xml.dom import Node
-from xml.ns import XMLNS
-import re
 try:
-    import cStringIO
-    StringIO = cStringIO
+    from xml.ns import XMLNS
 except:
-    import StringIO
+    class XMLNS:
+	BASE = "http://www.w3.org/2000/xmlns/"
+	XML = "http://www.w3.org/XML/1998/namespace"
+import cStringIO as StringIO
 
 _attrs = lambda E: E.attributes or []
 _children = lambda E: E.childNodes or []
+_IN_XML_NS = lambda n: n.namespaceURI == XMLNS.XML
 
-def _sorter(n1, n2):
-    '''Sorting predicate for non-NS attributes.'''
+# Does a document/PI has lesser/greater document order than the
+# first element?
+_LesserElement, _Element, _GreaterElement = range(3)
+
+def _sorter(n1,n2):
+    '''_sorter(n1,n2) -> int
+    Sorting predicate for non-NS attributes.'''
+
     i = cmp(n1.namespaceURI, n2.namespaceURI)
     if i: return i
     return cmp(n1.localName, n2.localName)
 
-def _sorter_ns(n1, n2):
-    '''Sorting predicate for NS attributes; "xmlns" always comes first.'''
-    if n1.localName == 'xmlns': return -1
-    if n2.localName == 'xmlns': return 1
-    return cmp(n1.localName, n2.localName)
-    
-class _implementation:
-    '''Implementation class for C14N.'''
 
-    # Handlers for each node, by node type.
+def _sorter_ns(n1,n2):
+    '''_sorter_ns((n,v),(n,v)) -> int
+    "(an empty namespace URI is lexicographically least)."'''
+
+    if n1[0] == 'xmlns': return -1
+    if n2[0] == 'xmlns': return 1
+    return cmp(n1[0], n2[0])
+
+def _utilized(n, node, other_attrs, unsuppressedPrefixes):
+    '''_utilized(n, node, other_attrs, unsuppressedPrefixes) -> boolean
+    Return true if that nodespace is utilized within the node'''
+
+    if n.startswith('xmlns:'):
+	n = n[6:]
+    elif n.startswith('xmlns'):
+	n = n[5:]
+    if n == node.prefix or n in unsuppressedPrefixes: return 1
+    for attr in other_attrs:
+        if n == attr.prefix: return 1
+    return 0
+
+class _implementation:
+    '''Implementation class for C14N. This accompanies a node during it's
+    processing and includes the parameters and processing state.'''
+
+    # Handler for each node type; populated during module instantiation.
     handlers = {}
 
-    # pattern/replacement list for whitespace stripping.
-    repats = (
-	( re.compile(r'[ \t]+'), ' ' ),
-	( re.compile(r'[\r\n]+'), '\n' ),
-    )
+    def __init__(self, node, write, **kw):
+        '''Create and run the implementation.'''
 
-    # We need to know if we've seen an element or not, so that we
-    # can properly output newlines before/after PI and comment nodes.
-    ELTnone, ELTdoing, ELTseen = 0, 1, 2
+        self.write = write
+        self.subset = kw.get('subset', None)
+        if self.subset:
+            self.comments = kw.get('comments', 1)
+        else:
+            self.comments = kw.get('comments', O)
+        self.unsuppressedPrefixes = kw.get('unsuppressedPrefixes', None)
+        nsdict = kw.get('nsdict', { 'xml': XMLNS.XML, 'xmlns': XMLNS.BASE })
 
-    def __init__(self, node, write, nsdict={}, stripspace=0, nocomments=1):
-	'''Create and run the implementation.'''
-	if node.nodeType != Node.ELEMENT_NODE:
-	    raise TypeError, 'Non-element node'
-	self.write, self.stripspace, self.nocomments = \
-		write, stripspace, nocomments
+        # Processing state.
+        self.state = (nsdict, ['xml'], [])
 
-	if nsdict == None or nsdict == {}:
-	    nsdict = { 'xml': XMLNS.XML, 'xmlns': XMLNS.BASE }
-	self.ns_stack = [ nsdict ]
+        if node.nodeType == Node.DOCUMENT_NODE:
+            self._do_document(node)
+        elif node.nodeType == Node.ELEMENT_NODE:
+            self.documentOrder = _Element        # At document element
+            if self.unsuppressedPrefixes != None:
+                self._do_element(node)
+            else:
+                inherited = self._inherit_context(node)
+                self._do_element(node, inherited)
+        elif node.nodeType == Node.DOCUMENT_TYPE_NODE:
+	    pass
+        else:
+            raise TypeError, str(node)
 
-	# Collect the initial list of xml:XXX attributes.
-	xmlattrs = []
-	for a in _attrs(node):
-	    if a.namespaceURI == XMLNS.XML:
-		n = a.localName
-		xmlattrs.append(n)
 
-	# Walk up and get all xml:XXX attributes we inherit.
-	parent, inherited = node.parentNode, []
-	while parent:
-	    if parent.nodeType != Node.ELEMENT_NODE: break
-	    for a in _attrs(parent):
-		if a.namespaceURI != XMLNS.XML: continue
-		n = a.localName
-		if n not in xmlattrs:
-		    xmlattrs.append(n)
-		    inherited.append(a)
-	    parent = parent.parentNode
+    def _inherit_context(self, node):
+        '''_inherit_context(self, node) -> list
+        Scan ancestors of attribute and namespace context.  Used only
+        for single element node canonicalization, not for subset
+        canonicalization.'''
 
-	self._do_element(node, inherited)
-	self.ns_stack.pop()
+        # Collect the initial list of xml:foo attributes.
+        xmlattrs = filter(_IN_XML_NS, _attrs(node))
+
+        # Walk up and get all xml:XXX attributes we inherit.
+        inherited, parent = [], node.parentNode
+        while parent and parent.nodeType == Node.ELEMENT_NODE:
+            for a in filter(_IN_XML_NS, _attrs(parent)):
+                n = a.localName
+                if n not in xmlattrs:
+                    xmlattrs.append(n)
+                    inherited.append(a)
+            parent = parent.parentNode
+        return inherited
+
+
+    def _do_document(self, node):
+        '''_do_document(self, node) -> None
+        Process a document node. documentOrder holds whether the document
+        element has been encountered such that PIs/comments can be written
+        as specified.'''
+
+        self.documentOrder = _LesserElement
+        for child in node.childNodes:
+            if child.nodeType == Node.ELEMENT_NODE:
+                self.documentOrder = _Element        # At document element
+                self._do_element(child)
+                self.documentOrder = _GreaterElement # After document element
+            elif child.nodeType == Node.PROCESSING_INSTRUCTION_NODE:
+                self._do_pi(child)
+            elif child.nodeType == Node.COMMENT_NODE:
+                self._do_comment(child)
+            elif child.nodeType == Node.DOCUMENT_TYPE_NODE:
+                pass
+            else:
+                raise TypeError, str(child)
+    handlers[Node.DOCUMENT_NODE] = _do_document
+
 
     def _do_text(self, node):
-	'Process a text node.'
-	s = node.data \
-		.replace("&", "&amp;") \
-		.replace("<", "&lt;") \
-		.replace(">", "&gt;") \
-		.replace("\015", "&#xD;")
-	if self.stripspace:
-	    for pat,repl in _implementation.repats: s = re.sub(pat, repl, s)
-	if s: self.write(s)
-    handlers[Node.TEXT_NODE] =_do_text
-    handlers[Node.CDATA_SECTION_NODE] =_do_text
+        '''_do_text(self, node) -> None
+        Process a text or CDATA node.  Render various special characters
+        as their C14N entity representations.'''
+        if self.subset and node not in self.subset: return
+        s = node.data \
+                .replace("&", "&amp;") \
+                .replace("<", "&lt;") \
+                .replace(">", "&gt;") \
+                .replace("\015", "&#xD;")
+        if s: self.write(s)
+    handlers[Node.TEXT_NODE] = _do_text
+    handlers[Node.CDATA_SECTION_NODE] = _do_text
+
 
     def _do_pi(self, node):
-	'''Process a PI node.  Since we start with an element, we're
-	never a child of the root, so we never write leading or trailing
-	#xA.
-	'''
-	W = self.write
-	W('<?')
-	W(node.nodeName)
-	s = node.data
-	if s:
-	    W(' ')
-	    W(s)
-	W('?>')
-    handlers[Node.PROCESSING_INSTRUCTION_NODE] =_do_pi
+        '''_do_pi(self, node) -> None
+        Process a PI node. Render a leading or trailing #xA if the
+        document order of the PI is greater or lesser (respectively)
+        than the document element.
+        '''
+        if self.subset and node not in self.subset: return
+        W = self.write
+        if self.documentOrder == _GreaterElement: W('\n')
+        W('<?')
+        W(node.nodeName)
+        s = node.data
+        if s:
+            W(' ')
+            W(s)
+        W('?>')
+        if self.documentOrder == _LesserElement: W('\n')
+    handlers[Node.PROCESSING_INSTRUCTION_NODE] = _do_pi
+
 
     def _do_comment(self, node):
-	'''Process a comment node.  Since we start with an element, we're
-	never a child of the root, so we never write leading or trailing
-	#xA.
-	'''
-	if self.nocomments: return
-	W = self.write
-	W('<!--')
-	W(node.data)
-	W('-->')
-    handlers[Node.COMMENT_NODE] =_do_comment
+        '''_do_comment(self, node) -> None
+        Process a comment node. Render a leading or trailing #xA if the
+        document order of the comment is greater or lesser (respectively)
+        than the document element.
+        '''
+        if self.subset and node not in self.subset: return
+        if self.comments:
+            W = self.write
+            if self.documentOrder == _GreaterElement: W('\n')
+            W('<!--')
+            W(node.data)
+            W('-->')
+            if self.documentOrder == _LesserElement: W('\n')
+    handlers[Node.COMMENT_NODE] = _do_comment
+
 
     def _do_attr(self, n, value):
-	'Process an attribute.'
-	W = self.write
-	W(' ')
-	W(n)
-	W('="')
-	s = value \
-	    .replace("&", "&amp;") \
-	    .replace("<", "&lt;") \
-	    .replace('"', '&quot;') \
-	    .replace('\011', '&#x9') \
-	    .replace('\012', '&#xA') \
-	    .replace('\015', '&#xD')
-	W(s)
-	W('"')
+        ''''_do_attr(self, node) -> None
+        Process an attribute.'''
 
-    def _do_element(self, node, initialattrlist = []):
-	'Process an element (and its children).'
-	name = node.nodeName
-	W = self.write
-	W('<')
-	W(name)
+        W = self.write
+        W(' ')
+        W(n)
+        W('="')
+        s = value \
+            .replace("&", "&amp;") \
+            .replace("<", "&lt;") \
+            .replace('"', '&quot;') \
+            .replace('\011', '&#x9') \
+            .replace('\012', '&#xA') \
+            .replace('\015', '&#xD')
+        W(s)
+        W('"')
 
-	# Get parent namespace, make a copy for us to inherit.
-	parent_ns = self.ns_stack[-1]
-	my_ns = parent_ns.copy()
 
-	# Divide attributes into NS definitions and others.
-	nsnodes, others = [], initialattrlist[:]
-	for a in _attrs(node):
-	    if a.namespaceURI == XMLNS.BASE:
-		nsnodes.append(a)
-	    else:
-		others.append(a)
+    def _do_element(self, node, initial_other_attrs = []):
+        '''_do_element(self, node, initial_other_attrs = []) -> None
+        Process an element (and its children).'''
 
-	# Namespace attributes: update dictionary; if not already
-	# in parent, output it.
-	nsnodes.sort(_sorter_ns)
-	for a in nsnodes:
-	    # Some DOMs seem to rename "xmlns='xxx'" strangely
-	    n = a.nodeName
-	    if n == "xmlns:":
-		key, n = "", "xmlns"
-	    else:
-		key = a.localName
+        # Get state (from the stack) make local copies.
+        #	ns_parent -- NS declarations in parent
+        #	ns_rendered -- NS nodes rendered by ancestors
+	#	xml_attrs -- Attributes in XML namespace from parent
+        #	ns_local -- NS declarations relevant to this element
+	ns_parent, ns_rendered, xml_attrs = \
+		self.state[0], self.state[1][:], self.state[2][:]
+        ns_local = ns_parent.copy()
 
-	    v = my_ns[key] = a.nodeValue
-	    pval = parent_ns.get(key, None)
+        # Divide attributes into NS, XML, and others.
+        other_attrs = initial_other_attrs[:]
+        for a in _attrs(node):
+            if a.namespaceURI == XMLNS.BASE:
+                n = a.nodeName
+                if n == "xmlns:": n = "xmlns"        # DOM bug workaround
+                ns_local[n] = a.nodeValue
+            elif a.namespaceURI == XMLNS.XML:
+                xml_attrs.append(a)
+            else:
+                other_attrs.append(a)
 
-	    if n == "xmlns" and v in [ '', XMLNS.BASE ] \
-	    and pval in [ '', XMLNS.BASE ]:  
-		# Default namespace set to default value.
-		pass
-	    elif v != pval:
-		self._do_attr(n, v)
+        # Render the node
+        W, name = self.write, None
+        if not self.subset or node in self.subset:
+            name = node.nodeName
+            W('<')
+            W(name)
 
-	# Other attributes: sort and output.
-	others.sort(_sorter)
-	for a in others: self._do_attr(a.nodeName, a.value)
+            # Create list of NS attributes to render.
+            ns_to_render = []
+            for n,v in ns_local.items():
+                pval = ns_parent.get(n, None)
 
-	W('>')
+                # IF default namespace is XMLNS.BASE or empty, skip
+                if n == "xmlns" \
+                and v in [ XMLNS.BASE, '' ] and pval in [ XMLNS.BASE, '' ]:
+                    continue
 
-	# Push our namespace dictionary, recurse, pop the dicionary.
-	self.ns_stack.append(my_ns)
-	for c in _children(node):
-	    _implementation.handlers[c.nodeType](self, c)
-	    # XXX Ignore unknown node types?
-	    #handler = _implementation.handlers.get(c.nodeType, None)
-	    #if handler: handler(self, c)
-	self.ns_stack.pop()
-	W('</%s>' % (name,))
-    handlers[Node.ELEMENT_NODE] =_do_element
+                # If different from parent, or parent didn't render
+		# and if not exclusive, or this prefix is needed or
+		# not suppressed
+                if (v != pval or n not in ns_rendered) \
+		  and (self.unsuppressedPrefixes == None or \
+		  _utilized(n, node, other_attrs, self.unsuppressedPrefixes)):
+		    ns_to_render.append((n, v))
+
+            # Sort and render the ns, marking what was rendered.
+            ns_to_render.sort(_sorter_ns)
+            for n,v in ns_to_render:
+                self._do_attr(n, v)
+                ns_rendered.append(n)
+
+	    # Add in the XML attributes (don't pass to children, since
+	    # we're rendering them), sort, and render.
+            other_attrs.extend(xml_attrs)
+            xml_attrs = []
+            other_attrs.sort(_sorter)
+            for a in other_attrs:
+                self._do_attr(a.nodeName, a.value)
+            W('>')
+
+        # Push state, recurse, pop state.
+	state, self.state = self.state, (ns_local, ns_rendered, xml_attrs)
+        for c in _children(node):
+            _implementation.handlers[c.nodeType](self, c)
+        self.state = state
+
+        if name: W('</%s>' % name)
+    handlers[Node.ELEMENT_NODE] = _do_element
+
 
 def Canonicalize(node, output=None, **kw):
-    '''Canonicalize a DOM element node and everything underneath it.
+    '''Canonicalize(node, output=None, **kw) -> UTF-8
+
+    Canonicalize a DOM document/element node and all descendents.
     Return the text; if output is specified then output.write will
     be called to output the text and None will be returned
     Keyword parameters:
-	stripspace -- remove extra (almost all) whitespace from text nodes
-	nsdict -- a dictionary of prefix:uri namespace entries assumed
-	    to exist in the surrounding context
-	comments -- keep comments if non-zero (default is zero)
+        nsdict: a dictionary of prefix:uri namespace entries
+                assumed to exist in the surrounding context
+        comments: keep comments if non-zero (default is 1 if subset, 0 if not)
+        subset: Canonical XML subsetting resulting from XPath
+                (default is [])
+        unsuppressedPrefixes: do exclusive C14N, and this specifies the
+		prefixes that should be inherited.
     '''
 
-    # If we got a DOM root, go to the first element.
-    if node.nodeType == Node.DOCUMENT_NODE:
-	for n in node.childNodes:
-	    if n.nodeType == Node.ELEMENT_NODE:
-		node = n
-		break
-    if not output: s = StringIO.StringIO()
-    _implementation(node,
-	(output and output.write) or s.write,
-	nsdict=kw.get('nsdict', {}),
-	stripspace=kw.get('stripspace', 0),
-	nocomments=kw.get('comments', 0) == 0,
-    )
-    if not output: return s.getvalue()
-
-if __name__ == '__main__':
-    text = '''<SOAP-ENV:Envelope xml:lang='en'
-      xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-      xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchemaInstance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchemaZ" xmlns:spare='foo'
-      SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-	<SOAP-ENV:Body xmlns='test-uri'><?MYPI spenser?>
-	    <zzz xsd:foo='xsdfoo' xsi:a='xsi:a'/>
-	    <SOAP-ENC:byte>44</SOAP-ENC:byte>        <!-- 1 -->
-	    <Name xml:lang='en-GB'>This is the name</Name>Some
-content here on two lines.
-	    <n2><![CDATA[<greeting>Hello</greeting>]]></n2> <!-- 3 -->
-	    <n3 href='z&amp;zz' xsi:type='SOAP-ENC:string'>
-	    more content.  indented    </n3>
-	    <a2 xmlns:f='z' xmlns:aa='zz'><i xmlns:f='z'>12</i><t>rich salz</t></a2> <!-- 8 -->
-	</SOAP-ENV:Body>
-      <z xmlns='myns' id='zzz'>The value of n3</z>
-      <zz xmlns:spare='foo' xmlns='myns2' id='tri2'><inner>content</inner></zz>
-</SOAP-ENV:Envelope>'''
-
-    print _copyright
-    from xml.dom.ext.reader import PyExpat
-    reader = PyExpat.Reader()
-    dom = reader.fromString(text)
-    for e in _children(dom):
-	if e.nodeType != Node.ELEMENT_NODE: continue
-	for ee in _children(e):
-	    if ee.nodeType != Node.ELEMENT_NODE: continue
-	    print '\n', '=' * 60
-	    print Canonicalize(ee, nsdict={'spare':'foo'}, stripspace=1)
-	    print '-' * 60
-	    print Canonicalize(ee, stripspace=0)
-	    print '-' * 60
-	    print Canonicalize(ee, comments=1)
-	    print '=' * 60
+    if output:
+        _implementation(node, output.write, **kw)
+    else:
+        s = StringIO.StringIO()
+        _implementation(node, s.write, **kw)
+        return s.getvalue()
