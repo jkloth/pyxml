@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 
 A class to parse an XBEL file and produce a Bookmarks instance.
@@ -79,6 +81,8 @@ if __name__ == '__main__':
     if len(opts)>1 or len(opts)==0:
         print 'You must specify a single output format when running xbel_parse'
         print 'Available formats: --opera, --netscape, --msie, --lynx, --xbel'
+        print '    --lynx <path> : For Lynx, a path to the directory where'
+        print '                    the output bookmark files should be written'
         sys.exit(1)
         
     xbel_handler = XBELHandler()
