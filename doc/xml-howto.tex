@@ -1,7 +1,11 @@
 \documentclass{howto}
 
-% $Id: xml-howto.tex,v 1.8 2001/10/25 17:26:19 akuchling Exp $
+% $Id: xml-howto.tex,v 1.9 2002/05/10 14:38:13 akuchling Exp $
 
+% TODO:
+%   Read over DOM section
+%   Write outline of entire document
+%   Explain namespaces somewhere
 % XXX not covered: c14n.py, xml.marshal, scripts, namespaces, TREX/schemas,
 % XSLT, XPath
 % XXX overview of parsers
@@ -25,13 +29,15 @@ XML is the eXtensible Markup Language, a subset of SGML intended to
 allow the creation and processing of application-specific markup
 languages.  Python makes an excellent language for processing XML
 data.  This document is a tutorial for the Python/XML package.  It
-assumes you're already familiar with the structure and terminology of
-XML.
+assumes you're already somewhat familiar with the structure and
+terminology of XML, though a brief introduction is supplied.
 \end{abstract}
 
 \tableofcontents
 
-\section{Introduction to XML}
+
+%==========================================================================
+\section{Introduction to XML\label{section-introduction}}
 
 XML, the eXtensible Markup Language, is a simplified dialect of SGML,
 the Standardized General Markup Language.  XML is intended to be
@@ -46,26 +52,26 @@ contains several parts: it has a title, one or more authors, the text
 of the book, perhaps a preface or an index, and so forth.  A markup
 languge for writing books would therefore have elements indicating
 what the contents of the preface are, what the title is, and so forth.
-This should not be confused with the physical details of how the
-document is actually printed on paper.  The index might be printed
-with narrow margins in a smaller font than the rest of the book, but
-markup usually isn't (or shouldn't be, anyway) concerned with details
-such as this.  Instead, other software will translate from the markup
-language to a typesetting language such as \TeX, handling the
+This logical structure should not be confused with the physical
+details of how the document is actually printed on paper.  The index
+might be printed with narrow margins in a smaller font than the rest
+of the book, but markup usually isn't (or shouldn't be, anyway)
+concerned with details such as this.  Instead, other software will
+translate from the markup language to a typeset format, handling the
 presentation details.
 
 This section will provide a brief overview of XML and a few related
 standards, but it's far from being complete because making it complete
 would require a full-length book and not a short HOWTO. There's no
-better way to get a completely accurate description than to read the
-original W3C Recommendations; you can find links to them in
-section~\ref{xml-links}, ``Related Links''.  If you already know what
-XML is, you can skip the rest of this section.
+better way to get a completely accurate (if rather dry) description
+than to read the original W3C Recommendations; you can find links to
+them in section~\ref{xml-links}, ``Related Links''.  If you already
+know what XML is, you can skip the rest of this section.
 
 Later sections of this HOWTO assume that you're familiar with XML
 terminology.  Most sections will use XML terms such as \emph{element}
 and \emph{attribute}.  Section~\ref{SAX} does not require that you
-have experience with the Java SAX implentations.
+have experience with any of the various Java SAX implentations.
 
 
 \subsection{Elements, Attributes and Entities}
@@ -74,28 +80,25 @@ A markup language specified using XML looks a lot like HTML; a
 document consists of a single \dfn{element}, which contains
 sub-elements, which can have further sub-elements inside them.
 Elements are indicated by \dfn{tags} in the text.  Tags are always
-inside angle brackets \code{<}~\code{>}.  Elements can either contain content, or they can be empty:
+inside angle brackets \code{<}~\code{>}.  Elements can either contain
+content, or they can be empty.
 
-\begin{itemize}
-
-\item   An element can contain content between opening and closing
+An element can contain content between opening and closing
 tags, as in \code{<name>Euryale</name>}, which is a \element{name}
 element containing the data \samp{Euryale}. This content may be text
 data, other XML elements, or a mixture of both. 
 
-\item Elements can also be empty, containing nothing, and are
-represented as a single tag ended with a slash.  For example,
-\code{<stop/>} is an empty \element{stop} element.  Unlike HTML, XML
-element names are case-sensitive; \element{stop} and \element{Stop}
-are two different elements.
-
-\end{itemize}
+Elements can also be empty, containing nothing, and are represented as
+a single tag ended with a slash.  For example, \code{<stop/>} is an
+empty \element{stop} element.  Unlike HTML, XML element names are
+case-sensitive; \element{stop} and \element{Stop} are two different
+elements.
 
 Opening and empty tags can also contain attributes, which specify
 values associated with an element.  For example, in the XML text
 \code{<name lang='greek'>Herakles</name>}, the \element{name} element
 has a \attribute{lang} attribute which has a value of \samp{greek}.
-Contrast this with \code{<name lang='latin'>Hercules</name>}, where
+In \code{<name lang='latin'>Hercules</name>}, 
 the attribute's value is \samp{latin}.
 
 XML also includes \dfn{entities} as a shorthand for including a
@@ -108,10 +111,11 @@ hexadecimal.  It's also possible to define your own entities, making
 include the \samp{\&} character in XML content, it must be written as
 \code{\&amp;}.
 
+
 \subsection{Well-Formed XML}
 
 A legal XML document must, as a minimum, be \dfn{well-formed}: each
-open tag must have a corresponding closing tag, and tags must nest
+opening tag must have a corresponding closing tag, and tags must nest
 properly.  For example, \code{<b><i>text</b></i>} is not well-formed
 because the \element{i} element should be enclosed inside the
 \element{b} element, but instead the closing \code{</b>} tag is
@@ -119,11 +123,11 @@ encountered first.  This example can be made well-formed by swapping
 the order of the closing tags, resulting in \code{<b><i>text</i></b>}.
 
 If you've ever written HTML by hand, you may have acquired the habit
-of being a bit sloppy about this.  Strictly speaking, HTML has exactly
+of being a bit sloppy about this.  Strictly speaking HTML has exactly
 the same rules about nesting tags as XML, but most Web browsers are
 very forgiving of errors in HTML.  This is convenient for HTML
 authors, but it makes it difficult to write programs to parse HTML
-input, because the programs have to cope with all sorts of malformed
+input because the programs have to cope with all sorts of malformed
 input.
 
 The authors of the XML specification didn't want XML to fall into the
@@ -144,7 +148,7 @@ order of elements or about which elements can be contained inside other
 elements.
 
 The following XML, apparently representing a book, is well-formed but
-it makes no logical sense:
+it doesn't match the structure expected for a book:
 
 \begin{verbatim}
 <book>
@@ -170,21 +174,30 @@ element names that are allowed, and how elements can be nested inside
 each other.  To take an example from HTML, the \element{LI} element,
 representing an entry in a list, can only occur inside certain
 elements which represent lists, such as \element{OL} or \element{UL}.
-
 The DTD also specifies the attributes that can be provided for each
 element, the default value for each attribute, and whether the
 attribute can be omitted.  A \dfn{validating parser} can take a
 document and a DTD, and check whether the document is legal according
-to the DTD's rules.
+to the DTD's rules.  (The PyXML package includes a validating parser
+called xmlproc.)
 
-Note that it's quite possible to get useful work done without using a
-validating parser and writing a DTD.  You might decide that just
-writing well-formed XML and checking it with a Python program is all
-you need.  
+DTDs are therefore an example of a \dfn{schema language}, a language
+for specifying a set of legal XML documents.  Other applications want
+even stricter control over which documents are legal, and there are
+therefore stricter schema languages.  XML Schema provides a type
+system and a number of basic types, so you can say that the value of
+an attribute must be a number or a date.  RELAX NG is another schema
+language that provides more power and flexibility than XML Schema, but
+is simpler to read and implement.
 
-A DTD lists the supported elements, the order in which elements must
-occur, and the possible attributes for each element.  Here's a
-fragment from an imaginary DTD for writing books:
+Note that it's quite possible to get useful work done without using
+any schema language at all.  You might decide that just writing
+well-formed XML and checking it with a Python program is all you need.
+There's no reason to drag in a schema language if it won't be useful.
+
+Let's return to DTDs.  A DTD lists the supported elements, the order
+in which elements must occur, and the possible attributes for each
+element.  Here's a fragment from an imaginary DTD for writing books:
 
 \begin{verbatim}
 <!ELEMENT book (abstract?, preface, chapter*, appendix?)>
@@ -200,11 +213,11 @@ subelements must be provided.  DTDs borrow from regular expression
 notation in order to express how elements can be repeated; \samp{?}
 means an element must occur 0 or 1 times, \samp{*} is 0 or more times,
 and \samp{+} means the element must occur 1 or more times.  For
-example, the \element{abstract} and \element{appendix} elements are
-optional inside a \element{book} element.  Exactly one
-\element{preface} element has to be present, and it can be followed by
-any number of \element{chapter} elements; having no chapters at all
-would be legal.
+example, the above declarations imply that the \element{abstract} and
+\element{appendix} elements are optional inside a \element{book}
+element.  Exactly one \element{preface} element has to be present, and
+it can be followed by any number of \element{chapter} elements; having
+no chapters at all would be legal.
 
 The \code{ATTLIST} declaration specifies attributes for the
 \element{chapter} element.  Chapters can have two attributes,
@@ -218,8 +231,8 @@ report whether the document is \dfn{valid} according to the rules of
 the DTD.  A document is valid if all the elements occur in the right
 order, and in the right number of repetitions.
 
+
 \subsection{Related Links}
-\label{xml-links}
 
 For the full details of XML's syntax, the definitive source is the XML
 1.0 specification, available on the Web at
@@ -240,11 +253,13 @@ at \url{http://www.ibiblio.org/xml/}, is another good resource.
 The xml-dev mailing list is a high-traffic list for implementation and
 development; see \url{http://www.xml.org/xml/xmldev.shtml} for
 archives and subscription information.  Be warned: Some people might
-find the discussion too focused on inventing new standards and tools,
-not on applying existing standards.  
+find the discussion too focused on vague theorizing about information
+representation, and not on inventing new standards and tools or
+applying existing standards.
 
 
-\section{Related Standards}
+%==========================================================================
+\section{XML-Related Standards\label{section-standards}}
 
 XML 1.0 is the basic standard, but people have built many, \emph{many}
 additional standards and tools on top of XML or to be used with XML.
@@ -252,55 +267,48 @@ This section will quickly introduce some of these related
 technologies, paying particular attention to those that are supported
 by the Python/XML package.
 
-%\subsection{XPath and XPointer}
+\begin{itemize}
 
-%XXX write section on XPath and XPointer
+  \item[\textbf{SAX}] 
+The Simple API for XML isn't a standard in the formal sense that XML
+or ANSI C are.  Rather, SAX is an informal specification originally
+designed by David Megginson with input from many people on the xml-dev
+mailing list.  SAX defines an event-driven interface for parsing XML.
+To use SAX, you must create Python class instances which implement a
+specified interface, and the parser will then call various methods on
+those objects.  See section~\ref{section-SAX}.
 
-\subsection{XSLT}
+  \item[\textbf{DOM}] 
+The Document Object Model specifies a tree-based representation for an
+XML document, as opposed to the event-driven processing provided by
+SAX.  See section~\ref{section-DOM}.
 
-XML documents are often transformed from one format to another.  These
-transformations can be minor, such as changing all \element{OL}
-elements into \element{UL} elements, or major, such as translating a
-DocBook document into HTML so it can be displayed in a Web browser.
-You can write a separate Python program to do each transformation as
-you need it, and at times that will be the most appropriate option,
-but an alternative approach is to use XSL, the Extensible Stylesheet
-Language.
+  \item[\textbf{XPath and XPointer}]
+  XPath is a language for referring to parts of an XML document.  With
+XPath you can refer to paragraph number N, or ``all paragraphs of
+class \samp{warning}'', or all chapters that have one or more
+subsections.
+XPointer defines a way to use XPath declarations as the fragment
+identifier in a URL to point at a part of an XML document.
+See section~\ref{section-XPath}.
 
-XSL is really two standards: XSLT, XSL Transformations; and XSL-FO,
-XSL Formatting Objects.  XSLT is used much more often than XSL-FO,
-because XSL-FO is intended primarily for rendering XML for printing
-onto paper.  XSLT is a general tool for transforming one XML document
-into another document, and therefore can be used for more diverse
-tasks.
+  \item[\textbf{XSLT}] 
+XSLT is a general tool for transforming one XML document
+into another document, specifying the transformation using 
+another XML document called a \dfn{stylesheet}.
+See section~\ref{section-XSLT}.
 
-To use XSLT, you have to write a \dfn{stylesheet}, which is itself an
-XML document written in the XSLT DTD.  The source document is turned
-into a tree structure, and the stylesheet specifies the transformation
-you want to perform by selecting some elements from the tree and
-rearranging them.  
+  \item[\textbf{RDF}] 
+  The Resource Description Format is for describing metadata about 
+  other resources.  The PyXML package doesn't contain any support
+  for RDF, but a Python library called Redfoot
+  (\url{http://redfoot.sf.net}) is available.
 
-The Python/XML package includes 4XSLT, an XSLT processor written by
-Fourthought, Inc., letting you write Python programs that apply an
-XSLT stylesheet to a document.
-
-\subsubsection{Related Links}
-
-The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and links
-to the XSLT specifications and to friendlier tutorials.
-
-
-%\subsection{XML Schemas}
-
-% XXX write a section on XSchema
+\end{itemize}
 
 
-%\subsection{RDF}
-
-% XXX write a section on RDF; point users toward Redfoot.
-
-
-\section{Installing the XML Toolkit}
+%==========================================================================
+\section{Installing the XML Toolkit\label{section-install}}
 
 Releases are available from
 \url{http://sourceforge.net/projects/pyxml/}.
@@ -330,15 +338,6 @@ supports a number of different commands and options; invoke
 
 \end{enumerate}
 
-If you're using Python 1.5, you'll have to install the Distutils
-first, available from
-\url{http://www.python.org/sigs/distutils-sig}. The PyXML package
-still works with Python 1.5.2, but the Unicode support is much less
-powerful.  Versions of Python after 1.5.2 added very complete Unicode
-support, so if you're going to be doing serious XML work you should
-use the latest version of Python 2.x.  At this writing, the latest
-released version is Python 2.1.
-
 If you have difficulty installing this software, send a problem report
 to the XML-SIG mailing list describing the problem, or submit a bug report
 at \url{http://sourceforget.net/projects/pyxml}.
@@ -356,20 +355,164 @@ The Python/XML Topic Guide, at
 Python-related XML topics; it links to software, mailing lists,
 documentation, etc.
 
-\section{SAX: The Simple API for XML}
-\label{SAX}
 
-The Simple API for XML isn't a standard in the formal sense that XML
-or ANSI C are.  Rather, SAX is an informal specification originally
-designed by David Megginson with input from many people on the xml-dev
-mailing list.  SAX defines an event-driven interface for parsing XML.
-To use SAX, you must create Python class instances which implement a
-specified interface, and the parser will then call various methods on
-those objects.
+%==========================================================================
+\section{Package Overview}
 
-This HOWTO describes version 2 of SAX (also referred to as
-SAX2). Earlier versions of this text explained SAX1, which is now only
-of historical interest.
+The PyXML package contains over 200 individual modules, some intended
+for public use and some not.  Many of these modules often perform
+similar tasks, making it difficult to figure out which is the right
+one to use in any given situation, and this can make it confusing.
+Here's a list of the 30-odd packages and modules that are considered
+public, along with brief descriptions to help you choose the right
+one.
+
+\begin{itemize}
+
+\item[\module{xml.dom}]
+  The Python DOM interface.  The full interface
+  support DOM Levels 1 and 2.  This implementation is called 4DOM,
+  and was written by Fourthought LLC.  \module{xml.dom} contains
+  the implementation for DOM trees built from XML documents.
+
+\item[\module{dom.html}]
+  DOM trees built from HTML documents are also supported.
+
+\item[\module{dom.javadom}]
+  An adaptor for using Java DOM implementations with Jython.
+
+\item[\module{dom.minidom}]
+  A lightweight DOM implementation that's also included in the Python
+  standard library.  
+
+\item[\module{dom.minitraversal}]
+  Offers traversal and ranges on top of
+  \module{xml.dom.minidom}, using the 4DOM traversal implementation.
+
+\item[\module{dom.pulldom}]
+  Provides a stream of DOM elements.  This module can make it easy 
+  to write certain types of DTD-specific processing code.
+
+\item[\module{dom.TreeWalker}]
+  Provides the \class{TreeWalker} class for multidirectional iteration 
+  over nodes.
+
+\item[\module{dom.ext.Dom2Sax}]
+  A parser to generate SAX events from a DOM tree.
+
+\item[\module{dom.ext.Printer}]
+  Classes to print XML from a DOM tree.
+
+\item[\module{dom.ext.Visitor}]
+  Classes for walking over a DOM tree.
+
+\item[\module{dom.ext.XHtml2HtmlPrinter}]
+  Classes for printing an XHTML DOM tree as HTML.
+  
+\item[\module{dom.ext.XHtmlPrinter}]
+  Classes for printing an HTML DOM tree as XHTML.
+
+\item[\module{dom.ext.c14n}]
+  Takes a DOM tree and outputs another DOM tree containing the
+  Canonical XML representation of the document.
+
+\item[\module{dom.ext.reader}]
+  Classes for building DOM trees from various input sources:
+  SAX1 and SAX2 parsers, \module{htmllib}, and directly using Expat.
+
+\item[\module{xml.marshal.generic}]
+  Marshals simple Python data types into an XML format.
+  The marshaller class can be subclassed in order to implement
+  marshalling into a different XML DTD.
+
+\item[\module{xml.marshal.wddx}]
+  Marshals Python objects into WDDX.  (This module is built on top 
+  of the preceding generic module.)
+
+\item[\module{xml.ns}]
+  Contains constants for the namespace URIs for various XML-related standards.
+
+\item[\module{xml.parsers.sgmllib}]
+  A version of the \module{sgmllib} module that's part of the standard 
+  Python library, rewritten to run on top of the \module{sgmlop}
+  accelerator module.
+
+\item[\module{xml.parsers.xmlproc}]
+  A validating XML parser.
+
+\item[\module{xml.sax}]
+  SAX1 and SAX2 support for Python.
+
+\item[\module{sax.drivers}]
+  SAX1 drivers for various parsers: \module{htmllib}, 
+  LT, Expat, \module{sgmllib}, \module{xmllib}, xmlproc, 
+  and XML-Toolkit.
+
+\item[\module{sax.drivers2}]
+  SAX2 drivers for various parsers: \module{htmllib}, Java SAX parsers
+  (for Jython), Expat, \module{sgmllib}, xmlproc.
+
+\item[\module{sax.handler}] 
+  Contains the core SAX2 handler classes \class{ContentHandler}, 
+  \class{DTDHandler}, \class{EntityResolver},
+  and \class{ErrorHandler}.
+
+\item[\module{sax.saxexts}]
+  SAX1 extensions.  This contains various factory classes that create
+  parser objects, and the \function{make_parser()} function.
+
+\item[\module{sax.sax2exts}]
+  SAX2 extensions.  Like its SAX1 counterpart, this module contains
+  various factory classes that create parser objects, and the
+  \function{make_parser()} function.
+
+\item[\module{sax.saxlib}]
+  Contains two SAX2 handler classes, \class{DeclHandler} and
+  \class{LexicalHandler}, and the \class{XMLFilter} interface.  
+  Also contains the deprecated SAX1 handler classes.
+
+\item[\module{sax.saxutils}]
+  Various utility classes, such as \class{DefaultHandler}, a default
+  base class for SAX2 handlers, \class{ErrorPrinter} and
+  \class{ErrorRaiser}, two default error handlers, and
+  \class{XMLGenerator}, which generates XML output from a SAX2 event stream.
+  
+\item[\module{sax.xmlreader}]
+  Contains the \class{XMLReader}, the base interface for implementing 
+  SAX2 parsers.
+
+\item[\module{xml.schema.trex}]
+  A Python implementation of TREX, a schema language.
+
+\item[\module{xml.utils.characters}]
+  Contains the legal XML character ranges as specified in the XML 1.0
+  Recommendation, and regular expressions that match various
+  XML tokens.
+  
+\item[\module{xml.utils.iso8601}]
+  Parses ISO-8601 date/time specifiers, which look like 
+  \samp{2002-05-09T20:40Z}.
+  
+\item[\module{xml.utils.qp_xml}]
+  A simple tree-based XML parsing interface.  
+
+\item[\module{xml.xpath}]
+  An XPath parser and evaluator.
+
+\item[\module{xml.xslt}] 
+   An implementation of the XSLT transformation language.
+% XXX do the FourThought guys want a credit in the text here?
+
+\end{itemize}
+
+
+%==========================================================================
+\section{SAX: The Simple API for XML\label{section-SAX}}
+
+
+This HOWTO describes version 2 of SAX (also referred to as SAX2).
+Support is still present for SAX version 1, which is now only of
+historical interest; SAX1 will not be documented here.
 
 SAX is most suitable for purposes where you want to read through an
 entire XML document from beginning to end, and perform some
@@ -495,8 +638,9 @@ implement separate classes for each purpose.  Neither of the two
 approaches is always ``better'' than the other; mostly it's a matter
 of taste.
 
-Since this class is doing a search, an instance needs to know what it's searching for.  The desired title and issue number are passed to the
-\class{FindIssue} constructor, and stored as part of the instance.
+Since this class is doing a search, an instance needs to know what
+it's searching for.  The desired title and issue number are passed to
+the \class{FindIssue} constructor, and stored as part of the instance.
 
 Now let's override some of the parsing methods.
 This simple search only requires looking at the attributes of a given
@@ -521,8 +665,8 @@ Attributes are accessed using
 methods from the \class{AttributeList} interface, which
 includes most of the semantics of Python dictionaries.  
 
-To summarize, \method{startElement()} function looks for
-\element{comic} elements, and compares the specified \attribute{title}
+To summarize, the \method{startElement()} method looks for
+\element{comic} elements and compares the specified \attribute{title}
 and \attribute{number} attributes to the search values.  If they
 match, a message is printed out.
 
@@ -585,6 +729,8 @@ setting varies from parser to parser, so you should always set it to a
 safe value (unless your handler supports both namespace-aware and
 -unaware processing).
 
+% XXX show how to do this
+
 Once you've created a parser instance, calling the
 \method{setContentHandler()} method tells the parser what to use as
 the content handler.  There are similar methods for setting the other
@@ -610,7 +756,7 @@ closing \samp{>}. As a result, you get a
 \exception{SAXParseException}, e.g.
 
 \begin{verbatim}
-xml.sax._exceptions.SAXParseException: undefined entity at None:2:2
+xml.sax._exceptions<.SAXParseException: undefined entity at None:2:2
 \end{verbatim}
 
 The default code for the \class{ErrorHandler} interface automatically
@@ -676,7 +822,7 @@ import string
 
 def normalize_whitespace(text):
     "Remove redundant whitespace from a string"
-    return string.join(string.split(text), ' ')
+    return ' '.join(text.split())
 
 class FindWriter(ContentHandler):
     def __init__(self, search_name):
@@ -721,7 +867,7 @@ The \method{characters()} method is called for characters that aren't
 inside XML tags.  \var{ch} is a string of characters. It is not
 necessarily a byte string; parsers may also provide a buffer object
 that is a slice of the full document, or they may pass Unicode
-objects (as the expat parser does in Python 2.0).
+objects.
 
 You also shouldn't assume that all the characters are passed in a
 single function call.  In the example above, there might be only one
@@ -759,23 +905,27 @@ attributes, such as \samp{<arc name="Season of Mists"/>}, will result
 in a call to \method{startElement()}, followed immediately by a call
 to \method{endElement()}.
 
-XXX how are external entities handled?  Anything special need to be
-done for them?
+% \subsection{Parsing External Entities}
+%XXX how are external entities handled?  Anything special need to be
+%done for them?
+
 
 \subsection{Related Links}
 
-The SAX home page is \url{http://www.megginson.com/SAX/}.
-This has the most recent copy of the
-specification, and lists SAX implementations for various languages and
-platforms.  At the moment it's somewhat Java-centric, though.
+The SAX home page is \url{http://www.megginson.com/SAX/}.  This has
+the most recent copy of the specification, and lists SAX
+implementations for various languages and platforms.  At the moment
+it's somewhat Java-centric, though.
 
 
+%==========================================================================
 \section{DOM: The Document Object Model}
-\label{DOM}
+\label{section-DOM}
 
-The Document Object Model specifies a tree-based representation for an
-XML document, as opposed to the event-driven processing provided by
-SAX.  Both approaches have their uses.
+With SAX you write a class which then gets the entire document poured
+through it as a sequence of method calls.  An alternative approach is
+that taken by the Document Object Model, or DOM, which turns an XML
+document into a tree that's fully resident in memory.  
 
 A top-level \class{Document} instance is the root of the tree, and has
 a single child which is the top-level \class{Element} instance; this
@@ -784,7 +934,7 @@ sub-elements, which may in turn have further children and so forth.
 There are different classes for everything that can be found in an XML
 document, so in addition to the \class{Element} class, there are also
 classes such as \class{Text}, \class{Comment}, \class{CDATASection},
-\class{EntityReference}, and so on.  Tree nodes provide methods for
+\class{EntityReference}, and so on.  Nodes have methods for
 accessing the parent and child nodes, accessing element and attribute
 values, insert and delete nodes, and converting the tree back into XML.
 
@@ -797,6 +947,7 @@ the whole tree in RAM.  This means you may not have enough memory to
 process very large documents as a DOM tree.  A SAX handler, on the
 other hand, can potentially churn through amounts of data far larger
 than the available RAM.
+
 
 \subsection{Getting A DOM Tree}
 
@@ -825,19 +976,14 @@ from xml.dom.ext.reader.Sax2 import FromXmlStream
 doc = FromXmlStream(sys.stdin)
 \end{verbatim}
 
+
 \subsection{Manipulating The Tree}
 
 This HOWTO can't be a complete introduction to the Document Object
 Model, because there are lots of interfaces and lots of
-methods. Luckily, the DOM Recommendation is quite readable as
-specifications go, so I'd recommend that you read it to get a complete
-picture of the available interfaces.  This section will only be a
-partial overview.
-
-The Document Object Model represents a XML document as a tree of
-nodes, represented by an instance of some subclass of the \class{Node}
-class.  Some subclasses of \class{Node} are \class{Element},
-\class{Text}, and \class{Comment}.  
+methods. Luckily, the DOM Recommendation is quite readable, so I'd
+recommend that you read it to get a complete picture of the available
+interfaces.  This section will only be a partial overview.
 
 We'll use a single example document throughout this section.  Here's
 the sample:
@@ -856,7 +1002,9 @@ the sample:
 </xbel>
 \end{verbatim}
 
-Converted to a DOM tree, this document could produce the following tree:
+Converted to a DOM tree, this document could produce the following
+tree.   
+% XXX what did this output come from?
 
 \begin{verbatim}
 Element xbel None
@@ -883,11 +1031,12 @@ Element xbel None
 This isn't the only possible tree, because different parsers may
 differ in how they generate \class{Text} nodes; any of the
 \class{Text} nodes in the above tree might be split into multiple
-nodes.)
+nodes.  
+
 
 \subsubsection{The \class{Node} class}
 
-e'll start by considering the basic \class{Node} class.  All the
+We'll start by considering the basic \class{Node} class.  All the
 other DOM nodes---\class{Document}, \class{Element}, \class{Text},
 and so forth---are subclasses of \class{Node}.  It's possible to
 perform many tasks using just the interface provided by \class{Node}.
@@ -935,6 +1084,9 @@ list of children XXX.
 The \module{xml.dom} package also includes various helper classes for
 common tasks such as walking over trees.
 
+XXX write this 
+XXX use the Level 2 TreeTraversal instead?
+
 The \class{Walker} class
 
 Introduction to the walker class
@@ -952,5 +1104,45 @@ Level 3 is still being worked on, and will add yet more features.  The
 World Wide Web Consortium's DOM page at \url{http://www.w3.org/DOM/}
 has pointers to the specifications and current drafts for these higher
 DOM levels.
+
+
+%==========================================================================
+%\section{XPath and XPointer\label{section-XPath}}
+
+% XXX write this
+
+
+%==========================================================================
+\section{XSLT\label{section-XSLT}}
+
+XML documents are often transformed from one format to another.  These
+transformations can be minor, such as changing all \element{OL}
+elements into \element{UL} elements, or major, such as translating a
+DocBook document into HTML so it can be displayed in a Web browser.
+You can write a separate Python program to do each transformation as
+you need it, and at times that will be the most appropriate option,
+but an alternative approach is to use XSL, the Extensible Stylesheet
+Language.
+
+XSL is really two standards: XSLT, XSL Transformations; and XSL-FO,
+XSL Formatting Objects.  XSLT is used much more often than XSL-FO,
+because XSL-FO is intended primarily for rendering XML for printing
+onto paper while XSLT is a general tool for transforming one XML document
+into another document, and therefore can be used for more diverse
+tasks.
+
+To use XSLT, you have to write a \dfn{stylesheet}, which is itself an
+XML document written in the XSLT DTD.  The source document is turned
+into a tree structure, and the stylesheet specifies the transformation
+you want to perform by selecting some elements from the tree and
+rearranging them.  
+
+% XXX finish this section
+
+\subsection{Related Links}
+
+The W3C's XSL page is at \url{http://www.w3.org/Style/XSL/}, and links
+to the XSLT specifications and to friendlier tutorials.
+
 
 \end{document}
