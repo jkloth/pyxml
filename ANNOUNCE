@@ -37,6 +37,8 @@ Changes in this version, compared to 0.6.2:
           only convert between ISO-8859-x and UTF-8. Python 2 users
           should use the Unicode type instead of this service.
 
+	* Fix memory leaks in expat parser and pulldom.
+
 The Python/XML distribution contains the basic tools required for
 processing XML data using the Python programming language, assembled
 into one easy-to-install package.  The distribution includes parsers
