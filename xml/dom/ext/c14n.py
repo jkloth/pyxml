@@ -23,7 +23,7 @@ Authors:
     "Joseph M. Reagle Jr." <reagle@w3.org>
     "Rich Salz" <rsalz@zolera.com>
 
-$Date: 2001/12/16 09:28:28 $ by $Author: loewis $
+$Date: 2001/12/30 12:12:07 $ by $Author: loewis $
 '''
 
 _copyright = '''Copyright 2001, Zolera Systems Inc.  All Rights Reserved.
@@ -43,8 +43,8 @@ try:
     from xml.ns import XMLNS
 except:
     class XMLNS:
-	BASE = "http://www.w3.org/2000/xmlns/"
-	XML = "http://www.w3.org/XML/1998/namespace"
+        BASE = "http://www.w3.org/2000/xmlns/"
+        XML = "http://www.w3.org/XML/1998/namespace"
 try:
     import cStringIO
     StringIO = cStringIO
@@ -81,9 +81,9 @@ def _utilized(n, node, other_attrs, unsuppressedPrefixes):
     Return true if that nodespace is utilized within the node'''
 
     if n.startswith('xmlns:'):
-	n = n[6:]
+        n = n[6:]
     elif n.startswith('xmlns'):
-	n = n[5:]
+        n = n[5:]
     if n == node.prefix or n in unsuppressedPrefixes: return 1
     for attr in other_attrs:
         if n == attr.prefix: return 1
@@ -123,7 +123,7 @@ class _implementation:
                 inherited = self._inherit_context(node)
                 self._do_element(node, inherited)
         elif node.nodeType == Node.DOCUMENT_TYPE_NODE:
-	    pass
+            pass
         else:
             raise TypeError, str(node)
 
@@ -178,9 +178,9 @@ class _implementation:
         as their C14N entity representations.'''
         if not _in_subset(self.subset, node): return
         s = string.replace(node.data, "&", "&amp;")
-	s = string.replace(s, "<", "&lt;")
-	s = string.replace(s, ">", "&gt;")
-	s = string.replace(s, "\015", "&#xD;")
+        s = string.replace(s, "<", "&lt;")
+        s = string.replace(s, ">", "&gt;")
+        s = string.replace(s, "\015", "&#xD;")
         if s: self.write(s)
     handlers[Node.TEXT_NODE] = _do_text
     handlers[Node.CDATA_SECTION_NODE] = _do_text
@@ -246,25 +246,25 @@ class _implementation:
         Process an element (and its children).'''
 
         # Get state (from the stack) make local copies.
-        #	ns_parent -- NS declarations in parent
-        #	ns_rendered -- NS nodes rendered by ancestors
-	#	xml_attrs -- Attributes in XML namespace from parent
-        #	ns_local -- NS declarations relevant to this element
-	ns_parent, ns_rendered, xml_attrs = \
-		self.state[0], self.state[1][:], self.state[2][:]
+        #       ns_parent -- NS declarations in parent
+        #       ns_rendered -- NS nodes rendered by ancestors
+        #       xml_attrs -- Attributes in XML namespace from parent
+        #       ns_local -- NS declarations relevant to this element
+        ns_parent, ns_rendered, xml_attrs = \
+                self.state[0], self.state[1][:], self.state[2][:]
         ns_local = ns_parent.copy()
 
         # Divide attributes into NS, XML, and others.
         other_attrs = initial_other_attrs[:]
-	in_subset = _in_subset(self.subset, node)
+        in_subset = _in_subset(self.subset, node)
         for a in _attrs(node):
             if a.namespaceURI == XMLNS.BASE:
                 n = a.nodeName
                 if n == "xmlns:": n = "xmlns"        # DOM bug workaround
                 ns_local[n] = a.nodeValue
             elif a.namespaceURI == XMLNS.XML:
-		if self.unsuppressedPrefixes == None or in_subset:
-		    xml_attrs.append(a)
+                if self.unsuppressedPrefixes == None or in_subset:
+                    xml_attrs.append(a)
             else:
                 other_attrs.append(a)
 
@@ -289,16 +289,16 @@ class _implementation:
                 # the xml prefix, if its string value is
                 # http://www.w3.org/XML/1998/namespace."
                 if n == "xmlns:xml" \
-		and v in [ 'http://www.w3.org/XML/1998/namespace' ]:
+                and v in [ 'http://www.w3.org/XML/1998/namespace' ]:
                     continue
 
                 # If different from parent, or parent didn't render
-		# and if not exclusive, or this prefix is needed or
-		# not suppressed
+                # and if not exclusive, or this prefix is needed or
+                # not suppressed
                 if (v != pval or n not in ns_rendered) \
-		  and (self.unsuppressedPrefixes == None or \
-		  _utilized(n, node, other_attrs, self.unsuppressedPrefixes)):
-		    ns_to_render.append((n, v))
+                  and (self.unsuppressedPrefixes == None or \
+                  _utilized(n, node, other_attrs, self.unsuppressedPrefixes)):
+                    ns_to_render.append((n, v))
 
             # Sort and render the ns, marking what was rendered.
             ns_to_render.sort(_sorter_ns)
@@ -306,8 +306,8 @@ class _implementation:
                 self._do_attr(n, v)
                 ns_rendered.append(n)
 
-	    # Add in the XML attributes (don't pass to children, since
-	    # we're rendering them), sort, and render.
+            # Add in the XML attributes (don't pass to children, since
+            # we're rendering them), sort, and render.
             other_attrs.extend(xml_attrs)
             xml_attrs = []
             other_attrs.sort(_sorter)
@@ -316,7 +316,7 @@ class _implementation:
             W('>')
 
         # Push state, recurse, pop state.
-	state, self.state = self.state, (ns_local, ns_rendered, xml_attrs)
+        state, self.state = self.state, (ns_local, ns_rendered, xml_attrs)
         for c in _children(node):
             _implementation.handlers[c.nodeType](self, c)
         self.state = state
@@ -338,7 +338,7 @@ def Canonicalize(node, output=None, **kw):
         subset: Canonical XML subsetting resulting from XPath
                 (default is [])
         unsuppressedPrefixes: do exclusive C14N, and this specifies the
-		prefixes that should be inherited.
+                prefixes that should be inherited.
     '''
 
     if output:

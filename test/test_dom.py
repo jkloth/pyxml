@@ -1,4 +1,3 @@
-
 import StringIO, sys
 from xml.dom import Node        # MUST be first
 from xml.dom import implementation, DOMException
@@ -21,30 +20,30 @@ def _check_dom_tree(t):
     # Do a breadth-first traversal of the DOM tree t
     while Queue:
         node = Queue[0]
-	children = node.childNodes
+        children = node.childNodes
 
         for c in children:
             # Store this node as the parent of each child
             parent[c] = node
 
             # Add each child to the cumulative list
-	    nodes.append(c)
+            nodes.append(c)
 
             # Append each child to the queue
-	    Queue.append(c)
+            Queue.append(c)
 
         # Remove the node we've just processed
         Queue = Queue[1:]
 
     # OK, now walk over all the children, checking that .parentNode
-    # is correct.  
+    # is correct.
     count = 0
     for n in nodes:
-	p = n.parentNode
-	if p is None:
+        p = n.parentNode
+        if p is None:
             assert not parent.has_key(n)
         else:
-	    assert p == parent[n]
+            assert p == parent[n]
         count = count + 1
 
 test_text = """<?xml version="1.0"?>
@@ -74,9 +73,9 @@ title = doc.createElement('title')
 
 text = doc.createTextNode("Title goes here")
 title.appendChild(text)
-head.appendChild(title)                
+head.appendChild(title)
 html.appendChild(head)
-doc.appendChild (html)                 
+doc.appendChild (html)
 
 _check_dom_tree(doc)
 print '\nOutput of docstring example'
@@ -118,29 +117,29 @@ else:
     print " *** Failed: Document.insertBefore didn't raise HierarchyRequestException"
 
 doc.replaceChild(n2, n1)    # Should work
-try: doc.replaceChild(n1, pi)    
+try: doc.replaceChild(n1, pi)
 except DOMException,e:
     assert e.code==HIERARCHY_REQUEST_ERR
 else:
     print " *** Failed: Document.replaceChild didn't raise HierarchyRequestException"
 
 doc.replaceChild(n2, pi)    # Should also work
-check('pi.parentNode == None', 
+check('pi.parentNode == None',
       'Document.replaceChild: PI should have no parent')
 try:
     doc.removeChild(n2)
 except DOMException:
     print "XFAIL"
-check('n2.parentNode == None', 
+check('n2.parentNode == None',
       'Document.removeChild: n2 should have no parent')
 
 # Check adding and deletion with DocumentFragments
 
 fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
 doc.appendChild( fragment )
-check('fragment.parentNode == None', 
+check('fragment.parentNode == None',
       'Doc.appendChild: fragment has no parent')
-check('n1.parentNode.nodeType == Node.DOCUMENT_NODE', 
+check('n1.parentNode.nodeType == Node.DOCUMENT_NODE',
       'Doc.appendChild: n1 now has document as parent')
 
 fragment = doc.createDocumentFragment() ; fragment.appendChild( n1 )
@@ -372,10 +371,10 @@ check('len(e.attributes) == 0', 'Element: attribute node removed')
 #
 # Check getElementsByTagName
 #
-check('len(e.getElementsByTagName("elem")) == 0', 
+check('len(e.getElementsByTagName("elem")) == 0',
       "getElementsByTagName doesn't return element")
 
-check('len(e.getElementsByTagName("*")) == 0', 
+check('len(e.getElementsByTagName("*")) == 0',
       "getElementsByTagName doesn't return element")
 
 
@@ -384,12 +383,12 @@ check('len(e.getElementsByTagName("*")) == 0',
 t1 = doc.createTextNode('first') ;  e.appendChild( t1 )
 t2 = doc.createTextNode('second') ; e.appendChild( t2 )
 t3 = doc.createTextNode('third') ;  e.appendChild( t3 )
-#check('e.toxml() == "<elem>firstsecondthird</elem>"', 
+#check('e.toxml() == "<elem>firstsecondthird</elem>"',
 #      "Element: content of three Text nodes as children")
 check('len(e.childNodes) == 3', 'Element: three Text nodes as children')
 
 e.normalize()
-check('e.firstChild.data == "firstsecondthird"', 
+check('e.firstChild.data == "firstsecondthird"',
       "Element: normalized Text nodes")
 
 check('len(e.childNodes) == 1', 'Element: should be one normalized Text node')
@@ -399,13 +398,13 @@ check('t3.parentNode == None', 'Element: normalized t3 should have no parent')
 # Text node
 
 t1.splitText(5)
-check('e.firstChild.data == "first"', 
+check('e.firstChild.data == "first"',
       "Element: newly split Text nodes")
 check('len(e.childNodes) == 2', 'Text: should be two split Text nodes')
-check('e.lastChild.data == "secondthird"', 
+check('e.lastChild.data == "secondthird"',
       "Element: newly split Text nodes")
 
-# Check comparisons; e1 and e2 are different proxies for the same underlying 
+# Check comparisons; e1 and e2 are different proxies for the same underlying
 # node
 
 n1 = doc.createElement('n1') ; n2 = doc.createElement('n2')
@@ -416,4 +415,3 @@ check('e1 == e2', 'Two proxies are different according to "==" operator')
 
 # Done at last!
 print 'Test suite completed'
-

@@ -47,23 +47,23 @@ class DocumentTestCase(unittest.TestCase):
 
     def checkOwnerDocument(self):
         assert self.document._get_ownerDocument() == None
-        
+
     def checkGetDoctype(self):
         assert self.document._get_doctype() == None
 
     def checkGetImplementation(self):
         assert self.document._get_implementation() != None
-        
+
     def checkGetDocumentElement(self):
         assert self.document._get_documentElement() == None
-        
+
 # --- Element
 
 class ElementTestCase(unittest.TestCase):
 
     def setUp(self):
         self.element = self.createDocument().createElement("per")
-    
+
     def checkNodeType(self):
         assert self.element._get_nodeType() == javadom.ELEMENT_NODE
 
@@ -185,7 +185,7 @@ class CommentTestCase(CharacterDataTestCase):
 
     def setUp(self):
         self.chardata = self.createDocument().createComment("com")
-    
+
     def checkNodeType(self):
         assert self.chardata._get_nodeType() == javadom.COMMENT_NODE
 
@@ -197,7 +197,7 @@ class CommentTestCase(CharacterDataTestCase):
 
     def checkAttributes(self):
         assert self.chardata._get_attributes() == None
-        
+
 # --- ProcessingInstruction
 
 class ProcessingInstructionTestCase(unittest.TestCase):
@@ -244,11 +244,11 @@ class ProcessingInstructionTestCase(unittest.TestCase):
 
     def checkGetData(self):
         assert self.pi._get_data() == "pid"
-        
+
     def checkSetData(self):
         self.pi._set_data("uggg")
         assert self.pi._get_data() == "uggg"
-        
+
 # --- Text
 
 class TextTestCase(CharacterDataTestCase):
@@ -266,7 +266,7 @@ class TextTestCase(CharacterDataTestCase):
         assert self.chardata._get_nodeValue() == "com"
 
     def checkAttributes(self):
-        assert self.chardata._get_attributes() == None    
+        assert self.chardata._get_attributes() == None
 
 # --- CDATASection
 
@@ -285,7 +285,7 @@ class CDATASectionTestCase(TextTestCase):
         assert self.chardata._get_nodeValue() == "com"
 
     def checkAttributes(self):
-        assert self.chardata._get_attributes() == None    
+        assert self.chardata._get_attributes() == None
 
 # --- Attr
 
@@ -304,7 +304,7 @@ class AttrTestCase(unittest.TestCase):
         assert self.attr._get_nodeValue() == None
 
     def checkAttributes(self):
-        assert self.attr._get_attributes() == None    
+        assert self.attr._get_attributes() == None
 
     def checkChildNodes(self):
         assert len(self.attr._get_childNodes()) == 0
@@ -338,7 +338,7 @@ class AttrTestCase(unittest.TestCase):
 
     def checkSetValue(self):
         self.attr._set_value("14")
-        assert self.attr._get_value() == "14"        
+        assert self.attr._get_value() == "14"
 
 # --- EntityReference
 
@@ -357,8 +357,8 @@ class EntityReferenceTestCase(unittest.TestCase):
         assert self.entref._get_nodeValue() == None
 
     def checkAttributes(self):
-        assert self.entref._get_attributes() == None    
-    
+        assert self.entref._get_attributes() == None
+
     def checkChildNodes(self):
         assert len(self.entref._get_childNodes()) == 0
 
@@ -379,7 +379,7 @@ class EntityReferenceTestCase(unittest.TestCase):
 
     def checkOwnerDocument(self):
         assert self.entref._get_ownerDocument() != None
-        
+
 # --- DocumentFragment
 
 class DocumentFragmentTestCase(unittest.TestCase):
@@ -397,7 +397,7 @@ class DocumentFragmentTestCase(unittest.TestCase):
         assert self.docfrag._get_nodeValue() == None
 
     def checkAttributes(self):
-        assert self.docfrag._get_attributes() == None    
+        assert self.docfrag._get_attributes() == None
 
     def checkChildNodes(self):
         assert len(self.docfrag._get_childNodes()) == 0
@@ -431,7 +431,7 @@ class NodeListTestCase(unittest.TestCase):
         assert len(self.list) == 0
 
     def checkGetLength(self):
-        assert self.list._get_length() == 0        
+        assert self.list._get_length() == 0
 
     def checkItem(self):
         assert self.list.item(0) == None
@@ -448,8 +448,8 @@ class NodeListTestCase(unittest.TestCase):
         assert case == 1
 
     def checkGetSlice(self):
-        assert self.list[2 : 5] == []       
-        
+        assert self.list[2 : 5] == []
+
 # --- NamedNodeMap
 
 class NamedNodeMapTestCase(unittest.TestCase):
@@ -461,7 +461,7 @@ class NamedNodeMapTestCase(unittest.TestCase):
         assert len(self.map) == 0
 
     def checkGetLength(self):
-        assert self.map._get_length() == 0        
+        assert self.map._get_length() == 0
 
     def checkGetNamedItem(self):
         assert self.map.getNamedItem("uuu") == None
@@ -490,7 +490,7 @@ class NamedNodeMapTestCase(unittest.TestCase):
             case = 1
         except:
             case = 2
-            
+
         assert case == 1
 
     def checkGet(self):
@@ -506,8 +506,8 @@ class NamedNodeMapTestCase(unittest.TestCase):
         assert self.map.keys() == []
 
     def checkValues(self):
-        assert self.map.values() == []    
-        
+        assert self.map.values() == []
+
 # --- Implementation versions
 
 class XercesBase:
@@ -544,7 +544,7 @@ class OpenXmlBase:
 
     def createDocument(self):
         return javadom.OpenXmlDomImplementation().createDocument()
-    
+
 # --- Create test suite and run it
 
 cases = [DocumentTestCase, ElementTestCase, CommentTestCase,
@@ -561,8 +561,8 @@ for impl in impls:
     suite = unittest.TestSuite()
     implname = impl.__name__[ : -4]
     outf.write("===== %s =====\n" % implname)
-    
-    for case in cases:        
+
+    for case in cases:
         casename = case.__name__[ : -8]
         exec ("class %s%sTestCase(%sBase, %sTestCase): pass" %
               (implname, casename, implname, casename))

@@ -31,7 +31,7 @@ def link_title_invert():
             e.appendChild(node)
         parent.replaceChild(a, e)
         a.appendChild(e)
-    
+
     ext.Print(doc)
 
     #reclaim the object; not necessary with Python 2.0
@@ -40,4 +40,3 @@ def link_title_invert():
 if __name__ == '__main__':
     import sys
     link_title_invert()
-

@@ -46,7 +46,7 @@ eg3 = """<!DOCTYPE doc [<!ATTLIST e9 attr CDATA "default">]>
    <e3    name = "elem3"   id="elem3"    />
    <e4    name="elem4"   id="elem4"    ></e4>
    <e5 a:attr="out" b:attr="sorted" attr2="all" attr="I'm"
-       xmlns:b="http://www.ietf.org" 
+       xmlns:b="http://www.ietf.org"
        xmlns:a="http://www.w3.org"
        xmlns="http://example.org"/>
    <e6 xmlns="" xmlns:a="http://www.w3.org">
@@ -66,7 +66,7 @@ eg3 = """<!DOCTYPE doc [<!ATTLIST e9 attr CDATA "default">]>
    <e3    name = "elem3"   id="elem3"    />
    <e4    name="elem4"   id="elem4"    ></e4>
    <e5 a:attr="out" b:attr="sorted" attr2="all" attr="I'm"
-       xmlns:b="http://www.ietf.org" 
+       xmlns:b="http://www.ietf.org"
        xmlns:a="http://www.w3.org"
        xmlns="http://example.org"/>
    <e6 xmlns="" xmlns:a="http://www.w3.org">
@@ -176,13 +176,13 @@ class ReaderforC14NExamples(PYE):
     '''A special reader to handle resolution of the C14N examples.
     '''
     def initParser(self):
-	PYE.initParser(self)
+        PYE.initParser(self)
         self.parser.ExternalEntityRefHandler = self.entity_ref
 
     def entity_ref(self, *args):
-	if args != (u('ent2'), None, u('world.txt'), None): return 0
-	self.parser.CharacterDataHandler('world')
-	return 1
+        if args != (u('ent2'), None, u('world.txt'), None): return 0
+        self.parser.CharacterDataHandler('world')
+        return 1
 
     # Override some methods from PyExpat.Reader
     def unparsedEntityDecl(self, *args): pass
@@ -194,54 +194,54 @@ try:
     utf8_writer = codecs.lookup('utf-8')[3]
 except ImportError:
     def utf8_writer(s):
-	return s
+        return s
 
 def builtin():
     '''Run the builtin tests from the C14N spec.'''
     for i in range(len(examples)):
-	num = i+1
-	eg = examples[i]
+        num = i+1
+        eg = examples[i]
 
-	filename = 'out%d.xml' % num
-	try:
-	    os.unlink(filename)
-	except:
-	    pass
+        filename = 'out%d.xml' % num
+        try:
+            os.unlink(filename)
+        except:
+            pass
 
-	print 'Doing %d, %s...' % (num, string.replace(eg[0:30], '\n', '\\n')),
+        print 'Doing %d, %s...' % (num, string.replace(eg[0:30], '\n', '\\n')),
 
-	r = ReaderforC14NExamples()
-	try:
-	    dom = r.fromString(eg)
-	except Exception, e:
-	    print '\nException', repr(e)
-	    traceback.print_exc()
-	    continue
+        r = ReaderforC14NExamples()
+        try:
+            dom = r.fromString(eg)
+        except Exception, e:
+            print '\nException', repr(e)
+            traceback.print_exc()
+            continue
 
-	# Get the nodeset; the tests have some special cases.
-	if eg == eg7:
-	    con = Context(dom, processorNss={'ietf': 'http://www.ietf.org'})
-	else:
-	    con = Context(dom)
-	if eg == eg5:
-	    pattern = '(//. | //@* | //namespace::*)[not (self::comment())]'
-	else:
-	    pattern = '(//. | //@* | //namespace::*)'
-	nodelist = xpath.Evaluate(pattern, context=con)
+        # Get the nodeset; the tests have some special cases.
+        if eg == eg7:
+            con = Context(dom, processorNss={'ietf': 'http://www.ietf.org'})
+        else:
+            con = Context(dom)
+        if eg == eg5:
+            pattern = '(//. | //@* | //namespace::*)[not (self::comment())]'
+        else:
+            pattern = '(//. | //@* | //namespace::*)'
+        nodelist = xpath.Evaluate(pattern, context=con)
 
-	s = StringIO.StringIO()
-	outf = utf8_writer(s)
+        s = StringIO.StringIO()
+        outf = utf8_writer(s)
 
-	# Canonicalize a DOM with a document subset list according to XML-C14N
-	Canonicalize(dom, outf, subset=nodelist)
+        # Canonicalize a DOM with a document subset list according to XML-C14N
+        Canonicalize(dom, outf, subset=nodelist)
 
-	expected = base64.decodestring(test_results[eg])
-	if s.getvalue() == expected:
-	    print 'Ok'
-	else:
-	    print 'Error!'
-	    print 'Got:\n', s.getvalue()
-	    print 'Expected:\n', expected
+        expected = base64.decodestring(test_results[eg])
+        if s.getvalue() == expected:
+            print 'Ok'
+        else:
+            print 'Error!'
+            print 'Got:\n', s.getvalue()
+            print 'Expected:\n', expected
 
 def usage():
     print '''Options accepted:
@@ -280,7 +280,7 @@ else:
             if arg.find(',') == -1:
                 IN = open(arg, 'r')
             else:
-		import codecs
+                import codecs
                 encoding, filename = arg.split(',')
                 reader = codecs.lookup(encoding)[2]
                 IN = reader(open(filename, 'r'))
@@ -288,7 +288,7 @@ else:
             if arg.find(',') == -1:
                 OUT = open(arg, 'w')
             else:
-		import codecs
+                import codecs
                 encoding, filename = arg.split(',')
                 writer = codecs.lookup(encoding)[3]
                 OUT = writer(open(filename, 'w'))

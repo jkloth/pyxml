@@ -24,15 +24,14 @@ def TraceNs(doc):
                     header_printed = 1
                     print "\tAttributes"
                 print "\t\t"+curr_elem.attributes[k].nodeName+"\t", curr_elem.attributes[k].namespaceURI
-                
+
         print
         curr_elem = snit.nextNode()
 
-        
+
 if __name__ == "__main__":
     import sys
     reader = PyExpat.Reader()
     doc = reader.fromUri(sys.argv[1])
     TraceNs(doc)
     reader.releaseNode(doc)
-

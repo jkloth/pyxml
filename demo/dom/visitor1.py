@@ -31,4 +31,3 @@ if __name__ == '__main__':
     xml_dom_object = reader.fromUri(sys.argv[1])
     Walk(xml_dom_object)
     reader.releaseNode(xml_dom_object)
-

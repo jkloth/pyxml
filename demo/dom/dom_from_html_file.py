@@ -16,7 +16,7 @@ def read_html_from_file(fileName):
 
     #reclaim the object
     reader.releaseNode(dom_object);
-   
+
 
 if __name__ == '__main__':
     import sys

@@ -1,4 +1,3 @@
-
 # dom.html_builder tests
 
 from xml.dom.ext.reader import HtmlLib
@@ -30,7 +29,7 @@ Interdigitated <b>bold and <i>italic</B> tags.</i>&amp; &lt; &gt; &eacute; &ouml
 # operation.
 
 print "Good document"
-b = HtmlLib.FromHtml(good_html) 
+b = HtmlLib.FromHtml(good_html)
 #b.expand_entities = b.expand_entities + ('eacute',)
 XHtmlPrettyPrint(b, stream=sys.stdout, encoding = "ISO-8859-1")
 

@@ -1,24 +1,24 @@
 ##############################################################################
-# 
+#
 # Zope Public License (ZPL) Version 1.0
 # -------------------------------------
-# 
+#
 # Copyright (c) Digital Creations.  All rights reserved.
-# 
+#
 # This license has been certified as Open Source(tm).
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-# 
+#
 # 1. Redistributions in source code must retain the above copyright
 #    notice, this list of conditions, and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions, and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
-# 
+#
 # 3. Digital Creations requests that attribution be given to Zope
 #    in any manner possible. Zope includes a "Powered by Zope"
 #    button that is installed by default. While it is not a license
@@ -26,43 +26,43 @@
 #    attribution remain. A significant investment has been put
 #    into Zope, and this effort will continue if the Zope community
 #    continues to grow. This is one way to assure that growth.
-# 
+#
 # 4. All advertising materials and documentation mentioning
 #    features derived from or use of this software must display
 #    the following acknowledgement:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    In the event that the product being advertised includes an
 #    intact Zope distribution (with copyright and license included)
 #    then this clause is waived.
-# 
+#
 # 5. Names associated with Zope or Digital Creations must not be used to
 #    endorse or promote products derived from this software without
 #    prior written permission from Digital Creations.
-# 
+#
 # 6. Modified redistributions of any form whatsoever must retain
 #    the following acknowledgment:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    Intact (re-)distributions of any official Zope release do not
 #    require an external acknowledgement.
-# 
+#
 # 7. Modifications are encouraged but must be packaged separately as
 #    patches to official Zope releases.  Distributions that do not
 #    clearly separate the patches from the original work must be clearly
 #    labeled as unofficial distributions.  Modifications which do not
 #    carry the name Zope may be packaged in any form, as long as they
 #    conform to all of the clauses above.
-# 
-# 
+#
+#
 # Disclaimer
-# 
+#
 #   THIS SOFTWARE IS PROVIDED BY DIGITAL CREATIONS ``AS IS'' AND ANY
 #   EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -75,12 +75,12 @@
 #   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 #   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #   SUCH DAMAGE.
-# 
-# 
+#
+#
 # This software consists of contributions made by Digital Creations and
 # many individuals on behalf of Digital Creations.  Specific
 # attributions are listed in the accompanying credits file.
-# 
+#
 ##############################################################################
 
 from Base import *
@@ -124,9 +124,9 @@ class DOMImplementationReadTestCase(TestCaseBase):
         newDoc = self.implementation.createDocument(self.TEST_NAMESPACE,
             self.TEST_QUALIFIED_NAME, None)
 
-        checkAttribute(newDoc.documentElement, 'namespaceURI', 
+        checkAttribute(newDoc.documentElement, 'namespaceURI',
             self.TEST_NAMESPACE)
-        checkAttribute(newDoc.documentElement, 'tagName', 
+        checkAttribute(newDoc.documentElement, 'tagName',
             self.TEST_QUALIFIED_NAME)
 
     def checkCreateDocumentWithDocumentType(self):
@@ -139,7 +139,7 @@ class DOMImplementationReadTestCase(TestCaseBase):
 
     def checkCreateDocumentIllegalCharacterErr(self):
         try:
-            self.implementation.createDocument(self.TEST_NAMESPACE, 
+            self.implementation.createDocument(self.TEST_NAMESPACE,
                 '4_prefix:5_illegal', None)
         except xml.dom.InvalidCharacterErr:
             pass
@@ -154,7 +154,7 @@ class DOMImplementationReadTestCase(TestCaseBase):
             pass
         else:
             assert 0, "Created document with a malformed qualified name."
-        
+
         try:
             self.implementation.createDocument(self.TEST_NAMESPACE,
                 ':malformed_qn', None)
@@ -240,7 +240,7 @@ class DOMImplementationReadTestCase(TestCaseBase):
 # --- Node
 
 class NodeReadTestCaseBase(TestCaseBase):
-    
+
     TEST_NAMESPACE = TEST_NAMESPACE
     TEST_PREFIX = 'aprefix'
     TEST_LOCAL_NAME = 'somelocalname'
@@ -325,7 +325,7 @@ class NodeReadTestCaseBase(TestCaseBase):
 
 
 class NodeWriteTestCaseBase(TestCaseBase):
-    
+
     TEST_NAMESPACE = NodeReadTestCaseBase.TEST_NAMESPACE
     TEST_PREFIX = NodeReadTestCaseBase.TEST_PREFIX
     TEST_LOCAL_NAME = NodeReadTestCaseBase.TEST_LOCAL_NAME
@@ -350,7 +350,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node.prefix = 'foo'
         checkAttribute(self.node, 'prefix', 'foo')
         checkAttribute(self.node, 'nodeName', 'foo:%s' % self.TEST_LOCAL_NAME)
-        
+
         # Changing the prefix also changes other attributes
         newQualifiedName = '%s:%s' % ('foo', self.TEST_LOCAL_NAME)
         checkAttribute(self.node, 'nodeName', newQualifiedName)
@@ -373,7 +373,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
             pass
         else:
             assert 0, "Setting of illegal prefix succeeded."
-        
+
     def checkPrefixMalformedPrefix(self):
         if self.node.nodeType in self.readOnlyNodeList:
             return
@@ -388,7 +388,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
             pass
         else:
             assert 0, "Setting of malformed prefix with ':' succeeded."
-        
+
     def checkPrefixNamespaceErr(self):
         if self.node.nodeType in self.readOnlyNodeList:
             return
@@ -488,7 +488,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         elements['i1'].appendChild(elements['i2'])
 
         doc.documentElement.appendChild(elements['a1'])
-        
+
         # now test
 
         # find all elements in the right order
@@ -550,7 +550,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         subEl.appendChild(doc.createTextNode('To '))
         subEl.appendChild(doc.createTextNode(''))
         subEl.appendChild(doc.createTextNode('be or'))
-        
+
         subEl.appendChild(doc.createEntityReference('amp'))
 
         subEl.appendChild(doc.createTextNode('not '))
@@ -575,10 +575,10 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(docEl.childNodes[0], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[0], 'data', 'This is a test.')
 
-        checkAttribute(docEl.childNodes[1], 'nodeType', 
+        checkAttribute(docEl.childNodes[1], 'nodeType',
             Node.CDATA_SECTION_NODE)
         checkAttribute(docEl.childNodes[2], 'nodeType', Node.TEXT_NODE)
-        checkAttribute(docEl.childNodes[3], 'nodeType', 
+        checkAttribute(docEl.childNodes[3], 'nodeType',
             Node.COMMENT_NODE)
         checkAttribute(docEl.childNodes[4], 'nodeType', Node.TEXT_NODE)
         checkAttribute(docEl.childNodes[5], 'nodeType',
@@ -589,7 +589,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         checkAttribute(docEl.childNodes[8], 'nodeType', Node.TEXT_NODE)
 
         checkAttribute(subEl.childNodes[0], 'nodeType', Node.TEXT_NODE)
-        checkAttribute(subEl.childNodes[1], 'nodeType', 
+        checkAttribute(subEl.childNodes[1], 'nodeType',
             Node.ENTITY_REFERENCE_NODE)
         checkAttribute(subEl.childNodes[2], 'nodeType', Node.TEXT_NODE)
 
@@ -621,7 +621,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateAttributeNSIllegalCharacter(self):
         try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE, 
+            self.document.createAttributeNS(self.TEST_NAMESPACE,
                 '4_prefix:5_illegal')
         except xml.dom.InvalidCharacterErr:
             pass
@@ -630,7 +630,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateAttributeNSMalformedQA(self):
         try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE, 
+            self.document.createAttributeNS(self.TEST_NAMESPACE,
                 'malformed:qualfied:name')
         except xml.dom.NamespaceErr:
             pass
@@ -638,7 +638,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
             assert 0, "Created Attribute with a malformed qualified name."
 
         try:
-            self.document.createAttributeNS(self.TEST_NAMESPACE, 
+            self.document.createAttributeNS(self.TEST_NAMESPACE,
                 ':malformed_qn')
         except xml.dom.NamespaceErr:
             pass
@@ -698,7 +698,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def checkCreateElementNSIllegalCharacter(self):
         try:
-            self.document.createElementNS(self.TEST_NAMESPACE, 
+            self.document.createElementNS(self.TEST_NAMESPACE,
                 '4_prefix:5_illegal')
         except xml.dom.InvalidCharacterErr:
             pass
@@ -811,7 +811,7 @@ class ElementReadTestCase(NodeReadTestCaseBase):
         el.appendChild(doc.createComment('A Comment'))
         el.setAttribute('attr1', 'An attribute')
         el.setAttribute('attr2', 'Another attribute')
-        
+
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
 
         clone = foreignDoc.importNode(self.element, 0)
@@ -1019,7 +1019,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
 
         assert returnValue is None, (
             "setAttributeNodeNS returned %s" % repr(returnValue))
-        
+
         assert self.element.hasAttributeNS("uri:bar", "ugga"), \
                "Test for presence of created attribute returned false."
 
@@ -1075,7 +1075,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         self.element.setAttributeNode(node2)
 
         self.element.removeAttributeNS("uri:bugga", "ugga")
-        
+
         assert not self.element.hasAttributeNS("uri:bugga", "ugga"), \
                "Test for presence of created attribute still returns true."
 
@@ -1111,7 +1111,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         elements['i1'].appendChild(elements['i2'])
 
         el.appendChild(elements['a1'])
-        
+
         # now test
 
         # find all elements in the right order
@@ -1154,7 +1154,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         # Build test nodes
         el1 = el.appendChild(doc.createElement('e1'))
         el2 = el.appendChild(doc.createElement('e2'))
-        
+
         el1.appendChild(doc.createTextNode('foo'))
         el1.appendChild(doc.createTextNode('bar'))
 
@@ -1194,7 +1194,7 @@ class CharacterDataReadTestCaseBase(NodeReadTestCaseBase):
             "Clone is same as original.")
         assert not isSameNode(self.chardata, deepClone), (
             "Clone is same as original.")
-        
+
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
         checkAttribute(clone, 'parentNode', None)
@@ -1221,7 +1221,7 @@ class CommentReadTestCase(CharacterDataReadTestCaseBase):
 
 
 class CommentWriteTestCase(CharacterDataWriteTestCaseBase):
-    
+
     def setUp(self):
         self.chardata = self.node = self.createDocument().createComment("com")
 
@@ -1269,7 +1269,7 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         self.attr.prefix = newPrefix
         checkAttribute(clone, 'prefix', oldPrefix)
         checkAttribute(clone, 'name', oldQname)
-        
+
     def checkImportNode(self):
         foreignDoc = self.implementation.createDocument(None, 'foo', None)
 
@@ -1279,7 +1279,7 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         assert not isSameNode(self.attr, clone), "Clone is same as original."
         assert not isSameNode(self.attr, deepClone), (
             "Clone is same as original.")
-        
+
         checkAttributeSameNode(clone, 'ownerDocument', foreignDoc)
         checkAttributeSameNode(deepClone, 'ownerDocument', foreignDoc)
         checkAttribute(clone, 'parentNode', None)
@@ -1318,7 +1318,7 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         # qualified name with different prefix
         newPrefix = 'foo'
         newQname = '%s:%s' % (newPrefix, self.TEST_LOCAL_NAME)
-        
+
         self.attr.value = 'spam'
         self.document.documentElement.setAttributeNode(self.attr)
         attr2 = self.document.documentElement.getAttributeNodeNS(
@@ -1353,7 +1353,7 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
 
         attr3 = self.document.documentElement.getAttributeNodeNS(
             self.TEST_NAMESPACE, self.TEST_LOCAL_NAME)
-        
+
         # element attr
         assert self.document.documentElement.getAttributeNS(
             self.TEST_NAMESPACE, self.TEST_LOCAL_NAME) == 'eggs', (
@@ -1398,7 +1398,7 @@ class DefaultAttrTestCase(TestCaseBase):
 
     def checkImportNodeFromDefault(self):
         newDoc = self.implementation.createDocument(None, 'baz', None)
-        
+
         el = newDoc.importNode(self.document.documentElement, 0)
 
         assert not el.hasAttribute('foo'), (
@@ -1408,7 +1408,7 @@ class DefaultAttrTestCase(TestCaseBase):
     def checkImportNodeToDefault(self):
         newDoc = self.implementation.createDocument(None, 'baz', None)
         newEl = newDoc.createElementNS(TEST_NAMESPACE, 'doc')
-        
+
         el = self.document.importNode(newEl, 0)
 
         assert el.hasAttribute('foo'), (
@@ -1438,7 +1438,7 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
 
     def checkGetAttributeNS(self):
         el = self.document.documentElement
-        
+
         assert el.getAttributeNS(TEST_NAMESPACE, 'foo') == 'bar', (
             "Wrong value of default attribute found, expected 'bar', "
             "found %s" % repr(el.getAttributeNS(TEST_NAMESPACE, 'foo')))
@@ -1457,7 +1457,7 @@ class DefaultAttrWithPrefixTestCase(TestCaseBase):
     def checkImportNodeToDefault(self):
         newDoc = self.implementation.createDocument(None, 'baz', None)
         newEl = newDoc.createElementNS(TEST_NAMESPACE, 'prefix:doc')
-        
+
         el = self.document.importNode(newEl, 0)
 
         assert el.hasAttributeNS(TEST_NAMESPACE, 'foo'), (
@@ -1574,7 +1574,7 @@ class DocumentFragmentReadTestCase(NodeReadTestCaseBase):
 
         frag.appendChild(self.document.createComment('foo'))
         frag.appendChild(self.document.createTextNode('bar'))
-        
+
         clone = foreignDoc.importNode(frag, 0)
         deepClone = foreignDoc.importNode(frag, 1)
 
@@ -1622,7 +1622,7 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
         self.map.setNamedItemNS(self.attribute)
 
     def checkGetNamedItemNS(self):
-        node = self.map.getNamedItemNS(self.TEST_NAMESPACE, 
+        node = self.map.getNamedItemNS(self.TEST_NAMESPACE,
             self.TEST_LOCAL_NAME)
 
         assert node is not None, "getNamedItemNS didn't retrieve attribute."
@@ -1645,7 +1645,7 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
             "removeNamedItemNS didn't return an attribute.")
         assert isSameNode(node, self.attribute), (
             "removeNamedItemNS returned incorrect attribute.")
-        assert self.map.getNamedItemNS(self.TEST_NAMESPACE, 
+        assert self.map.getNamedItemNS(self.TEST_NAMESPACE,
             self.TEST_LOCAL_NAME) is None, "Attribute was not removed."
         checkLength(self.map, 0)
 
@@ -1662,7 +1662,7 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
         newAttr = self.document.createAttributeNS(self.TEST_NAMESPACE,
             'qname:someAttr')
         newAttr.value = 'spam'
-        
+
         retVal = self.map.setNamedItemNS(newAttr)
         assert retVal is None, "setNamedItemNS returned %s" % repr(retVal)
         checkLength(self.map, 2)
@@ -1701,7 +1701,7 @@ class NamedNodeMapWriteTestCase(TestCaseBase):
             self.TEST_QUALIFIED_NAME)
         el.setAttributeNode(attr)
         try:
-           self.map.setNamedItem(attr)
+            self.map.setNamedItem(attr)
         except xml.dom.InuseAttributeErr:
             pass
         else:

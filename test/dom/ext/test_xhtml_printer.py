@@ -1,5 +1,3 @@
-
-
 def test(stream):
     from xml.dom.ext.reader import HtmlLib
 
@@ -9,7 +7,7 @@ def test(stream):
 
     #print "Not Pretty"
     #ext.XHtmlPrint(doc)
-    
+
     print "Pretty"
     ext.XHtmlPrettyPrint(doc)
 

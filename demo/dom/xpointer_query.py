@@ -21,4 +21,3 @@ if __name__ == '__main__':
     ext.StripXml(result_node)
     ext.PrettyPrint(result_node)
     ext.ReleaseNode(result_node)
-

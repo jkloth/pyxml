@@ -1,4 +1,3 @@
-
 from xml.parsers.xmlproc import dtdparser,xmlapp,xmldtd,utils
 
 import sys
@@ -12,7 +11,7 @@ def print_cm(out,cm):
     elif cm[1]==[]:
         out.write("EMPTY")
         return
-        
+
     (sep,cont,mod)=cm
     out.write("(")
     for item in cont[:-1]:
@@ -27,9 +26,9 @@ def print_cm(out,cm):
     if len(item)==2:
         out.write('<A HREF="#%s">%s</A>%s' % (item[0],item[0],item[1]))
     else:
-        print_cm(out,item) 
+        print_cm(out,item)
         out.write(sep+" ")
-            
+
     out.write(")%s " % mod)
 
 # --- Main program
@@ -69,12 +68,12 @@ def traverse_cm(cur,cm):
 
 parents["#PCDATA"]={}
 for elem_name in dtd.get_elements():
-    parents[elem_name]={}    
-    
+    parents[elem_name]={}
+
 for elem_name in dtd.get_elements():
     elem=dtd.get_elem(elem_name)
     traverse_cm(elem_name,elem.get_content_model())
-        
+
 # Printing documentation
 
 print "Printing documentation"
@@ -103,11 +102,11 @@ for elem_name in elems:
     ps.sort()
     for p in ps:
         out.write('<A HREF="#%s">%s</A> ' % (p,p))
-        
+
     out.write("</P>")
 
     elem=dtd.get_elem(elem_name)
-    
+
     out.write("<H3>Content model</H3>")
 
     print_cm(out,elem.get_content_model())
@@ -118,13 +117,13 @@ for elem_name in elems:
     attrs=elem.get_attr_list()
     attrs.sort()
     for attr_name in attrs:
-        attr=elem.get_attr(attr_name)        
+        attr=elem.get_attr(attr_name)
         out.write("  <TR><TD>%s <TD>%s <TD>%s <TD>" %
                   (attr_name,attr.get_type(),attr.get_decl()))
         if attr.get_default()!=None:
             out.write("'%s'" % attr.get_default())
     out.write("</TABLE>")
-    
+
 
 out.write(
 """

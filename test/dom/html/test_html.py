@@ -1,5 +1,5 @@
 def error(msg):
-	raise 'ERROR: ' + msg
+    raise 'ERROR: ' + msg
 
 def test():
     print 'testing source code syntax'
@@ -22,4 +22,4 @@ def test():
 
 if __name__ == '__main__':
 
-	test();
+    test();

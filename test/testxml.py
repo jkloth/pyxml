@@ -1,4 +1,4 @@
-# 
+#
 # Top-level program for XML test suite
 #
 
@@ -11,4 +11,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

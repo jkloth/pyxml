@@ -39,5 +39,3 @@ print
 t2.documentElement.normalize()
 utils.collapse_whitespace(t2, utils.WS_INTERNAL)
 print t2.toxml()
-
-

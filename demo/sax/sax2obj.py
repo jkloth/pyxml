@@ -13,7 +13,7 @@ class ConvSpec:
 
     def __init__(self):
         pass
-    
+
 class SAXObject:
 
     def __init__(self):
@@ -24,13 +24,13 @@ class SAXObject:
 
     def get_fields(self):
         return self._fields.keys()
-    
+
     def get_field(self,field):
         return self._fields[field]
-        
+
     def set_field(self,field,value):
         self._fields[field]=value
-        
+
     def display(self):
         for field in self._fields.keys():
             print "%s=%s" % (field,self._fields[field])
@@ -64,7 +64,7 @@ class DocHandler(saxlib.DocumentHandler):
     def startElement(self,name,attrs):
         if self.ignoring:
             return
-        
+
         if name==self.target_elem:
             self.current=SAXObject()
             for attr in attrs:
@@ -86,7 +86,7 @@ class DocHandler(saxlib.DocumentHandler):
     def characters(self,data,start,length):
         if self.ignoring or self.current==None:
             return
-        
+
         data=data[start:start+length]
         mo=reg_ws.match(data)
         if mo!=None and mo.end(0)==len(data):
@@ -113,15 +113,15 @@ class DocHandler(saxlib.DocumentHandler):
         elif self.rep_field.has_key(name):
             self.current.get_field(name).append(self.cur_data)
         else:
-            self.current.set_field(name,self.cur_data)        
-            
+            self.current.set_field(name,self.cur_data)
+
     def get_objects(self):
         return self.objects
 
 def make_objects(url,element,list_elems={},ign_elems={},rep_field={}):
     dh=DocHandler(element,list_elems,ign_elems,rep_field)
     eh=saxutils.ErrorPrinter()
-    
+
     parser=saxexts.make_parser()
     parser.setDocumentHandler(dh)
     parser.setErrorHandler(eh)
@@ -139,13 +139,13 @@ def make_xml(filename,root_elem,trgt_elem,list):
             out.write("    <%s>%s</%s>\n" % \
                       (field,escape_markup(obj.get_field(field)),field))
         out.write("  </%s>\n" % trgt_elem)
-    
+
     out.write("\n</%s>" % root_elem)
     out.close()
-    
+
 def list2hash(lst,key_field):
     hash={}
-    
+
     for obj in lst:
         hash[obj.get_field(key_field)]=obj
 

@@ -22,7 +22,6 @@ if __name__ == "__main__":
     else:
         print "%s requires one or two arguments: the first is a URL or file name to be tidied.  The optional second is the encoding to assume for the input."%sys.argv[0]
         sys.exit(-1)
-    
+
     html_doc = html_reader.fromUri(uri, charset=encoding)
     Tidy(html_doc)
-    

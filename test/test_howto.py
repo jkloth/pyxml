@@ -1,4 +1,3 @@
-
 # Test suite containing code from the XML HOWTO
 
 # SAX testing code
@@ -123,7 +122,7 @@ from xml.dom.ext.reader.Sax import FromXml
 from xml.dom.ext import PrettyPrint
 
 dom_xml = """<?xml version="1.0" encoding="iso-8859-1"?>
-<xbel>  
+<xbel>
   <?processing instruction?>
   <desc>No description</desc>
   <folder>

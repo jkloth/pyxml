@@ -25,7 +25,7 @@ def build_tree(sysid):
                 self.current_stack.append([])
                 self.root=(name,attrs,self.current_stack[-1])
             else:
-                list=[]                
+                list=[]
                 self.current_stack[-1].append(name,attrs,list)
                 self.current_stack.append(list)
 
@@ -34,7 +34,7 @@ def build_tree(sysid):
                 self.current_stack[-1].append(data[start:end])
 
         def handle_end_tag(self,name):
-            del self.current_stack[-1]                
+            del self.current_stack[-1]
 
     builder=BuilderApp()
     parser=xmlproc.XMLProcessor()
@@ -47,7 +47,7 @@ def build_tree(sysid):
 
 def get_element(parent,child_type_name):
     "Locates the first child element with the given name inside an element."
-    
+
     for child in parent[2]:
         if type(child)==types.TupleType and child[0]==child_type_name:
             return child
@@ -61,7 +61,7 @@ def get_elements(parent,child_type_name):
             list.append(child)
 
     return list
-            
+
 def get_pcdata(parent):
     """Picks out the PCDATA contents of the element, under the assumption
     that all the contents are PCDATA."""

@@ -14,7 +14,7 @@ import re
 
 def parse_lynx_file(bms, input):
     """Convert a Lynx 2.8 bookmark file to XBEL, reading from the
-    input file object, and write to the output file object.""" 
+    input file object, and write to the output file object."""
 
     # Read the whole file into memory
     data = input.read()
@@ -25,7 +25,7 @@ def parse_lynx_file(bms, input):
     else: title = m.group(1)
 
     bms.add_folder( title )
-    
+
     hrefpat = re.compile( r"""^ \s* <li> \s*
 <a \s+ href \s* = \s* "(?P<url> [^"]* )" \s*>
 (?P<name> .*? ) </a>""",
@@ -47,9 +47,9 @@ if __name__ == '__main__':
         print
         print "A simple utility to convert Lynx bookmarks to XBEL."
         print
-        print "Usage: "        
+        print "Usage: "
         print "  lynx_parse.py <lynx-directory> [<xbel-file>]"
-        sys.exit(1)        
+        sys.exit(1)
 
     bms = bookmark.Bookmarks()
 
@@ -71,5 +71,5 @@ if __name__ == '__main__':
         out.close()
     else:
         bms.dump_xbel()
-        
+
     # Done

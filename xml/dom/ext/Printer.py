@@ -146,7 +146,7 @@ class PrintVisitor(Visitor):
             obj = utf8_to_code(text, self.encoding)
         self.stream.write(obj)
         return
-    
+
     def _tryIndent(self):
         if not self._inText and self._indent:
             self._write('\n' + self._indent*self._depth)

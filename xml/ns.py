@@ -15,9 +15,9 @@ class XMLNS:
 
     XMLNS (14-Jan-1999) is a W3C Recommendation.  It is specified in
     http://www.w3.org/TR/REC-xml-names
-	BASE -- the basic namespace defined by the specification
-	XML -- the namespace for XML 1.0
-	HTML -- the namespace for HTML4.0
+        BASE -- the basic namespace defined by the specification
+        XML -- the namespace for XML 1.0
+        HTML -- the namespace for HTML4.0
     """
 
     BASE        = "http://www.w3.org/2000/xmlns/"
@@ -30,9 +30,9 @@ class SOAP:
 
     SOAP (v1.1, 8-May-2000) is a W3C note.  It is specified in
     http://www.w3.org/TR/SOAP
-	ENV -- namespace for the SOAP envelope
-	ENC -- namespace for the SOAP encoding in section 5
-	ACTOR_NEXT -- the URI for the "next" actor
+        ENV -- namespace for the SOAP envelope
+        ENC -- namespace for the SOAP encoding in section 5
+        ACTOR_NEXT -- the URI for the "next" actor
     (Note that no BASE is defined.)
     """
 
@@ -46,20 +46,20 @@ class DSIG:
 
     DSIG (19-Apr-2001) is a W3C Candidate Recommendation.  It is specified
     in http://www.w3.org/TR/xmldsig-core/
-	BASE -- the basic namespace defined by the specification
-	DIGEST_SHA1 -- The SHA-1 digest method
-	DIGEST_MD2 -- The MD2 digest method
-	DIGEST_MD5 -- The MD5 digest method
-	SIG_DSA_SHA1 -- The DSA/DHA-1 signature method
-	SIG_RSA_SHA1 -- The RSA/DHA-1 signature method
-	HMAC_SHA1 -- The SHA-1 HMAC method
-	ENC_BASE64 -- The Base64 encoding method
-	ENVELOPED -- an enveloped XML signature
-	C14N  -- XML canonicalization
-	C14N_COMM  -- XML canonicalization, retaining comments
-	C14N_EXCL  -- XML exclusive canonicalization
-	XPATH -- The identifier for an XPATH transform
-	XSLT -- The identifier for an XSLT transform
+        BASE -- the basic namespace defined by the specification
+        DIGEST_SHA1 -- The SHA-1 digest method
+        DIGEST_MD2 -- The MD2 digest method
+        DIGEST_MD5 -- The MD5 digest method
+        SIG_DSA_SHA1 -- The DSA/DHA-1 signature method
+        SIG_RSA_SHA1 -- The RSA/DHA-1 signature method
+        HMAC_SHA1 -- The SHA-1 HMAC method
+        ENC_BASE64 -- The Base64 encoding method
+        ENVELOPED -- an enveloped XML signature
+        C14N  -- XML canonicalization
+        C14N_COMM  -- XML canonicalization, retaining comments
+        C14N_EXCL  -- XML exclusive canonicalization
+        XPATH -- The identifier for an XPATH transform
+        XSLT -- The identifier for an XSLT transform
     """
 
     BASE        = "http://www.w3.org/2000/09/xmldsig#"
@@ -73,7 +73,7 @@ class DSIG:
     ENVELOPED   = BASE + "enveloped-signature"
     C14N        = "http://www.w3.org/TR/2000/CR-xml-c14n-20010315"
     C14N_COMM   = C14N + "#WithComments"
-    C14N_EXCL	= "http://www.w3.org/2001/10/xml-exc-c14n#"
+    C14N_EXCL   = "http://www.w3.org/2001/10/xml-exc-c14n#"
     XPATH       = "http://www.w3.org/TR/1999/REC-xpath-19991116"
     XSLT        = "http://www.w3.org/TR/1999/REC-xslt-19991116"
 
@@ -83,22 +83,22 @@ class ENCRYPTION:
 
     ENCRYPTION (26-Jun-2001) is a W3C Working Draft.  It is specified in
     http://www.w3.org/TR/xmlenc-core/
-	BASE -- the basic namespace defined by the specification
-	BLOCK_3DES -- The triple-DES symmetric encryption method
-	BLOCK_AES128 -- The 128-bit AES symmetric encryption method
-	BLOCK_AES256 -- The 256-bit AES symmetric encryption method
-	BLOCK_AES192 -- The 192-bit AES symmetric encryption method
-	STREAM_ARCFOUR -- The ARCFOUR symmetric encryption method
-	KT_RSA_1_5 -- The RSA v1.5 key transport method
-	KT_RSA_OAEP -- The RSA OAEP key transport method
-	KA_DH -- The Diffie-Hellman key agreement method
-	WRAP_3DES -- The triple-DES symmetric key wrap method
-	WRAP_AES128 -- The 128-bit AES symmetric key wrap method
-	WRAP_AES256 -- The 256-bit AES symmetric key wrap method
-	WRAP_AES192 -- The 192-bit AES symmetric key wrap method
-	DIGEST_SHA256 -- The SHA-256 digest method
-	DIGEST_SHA512 -- The SHA-512 digest method
-	DIGEST_RIPEMD160 -- The RIPEMD-160 digest method
+        BASE -- the basic namespace defined by the specification
+        BLOCK_3DES -- The triple-DES symmetric encryption method
+        BLOCK_AES128 -- The 128-bit AES symmetric encryption method
+        BLOCK_AES256 -- The 256-bit AES symmetric encryption method
+        BLOCK_AES192 -- The 192-bit AES symmetric encryption method
+        STREAM_ARCFOUR -- The ARCFOUR symmetric encryption method
+        KT_RSA_1_5 -- The RSA v1.5 key transport method
+        KT_RSA_OAEP -- The RSA OAEP key transport method
+        KA_DH -- The Diffie-Hellman key agreement method
+        WRAP_3DES -- The triple-DES symmetric key wrap method
+        WRAP_AES128 -- The 128-bit AES symmetric key wrap method
+        WRAP_AES256 -- The 256-bit AES symmetric key wrap method
+        WRAP_AES192 -- The 192-bit AES symmetric key wrap method
+        DIGEST_SHA256 -- The SHA-256 digest method
+        DIGEST_SHA512 -- The SHA-512 digest method
+        DIGEST_RIPEMD160 -- The RIPEMD-160 digest method
     """
 
     BASE             = "http://www.w3.org/2001/04/xmlenc#"
@@ -128,12 +128,12 @@ class SCHEMA:
     development for a comparitively long time, and other standards have
     at times used earlier drafts.  This class defines the most-used, and
     sets BASE to the latest.
-	BASE -- the basic namespace (2001)
-	XSD1, XSI1 -- schema and schema-instance for 1999
-	XSD2, XSI2 -- schema and schema-instance for October 2000
-	XSD3, XSI3 -- schema and schema-instance for 2001
-	XSD_LIST -- a sequence of the XSDn values
-	XSI_LIST -- a sequence of the XSIn values
+        BASE -- the basic namespace (2001)
+        XSD1, XSI1 -- schema and schema-instance for 1999
+        XSD2, XSI2 -- schema and schema-instance for October 2000
+        XSD3, XSI3 -- schema and schema-instance for 2001
+        XSD_LIST -- a sequence of the XSDn values
+        XSI_LIST -- a sequence of the XSIn values
     """
 
     XSD1        = "http://www.w3.org/1999/XMLSchema"
@@ -152,7 +152,7 @@ class XSLT:
 
     XSLT (16-Nov-1999) is a W3C Recommendation.  It is specified in
     http://www.w3.org/TR/xslt/
-	BASE -- the basic namespace defined by this specification
+        BASE -- the basic namespace defined by this specification
     """
 
     BASE        = "http://www.w3.org/1999/XSL/Transform"
@@ -173,10 +173,10 @@ class WSDL:
 
     WSDL (V1.1, 15-Mar-2001) is a W3C Note.  It is specified in
     http://www.w3.org/TR/wsdl
-	BASE -- the basic namespace defined by this specification
-	BIND_SOAP -- SOAP binding for WSDL
-	BIND_HTTP -- HTTP GET and POST binding for WSDL
-	BIND_MIME -- MIME binding for WSDL
+        BASE -- the basic namespace defined by this specification
+        BIND_SOAP -- SOAP binding for WSDL
+        BIND_HTTP -- HTTP GET and POST binding for WSDL
+        BIND_MIME -- MIME binding for WSDL
     """
 
     BASE        = "http://schemas.xmlsoap.org/wsdl/"

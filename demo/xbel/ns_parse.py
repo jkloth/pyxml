@@ -39,12 +39,12 @@ class NetscapeHandler(saxlib.HandlerBase):
             else: self.visited = None
             if d.has_key('last_modified'): self.modified=d["last_modified"]
             else: self.modified = None
-            
+
             self.url=d["href"]
         elif name=='title':  # Could equally use h1 element
             self.cur_elem = 'title'
             self.bms.owner = ""
-            
+
     def characters(self,data,start,length):
 ##        print 'char', self.cur_elem, data[start:start+length]
         if self.cur_elem=="h3":
@@ -57,7 +57,7 @@ class NetscapeHandler(saxlib.HandlerBase):
                                    href = self.url)
         elif self.cur_elem=="title":
             self.bms.owner = self.bms.owner + data[start:start+length]
-            
+
     def endElement(self,name):
         name = string.lower( name )
 ##        print 'end', name
@@ -77,10 +77,10 @@ if __name__ == '__main__':
         print
         print "A simple utility to convert Netscape bookmarks to XBEL."
         print
-        print "Usage: "        
+        print "Usage: "
         print "  ns_parse.py <ns-file> [<xbel-file>]"
-        sys.exit(1)        
-    
+        sys.exit(1)
+
     ns_handler=NetscapeHandler()
     p=saxexts.SGMLParserFactory.make_parser()
     p.setDocumentHandler(ns_handler)
@@ -94,13 +94,12 @@ if __name__ == '__main__':
         out.close()
     else:
         bms.dump_xbel()
-        
+
     # Done
-    
+
 ##     ns_handler=NetscapeHandler()
 
 ##     p=saxexts.SGMLParserFactory.make_parser()
 ##     p.setDocumentHandler(ns_handler)
 ##     p.parseFile(open(r"/home/amk/.netscape/bookmarks.html"))
 ##     ns_handler.bms.dump_xbel()
-

@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     #Create a doctype using document type name, sysid and pubid
     dt = implementation.createDocumentType('mydoc', '', '')
-  
+
     #Create a document using document element namespace URI, doc element
     #name and doctype.  This automatically creates a document element
     #which is the single element child of the document
@@ -37,4 +37,3 @@ if __name__ == '__main__':
     #Print out the resulting document
     import xml.doc.ext
     xml.doc.ext.Print(doc)
-

@@ -11,7 +11,7 @@ def GetExceptionName(code):
         if (type(value) == types.IntType and value == code):
             return name
 
-source_1 = """<?xml version='1.0' encoding='iso-8859-1'?> 
+source_1 = """<?xml version='1.0' encoding='iso-8859-1'?>
 <element>àéèêëïîöôùü</element>"""
 
 

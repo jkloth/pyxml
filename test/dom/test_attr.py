@@ -27,7 +27,7 @@ def test(tester):
 
     tester.startTest('Testing attributes')
     if a.name != 'TestNode':
-       tester.error("name failed")
+        tester.error("name failed")
     if a.specified != 0:
         tester.error("specified failed")
     a.value = 'Test Value'

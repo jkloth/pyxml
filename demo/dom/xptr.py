@@ -90,23 +90,23 @@ class SymbolGenerator:
     def get_pos(self):
         "Returns the current position in the string."
         return self.__pos
-        
+
     def more_symbols(self):
         "True if there are more symbols in the XPointer."
         return self.__pos<len(self.__data) or self.__next_is!=""
-        
+
     def next_symbol(self):
         "Returns the next XPointer symbol."
         if self.__next_is!="":
             tmp=self.__next_is
             self.__next_is=""
             return tmp
-        
+
         if self.__last_was_param:
             self.__last_was_param=0
             sym=""
             count=0
-            
+
             while self.more_symbols():
                 n=self.next_symbol()
                 if n=='"' or n=="'":
@@ -142,7 +142,7 @@ class SymbolGenerator:
 
         self.__last_was_param= mo.group(0)=="("
         return mo.group(0)
-    
+
 # Simple XPointer parser
 
 class XPointerParser:
@@ -172,7 +172,7 @@ class XPointerParser:
                                              self.__sgen.get_pos())
         else:
             return "all"
-    
+
     def parse(self):
         "Runs through the entire XPointer, firing events."
         sym="."
@@ -209,14 +209,14 @@ class XPointerParser:
         # If the XPointer ends correctly, we'll return from the if above
         raise XPointerParseException("Expected '.' at %s",
                                      self.__sgen.get_pos())
-                    
+
     def dispatch_term(self,name,params):
         """Called when a term is encountered to analyze it and fire more
         detailed events."""
         if self.__first_term:
             if name=="root" or name=="origin" or name=="id" or name=="html":
                 if name=="root" or name=="origin":
-                    if len(params)!=0:                    
+                    if len(params)!=0:
                         raise XPointerParseException(name+" terms have no "
                                                      "parameters (at %s)",
                                                      self.__sgen.get_pos())
@@ -230,7 +230,7 @@ class XPointerParser:
                     else:
                         param=params[0]
                         # XXX Validate parameter
-                        
+
                 self.__first_term=0
                 self.handle_abs_term(name,param)
                 return
@@ -239,7 +239,7 @@ class XPointerParser:
         else:
             if name=="" and self.__prev!=None:
                 name=self.__prev
-                
+
         if name=="child" or name=="ancestor" or name=="psibling" or \
            name=="fsibling" or name=="descendant" or name=="following" or \
            name=="preceding":
@@ -253,13 +253,13 @@ class XPointerParser:
         else:
             raise XPointerParseException("Illegal term type "+name+\
                                          " at %s",self.__sgen.get_pos())
-        
+
         self.__prev=name
 
     def parse_rel_term(self,name,params):
         "Parses the arguments of relative location terms and fires the event."
         no=self.__parse_instance_or_all(params[0])
-        
+
         if len(params)>1:
             type=params[1]
             if not (type=="#element" or type=="#pi" or type=="#comment" or \
@@ -269,14 +269,14 @@ class XPointerParser:
                                              self.__sgen.get_pos())
         else:
             type="#element"
-            
+
         attrs=[]
         ix=2
         while ix+1<len(params):
             if not self.__is_valid(params[ix],reg_name):
                 raise XPointerParseException("Not a valid name at %s",
                                              self.__sgen.get_pos())
-                
+
             attrs.append((params[ix],params[ix+1]))
             ix=ix+2
 
@@ -297,7 +297,7 @@ class XPointerParser:
             raise XPointerParseException("'%s' is not a valid attribute "
                                          "name at %s" % name,
                                          self.__sgen.get_pos())
-        
+
         self.handle_attr_term(params[0])
 
     def parse_string_term(self,params):
@@ -333,16 +333,16 @@ class XPointerParser:
                 raise XPointerParseException("Expected number at %s",
                                              self.__sgen.get_pos())
         else:
-            length=0            
+            length=0
 
         self.handle_string_term(no,skiplit,pos,length)
-    
+
     # Event methods to be overridden
-        
+
     def handle_abs_term(self,name,param):
         "Called to handle absolute location terms."
         pass
-    
+
     def handle_rel_term(self,name,no,type,attrs):
         "Called to handle relative location terms."
         pass
@@ -358,7 +358,7 @@ class XPointerParser:
     def handle_string_term(self,no,skiplit,pos,length):
         "Called to handle 'string' location terms."
         pass
-    
+
 # ----- XPointer implementation that navigates a DOM tree
 
 # Iterator classes
@@ -367,7 +367,7 @@ class DescendantIterator:
 
     def __init__(self):
         self.stack=[]
-    
+
     def __call__(self,node):
         next=node.firstChild
         if next==None:
@@ -379,7 +379,7 @@ class DescendantIterator:
             next=self.stack[-1].nextSibling
             del self.stack[-1]
 
-        self.stack.append(next)      
+        self.stack.append(next)
         return next
 
 class FollowingIterator:
@@ -387,7 +387,7 @@ class FollowingIterator:
     def __init__(self):
         self.seen_hash={}
         self.skip_child=0
-    
+
     def __call__(self,node):
         if not self.skip_child:
             next=node.firstChild
@@ -407,7 +407,7 @@ class FollowingIterator:
             if self.seen_hash.has_key(next.id()):
                 next=node.nextSibling
                 prev=node
-                
+
                 while next==None:
                     next=prev.parentNode
                     self.skip_child=1   # Don't go down, we've been there :-)
@@ -424,8 +424,8 @@ class FollowingIterator:
                 self.seen_hash.clear()
 
         self.seen_hash[next.id()]=1
-        return next  
-    
+        return next
+
 # The implementation itself
 
 class XDOMLocator(XPointerParser):
@@ -467,11 +467,11 @@ class XDOMLocator(XPointerParser):
                 count=count+1
                 if count==no:
                     return current
-                
+
             current=iterator(current)
 
         raise XPointerFailedException("No matching node")
-            
+
     def __get_child(self,no,type,attrs):
         if type==None:
             candidates = self.__node.childNodes

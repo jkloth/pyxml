@@ -1,5 +1,3 @@
-
-
 TEST_FILE = '../../demo/dom/addr_book1.xml'
 
 from xml.dom.ext.reader import PyExpat
@@ -28,7 +26,7 @@ def ReadDoc():
     global EN_PAGER
     global EN_EMAIL
     global VZ
-    
+
     doc = r.fromUri(TEST_FILE)
     ADDRBOOK = doc.documentElement
     elementType = lambda n, nt=Node.ELEMENT_NODE: n.nodeType == nt
@@ -49,7 +47,7 @@ def ReadDoc():
     EN_FAX = children[3]
     EN_PAGER = children[4]
     EN_EMAIL = children[5]
-    
+
     VZ = ENTRIES[3]
 
 
@@ -82,7 +80,7 @@ def test(tester=None):
     tester.testResults(Range.Range.POSITION_GREATER_THAN,range._Range__comparePositions(EN,1,ADDRBOOK,0),done=0,msg = 'CASE 3 #1')
     tester.testResults(Range.Range.POSITION_GREATER_THAN,range._Range__comparePositions(EN,1,ADDRBOOK,5),done=0,msg = 'CASE 3 #2')
     tester.testResults(Range.Range.POSITION_LESS_THAN,range._Range__comparePositions(EN,1,ADDRBOOK,6),done=0,msg = 'CASE 3 #3')
-    
+
     #CASE 4
     tester.testResults(Range.Range.POSITION_LESS_THAN,range._Range__comparePositions(PA,0,EN_NAME,0),done=0,msg = 'CASE 4 #1')
     tester.testResults(Range.Range.POSITION_GREATER_THAN,range._Range__comparePositions(EN,0,PA_NAME,0),done=0,msg = 'CASE 4 #2')
@@ -505,7 +503,7 @@ def test(tester=None):
     tester.testResults(3,len(PA_NAME.childNodes),done=0,msg='insertNode 1')
     tester.testResults('P',PA_NAME.firstChild.data,done=0,msg='insertNode 2')
     tester.testResults(newNode,PA_NAME.childNodes[1],done=0,msg='insertNode 3')
-    
+
 
     ReadDoc()
     range = doc.createRange()
@@ -518,7 +516,7 @@ def test(tester=None):
 
     tester.testResults(14,len(PA.childNodes),done=0,msg='insertNode 3')
     tester.testResults(newNode,PA.childNodes[2],done=0,msg='insertNode 4')
-    
+
     tester.testDone()
 
 

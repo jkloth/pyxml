@@ -1,5 +1,3 @@
-
-
 import Cyclops,sys
 
 from xml.dom.ext.reader import Sax2
@@ -18,12 +16,12 @@ def test():
 
     a1 = b1.getAttributeNodeNS("http://foo.com","a1")
     a1.value = "This shouldn't leak"
-    
+
     b1.appendChild(c1)
     b1.appendChild(c2)
-    
+
     doc.documentElement.appendChild(b1)
-    
+
     r1 = doc.createElementNS("http://foo.com","foo:replace")
     doc.documentElement.replaceChild(r1,b1)
 
@@ -33,11 +31,11 @@ def test():
     s = cStringIO.StringIO()
     import xml.dom.ext
     xml.dom.ext.Print(doc, stream = s)
-    
-    
+
+
     ext.ReleaseNode(doc)
     ext.ReleaseNode(b1)
-    
+
     doc = Sax2.FromXml(data)
     ext.ReleaseNode(doc)
 

@@ -39,5 +39,3 @@ def test(testSuite):
         return 0
 
     return 1
-
-

@@ -1,24 +1,24 @@
 ##############################################################################
-# 
+#
 # Zope Public License (ZPL) Version 1.0
 # -------------------------------------
-# 
+#
 # Copyright (c) Digital Creations.  All rights reserved.
-# 
+#
 # This license has been certified as Open Source(tm).
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
 # met:
-# 
+#
 # 1. Redistributions in source code must retain the above copyright
 #    notice, this list of conditions, and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions, and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
-# 
+#
 # 3. Digital Creations requests that attribution be given to Zope
 #    in any manner possible. Zope includes a "Powered by Zope"
 #    button that is installed by default. While it is not a license
@@ -26,43 +26,43 @@
 #    attribution remain. A significant investment has been put
 #    into Zope, and this effort will continue if the Zope community
 #    continues to grow. This is one way to assure that growth.
-# 
+#
 # 4. All advertising materials and documentation mentioning
 #    features derived from or use of this software must display
 #    the following acknowledgement:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    In the event that the product being advertised includes an
 #    intact Zope distribution (with copyright and license included)
 #    then this clause is waived.
-# 
+#
 # 5. Names associated with Zope or Digital Creations must not be used to
 #    endorse or promote products derived from this software without
 #    prior written permission from Digital Creations.
-# 
+#
 # 6. Modified redistributions of any form whatsoever must retain
 #    the following acknowledgment:
-# 
+#
 #      "This product includes software developed by Digital Creations
 #      for use in the Z Object Publishing Environment
 #      (http://www.zope.org/)."
-# 
+#
 #    Intact (re-)distributions of any official Zope release do not
 #    require an external acknowledgement.
-# 
+#
 # 7. Modifications are encouraged but must be packaged separately as
 #    patches to official Zope releases.  Distributions that do not
 #    clearly separate the patches from the original work must be clearly
 #    labeled as unofficial distributions.  Modifications which do not
 #    carry the name Zope may be packaged in any form, as long as they
 #    conform to all of the clauses above.
-# 
-# 
+#
+#
 # Disclaimer
-# 
+#
 #   THIS SOFTWARE IS PROVIDED BY DIGITAL CREATIONS ``AS IS'' AND ANY
 #   EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -75,12 +75,12 @@
 #   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 #   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #   SUCH DAMAGE.
-# 
-# 
+#
+#
 # This software consists of contributions made by Digital Creations and
 # many individuals on behalf of Digital Creations.  Specific
 # attributions are listed in the accompanying credits file.
-# 
+#
 ##############################################################################
 
 from Base import *
@@ -107,7 +107,7 @@ class DOMImplementationReadTestCase(TestCaseBase):
         #('Core', '1.0'),
         ('Core', '2.0'),
         ('Core', '3.0'),
-        
+
         ('XML', None),
         ('XML', '1.0'),
         ('XML', '2.0'),
@@ -164,7 +164,7 @@ class NodeReadTestCaseBase(TestCaseBase):
     def checkNodeTypeConstants(self):
         for type in self.nodeTypes:
             checkAttribute(self.node, type, getattr(Node, type))
-    
+
     def checkAttributes(self):
         if self.node.nodeType == Node.ELEMENT_NODE:
             checkLength(self.node.attributes, 0)
@@ -198,7 +198,7 @@ class NodeReadTestCaseBase(TestCaseBase):
         checkAttributeSameNode(self.node, 'firstChild', expected)
         checkReadOnly(self.node, 'firstChild')
         if expected:
-            checkAttributeSameNode(self.node.firstChild, 'parentNode', 
+            checkAttributeSameNode(self.node.firstChild, 'parentNode',
                 self.node)
 
     def checkLastChild(self):
@@ -214,7 +214,7 @@ class NodeReadTestCaseBase(TestCaseBase):
         checkAttributeSameNode(self.node, 'lastChild', expected)
         checkReadOnly(self.node, 'lastChild')
         if expected:
-            checkAttributeSameNode(self.node.lastChild, 'parentNode', 
+            checkAttributeSameNode(self.node.lastChild, 'parentNode',
                 self.node)
 
     def checkNextSibling(self):
@@ -228,7 +228,7 @@ class NodeReadTestCaseBase(TestCaseBase):
         Node.DOCUMENT_FRAGMENT_NODE: '#document-fragment',
         Node.TEXT_NODE:              '#text',
     }
-            
+
     def checkNodeName(self):
         if self.node.nodeType in (Node.ATTRIBUTE_NODE,
                 Node.DOCUMENT_TYPE_NODE):
@@ -250,7 +250,7 @@ class NodeReadTestCaseBase(TestCaseBase):
 
         checkAttribute(self.node, 'nodeName', expected)
         checkReadOnly(self.node, "nodeName")
- 
+
     def checkNodeType(self):
         checkAttribute(self.node, 'nodeType', self.expectedType)
         checkReadOnly(self.node, "nodeType")
@@ -274,7 +274,7 @@ class NodeReadTestCaseBase(TestCaseBase):
                 Node.TEXT_NODE,
                 Node.PROCESSING_INSTRUCTION_NODE):
             expected = self.node.data
-        
+
         elif self.node.nodeType == Node.ATTRIBUTE_NODE:
             expected = self.node.value
 
@@ -334,7 +334,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
                 Node.TEXT_NODE,
                 Node.PROCESSING_INSTRUCTION_NODE):
             alias = 'data'
-        
+
         elif self.node.nodeType == Node.ATTRIBUTE_NODE:
             alias = 'value'
 
@@ -414,7 +414,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         'createEntityReference':       ('anEntityReference',),
         'createProcessingInstruction': ('aPI', 'data for PI'),
         'createTextNode':              ('A Text Node',),
-        
+
         # From DOMImplementation (marked as tuples)
         ('createDocument',):           (None, 'aDocument', None),
         ('createDocumentType',):       ('aDocType', 'uri:public', 'uri:system'),
@@ -425,7 +425,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         if self.node.nodeType == Node.DOCUMENT_NODE:
             # To create a better test for Document Nodes, we remove the
-            # documentElement Node. 
+            # documentElement Node.
             self.node.removeChild(self.node.documentElement)
 
             # Since appending a Document Type Node to a Document Node isn't
@@ -496,7 +496,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkAppendChildForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -519,7 +519,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkAppendChildAncestorNode(self):
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if Node.ELEMENT_NODE not in self.allowedChildrenMap[self.node.nodeType]:
             return
@@ -535,13 +535,13 @@ class NodeWriteTestCaseBase(TestCaseBase):
             pass
         else:
             assert 0, (
-                "Allowed to append ancestor Node to a %s Node." % 
+                "Allowed to append ancestor Node to a %s Node." %
                     TYPE_NAME[newNode.nodeType])
 
     def checkAppendChildSelf(self):
         # See DOM erratum core-6
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if self.node.nodeType not in self.allowedChildrenMap[
                 self.node.nodeType]:
@@ -553,13 +553,13 @@ class NodeWriteTestCaseBase(TestCaseBase):
             pass
         else:
             assert 0, (
-                "Allowed to append the Node to itself." % 
+                "Allowed to append the Node to itself." %
                     TYPE_NAME[newNode.nodeType])
 
     def checkAppendChildWithAttachedNode(self):
         # Test appending a Node that itself is part of a tree
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -573,7 +573,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         oldParent.appendChild(newNode)
 
         self.node.appendChild(newNode)
-        
+
         assert not oldParent.hasChildNodes(), (
             "Appended Node not removed from previous parent.")
 
@@ -682,13 +682,13 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         if self.node.nodeType == Node.DOCUMENT_NODE:
             # To create a better test for Document Nodes, we remove the
-            # documentElement Node. 
+            # documentElement Node.
             self.node.removeChild(self.node.documentElement)
 
             # Since inserting a Document Type Node into a Document Node isn't
             # allowed, we remove it from the allowed children list for now.
             allowedChildren = allowedChildren[:-1]
-    
+
         # No use when no children are allowed.
         if not allowedChildren:
             return
@@ -724,7 +724,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
                         assert self.node.documentElement, (
                             "Couldn't add a Element node to an empty Document."
                         )
-                    
+
                 assert newNode.nodeType not in allowedChildren, (
                     "Couldn't append a %s Node." % TYPE_NAME[
                         newNode.nodeType])
@@ -752,7 +752,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkInsertBeforeNotFound(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -783,7 +783,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkInsertBeforeForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -810,7 +810,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkInsertBeforeAncestorNode(self):
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if Node.ELEMENT_NODE not in self.allowedChildrenMap[self.node.nodeType]:
             return
@@ -839,7 +839,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
     def checkInsertBeforeSelf(self):
         # See DOM erratum core-7
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if self.node.nodeType not in self.allowedChildrenMap[
                 self.node.nodeType]:
@@ -858,13 +858,13 @@ class NodeWriteTestCaseBase(TestCaseBase):
             pass
         else:
             assert 0, (
-                "Allowed to insert the Node into itself." % 
+                "Allowed to insert the Node into itself." %
                     TYPE_NAME[newNode.nodeType])
 
     def checkInsertBeforeWithAttachedNode(self):
         # Test appending a Node that itself is part of a tree
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -881,7 +881,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
         self.node.insertBefore(newNode, refNode)
-        
+
         assert not oldParent.hasChildNodes(), (
             "Appended Node not removed from previous parent.")
 
@@ -906,7 +906,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         # we need self.node to have the same doc as textNode
         self.node = doc.importNode(self.node, 1)
         self.node.appendChild(refNode)
-        
+
         try:
             self.node.insertBefore(textNode, refNode)
         except xml.dom.NoModificationAllowedErr:
@@ -932,13 +932,13 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         if self.node.nodeType == Node.DOCUMENT_NODE:
             # To create a better test for Document Nodes, we remove the
-            # documentElement Node. 
+            # documentElement Node.
             self.node.removeChild(self.node.documentElement)
 
             # Since replacing with a Document Type Node on a Document Node isn't
             # allowed, we remove it from the allowed children list for now.
             allowedChildren = allowedChildren[:-1]
-    
+
         # No use when no children are allowed.
         if not allowedChildren:
             return
@@ -974,7 +974,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
                    and newNode.nodeType == Node.ELEMENT_NODE:
                     assert self.node.documentElement, \
                            "Couldn't add an Element node to an empty Document."
-                    
+
                 assert newNode.nodeType not in allowedChildren, (
                     "Couldn't replace an old Node with a %s Node." % TYPE_NAME[
                         newNode.nodeType])
@@ -1004,7 +1004,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkReplaceChildNotFound(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -1038,7 +1038,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkReplaceChildForeignNode(self):
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -1065,7 +1065,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
     def checkReplaceChildAncestorNode(self):
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if Node.ELEMENT_NODE not in self.allowedChildrenMap[self.node.nodeType]:
             return
@@ -1093,7 +1093,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
     def checkReplaceChildSelf(self):
         # See DOM erratum core-8
         if self.node.nodeType in self.readOnlyNodeList:
-            return 
+            return
 
         if self.node.nodeType not in self.allowedChildrenMap[
                 self.node.nodeType]:
@@ -1118,7 +1118,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
     def checkReplaceChildWithAttachedNode(self):
         # Test replacing with a Node that itself is part of a tree
         allowedChildren = self.allowedChildrenMap[self.node.nodeType]
-        
+
         # No use when no children are allowed or read-only
         if not allowedChildren or self.node.nodeType in self.readOnlyNodeList:
             return
@@ -1135,7 +1135,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
 
         self.node.appendChild(refNode)
         self.node.replaceChild(newNode, refNode)
-        
+
         assert not oldParent.hasChildNodes(), (
             "Replacing Node not removed from previous parent.")
 
@@ -1159,7 +1159,7 @@ class NodeWriteTestCaseBase(TestCaseBase):
         self.node = doc.importNode(self.node, 1)
         refNode = doc.createTextNode('a Text Node')
         self.node.appendChild(refNode)
-        
+
         try:
             self.node.replaceChild(textNode, refNode)
         except xml.dom.NoModificationAllowedErr:
@@ -1197,7 +1197,7 @@ class DocumentReadTestCase(NodeReadTestCaseBase):
         pass
 
 
-class DocumentWriteTestCase(NodeWriteTestCaseBase):    
+class DocumentWriteTestCase(NodeWriteTestCaseBase):
 
     def setUp(self):
         self.node = self.createDocument()
@@ -1220,7 +1220,7 @@ class DocumentWriteTestCase(NodeWriteTestCaseBase):
         elements['h'].appendChild(elements['i'])
 
         doc.documentElement.appendChild(elements['a'])
-        
+
         # now test
 
         # find all elements in the right order
@@ -1395,7 +1395,7 @@ class ElementReadTestCase(NodeReadTestCaseBase):
         el.appendChild(doc.createComment('A Comment'))
         el.setAttribute('attr1', 'An attribute')
         el.setAttribute('attr2', 'Another attribute')
-        
+
         el.appendChild(el.cloneNode(0))
         clone = el.cloneNode(1)
 
@@ -1439,7 +1439,7 @@ class ElementReadTestCase(NodeReadTestCaseBase):
             el.attributes.item(i).value = 'spam'
             checkAttribute(clone.attributes.item(i), 'value', value)
             checkAttribute(clone.lastChild.attributes.item(i), 'value', value)
-            
+
             checkAttributeSameNode(clone.attributes.item(i), 'ownerElement',
                 clone)
             checkAttributeSameNode(clone.lastChild.attributes.item(i),
@@ -1447,7 +1447,7 @@ class ElementReadTestCase(NodeReadTestCaseBase):
 
             assert not isSameNode(el.attributes.item(i),
                                   clone.attributes.item(i))
-           
+
 
 class ElementWriteTestCase(NodeWriteTestCaseBase):
 
@@ -1491,7 +1491,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
         elements['h'].appendChild(elements['i'])
 
         el.appendChild(elements['a'])
-        
+
         # now test
 
         # find all elements in the right order
@@ -1595,7 +1595,7 @@ class ElementWriteTestCase(NodeWriteTestCaseBase):
                "Test for presence of created attribute returned false."
 
         checkAttribute(node1, 'ownerElement', None)
-        
+
     def checkRemoveAttributeNode(self):
         node1 = self.document.createAttribute("foo")
         node2 = self.document.createAttribute("bar")
@@ -1652,7 +1652,7 @@ class CharacterDataReadTestCaseBase(NodeReadTestCaseBase):
 
     def checkSubstringDataOffsetGreaterThanLength(self):
         try:
-           self.chardata.substringData(10, 0) 
+            self.chardata.substringData(10, 0)
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1677,7 +1677,7 @@ class CharacterDataReadTestCaseBase(NodeReadTestCaseBase):
             "Clone is same as original.")
         assert not isSameNode(self.chardata, deepClone), (
             "Clone is same as original.")
-        
+
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
         checkAttribute(clone, 'nodeType', self.chardata.nodeType)
@@ -1712,7 +1712,7 @@ class CharacterDataWriteTestCaseBase(NodeWriteTestCaseBase):
 
     def checkInsertDataOffsetGreaterThanLength(self):
         try:
-           self.chardata.insertData(10, 'foo') 
+            self.chardata.insertData(10, 'foo')
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1732,7 +1732,7 @@ class CharacterDataWriteTestCaseBase(NodeWriteTestCaseBase):
 
     def checkDeleteDataOffsetGreaterThanLength(self):
         try:
-           self.chardata.deleteData(10, 0) 
+            self.chardata.deleteData(10, 0)
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1764,7 +1764,7 @@ class CharacterDataWriteTestCaseBase(NodeWriteTestCaseBase):
 
     def checkReplaceDataOffsetGreaterThanLength(self):
         try:
-           self.chardata.replaceData(10, 0, 'foo') 
+            self.chardata.replaceData(10, 0, 'foo')
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1793,7 +1793,7 @@ class CommentReadTestCase(CharacterDataReadTestCaseBase):
 
 
 class CommentWriteTestCase(CharacterDataWriteTestCaseBase):
-    
+
     def setUp(self):
         self.chardata = self.node = self.createDocument().createComment("com")
 
@@ -1819,10 +1819,10 @@ class TextWriteTestCase(CharacterDataWriteTestCaseBase):
             # probably should not, but this issue is not of
             # sufficient importance for now.
             return
-        cdata = self.document.createTextNode("com")        
+        cdata = self.document.createTextNode("com")
         self.document.documentElement.appendChild(cdata)
         cdata2 = self.document.createTextNode("com2")
-        self.document.documentElement.appendChild(cdata2)        
+        self.document.documentElement.appendChild(cdata2)
         attr = self.document.createAttribute("attrName")
         self.document.documentElement.setAttributeNode(attr)
         # Technically these should raise.  Because of acquisition they
@@ -1859,7 +1859,7 @@ class TextWriteTestCase(CharacterDataWriteTestCaseBase):
 
     def checkSplitTextNegativeOffset(self):
         try:
-           self.chardata.splitText(-2)
+            self.chardata.splitText(-2)
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1867,7 +1867,7 @@ class TextWriteTestCase(CharacterDataWriteTestCaseBase):
 
     def checkSplitTextOffsetGreateThanLength(self):
         try:
-           self.chardata.splitText(10) 
+            self.chardata.splitText(10)
         except xml.dom.IndexSizeErr:
             pass
         else:
@@ -1910,7 +1910,7 @@ class AttrReadTestCase(NodeReadTestCaseBase):
         assert not isSameNode(self.attr, clone), "Clone is same as original."
         assert not isSameNode(self.attr, deepClone), (
             "Clone is same as original.")
-        
+
         checkAttribute(clone, 'parentNode', None)
         checkAttribute(deepClone, 'parentNode', None)
         checkAttribute(clone, 'nodeType', self.attr.nodeType)
@@ -1977,7 +1977,7 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         checkReadOnly(self.attr, "ownerElement")
         self.element.setAttributeNode(self.attr)
         checkAttributeSameNode(self.attr, "ownerElement", self.element)
-        checkReadOnly(self.attr, "ownerElement")        
+        checkReadOnly(self.attr, "ownerElement")
 
     def checkAttrTwoReferencesIntegrity(self):
         #XXX this test should be generalized to any reference
@@ -2002,27 +2002,27 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
         assert (self.document.documentElement.getAttribute('spam') ==
                 'eggsham'), (
             "appendChild on attr reference isn't reflected by getAttribute.")
-        
+
     def checkSetAttrWithSubtree(self):
         "setAttributeNode shouldn't lose attr subtree information"
         eggs = self.document.createTextNode('eggs')
-        ham = self.document.createTextNode('ham')       
+        ham = self.document.createTextNode('ham')
         self.attr.appendChild(eggs)
         self.attr.appendChild(ham)
         self.element.setAttributeNode(self.attr)
         # check that getting the attr from the element preserves subtree
         checkAttribute(self.element.attributes.item(0).childNodes, "length", 3)
         assert self.attr.firstChild.nextSibling.isSameNode(eggs), (
-            "setting an attribute node destroys children")            
+            "setting an attribute node destroys children")
         assert self.attr.firstChild.nextSibling.nextSibling.isSameNode(ham), (
             "setting an attribute node destroys children")
         # check that another ref preserves subtree, too
         attr2 = self.element.getAttributeNode('attrName')
         checkAttribute(attr2.childNodes, "length", 3)
-        assert attr2.firstChild.nextSibling.isSameNode(eggs), (        
-            "setting an attribute node destroys children")            
+        assert attr2.firstChild.nextSibling.isSameNode(eggs), (
+            "setting an attribute node destroys children")
         assert attr2.firstChild.nextSibling.nextSibling.isSameNode(ham), (
-            "setting an attribute node destroys children")            
+            "setting an attribute node destroys children")
 
     def checkCloneNode(self):
         attr = self.attr
@@ -2030,12 +2030,12 @@ class AttrWriteTestCase(NodeWriteTestCaseBase):
 
         assert not isSameNode(attr, clone), "Clone is same Node as original."
         checkAttribute(clone, 'value', attr.value)
-        
+
         # make sure the cloned attr isn't sharing data with the original
         oldValue = self.attr.value
         self.attr.value = 'spam'
         checkAttribute(clone, 'value', oldValue)
-        
+
 # --- Default attributes
 
 class DefaultAttrTestCase(TestCaseBase):
@@ -2051,12 +2051,12 @@ class DefaultAttrTestCase(TestCaseBase):
 
     def checkHasAttribute(self):
         el = self.document.documentElement
-        
+
         assert el.hasAttribute('foo'), 'Default attribute not found.'
 
     def checkGetAttribute(self):
         el = self.document.documentElement
-        
+
         assert el.getAttribute('foo') == 'bar', (
             "Wrong value of default attribute found, expected 'bar', found %s" %
             repr(el.getAttribute('foo')))
@@ -2075,7 +2075,7 @@ class DefaultAttrTestCase(TestCaseBase):
         attr = self.document.documentElement.getAttributeNode('foo')
         clone = attr.cloneNode(0)
         checkAttribute(clone, 'specified', 1)
-    
+
     def checkCloneNodeElement(self):
         clone = self.document.documentElement.cloneNode(0)
         checkAttribute(clone.getAttributeNode('foo'), 'specified', 0)
@@ -2083,7 +2083,7 @@ class DefaultAttrTestCase(TestCaseBase):
         # XXX also check that cloned attrs aren't the same nodes, changes
         # aren't reflected across refs
 
-        
+
     def checkRemoveAttribute(self):
         el = self.document.documentElement
         # Replace default with specified attr
@@ -2156,7 +2156,7 @@ class DocumentFragmentReadTestCase(NodeReadTestCaseBase):
 
         frag.appendChild(self.document.createComment('foo'))
         frag.appendChild(self.document.createTextNode('bar'))
-        
+
         clone = frag.cloneNode(0)
         deepClone = frag.cloneNode(1)
 
@@ -2225,7 +2225,7 @@ class NodeListReadTestCase(TestCaseBase):
     #    assert list1 == list2, "two NodeLists of the same thing don't compare"
 
 ##     def checkGetSlice(self):
-##         assert self.list[2 : 5] == []       
+##         assert self.list[2 : 5] == []
 
 
 class NodeListWriteTestCase(TestCaseBase):
@@ -2294,7 +2294,7 @@ class NamedNodeMapReadTestCase(TestCaseBase):
         assert self.map.keys() == []
 
     def checkValues(self):
-        assert self.map.values() == []    
+        assert self.map.values() == []
 
 
 class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
@@ -2314,7 +2314,7 @@ class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
 
     def checkRemoveNamedItem(self):
         attribute2 = self.document.createAttribute("attrName2")
-        self.map.setNamedItem(attribute2)        
+        self.map.setNamedItem(attribute2)
         attrOut = self.map.removeNamedItem("attrName2")
         assert isSameNode(attrOut, attribute2)
 
@@ -2374,7 +2374,7 @@ class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
     def checkSetNamedItem(self):
         newAttr = self.document.createAttribute('someAttr')
         newAttr.value = 'spam'
-        
+
         retVal = self.map.setNamedItem(newAttr)
         assert retVal is None, "setNamedItem returned %s" % repr(retVal)
         checkLength(self.map, 2)
@@ -2408,7 +2408,7 @@ class NonemptyNamedNodeMapWriteTestCase(TestCaseBase):
         attr = self.document.createAttribute('someAttribute')
         el.setAttributeNode(attr)
         try:
-           self.map.setNamedItem(attr)
+            self.map.setNamedItem(attr)
         except xml.dom.InuseAttributeErr:
             pass
         else:

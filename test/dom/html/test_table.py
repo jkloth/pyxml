@@ -111,7 +111,7 @@ def test():
         error('get TFoot failed');
 
 
-    print 'getTFoot works'	
+    print 'getTFoot works'
 
     print 'testing getRows,insertRow, and deleteRow'
 

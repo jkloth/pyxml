@@ -20,7 +20,7 @@ Usage:
   python dtd2schema.py <inputfile> [<outputfile>]
 
   Input file names can be URLs.
-  
+
   If the output file name is omitted, it will be inferred from the
   input file name. Note that this inference does not work for URLs.
 """
@@ -45,7 +45,7 @@ class CountingDict:
 
     def keys(self):
         return self._items.keys()
-        
+
     def __getitem__(self, item):
         return self._items[item]
 
@@ -68,7 +68,7 @@ class AttributeInfo:
     def new_attr(self, elemname, attr):
         attrname = attr.get_name()
         self._count.count(attrname)
-        
+
         if self._shared_attrs.has_key(attrname):
             shared = self._shared_attrs[attrname]
             if shared != None and not compare_attrs(shared, attr):
@@ -76,14 +76,14 @@ class AttributeInfo:
 
         else:
             self._shared_attrs[attrname] = attr
-        
+
     def remove_single_attributes(self):
         "Removes attributes that only occurred once."
         for attrname in self._shared_attrs.keys():
             if self._shared_attrs.get(attrname) != None:
                 if self._count[attrname] < 2:
                     self._shared_attrs[attrname] = None
-        
+
         self._count.clear()
 
     def find_groups(self, elem):
@@ -114,7 +114,7 @@ class AttributeInfo:
 
     def get_group_name(self, group):
         return self._groupnames[group]
-    
+
 def escape_attr_value(value):
     value = string.replace(value, '&', '&amp;')
     value = string.replace(value, '"', '&quot;')
@@ -133,7 +133,7 @@ def find_attr_groups(dtd):
     attrinfo = AttributeInfo()
     for elemname in dtd.get_elements():
         elem = dtd.get_elem(elemname)
-        
+
         for attrname in elem.get_attr_list():
             attrinfo.new_attr(elemname, elem.get_attr(attrname))
 
@@ -146,7 +146,7 @@ def find_attr_groups(dtd):
 
     attrinfo.remove_single_groups()
     return attrinfo
-        
+
 # ===== COMPONENT FUNCTIONS
 
 def write_attribute_group(out, group, attrinfo):
@@ -172,7 +172,7 @@ def write_attr(out, attr):
     if type(attrtype) == types.ListType:
         out.write('      <attribute name="%s" use="%s"%s>\n' %
                   (attr.get_name(), declmap[attr.get_decl()], value))
-        out.write('        <simpleType base="NMTOKEN">\n')        
+        out.write('        <simpleType base="NMTOKEN">\n')
         for token in attrtype:
             out.write('          <enumeration value="%s"/>\n' % token)
         out.write('        </simpleType>\n')
@@ -188,11 +188,11 @@ def write_attributes(out, elem, attrinfo):
     for attrname in attrnames:
         if not attrname in shared:
             write_attr(out, elem.get_attr(attrname))
-            
+
     if shared:
         out.write('      <attributeGroup ref="%s">\n' %
                   attrinfo.get_group_name(group))
-        
+
 def write_element_type(out, elem, attrinfo):
     cm = elem.get_content_model()
     if cm == ('', [('#PCDATA', '')], ''):
@@ -209,16 +209,16 @@ def write_element_type(out, elem, attrinfo):
         content = ' content="empty"'
     elif cm != None and cm[1][0][0] == "#PCDATA":
         content = ' content="mixed"'
-            
+
     out.write('    <complexType%s>\n' % content)
     if cm == None:
         out.write('    <any/>\n')
     elif cm != ("", [], ""):
         write_cm(out, cm)
-        
+
     write_attributes(out, elem, attrinfo)
     out.write('    </complexType>\n')
-        
+
 def write_cm(out, cm):
     (sep, cps, mod) = cm
     out.write('    <group>\n')
@@ -251,8 +251,8 @@ def write_cm(out, cm):
             out.write('        <!-- %s -->\n' % (cp,))
 
     out.write('      <%s>\n' % wrapper)
-    
-    out.write('    </group>\n')    
+
+    out.write('    </group>\n')
 
 # ===== MAIN PROGRAM
 
@@ -304,13 +304,13 @@ if attrinfo:
         write_attribute_group(out, group, attrinfo)
 
     out.write("\n")
-            
+
 out.write('<!-- ========== ELEMENT DECLARATIONS ========== -->\n\n')
 
 for elemname in dtd.get_elements():
     elem = dtd.get_elem(elemname)
     out.write('  <element name="%s">\n' % elemname)
-    write_element_type(out, elem, attrinfo)        
+    write_element_type(out, elem, attrinfo)
     out.write('  </element>\n\n')
 
 notations = dtd.get_notations()
@@ -323,9 +323,9 @@ if notations != []:
             sysid = ''
         else:
             sysid = ' system="%s"'
-        
+
         out.write('  <notation name="%s" public="%s"%s>\n' %
                   (notname, pubid, sysid))
-    
+
 out.write('</schema>\n')
 out.close()

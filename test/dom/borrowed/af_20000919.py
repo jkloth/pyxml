@@ -39,7 +39,7 @@ source_1 = """<?xml version = "1.0"?>
                 <EMAIL>vxz@magog.ru</EMAIL>
         </ENTRY>
 </ADDRBOOK>"""
-        
+
 expected_1 = """<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE doc><doc><elt xmlns:spam='http://logilab' spam:att='value1'/></doc>"""
 
 expected_2 = """<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE doc><doc>
@@ -103,7 +103,7 @@ expected_4 = """<!DOCTYPE ADDRBOOK SYSTEM "addr_book.dtd" ><ADDRBOOK xmlns:xlink
 </ADDRBOOK>
 """
 
-        
+
 def Test(tester):
 
     tester.startGroup("Alexander Fayolle's Problems and variations")

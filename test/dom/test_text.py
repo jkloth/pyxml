@@ -6,7 +6,7 @@ def get_exception_name(code):
     import types
     from xml import dom
     for (name,value) in vars(dom).items():
-        if (type(value) == types.IntType 
+        if (type(value) == types.IntType
         and value == code):
             return name
 

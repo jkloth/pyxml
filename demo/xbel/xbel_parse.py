@@ -18,7 +18,7 @@ class XBELHandler(saxlib.HandlerBase):
     def __init__(self):
         self.bms = bookmark.Bookmarks()
         self.entered_folder = self.entered_bookmark = 0
-        
+
     def startElement(self, name, attrs):
         self.cur_elem = name
 #        print name, attrs
@@ -47,7 +47,7 @@ class XBELHandler(saxlib.HandlerBase):
             value = getattr(self, attr)
             setattr(self, attr, value + ch[start:start+length])
 #            print getattr(self, attr)
-        
+
     def endElement(self, name):
 #        print 'ending:', name
         self.cur_elem = None
@@ -69,7 +69,7 @@ class XBELHandler(saxlib.HandlerBase):
             if self.modified == "": self.modified = None
 #            raise ImportError
             self.bms.add_bookmark(self.title, self.added, self.visited, self.modified, self.href)
-            
+
 if __name__ == '__main__':
     import sys, getopt
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         print '    --lynx <path> : For Lynx, a path to the directory where'
         print '                    the output bookmark files should be written'
         sys.exit(1)
-        
+
     xbel_handler = XBELHandler()
     p=saxexts.XMLParserFactory.make_parser()
     p.setDocumentHandler( xbel_handler )
@@ -96,5 +96,3 @@ if __name__ == '__main__':
     elif mode == '--netscape': bms.dump_netscape()
     elif mode == '--msie': bms.dump_msie()
     elif mode == '--xbel': bms.dump_xbel()
-    
-    

@@ -15,8 +15,8 @@ usage=\
 Usage:
 
   python dtdcmd.py [--list] <urltodtd>+
-  
-  ---Options:  
+
+  ---Options:
   --list:   List all declarations after parsing.
 """
 
@@ -35,7 +35,7 @@ def listdecls(dtd):
     print "=== DECLARATIONS"
     print
     print "---Elements"
-    
+
     elems = dtd.get_elements()
     elems.sort()
     for elem in elems:

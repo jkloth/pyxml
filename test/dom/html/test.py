@@ -1,4 +1,4 @@
-fileList = 	['Collection',
+fileList =      ['Collection',
              'Element',
              'HTML',
              'HEAD',
@@ -61,16 +61,16 @@ import string
 
 
 def test(files):
-	print 'Testing HTML Level 1'
-	for file in files:
-		print '**********Testing HTML %s**********' % file
-		exec 'import test_%s;_mod = test_%s' % (string.lower(file),string.lower(file));
-		_mod.test();
+    print 'Testing HTML Level 1'
+    for file in files:
+        print '**********Testing HTML %s**********' % file
+        exec 'import test_%s;_mod = test_%s' % (string.lower(file),string.lower(file));
+        _mod.test();
 
 
 if __name__ == '__main__':
-	import sys
-	if len(sys.argv) <2:
-		test(fileList)
-	else:
-		test(sys.argv[1:]);
+    import sys
+    if len(sys.argv) <2:
+        test(fileList)
+    else:
+        test(sys.argv[1:]);

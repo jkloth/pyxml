@@ -67,35 +67,35 @@ def t4():
     fp.close()
 
 t = time.time()
-t1(); t1(); t1(); t1(); t1(); 
-t1(); t1(); t1(); t1(); t1(); 
+t1(); t1(); t1(); t1(); t1();
+t1(); t1(); t1(); t1(); t1();
 t = (time.time() - t) / 10
 print "t1:", t
 if t: print int(bytes / t), "bytes per second"
 
 t = time.time()
-t2(); t2(); t2(); t2(); t2(); 
-t2(); t2(); t2(); t2(); t2(); 
-t2(); t2(); t2(); t2(); t2(); 
-t2(); t2(); t2(); t2(); t2(); 
+t2(); t2(); t2(); t2(); t2();
+t2(); t2(); t2(); t2(); t2();
+t2(); t2(); t2(); t2(); t2();
+t2(); t2(); t2(); t2(); t2();
 t = (time.time() - t) / 20
 print "t2:", t
 if t: print int(bytes / t), "bytes per second"
 
 t = time.time()
-t3(); t3(); t3(); t3(); t3(); 
-t3(); t3(); t3(); t3(); t3(); 
-t3(); t3(); t3(); t3(); t3(); 
-t3(); t3(); t3(); t3(); t3(); 
+t3(); t3(); t3(); t3(); t3();
+t3(); t3(); t3(); t3(); t3();
+t3(); t3(); t3(); t3(); t3();
+t3(); t3(); t3(); t3(); t3();
 t = (time.time() - t) / 20
 print "t3:", t
 if t: print int(bytes / t), "bytes per second"
 
 t = time.time()
-t4(); t4(); t4(); t4(); t4(); 
-t4(); t4(); t4(); t4(); t4(); 
-t4(); t4(); t4(); t4(); t4(); 
-t4(); t4(); t4(); t4(); t4(); 
+t4(); t4(); t4(); t4(); t4();
+t4(); t4(); t4(); t4(); t4();
+t4(); t4(); t4(); t4(); t4();
+t4(); t4(); t4(); t4(); t4();
 t = (time.time() - t) / 20
 print "t4:", t
 if t: print int(bytes / t), "bytes per second"

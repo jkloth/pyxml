@@ -1,4 +1,3 @@
-
 from xml.parsers.xmlproc import xmlproc
 
 import sys
@@ -19,7 +18,7 @@ class DTDReporter(xmlproc.DTDConsumer):
 
     def new_parameter_entity(self,name,val):
         self.out.write("PE: %s [%s]\n" % (name,val))
-    
+
     def new_external_pe(self,name,pubid,sysid):
         self.out.write("EXTERNAL PE: %s P: [%s] S: [%s]\n" % (name,pubid,sysid))
 
@@ -36,7 +35,7 @@ class DTDReporter(xmlproc.DTDConsumer):
 
     def close(self):
         self.out.close()
-    
+
 # --- Main program
 
 if __name__ == '__main__':

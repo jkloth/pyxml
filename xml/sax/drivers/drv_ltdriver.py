@@ -14,7 +14,7 @@ class SAX_XMLinter(saxlib.Parser):
 
     def __init__(self):
         saxlib.Parser.__init__(self)
-        
+
     def parse(self,sysID):
         self._parse(Open(sysID,NSL_read))
 
@@ -34,7 +34,7 @@ class SAX_XMLinter(saxlib.Parser):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -43,7 +43,7 @@ class SAX_XMLinter(saxlib.Parser):
 
     def reset(self):
         raise SAXException("Incremental parsing not supported")
-    
+
     def feed(self,data):
         raise SAXException("Incremental parsing not supported")
 
@@ -85,7 +85,7 @@ class AttributeItem:
     def __init__(self,item):
         self.item=item
         self.list=ItemActualAttributes(item)
-    
+
     def getLength(self):
         return len(self.list)
 
@@ -115,12 +115,12 @@ class AttributeItem:
 
     def has_key(self, key):
         return GetAttrVal(self.item,key)
-            
+
 # --- Global functions
 
 def create_parser():
     return SAX_XMLinter()
-    
+
 # --- Testing
 
 if __name__=="__main__":

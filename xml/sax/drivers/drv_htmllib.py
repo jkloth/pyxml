@@ -1,7 +1,7 @@
 """
 SAX driver for htmllib.py
 
-$Id: drv_htmllib.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
+$Id: drv_htmllib.py,v 1.5 2001/12/30 12:13:44 loewis Exp $
 """
 
 version="0.10"
@@ -17,12 +17,12 @@ class SAX_HLParser(pylibs.SGMLParsers,htmllib.HTMLParser):
     "SAX driver for htmllib.py."
 
     def __init__(self):
-	htmllib.HTMLParser.__init__(self,None)
+        htmllib.HTMLParser.__init__(self,None)
         pylibs.LibParser.__init__(self)
         self.standalone=0
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
-        
+
     def get_parser_name(self):
         return "htmllib"
 
@@ -31,7 +31,7 @@ class SAX_HLParser(pylibs.SGMLParsers,htmllib.HTMLParser):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -39,11 +39,11 @@ class SAX_HLParser(pylibs.SGMLParsers,htmllib.HTMLParser):
         return 0
 
     # reset and feed are taken care of by the subclassing :-)
-    
+
     def close(self):
         htmllib.HTMLParser.close(self)
-	self.doc_handler.endDocument()
-    
+        self.doc_handler.endDocument()
+
 # --- Global functions
 
 def create_parser():

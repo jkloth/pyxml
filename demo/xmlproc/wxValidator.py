@@ -1,4 +1,3 @@
-
 import os, cStringIO, string
 from wxPython.wx import *
 from xml.parsers.xmlproc import xmlval,xmlapp,xcatalog,catalog,errors, utils
@@ -30,22 +29,22 @@ class Validator(wxApp):
 class ErrorRecorder(xmlapp.ErrorHandler):
 
     def __init__(self,locator,warnings=1):
-	xmlapp.ErrorHandler.__init__(self,locator)
+        xmlapp.ErrorHandler.__init__(self,locator)
         self.show_warnings=warnings
         self.reset()
-        
+
     def warning(self,msg):
         if self.show_warnings:
             self.__add_error(msg)
-            
+
     def error(self,msg):
         self.__add_error(msg)
-	
+
     def fatal(self,msg):
         self.__add_error(msg)
 
     def reset(self):
-	self.errors=[]
+        self.errors=[]
 
     def __add_error(self,msg):
         self.errors.append((self.locator.get_current_sysid(),
@@ -61,7 +60,7 @@ class OutputWindow(wxFrame):
         wxFrame.__init__(self, parent, -1, "Output")
         wxTextCtrl(self, -1, output, wxDefaultPosition, wxDefaultSize,
                    wxTE_READONLY | wxTE_MULTILINE)
-        
+
 # --- Main window
 
 ID_DOCUMENT = NewId()
@@ -77,7 +76,7 @@ class MainWindow(wxFrame):
         self.CreateStatusBar(1)
 
         # --- Menu
- 
+
         menu = wxMenu()
         menu.Append(ID_DOCUMENT, "&Find document",
                     "Find a document to validate")
@@ -88,12 +87,12 @@ class MainWindow(wxFrame):
         menuBar = wxMenuBar()
         menuBar.Append(menu, "&File");
 
-        self.SetMenuBar(menuBar)       
+        self.SetMenuBar(menuBar)
 
         EVT_MENU(self, ID_DOCUMENT, self.FindDocument)
         EVT_MENU(self, ID_CATALOG,  self.FindCatalog)
         EVT_MENU(self, ID_EXIT,     self.TimeToQuit)
-        
+
         # --- Field: XML document location
 
         loc=wxTextCtrl(self,-1,"")
@@ -111,7 +110,7 @@ class MainWindow(wxFrame):
             cat_loc=os.environ["XMLXCATALOG"]
         elif os.environ.has_key("XMLSOCATALOG"):
             cat_loc=os.environ["XMLSOCATALOG"]
-        
+
         cat=wxTextCtrl(self,-1,cat_loc)
         lc=wxLayoutConstraints()
         lc.top.SameAs(loc, wxBottom, 5)
@@ -129,7 +128,7 @@ class MainWindow(wxFrame):
         lc.left.SameAs(self, wxLeft)
         lc.right.SameAs(self, wxRight)
         panel.SetConstraints(lc)
-        
+
         # --- Buttons
 
         parse_id=NewId()
@@ -152,7 +151,7 @@ class MainWindow(wxFrame):
         lc.left.SameAs(parse_btn, wxRight, 5)
         lc.width.AsIs()
         lang.SetConstraints(lc)
-        
+
         for lang_name in errors.get_language_list():
             lang.Append(lang_name)
 
@@ -165,7 +164,7 @@ class MainWindow(wxFrame):
         lc.top.SameAs(panel, wxTop, 5)
         lc.height.AsIs()
         lc.left.RightOf(lang, 5)
-        lc.width.AsIs()        
+        lc.width.AsIs()
         warn.SetConstraints(lc)
 
         # --- Field: Output?
@@ -175,15 +174,15 @@ class MainWindow(wxFrame):
         lc.top.SameAs(panel, wxTop, 5)
         lc.height.AsIs()
         lc.left.RightOf(warn, 5)
-        lc.width.AsIs()        
+        lc.width.AsIs()
         output.SetConstraints(lc)
-        
+
         # --- Error list
-        
+
         list_id = NewId()
         list = wxListCtrl(self, list_id, wxDefaultPosition, wxDefaultSize,
                           wxLC_REPORT|wxSUNKEN_BORDER)
-        list.InsertColumn(0,"System identifier")        
+        list.InsertColumn(0,"System identifier")
         list.InsertColumn(1,"Line")
         list.InsertColumn(2,"Column")
         list.InsertColumn(3,"Message")
@@ -204,35 +203,35 @@ class MainWindow(wxFrame):
         self.lang=lang
         self.warn=warn
         self.output = output
-        
+
     def Parse(self, *args):
         sysid = string.strip(self.loc.GetValue())
         if sysid == "":
             self.SetStatusText("Nothing to parse")
             return
-        
+
         self.parser.reset()
         self.errors.reset()
         self.errors.show_warnings = self.warn.GetValue()
-        
+
         if self.cat.GetValue != "":
             self.SetStatusText("Parsing catalog...")
             pf=xcatalog.FancyParserFactory()
             cat=catalog.xmlproc_catalog(self.cat.GetValue(),pf,self.errors)
             self.parser.set_pubid_resolver(cat)
-        
+
         self.SetStatusText("Parsing...")
 
         if self.output.GetValue():
             output = cStringIO.StringIO()
             self.parser.set_application(utils.DocGenerator(output))
-            
+
         self.parser.set_error_handler(self.errors)
         self.parser.set_error_language(self.lang.GetValue())
-        self.parser.parse_resource(sysid)        
+        self.parser.parse_resource(sysid)
 
         self.list.DeleteAllItems()
-        
+
         ix=0
         for (sysid,line,col,msg) in self.errors.errors:
             self.list.InsertStringItem(ix, sysid)
@@ -253,7 +252,7 @@ class MainWindow(wxFrame):
     def CreateOutputWindow(self, output):
         win = OutputWindow(self, output.getvalue())
         win.Show(true)
-        
+
     def FindDocument(self, event):
         file = wxFileSelector("Find document", ".", "", "", XML_WILDCARD,
                               wxOPEN | wxHIDE_READONLY)
@@ -263,10 +262,10 @@ class MainWindow(wxFrame):
         file = wxFileSelector("Find catalog", ".", "", "", CAT_WILDCARD,
                               wxOPEN | wxHIDE_READONLY)
         if file: self.cat.SetValue(file)
-        
+
     def TimeToQuit(self, event):
         self.Close(true)
-        
+
 # --- Main program
 
 app = Validator(0)

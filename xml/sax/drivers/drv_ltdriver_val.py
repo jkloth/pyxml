@@ -17,13 +17,13 @@ class SAX_XMLinter_val(drv_ltdriver.SAX_XMLinter):
 
     def parseFile(self,file):
         self._parse(FOpen(file,NSL_read | NSL_read_validate))
-    
+
     def get_parser_name(self):
         return "XMLinter_val"
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -31,7 +31,7 @@ class SAX_XMLinter_val(drv_ltdriver.SAX_XMLinter):
 
 def create_parser():
     return SAX_XMLinter_val()
-    
+
 # --- Testing
 
 if __name__=="__main__":

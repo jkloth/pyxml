@@ -1,6 +1,6 @@
 #
-# 
-# $Id: saxhack.py,v 1.4 1998/12/16 02:41:42 amk Exp $
+#
+# $Id: saxhack.py,v 1.5 2001/12/30 12:17:32 loewis Exp $
 #
 # illustrate how a saxlib parser can interface directly to sgmlop
 #

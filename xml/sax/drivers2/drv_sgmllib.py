@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for sgmllib.
 
-$Id: drv_sgmllib.py,v 1.2 2001/07/26 08:16:09 larsga Exp $
+$Id: drv_sgmllib.py,v 1.3 2001/12/30 12:13:45 loewis Exp $
 """
 
 import types, string
@@ -15,9 +15,9 @@ from xml.sax.xmlreader import IncrementalParser
 class SgmllibDriver(sgmllib.SGMLParser, IncrementalParser):
 
     # ===== SAX 2.0 INTERFACES
-    
+
     # --- XMLReader methods
-    
+
     def __init__(self):
         sgmllib.SGMLParser.__init__(self)
         IncrementalParser.__init__(self)
@@ -72,7 +72,7 @@ class SgmllibDriver(sgmllib.SGMLParser, IncrementalParser):
 
     def handle_data(self, data):
         self._cont_handler.characters(data)
-        
+
 # ===== ATTRIBUTESIMPL =====
 
 class AttributesImpl:
@@ -145,8 +145,8 @@ class AttributesImpl:
 
     def values(self):
         return map(lambda x: x[1], self._attrs)
-        
+
 # ---
-        
+
 def create_parser():
     return SgmllibDriver()

@@ -16,7 +16,7 @@ class _MyHandler(handler.ContentHandler):
         self.__testCase.failIf(name[0] != None)
         # XXX: or should it be this one ?
         #self.__testCase.failIf(name[0] != '')
-       
+
 def _makeParser(driver,ns):
     reader = xml.sax.make_parser([driver])
     reader.setFeature(handler.feature_namespaces,ns)
@@ -36,6 +36,6 @@ class MyTest(unittest.TestCase):
         _saxParse(self,_drv_xmlproc,1,_MyHandler(self),_xmls_nons)
     def test_sax_xmlproc_nson__blankns(self):
         _saxParse(self,_drv_xmlproc,1,_MyHandler(self),_xmls_blankns)
-        
+
 if __name__ == "__main__":
     unittest.main()

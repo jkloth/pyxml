@@ -1,4 +1,3 @@
-
 # A simple library to convert DOM object structures to SGML or XML output,
 # usually for xml2html conversion.
 
@@ -31,7 +30,7 @@ def convert(rootnode,spec,writer=sys.stdout):
         (action,arg)=spec[rootnode.GI]
     except KeyError:
         action=STRIP
-        
+
     if action==SKIP:
         return
     elif action==STRIP:
@@ -50,7 +49,7 @@ def convert(rootnode,spec,writer=sys.stdout):
                     writer.write(" %s=\"%s\"" % (map,escape_markup(val)))
                 else:
                     writer.write(map(escape_markup(val)))
-                    
+
         writer.write(">")
 
     for child in rootnode.getChildren():
@@ -58,7 +57,7 @@ def convert(rootnode,spec,writer=sys.stdout):
             writer.write(escape_markup(child.data))
         else:
             convert(child,spec,writer)
-        
+
     if action==ID:
         writer.write("</%s>" % rootnode.GI)
     elif action==MAP:

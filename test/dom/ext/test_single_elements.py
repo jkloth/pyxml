@@ -1,7 +1,3 @@
-
-
-
-
 def test(inFile):
 
     from xml.dom.ext.reader import HtmlLib
@@ -18,7 +14,7 @@ def test(inFile):
     print doc
 
     ext.PrettyPrint(doc)
-    
+
 
 
 

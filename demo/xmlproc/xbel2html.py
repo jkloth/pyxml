@@ -31,7 +31,7 @@ top=\
 """
 
 bottom=\
-"""        
+"""
 <HR>
 
 <ADDRESS>
@@ -87,19 +87,18 @@ def output(folder,level):
                 desc=doctree.get_pcdata(desc)
             else:
                 desc=""
-            
+
             out.write("  <LI><A HREF=\"%s\">%s</A>. %s\n" % (url,title,desc))
-                
+
         out.write("</UL>\n")
 
     for child in doctree.get_elements(folder,"folder"):
-        output(child,level+1)    
+        output(child,level+1)
 
 folders=doctree.get_elements(root,"folder")
 for folder in folders:
     output(folder,1)
-    
+
 # Writing document bottom
 
 out.write(bottom)
-

@@ -1,7 +1,7 @@
 """
 SAX driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.8 2000/10/03 10:18:38 loewis Exp $
+$Id: drv_sgmlop.py,v 1.9 2001/12/30 12:13:44 loewis Exp $
 """
 
 version="0.12"
@@ -18,26 +18,26 @@ class Parser(saxlib.Parser):
     def __init__(self):
         saxlib.Parser.__init__(self)
         self.reset()
-    
+
     def setDocumentHandler(self, dh):
-	self.parser.register(self) # older version wanted ,1 arg
+        self.parser.register(self) # older version wanted ,1 arg
         self.doc_handler=dh
 
     def parse(self, url):
         self.parseFile(urllib.urlopen(url))
-        
+
     def parseFile(self, file):
         self._parsing = 1
         self.doc_handler.startDocument()
-	parser = self.parser
+        parser = self.parser
 
-	while 1:
-	    data = file.read(16384)
-	    if not data:
-		break
-	    parser.feed(data)
+        while 1:
+            data = file.read(16384)
+            if not data:
+                break
+            parser.feed(data)
 
-	self.close()
+        self.close()
 
     # --- SAX 1.0 METHODS
 
@@ -53,7 +53,7 @@ class Parser(saxlib.Parser):
                     "characters '%s' outside root element" % data))
             return
         self.doc_handler.characters(data,0,len(data))
-        
+
     def handle_proc(self, target, data):
         if target=='xml':
             # Don't report <?xml?> as a processing instruction
@@ -82,7 +82,7 @@ class Parser(saxlib.Parser):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -93,7 +93,7 @@ class Parser(saxlib.Parser):
         self.parser=sgmlop.XMLParser()
         self._parsing=0
         self._nesting=0
-    
+
     def feed(self,data):
         if not self._parsing:
             self.doc_handler.startDocument()
@@ -103,7 +103,7 @@ class Parser(saxlib.Parser):
     def close(self):
         self.parser.close()
         self.doc_handler.endDocument()
-        
+
 # ----
 
 def create_parser():

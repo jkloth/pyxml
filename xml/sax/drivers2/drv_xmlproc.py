@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for xmlproc.
 
-$Id: drv_xmlproc.py,v 1.14 2001/11/27 20:01:55 larsga Exp $
+$Id: drv_xmlproc.py,v 1.15 2001/12/30 12:13:45 loewis Exp $
 """
 
 import types, string
@@ -32,9 +32,9 @@ from xml.sax.saxutils import ContentGenerator, prepare_input_source
 class XmlprocDriver(IncrementalParser):
 
     # ===== SAX 2.0 INTERFACES
-    
+
     # --- XMLReader methods
-    
+
     def __init__(self):
         IncrementalParser.__init__(self)
         self.__parsing = 0
@@ -52,14 +52,14 @@ class XmlprocDriver(IncrementalParser):
         self.__parsing = 1
 
         # create parser
-                
+
         if self.__validate:
             parser = xmlval.XMLValidator()
         else:
             parser = xmlproc.XMLProcessor()
 
         # set handlers
-                
+
         if self._cont_handler != None or self._lex_handler != None:
             if self._cont_handler == None:
                 self._cont_handler = saxlib.ContentHandler()
@@ -82,11 +82,11 @@ class XmlprocDriver(IncrementalParser):
 
         if self.__ext_pes:
             parser.set_read_external_subset(1)
-        
+
         self._parser = parser # make it available for callbacks
         if source:
             parser.set_sysid(source.getSystemId())
-        
+
     def feed(self, data):
         if not self._parser:
             self.prepareParser(None)
@@ -122,7 +122,7 @@ class XmlprocDriver(IncrementalParser):
     def setFeature(self, name, state):
         if self.__parsing:
             raise saxlib.SAXNotSupportedException("Cannot set feature '%s' during parsing" % name)
-        
+
         if name == saxlib.feature_validation:
             self.__validate = state
             if self.__validate:
@@ -147,7 +147,7 @@ class XmlprocDriver(IncrementalParser):
             return self._lex_handler
         elif name == saxlib.property_declaration_handler:
             return self._decl_handler
-        
+
         raise saxlib.SAXNotRecognizedException("Property '%s' not recognized" % name)
 
     def setProperty(self, name, value):
@@ -173,55 +173,55 @@ class XmlprocDriver(IncrementalParser):
         return self._parser.get_current_sysid() # FIXME?
 
     # ===== XMLPROC INTERFACES
-    
+
     # --- Application methods
 
     def set_locator(self, locator):
         self._locator = locator
-    
+
     def doc_start(self):
         self._cont_handler.startDocument()
 
     def doc_end(self):
         self._cont_handler.endDocument()
-	
+
     def handle_comment(self, data):
-	self._lex_handler.comment(data)
+        self._lex_handler.comment(data)
 
     def handle_start_tag(self, name, attrs):
         self._cont_handler.startElement(name, AttributesImpl(attrs))
 
     def handle_end_tag(self,name):
         self._cont_handler.endElement(name)
-    
+
     def handle_data(self, data, start, end):
         self._cont_handler.characters(data[start:end])
-        
+
     def handle_ignorable_data(self, data, start, end):
         self._cont_handler.ignorableWhitespace(data[start:end])
-    
+
     def handle_pi(self, target, data):
         self._cont_handler.processingInstruction(target, data)
 
     def handle_doctype(self, root, pubId, sysId):
         self._lex_handler.startDTD(root, pubId, sysId)
-    
+
     def set_entity_info(self, xmlver, enc, sddecl):
         pass
 
     # --- ErrorHandler methods
 
     # set_locator implemented as Application method above
-    
+
     def get_locator(self):
-	return self._locator
-	
+        return self._locator
+
     def warning(self, msg):
         self._err_handler.warning(saxlib.SAXParseException(msg, None, self))
 
     def error(self, msg):
         self._err_handler.error(saxlib.SAXParseException(msg, None, self))
-    
+
     def fatal(self, msg):
         self._err_handler.fatalError(saxlib.SAXParseException(msg, None, self))
 
@@ -229,17 +229,17 @@ class XmlprocDriver(IncrementalParser):
 
     def dtd_start(self):
         pass # this is done by handle_doctype
-    
+
     def dtd_end(self):
 
         self._lex_handler.endDTD()
-    
+
     def handle_comment(self, contents):
         self._lex_handler.comment(contents)
 
     def handle_pi(self, target, rem):
         self._cont_handler.processingInstruction(target, rem)
-    
+
     def new_general_entity(self, name, val):
         self._decl_handler.internalEntityDecl(name, val)
 
@@ -252,10 +252,10 @@ class XmlprocDriver(IncrementalParser):
 
     def new_parameter_entity(self, name, val):
         self._decl_handler.internalEntityDecl("%" + name, val)
-    
+
     def new_external_pe(self, name, pubid, sysid):
         self._decl_handler.externalEntityDecl("%" + name, pubid, sysid)
-	
+
     def new_notation(self, name, pubid, sysid):
         self._dtd_handler.notationDecl(name, pubid, sysid)
 
@@ -265,16 +265,16 @@ class XmlprocDriver(IncrementalParser):
         elif elem_cont == ("", [], ""):
             elem_cont = "EMPTY"
         self._decl_handler.elementDecl(elem_name, elem_cont)
-	    
+
     def new_attribute(self, elem, attr, type, a_decl, a_def):
         self._decl_handler.attributeDecl(elem, attr, type, a_decl, a_def)
 
 # --- NamespaceFilter
-        
+
 class NamespaceFilter:
     """An xmlproc application that processes qualified names and reports them
     as (URI, local-part). It reports errors through the error reporting
-    mechanisms of the parser."""   
+    mechanisms of the parser."""
 
     def __init__(self, parser, content, lexical, driver):
         self._cont_handler = content
@@ -288,15 +288,15 @@ class NamespaceFilter:
 
     def set_locator(self, locator):
         self.driver.set_locator(locator)
-    
+
     def doc_start(self):
         self._cont_handler.startDocument()
 
     def doc_end(self):
         self._cont_handler.endDocument()
-	
+
     def handle_comment(self, data):
-	self._lex_handler.comment(data)
+        self._lex_handler.comment(data)
 
     def handle_start_tag(self,name,attrs):
         old_ns={} # Reset ns_map to these values when we leave this element
@@ -329,7 +329,7 @@ class NamespaceFilter:
                 del attrs[a]
 
         self.ns_stack.append((old_ns,del_ns))
-        
+
         # Process elem and attr names
         cooked_name = self.__process_name(name)
         ns = cooked_name[0]
@@ -339,10 +339,10 @@ class NamespaceFilter:
             del attrs[a]
             aname = self.__process_name(a, is_attr=1)
             if attrs.has_key(aname):
-                self.parser.report_error(1903)         
+                self.parser.report_error(1903)
             attrs[aname] = v
             rawnames[aname] = a
-        
+
         # Report event
         self._cont_handler.startElementNS(cooked_name, name,
                                           AttributesNSImpl(attrs, rawnames))
@@ -356,27 +356,27 @@ class NamespaceFilter:
 
         self.ns_map.update(old_ns)
         for prefix in del_ns:
-            del self.ns_map[prefix]        
-            
+            del self.ns_map[prefix]
+
         self._cont_handler.endElementNS(name, rawname)
-    
+
     def handle_data(self, data, start, end):
         self._cont_handler.characters(data[start:end])
-        
+
     def handle_ignorable_data(self, data, start, end):
         self._cont_handler.ignorableWhitespace(data[start:end])
-    
+
     def handle_pi(self, target, data):
         self._cont_handler.processingInstruction(target, data)
 
     def handle_doctype(self, root, pubId, sysId):
         self._lex_handler.startDTD(root, pubId, sysId)
-    
+
     def set_entity_info(self, xmlver, enc, sddecl):
         pass
 
     # --- Internal methods
-        
+
     def __process_name(self, name, default_to=None, is_attr=0):
         n=string.split(name,":")
         if len(n)>2:
@@ -385,7 +385,7 @@ class NamespaceFilter:
         elif len(n)==2:
             if n[0]=="xmlns":
                 return (None, name)
-                
+
             try:
                 return (self.ns_map[n[0]], n[1])
             except KeyError:

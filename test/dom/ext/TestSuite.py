@@ -170,4 +170,3 @@ class TestSuite:
         if self.groups:
             if self.groups[-1].tests:
                 self.groups[-1].tests[-1].error(msg, saveTrace)
-

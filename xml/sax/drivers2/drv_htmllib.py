@@ -1,7 +1,7 @@
 """
 A SAX 2.0 driver for htmllib.
 
-$Id: drv_htmllib.py,v 1.1 2001/07/26 08:03:44 larsga Exp $
+$Id: drv_htmllib.py,v 1.2 2001/12/30 12:13:45 loewis Exp $
 """
 
 import types, string
@@ -13,8 +13,8 @@ from drv_sgmllib import SgmllibDriver
 class HtmllibDriver(SgmllibDriver):
 
     from htmlentitydefs import entitydefs
-        
+
 # ---
-        
+
 def create_parser():
     return HtmllibDriver()

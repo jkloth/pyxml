@@ -19,7 +19,7 @@ class OperaParseException(Exception):
     pass
 
 # --- Methods
-        
+
 def readfield(infile,fieldname):
     line=string.rstrip(infile.readline())
     pos=string.find(line,fieldname+"=")
@@ -40,10 +40,10 @@ def parse_date(date):
 
     if date=="":
         return None
-    
+
     lp=string.find(date,"(")
     rp=string.find(date,")")
-    if lp==-1 or rp==-1:        
+    if lp==-1 or rp==-1:
         if string.find(date," ")!=-1:
             raise OperaParseException("Can't handle this date: %s" % `date`)
 
@@ -61,7 +61,7 @@ def parse_date(date):
 
 def parse_adr(filename):
     bms=bookmark.Bookmarks()
-    
+
     infile=open(filename)
     version=infile.readline()
 
@@ -69,7 +69,7 @@ def parse_adr(filename):
         line=infile.readline()
         if line=="": break
         line=string.rstrip(line)
-        
+
         if line=="#FOLDER":
             print "FOLDER"
             name=readfield(infile,"NAME")
@@ -104,10 +104,10 @@ if __name__ == '__main__':
         print
         print "A simple utility to convert Opera bookmarks to XBEL."
         print
-        print "Usage: "        
+        print "Usage: "
         print "  adr_parse.py <adr-file> [<xbel-file>]"
-        sys.exit(1)        
-    
+        sys.exit(1)
+
     bms=parse_adr(sys.argv[1])
 
     if len(sys.argv)==3:
@@ -116,5 +116,5 @@ if __name__ == '__main__':
         out.close()
     else:
         bms.dump_xbel()
-        
+
     # Done

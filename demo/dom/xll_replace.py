@@ -47,4 +47,3 @@ if __name__ == "__main__":
     XllReplace(xml_dom_tree)
     ext.PrettyPrint(xml_dom_tree)
     reader.releaseNode(xml_dom_tree)
-

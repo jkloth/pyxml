@@ -1,4 +1,3 @@
-
 # This demo converts a few nested objects into an XML representation,
 # and provides a simple example of using the Builder class.
 
@@ -14,7 +13,7 @@ def object_convert(builder, obj):
     builder.startElement( obj.__class__.__name__ )
     L = obj.__dict__.keys()
     L.sort()
-    
+
     for attr in obj.__dict__.keys():
 
         # Skip internal attributes (ones that begin with a '_')
@@ -42,7 +41,7 @@ if __name__ == '__main__':
     f.createdTime = time.asctime( time.localtime( time.time() ) )
     f.bookmark = b = Bookmark()
     b.url, b.title = "http://www.python.org", "Python Home Page"
-    
+
     builder = Builder()
     object_convert(builder, f)
     print "Output from two nested objects:"

@@ -26,7 +26,7 @@ class SAXtracer:
 
     def warning(self,exception):
         print "err_handler.warning(%s)" % str(exception)
-        
+
     def characters(self,data,start,length):
         print "doc_handler.characters(%s,%d,%d)" % (`data[start:start+length]`,
                                                     start,length)
@@ -34,7 +34,7 @@ class SAXtracer:
     def ignorableWhitespace(self,data,start,length):
         print "doc_handler.ignorableWhitespace(%s,%d,%d)" % \
               (`data[start:start+length]`,start,length)
-        
+
     def startElement(self, name, attrs):
         attr_str="{"
         for attr in attrs:
@@ -44,9 +44,9 @@ class SAXtracer:
             attr_str="{}"
         else:
             attr_str=attr_str[:-1]+" }"
-            
+
         print "doc_handler.startElement('%s',%s)" % (name,attr_str)
-        
+
     def trace(self,*rest):
         str="%s.%s(" % (self.objname,self.met_name)
 
@@ -68,4 +68,3 @@ p.setDTDHandler(SAXtracer("dtd_handler"))
 p.setErrorHandler(SAXtracer("err_handler"))
 p.setEntityResolver(SAXtracer("ent_handler"))
 p.parse(sys.argv[1])
-

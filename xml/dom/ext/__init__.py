@@ -185,9 +185,9 @@ def GetElementById(startNode, targetId):
                                         None, 0)
     curr_node = snit.nextNode()
     while curr_node:
-	attr = curr_node.attributes.get(_id_key, None)
-	if attr and attr._get_nodeValue() == targetId:
-	    return curr_node
+        attr = curr_node.attributes.get(_id_key, None)
+        if attr and attr._get_nodeValue() == targetId:
+            return curr_node
         curr_node = snit.nextNode()
     return None
 
@@ -286,4 +286,3 @@ def SeekNss(node, nss=None):
                     nss[attr.prefix] = attr.namespaceURI
             SeekNss(child, nss)
     return nss
-

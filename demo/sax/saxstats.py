@@ -1,4 +1,3 @@
-
 # A simple SAX application that counts the number of elements, attributes and
 # processing instructions in a document.
 
@@ -19,7 +18,7 @@ class CounterHandler(saxlib.DocumentHandler):
 
     def processingInstruction(self,target,data):
         self.pis=self.pis+1
-        
+
 # --- Main prog
 
 if len(sys.argv)<2:
@@ -27,7 +26,7 @@ if len(sys.argv)<2:
     print
     print " <document>: file name of the document to parse"
     sys.exit(1)
-    
+
 # Load parser and driver
 
 print "\nLoading parser..."

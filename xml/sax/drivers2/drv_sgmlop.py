@@ -1,7 +1,7 @@
 """
 SAX2 driver for the sgmlop parser.
 
-$Id: drv_sgmlop.py,v 1.3 2001/12/14 16:47:19 syt Exp $
+$Id: drv_sgmlop.py,v 1.4 2001/12/30 12:13:45 loewis Exp $
 """
 
 version = "0.1"
@@ -28,7 +28,7 @@ except ImportError:
             return str
         else:
             return wstring.decode(encoding,str).utf8()
-        
+
 
 
 class SaxParser(SGMLParser, XMLReader):
@@ -42,7 +42,7 @@ class SaxParser(SGMLParser, XMLReader):
         self._lexical_handler = None
         self._encoding = encoding
         self.documentStarted = 0
-        
+
     def parse(self, source):
         source = prepare_input_source(source)
 
@@ -63,7 +63,7 @@ class SaxParser(SGMLParser, XMLReader):
     def prepareParser(self, source):
         # not used
         pass
-        
+
     def close(self):
         """This method is called when the entire XML document has been
         passed to the parser through the feed method, to notify the
@@ -76,7 +76,7 @@ class SaxParser(SGMLParser, XMLReader):
 
         close may raise SAXException."""
         SGMLParser.close(self)
-        self._cont_handler.endDocument()        
+        self._cont_handler.endDocument()
 
     def _make_attr_dict(self,attr_list):
         d = {}
@@ -84,7 +84,7 @@ class SaxParser(SGMLParser, XMLReader):
         for (a,b) in attr_list:
             d[cvrt(a)]=cvrt(b)
         return d
-    
+
     def unknown_starttag(self,tag,attrs):
         self._cont_handler.startElement(to_xml_string(tag,self._encoding),
                                         AttributesImpl(self._make_attr_dict(attrs)))

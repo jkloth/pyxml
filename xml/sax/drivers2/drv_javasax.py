@@ -1,13 +1,13 @@
 """
 SAX driver for the Java SAX parsers. Can only be used in Jython.
 
-$Id: drv_javasax.py,v 1.2 2001/11/18 18:50:27 larsga Exp $
+$Id: drv_javasax.py,v 1.3 2001/12/30 12:13:45 loewis Exp $
 """
 
 # --- Initialization
 
 version = "0.10"
-revision = "$Revision: 1.2 $"
+revision = "$Revision: 1.3 $"
 
 import string
 from xml.sax import xmlreader, saxutils
@@ -166,10 +166,10 @@ class AttributesImpl:
         for name in self._attrs.getQNames():
             list.append((name, self._attrs.getValue(name)))
         return list
-                
+
     def values(self):
         return map(self._attrs.getValue, self._attrs.getQNames())
-        
+
     def get(self, name, alt = None):
         value = self._attrs.getValue(name)
         if value != None:
@@ -186,7 +186,7 @@ class AttributesNSImpl:
 
     def __init__(self):
         self._attrs = None
-    
+
 # ---
 
 def create_java_parser():

@@ -34,21 +34,21 @@ def main( tests = None, testdir = None ):
     """Execute a test suite.
 
     This also parses command-line options and modifies its behaviour
-    accordingly. 
+    accordingly.
 
     tests -- a list of strings containing test names (optional)
     testdir -- the directory in which to look for tests (optional)
 
     Users other than the Python test suite will certainly want to
     specify testdir; if it's omitted, the directory containing the
-    Python test suite is searched for.  
+    Python test suite is searched for.
 
     If the tests argument is omitted, the tests listed on the
     command-line will be used.  If that's empty, too, then all *.py
     files beginning with test_ will be used.
-    
+
     """
-    
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'vgqx')
     except getopt.error, msg:
@@ -77,7 +77,7 @@ def main( tests = None, testdir = None ):
     if exclude:
         NOTTESTS[:0] = args
         args = []
-    tests = tests or args or findtests()    
+    tests = tests or args or findtests()
     test_support.verbose = verbose      # Tell tests to be moderately quiet
     for test in tests:
         if not quiet:

@@ -32,21 +32,21 @@ expected_1 = source_1 = """\
 
 
 expected_2 = source_2 = """\
-<outer xmlns=""> 
-  <inner xmlns="http://www.ietf.org"/> 
+<outer xmlns="">
+  <inner xmlns="http://www.ietf.org"/>
 </outer>
 """
 
 
 #expected_1 = """<xsltemplate match="email/headers[substring-after(subject,\'address\')]"/>"""
 
-        
+
 def Test(tester):
 
     tester.startGroup("Testing PyExpat")
 
     reader = PyExpat.Reader()
-    
+
     tester.startTest('Basic test')
     doc = reader.fromString(source_1)
     stream = cStringIO.StringIO()
@@ -57,14 +57,14 @@ def Test(tester):
     #    tester.error('Expected\n"""%s"""\ngot\n"""%s"""'%(repr(expected_1), repr(result)))
 
     reader.releaseNode(doc)
-        
+
     tester.groupDone()
 
 
     tester.startGroup("Testing Sax2")
 
     reader = Sax2.Reader()
-    
+
     tester.startTest('Basic test')
     doc = reader.fromString(source_1)
     stream = cStringIO.StringIO()
@@ -75,7 +75,7 @@ def Test(tester):
     #    tester.error('Expected\n"""%s"""\ngot\n"""%s"""'%(repr(expected_1), repr(result)))
 
     reader.releaseNode(doc)
-        
+
     return tester.groupDone()
 
 

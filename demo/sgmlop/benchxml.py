@@ -46,12 +46,12 @@ class sgmlopDummy:
     def handle_cdata(self, data):
         pass
     def handle_charref(self, data):
-        pass 
+        pass
     def handle_comment(self, data):
         pass
     def handle_special(self, data):
         pass
-    
+
 def test2():
     fp = open(FILE)
     out = sgmlopDummy()
@@ -79,7 +79,7 @@ class FastXMLParser(xmllib.FastXMLParser):
         pass
     def handle_cdata(self, data):
         pass
-    
+
 def test3():
     fp = open(FILE)
     parser = FastXMLParser()
@@ -157,7 +157,7 @@ def test5():
 
 test = test1
 t = time.clock()
-test(); test(); test(); test(); test(); 
+test(); test(); test(); test(); test();
 t = (time.clock() - t) / 5
 print "sgmlop/null parser:", round(t, 3), "seconds;",
 print int(bytes / t), "bytes per second"
@@ -165,7 +165,7 @@ time1 = t
 
 test = test2
 t = time.clock()
-test(); test(); test(); test(); test(); 
+test(); test(); test(); test(); test();
 t = (time.clock() - t) / 5
 print "sgmlop/dummy parser:", round(t, 3), "seconds;",
 print int(bytes / t), "bytes per second"

@@ -1,4 +1,3 @@
-
 # A demo SAX application: using SAX to parse XML documents into ESIS
 # or canonical XML.
 
@@ -38,7 +37,7 @@ for (arg,val) in args:
         esis=1
     elif arg=="-s":
         silent=1
-    
+
 p=saxexts.make_parser(driver)
 p.setErrorHandler(saxutils.ErrorPrinter())
 
@@ -61,15 +60,15 @@ if not silent:
     print "Parser: %s (%s, %s)" % (p.get_parser_name(),p.get_parser_version(),
                                    p.get_driver_version())
     print
-    
+
 try:
     p.setDocumentHandler(dh)
     p.parse(in_sysID)
 except IOError,e:
     print in_sysID+": "+str(e)
 except saxlib.SAXException,e:
-   print str(e)
+    print str(e)
 
 ### Cleaning up.
-    
+
 out.close()

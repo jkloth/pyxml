@@ -8,12 +8,12 @@ does not mean feeding data to the application after a fatal error
 """
 
 usage=\
-"""        
+"""
 Usage:
 
   xpcmd.py [options] [urltodoc]
 
-  ---Options:  
+  ---Options:
   -l language: ISO 3166 language code for language to use in error messages
   -o format:   Format to output parsed XML. 'e': ESIS, 'x': canonical XML
                and 'n': normalized XML. No data will be output if this
@@ -41,7 +41,7 @@ except getopt.error,e:
     print "Usage error: "+e
     print usage
     sys.exit(1)
-    
+
 pf=None
 namespaces=0
 app=xmlproc.Application()
@@ -60,7 +60,7 @@ for option in options:
             print "Error language '%s' not available" % option[1]
     elif option[0]=="-o":
         if option[1]=="e" or option[1]=="E":
-            app=outputters.ESISDocHandler()            
+            app=outputters.ESISDocHandler()
         elif option[1]=="x" or option[1]=="X":
             app=outputters.Canonizer()
         elif option[1]=="n" or option[1]=="N":
@@ -100,8 +100,8 @@ if len(sysids)==0:
 
 if extsub:
     p.set_read_external_subset(extsub)
-    
-# --- Starting parse    
+
+# --- Starting parse
 
 print "xmlproc version %s" % xmlproc.version
 
@@ -116,6 +116,6 @@ for sysid in sysids:
         print "and %d warning(s)" % err.warnings
     else:
         print
-    
+
     err.reset()
     p.reset()

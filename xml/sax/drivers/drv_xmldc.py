@@ -24,9 +24,9 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
         saxlib.Parser.__init__(self)
         self.current_sysid=""
         self.reset()
-        
+
     # --- Parser methods
-        
+
     def parse(self, systemId):
         try:
             self.current_sysid=systemId
@@ -38,7 +38,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
     def parseFile(self, fileobj):
         self.doc_handler.setDocumentLocator(self)
         self.reset()
-        
+
         try:
             while 1:
                 buf=fileobj.read(16384)
@@ -52,9 +52,9 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
             self.err_handler.fatalError(saxlib.SAXParseException(e,None,self))
         except xml_dc.NotWellFormed,e:
             self.err_handler.fatalError(saxlib.SAXParseException(e,None,self))
-    
+
     # --- Passing on parse events to document handler
-        
+
     def text(self, str):
         self.doc_handler.characters(str,0,len(str))
 
@@ -80,7 +80,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
         self.doc_handler.endElement(name)
 
     def comment(self, stuff):
-	pass
+        pass
 
     def pi(self, stuff):
         match=re.search(reg_ws,stuff)
@@ -93,7 +93,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
                                                    stuff[start_of_data:])
 
     def decl(self, name, parts):
-	pass
+        pass
 
     def cref(self, numeral):
         numeral=string.atoi(numeral)
@@ -101,7 +101,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
 
     def eref(self, name):
         pass
-        
+
     def eof(self):
         pass
 
@@ -111,7 +111,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
         return self.parser.line()
 
     def getSystemId(self):
-	return self.current_sysid
+        return self.current_sysid
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
 
@@ -123,7 +123,7 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -132,22 +132,22 @@ class SAX_xmldc(saxlib.Parser,saxlib.Locator):
 
     def reset(self):
         self.parser=xml_dc.Scanner()
-        self.checker=xml_dc.WellFormed()        
+        self.checker=xml_dc.WellFormed()
         self.checker.scanner(self.parser)
-        self.unfed_so_far=1 
-    
+        self.unfed_so_far=1
+
     def feed(self,data):
         if self.unfed_so_far:
             self.doc_handler.startDocument()
             self.unfed_so_far=0
-            
+
         self.parser.feed(data)
         self.parser.next(self)
 
     def close(self):
         self.checker.eof()
         self.doc_handler.endDocument()
-    
+
 # ---
 
 def create_parser():

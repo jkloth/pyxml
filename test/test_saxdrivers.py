@@ -1,6 +1,5 @@
-
 # regression test for SAX drivers
-# $Id: test_saxdrivers.py,v 1.4 2001/12/16 09:35:54 loewis Exp $
+# $Id: test_saxdrivers.py,v 1.5 2001/12/30 12:19:16 loewis Exp $
 
 from xml.sax.saxutils import XMLGenerator, ContentGenerator
 from xml.sax import handler, SAXReaderNotAvailable
@@ -91,7 +90,7 @@ def test_incremental():
             continue
         if not hasattr(parser, "feed"):
             continue
-        
+
         # Don't try to test namespace support, yet
         result = StringIO()
         xmlgen = XMLGenerator(result)
@@ -108,7 +107,7 @@ def test_incremental():
             print p, "FAIL"
             fails = fails + 1
 
-        
+
 items = locals().items()
 items.sort()
 for (name, value) in items:

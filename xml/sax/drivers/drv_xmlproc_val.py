@@ -1,7 +1,7 @@
 """
 A SAX driver for xmlproc with validation and DTD information.
 
-$Id: drv_xmlproc_val.py,v 1.8 2000/09/26 14:43:11 loewis Exp $
+$Id: drv_xmlproc_val.py,v 1.9 2001/12/30 12:13:45 loewis Exp $
 """
 
 version="0.92"
@@ -18,9 +18,9 @@ class SAX_XPValParser(SAX_XPParser):
 
     def __init__(self):
         SAX_XPParser.__init__(self)
-    
+
     def _create_parser(self):
-	return xmlval.XMLValidator()
+        return xmlval.XMLValidator()
 
     def handle_start_tag(self, name, attrs):
         try:
@@ -29,24 +29,24 @@ class SAX_XPValParser(SAX_XPParser):
                                                        self.parser.dtd.get_elem(name)))
         except KeyError,e:
             self.doc_handler.startElement(name,XPAttributes(attrs,None))
-            
+
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS:
-        
+
     def get_parser_name(self):
         return "xmlproc_val"
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 1
-        
+
 # --- XPAttributes
 
 class XPAttributes(saxutils.AttributeMap):
 
     def __init__(self,map,elemdecl):
-        saxutils.AttributeMap.__init__(self,map)        
+        saxutils.AttributeMap.__init__(self,map)
         self.elemdecl=elemdecl
 
         if elemdecl==None:
@@ -54,9 +54,9 @@ class XPAttributes(saxutils.AttributeMap):
 
     def getTypeStatic(self,i):
         return "CDATA"        # Used for undeclared elements
-        
+
     def getType(self, i):
-	if type(i)==types.IntType:
+        if type(i)==types.IntType:
             try:
                 i=self.map.keys()[i]
             except KeyError,e:
@@ -71,4 +71,3 @@ class XPAttributes(saxutils.AttributeMap):
 
 def create_parser():
     return SAX_XPValParser()
-    

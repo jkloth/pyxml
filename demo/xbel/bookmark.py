@@ -13,14 +13,14 @@ class Bookmarks:
         self.folders=[]
         self.folder_stack=[]
         self.desc = "No description"
-        
+
     def add_folder(self, name, added=None):
         nf=Folder(name, added)
         if self.folder_stack==[]:
             self.folders.append(nf)
         else:
             self.folder_stack[-1].add_child(nf)
-            
+
         self.folder_stack.append(nf)
 
     def add_bookmark(self,name=None,
@@ -32,7 +32,7 @@ class Bookmarks:
             self.folder_stack[-1].add_child(nb)
         else:
             self.folders.append(nb)
-        
+
     def leave_folder(self):
         if self.folder_stack!=[]:
             del self.folder_stack[-1]
@@ -73,7 +73,7 @@ class Bookmarks:
         for folder in self.folders:
             # First, figure out a reasonable filename for this folder
             filename = string.replace(folder.title, ' ', '_') + '.html'
-            
+
             # Open a file for the top-level folders
             output = open( os.path.join(path, filename), 'w')
             print 'folder title:', folder.title, filename
@@ -82,11 +82,11 @@ class Bookmarks:
             output.write('<p>\n<ol>\n')
 
             folder.dump_lynx(output)
-            
+
             output.close()
-            
+
 # --- Superclass for folder and bookmarks
-        
+
 class Node:
     def __init__(self,name,added=None, visited=None, modified=None):
         self.title=name
@@ -95,7 +95,7 @@ class Node:
         self.modified=modified
 
 # --- Class for folders
-    
+
 class Folder(Node):
 
     def __init__(self,name,added=None):
@@ -145,9 +145,9 @@ class Folder(Node):
         # Mustn't write the closing </OL>, because Lynx will add it
         # when it reads the bookmark file.
         ##out.write("  </OL>\n")
-        
+
 # --- Class for bookmarks
-        
+
 class Bookmark(Node):
 
     def __init__(self,name, added=None, visited=None,
@@ -165,12 +165,12 @@ class Bookmark(Node):
             added = 'added="%s" ' % escape(self.added)
         else:
             added = ""
-            
+
         if self.modified!=None:
             modified = 'modified="%s" ' % escape(self.modified)
         else:
             modified = ""
-            
+
         out.write('    <bookmark href="%s" %s%s%s>\n' %
                   ( escape(self.href), added, visited, modified) )
         out.write("      <title>%s</title>\n" % escape(self.title) )
@@ -190,4 +190,3 @@ class Bookmark(Node):
 
     def dump_lynx(self, out):
         out.write("<LI><A HREF=\"%s\">%s</A>\n" % (self.href, self.title) )
-

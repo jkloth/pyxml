@@ -1,7 +1,7 @@
 """
 SAX2 driver for parsing HTML with the sgmlop parser.
 
-$Id: drv_sgmlop_html.py,v 1.1 2001/08/16 09:08:30 larsga Exp $
+$Id: drv_sgmlop_html.py,v 1.2 2001/12/30 12:13:45 loewis Exp $
 """
 
 version = "0.1"
@@ -15,7 +15,7 @@ class SaxHtmlParser(SaxParser):
     def __init__(self, bufsize = 65536, encoding = 'iso-8859-1', verbose = 0):
         SaxParser.__init__(self, bufsize, encoding)
         self.verbose = verbose
-        
+
     def finish_starttag(self, tag, attrs):
         """uses the HTML DTD to automatically generate events
         for missing tags"""
@@ -30,7 +30,7 @@ class SaxHtmlParser(SaxParser):
         if self.stack and tag not in HTML_DTD.get(self.stack[-1],[]) and self.verbose:
             print 'Warning : trying to add %s as a child of %s'%\
                   (tag,self.stack[-1])
-        
+
         self.unknown_starttag(tag,attrs)
         if upper(tag) in HTML_FORBIDDEN_END:
             # close immediatly tags for which we won't get and end
@@ -68,7 +68,7 @@ class SaxHtmlParser(SaxParser):
         for tag in self.stack:
             self.unknown_endtag(tag)
         self.stack = []
-        self._cont_handler.endDocument()        
+        self._cont_handler.endDocument()
 
 
 def create_parser():

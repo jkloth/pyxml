@@ -1,4 +1,3 @@
-
 # A DOM benchmark
 
 import sys, time
@@ -12,13 +11,13 @@ def main():
         sys.exit()
 
     filename = sys.argv[1]
-    
+
     file = open(filename, 'r')
     size = len(file.read())
     file.close()
 
     print 'File %s is %iK in size' % (filename, size / 1024)
-    
+
     start_time = time.time()
     doc = utils.FileReader( filename ).document
     end_time = time.time()
@@ -36,5 +35,5 @@ def main():
     end_time = time.time()
     print 'getElementsByTagName("*"):', end_time - start_time, 'sec'
     print L[0].nodeName
-    
+
 if __name__ == '__main__': main()

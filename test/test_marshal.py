@@ -1,4 +1,3 @@
-
 from xml.marshal import generic, wddx, xmlrpc
 
 generic.runtests()

@@ -11,7 +11,7 @@ Usage:
 
   xvcmd.py [options] [urlstodocs]
 
-  ---Options:  
+  ---Options:
   -c catalog:   path to catalog file to use to resolve public identifiers
   -l language:  ISO 3166 language code for language to use in error messages
   -o format:    Format to output parsed XML. 'e': ESIS, 'x': canonical XML
@@ -24,7 +24,7 @@ Usage:
   --nowarn:     Suppress warnings.
   --entstck:    Show entity stack on errors.
   --rawxml:     Show raw XML string where error occurred.
-            
+
   Catalog files with URLs that end in '.xml' are assumed to be XCatalogs,
   all others are assumed to be SGML Open Catalogs.
 
@@ -56,7 +56,7 @@ try:
                                    ["nowarn","entstck","rawxml"])
 except getopt.error,e:
     print_usage("Usage error: "+e)
-    
+
 warnings=1
 entstack=0
 rawxml=0
@@ -77,14 +77,14 @@ for option in options:
             print "Error: Language '%s' not available" % option[1]
     elif option[0]=="-o":
         if string.lower(option[1]) == "e":
-            app = outputters.ESISDocHandler()            
+            app = outputters.ESISDocHandler()
         elif string.lower(option[1]) == "x":
             app = outputters.Canonizer()
         elif string.lower(option[1]) == "n":
             app = outputters.DocGenerator()
         else:
             print_usage("Error: Unknown output format " + option[1])
-            
+
     elif option[0]=="-n":
         namespaces=1
     elif option[0]=="--nowarn":

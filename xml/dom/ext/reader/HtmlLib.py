@@ -41,7 +41,7 @@ class Reader(reader.Reader):
                     while doc.documentElement.firstChild:
                         c = doc.documentElement.removeChild(doc.documentElement.firstChild)
                         self.releaseNode(c)
-                    # copy stuff    
+                    # copy stuff
                     while child.firstChild:
                         doc.documentElement.appendChild(child.firstChild)
                     self.releaseNode(frag)

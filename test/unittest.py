@@ -31,7 +31,7 @@ SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 __author__ = "Steve Purcell (stephen_purcell@yahoo.com)"
-__version__ = "$Revision: 1.1 $"[11:-2]
+__version__ = "$Revision: 1.2 $"[11:-2]
 
 import time
 import sys
@@ -77,7 +77,7 @@ class TestResult:
 
     def stop(self):
         self.shouldStop = 1
-    
+
     def __repr__(self):
         return "<%s run=%i errors=%i failures=%i>" % \
                (self.__class__, self.testsRun, len(self.errors),
@@ -86,14 +86,14 @@ class TestResult:
 class TestCase:
     """A class whose instances are single test case.
 
-    Test authors should subclass TestCase for their own tests. Construction 
+    Test authors should subclass TestCase for their own tests. Construction
     and deconstruction of the test's environment ('fixture') can be
     implemented by overriding the 'setUp' and 'tearDown' methods respectively.
 
     By default, the test code itself should be placed in a method named
     'runTest'.
-    
-    If the fixture may be used for many test cases, create as 
+
+    If the fixture may be used for many test cases, create as
     many test methods as are needed. When instantiating such a TestCase
     subclass, specify in the constructor arguments the name of the test method
     that the instance is to execute.
@@ -203,7 +203,7 @@ class TestSuite:
                 break
             test(result)
         return result
-        
+
 ##############################################################################
 # Text UI
 ##############################################################################
@@ -217,7 +217,7 @@ class _WritelnDecorator:
     def writeln(self, *args):
         if args: apply(self.write, args)
         self.write(os.linesep)
-        
+
 class TextTestResult(TestResult):
     """A test result class that can print formatted text results to a stream.
     """
@@ -229,12 +229,12 @@ class TextTestResult(TestResult):
         TestResult.addError(self,test,error)
         self.stream.write('E')
         self.stream.flush()
-        
+
     def addFailure(self, test, error):
         TestResult.addFailure(self,test,error)
         self.stream.write('F')
         self.stream.flush()
-        
+
     def startTest(self, test):
         TestResult.startTest(self,test)
         self.stream.write('.')
@@ -253,7 +253,7 @@ class TextTestResult(TestResult):
             self.stream.writeln("%i) %s" % (i, test))
             self.stream.writeln(errString)
             i = i + 1
-            
+
     def printErrors(self):
         self.printNumberedErrors('error',self.errors)
 
@@ -271,7 +271,7 @@ class TextTestResult(TestResult):
             self.stream.writeln("Run: %i Failures: %i Errors: %i" %
                                 (self.testsRun, len(self.failures),
                                  len(self.errors)))
-            
+
     def printResult(self):
         self.printHeader()
         self.printErrors()
@@ -280,7 +280,7 @@ class TextTestResult(TestResult):
 
 class TextTestRunner:
     """A test runner class that displays results in textual form.
-    
+
     Uses TextTestResult.
     """
     def __init__(self, stream=sys.stderr):
@@ -356,4 +356,3 @@ if __name__ == "__main__":
     else:
         print "usage:", sys.argv[0], "package1.YourTestSuite"
         sys.exit(2)
-

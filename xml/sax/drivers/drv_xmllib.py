@@ -25,7 +25,7 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
     "SAX driver for xmllib.py."
 
     def __init__(self):
-	xmllib.XMLParser.__init__(self)
+        xmllib.XMLParser.__init__(self)
         pylibs.LibParser.__init__(self)
         self.standalone=0
         self.reset()
@@ -38,8 +38,8 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
         newattr = {}
         for k,v in attributes.items():
             newattr[unicode(k,self.encoding)] = unicode(v,self.encoding)
-	self.doc_handler.startElement(tag,saxutils.AttributeMap(newattr))
-        
+        self.doc_handler.startElement(tag,saxutils.AttributeMap(newattr))
+
     def handle_endtag(self,tag,method):
         self.doc_handler.endElement(unicode(tag, self.encoding))
 
@@ -52,20 +52,20 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
             self.encoding = encoding
 
     def handle_data(self,data):
-	"Handles PCDATA."
+        "Handles PCDATA."
         data = unicode(data, self.encoding)
-	self.doc_handler.characters(data,0,len(data))
+        self.doc_handler.characters(data,0,len(data))
 
     def handle_cdata(self,data):
-	"Handles CDATA marked sections."
+        "Handles CDATA marked sections."
         data = unicode(data, self.encoding)
-	self.doc_handler.characters(data,0,len(data))       
+        self.doc_handler.characters(data,0,len(data))
 
     def getLineNumber(self):
-	return self.lineno
+        return self.lineno
 
     def getSystemId(self):
-	return self.sysID
+        return self.sysID
 
     def _can_locate(self):
         "Internal: returns true if location info is available."
@@ -81,7 +81,7 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -92,18 +92,18 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
         xmllib.XMLParser.reset(self)
         self.unfed_so_far=1
         self.encoding = "utf-8"
-    
+
     def feed(self,data):
         if self.unfed_so_far:
             self.doc_handler.startDocument()
             self.unfed_so_far=0
-            
+
         xmllib.XMLParser.feed(self,data)
-    
+
     def close(self):
         xmllib.XMLParser.close(self)
-	self.doc_handler.endDocument()
-    
+        self.doc_handler.endDocument()
+
 # --- Global functions
 
 def create_parser():

@@ -17,7 +17,7 @@ def runTests(tests, testSuite):
         total = total + time.time() - start
     return total
 
-    
+
 
 ### Application ###
 
@@ -145,5 +145,3 @@ Options:
     total = runTests(tests, testSuite)
 
     print "Test Time - %.3f secs" % total
-    
-

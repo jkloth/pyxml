@@ -68,7 +68,7 @@ class XBELHandler(saxlib.HandlerBase):
             if not self.inside_ul:
                 self.inside_ul=1
                 self.writer.write("<UL>\n")
-                
+
             self.writer.write('<LI><A HREF="%s">%s</A>. \n' %
                               (self.last_url,data[start:start+length]))
 
@@ -77,9 +77,9 @@ class XBELHandler(saxlib.HandlerBase):
 
         if self.stack[-1]=="title" and self.stack[-2]=="folder":
             self.writer.write("<LI><B>%s</B>\n" % data[start:start+length])
-            self.writer.write("<UL>\n")        
+            self.writer.write("<UL>\n")
             self.inside_ul=1
-            
+
     def endElement(self,name):
         del self.stack[-1]
 
@@ -89,7 +89,7 @@ class XBELHandler(saxlib.HandlerBase):
     def endDocument(self):
         self.writer.write("</UL>\n")
         self.writer.write(bottom % self.parser)
-        
+
 # --- Main program
 
 if __name__ == '__main__':
@@ -97,5 +97,3 @@ if __name__ == '__main__':
     p.setDocumentHandler(XBELHandler(p.get_parser_name()))
     p.setErrorHandler(saxutils.ErrorPrinter())
     p.parse(sys.argv[1])
-
-

@@ -1,5 +1,4 @@
-
-# A simple SAX application that measures the time spent parsing a 
+# A simple SAX application that measures the time spent parsing a
 # document with an empty document handler.
 
 from xml.sax import saxexts

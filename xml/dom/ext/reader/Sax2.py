@@ -243,7 +243,7 @@ class XmlDomGenerator(NsHandler, saxutils.DefaultHandler,
                     if attr_prefix is None: # I'm not sure that this is possible
                         attr_qname = lname
                     else:
-                        attr_qname = string.join((attr_prefix,lname),':') 
+                        attr_qname = string.join((attr_prefix,lname),':')
             else:
                 attr_qname = lname
             attr = self._ownerDoc.createAttributeNS(attr_ns, attr_qname)

@@ -7,8 +7,8 @@ from generic import *
 #
 # If the module variable STRICT is true, any marshalling instances
 # created will use strict marshalling rules. If STRICT is false,
-# any marshalling instances created will use loose rules. 
-# Changing the value of STRICT affects any marshallers 
+# any marshalling instances created will use loose rules.
+# Changing the value of STRICT affects any marshallers
 # subsequently created; previously created marshaller objects
 # will not change their behavior.
 #
@@ -31,7 +31,7 @@ from generic import *
 STRICT = 0
 
 # Added _WDDX_METHOD, which names a special method for WDDX
-# marshalling. If an instance to be marshalled has this method 
+# marshalling. If an instance to be marshalled has this method
 # defined, it is called with no arguments and the return value is used
 # for marshalling. (The marshaller code in m_instance forbids
 # the return value to be an instance with its own special
@@ -50,13 +50,13 @@ _WDDX_METHOD = '__wddx__'
 # TRUE and FALSE.
 
 class TruthValue:
-    def __init__(self, value): 
+    def __init__(self, value):
         if value: self.__dict__['value'] = 1
         else: self.__dict__['value'] = 0
-        
+
     def __setattr__(self, item, value):
         raise TypeError, "TruthValue object is read-only"
-    
+
     def __nonzero__(self): return self.value
     def __cmp__(self, other): return cmp(self.value, other)
     def __hash__(self): return hash(self.value)

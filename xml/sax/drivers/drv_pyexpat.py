@@ -1,7 +1,7 @@
 """
 SAX driver for the Pyexpat C module.
 
-$Id: drv_pyexpat.py,v 1.13 2001/03/17 18:01:11 akuchling Exp $
+$Id: drv_pyexpat.py,v 1.14 2001/12/30 12:13:44 loewis Exp $
 """
 
 # Event handling can be speeded up by bypassing the driver for some events.
@@ -31,7 +31,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def startElement(self,name,attrs):
         at = {}
-        # Backward compatibility code, for older versions of the 
+        # Backward compatibility code, for older versions of the
         # PyExpat module
         if type(attrs) == type({}):
             at = attrs
@@ -40,7 +40,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
             at = {}
             for i in range(0, len(attrs), 2):
                 at[attrs[i]] = attrs[i+1]
-                
+
         self.doc_handler.startElement(name,saxutils.AttributeMap(at))
 
     # FIXME: bypass!
@@ -60,15 +60,15 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
     def parseFile(self,fileobj,sysID=None):
         self.reset()
         self.sysID=sysID
-	self.doc_handler.startDocument()
-        
+        self.doc_handler.startDocument()
+
         buf = fileobj.read(16384)
         while buf != "":
             if self.parser.Parse(buf, 0) != 1:
                 self.__report_error()
             buf = fileobj.read(16384)
         self.parser.Parse("", 1)
-            
+
         self.doc_handler.endDocument()
         self.close()
 
@@ -79,12 +79,12 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
             return self.sysID
         else:
             return "Unknown"
-    
+
     def getLineNumber(self):
         return self.parser.ErrorLineNumber
 
     def getColumnNumber(self):
-        return self.parser.ErrorColumnNumber    
+        return self.parser.ErrorColumnNumber
 
     # --- Internal
 
@@ -95,7 +95,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.err_handler.fatalError(exc)
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS
-        
+
     def get_parser_name(self):
         return "pyexpat"
 
@@ -104,7 +104,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 
     def get_driver_version(self):
         return version
-    
+
     def is_validating(self):
         return 0
 
@@ -131,7 +131,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         if self.parser.Parse("", 0) != 1:
             self.__report_error()
         self.parser = None
-        
+
 # --- An expat driver that uses the lazy map
 
 class LazyExpatDriver(SAX_expat):
@@ -139,26 +139,26 @@ class LazyExpatDriver(SAX_expat):
     def __init__(self):
         SAX_expat.__init__(self)
         self.map=LazyAttributeMap([])
-        
+
     def startElement(self,name,attrs):
         self.map.list=attrs
-        self.doc_handler.startElement(name,self.map)    
-            
+        self.doc_handler.startElement(name,self.map)
+
 # --- A lazy attribute map
 
 # This avoids the costly conversion from a list to a hash table
 
-class LazyAttributeMap:    
+class LazyAttributeMap:
     """A lazy implementation of AttributeList that takes an
     [attr,val,attr,val,...] list and uses it to implement the AttributeList
     interface."""
 
     def __init__(self, list):
-	self.list=list
-    
+        self.list=list
+
     def getLength(self):
-	return len(self.list)/2
-	
+        return len(self.list)/2
+
     def getName(self, i):
         try:
             return self.list[2*i]
@@ -166,7 +166,7 @@ class LazyAttributeMap:
             return None
 
     def getType(self, i):
-	return "CDATA"
+        return "CDATA"
 
     def getValue(self, i):
         try:
@@ -182,24 +182,24 @@ class LazyAttributeMap:
             return None
 
     def __len__(self):
-	return len(self.list)/2
+        return len(self.list)/2
 
     def __getitem__(self, key):
-	if type(key)==types.IntType:
+        if type(key)==types.IntType:
             return self.list[2*key+1]
-	else:
+        else:
             for ix in range(0,len(self.list),2):
                 if self.list[ix]==key:
                     return self.list[ix+1]
 
             return None
-            
+
     def items(self):
         result=[""]*(len(self.list)/2)
         for ix in range(0,len(self.list),2):
             result[ix/2]=(self.list[ix],self.list[ix+1])
         return result
-        
+
     def keys(self):
         result=[""]*(len(self.list)/2)
         for ix in range(0,len(self.list),2):
@@ -212,15 +212,15 @@ class LazyAttributeMap:
                 return 1
 
         return 0
-    
+
     def get(self, key, alternative):
         for ix in range(0,len(self.list),2):
             if self.list[ix]==key:
                 return self.list[ix+1]
 
         return alternative
-            
+
 # ---
-        
+
 def create_parser():
     return SAX_expat()
