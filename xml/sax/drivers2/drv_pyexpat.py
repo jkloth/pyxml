@@ -2,7 +2,7 @@
 SAX driver for the Pyexpat C module.  This driver works with
 pyexpat.__version__ == '1.5'.
 
-$Id: drv_pyexpat.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
+$Id: drv_pyexpat.py,v 1.5 2000/09/26 15:45:14 loewis Exp $
 """
 
 # Todo on driver:
@@ -18,9 +18,9 @@ $Id: drv_pyexpat.py,v 1.4 2000/09/26 14:43:11 loewis Exp $
 
 version = "0.20"
 
-from xml.sax import saxlib, saxutils
+from xml.sax import saxlib, saxutils, xmlreader
 from string import split
-AttributesImpl = saxutils.AttributesImpl
+AttributesImpl = xmlreader.AttributesImpl
 
 try:
     import pyexpat

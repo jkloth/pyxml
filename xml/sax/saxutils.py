@@ -2,16 +2,16 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.9 2000/09/26 14:43:10 loewis Exp $
+$Id: saxutils.py,v 1.10 2000/09/26 15:45:13 loewis Exp $
 """
 
 from xml.utils import escape  # FIXME!
-import types, saxlib, string, sys, saxexts, urllib, codecs
+import types, handler, _exceptions, string, sys, urllib, codecs
 
 # --- DefaultHandler
 
-class DefaultHandler(saxlib.EntityResolver, saxlib.DTDHandler,
-                     saxlib.ContentHandler, saxlib.ErrorHandler):
+class DefaultHandler(handler.EntityResolver, handler.DTDHandler,
+                     handler.ContentHandler, handler.ErrorHandler):
     """Default base class for SAX2 event handlers. Implements empty
     methods for all callback methods, which can be overridden by
     application implementors. Replaces the deprecated SAX1 HandlerBase
@@ -70,7 +70,7 @@ class ErrorPrinter:
                                 exception.getMessage()))
 
     def __getpos(self, exception):
-        if isinstance(exception, saxlib.SAXParseException):
+        if isinstance(exception, _exceptions.SAXParseException):
             return "%s:%s:%s" % (exception.getSystemId(),
                                  exception.getLineNumber(),
                                  exception.getColumnNumber())
@@ -97,65 +97,15 @@ class ErrorRaiser:
         if self._level <= 0:
             raise exception
 
-# --- AttributesImpl
-
-class AttributesImpl:
-
-    def __init__(self, attrs, rawnames):
-        self._attrs = attrs
-        self._rawnames = rawnames
-
-    def getLength(self):
-        return len(self._attrs)
-
-    def getType(self, name):
-        return "CDATA"
-
-    def getValue(self, name):
-        return self._attrs[name]
-
-    def getValueByQName(self, name):
-        return self._attrs[self._rawnames[name]]
-
-    def getNameByQName(self, name):
-        return self._rawnames[name]
-
-    def getNames(self):
-        return self._attrs.keys()
-
-    def getQNames(self):
-        return self._rawnames.keys()    
-    
-    def __len__(self):
-        return len(self._attrs)
-
-    def __getitem__(self, name):
-        return self._attrs[name]
-
-    def keys(self):
-        return self._attrs.keys()
-
-    def has_key(self, name):
-        return self._attrs.has_key(name)
-
-    def get(self, name, alternative=None):
-        return self._attrs.get(name, alternative)
-
-    def copy(self):
-        return self.__class__(self._attrs, self._rawnames)
-
-    def items(self):
-        return self._attrs.items()
-
-    def values(self):
-        return self._attrs.values()
+# --- AttributesImpl now lives in xmlreader
+#from xmlreader import AttributesImpl
 
 # --- ContentGenerator, now called XMLGenerator in Python 2
     
-class XMLGenerator(saxlib.ContentHandler):
+class XMLGenerator(handler.ContentHandler):
 
     def __init__(self, out = sys.stdout, encoding = "iso-8859-1"):
-        saxlib.ContentHandler.__init__(self)
+        handler.ContentHandler.__init__(self)
         writerclass = codecs.lookup(encoding)[3]
         self._out = writerclass(out)
         self._ns_contexts = [{}] # contains uri -> prefix dicts
@@ -211,8 +161,9 @@ class XMLGenerator(saxlib.ContentHandler):
 ContentGenerator = XMLGenerator
 
 # --- XMLFilterImpl
+import xmlreader
 
-class XMLFilterBase(saxlib.XMLFilter):
+class XMLFilterBase(xmlreader.XMLReader):
     """This class is designed to sit between an XMLReader and the
     client application's event handlers.  By default, it does nothing
     but pass requests up to the reader and events on to the handlers
@@ -314,7 +265,7 @@ XMLFilterImpl = XMLFilterBase
         
 # --- BaseIncrementalParser
 
-class BaseIncrementalParser(saxlib.IncrementalParser):
+class BaseIncrementalParser(xmlreader.IncrementalParser):
     """This class implements the parse method of the XMLReader
     interface using the feed, close and reset methods of the
     IncrementalParser interface as a convenience to SAX 2.0 driver
@@ -459,7 +410,7 @@ class EventBroadcaster:
         return "<EventBroadcaster instance at %d>" % id(self)
 
 # --- ESIS document handler
-
+import saxlib
 class ESISDocHandler(saxlib.HandlerBase):
     "A SAX document handler that produces naive ESIS output."
 
@@ -555,6 +506,7 @@ class mllib:
         self.reset()
 
     def reset(self):
+        import saxexts # only used here
         self.parser=saxexts.XMLParserFactory.make_parser()
         self.handler=mllib.Handler(self.parser,self)
         self.handler.reset()

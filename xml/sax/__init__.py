@@ -16,9 +16,9 @@ parse, parseString     - parse a document, using a provided handler
 
 """
 
-from saxlib import ContentHandler, ErrorHandler
-from saxlib import SAXException, SAXNotRecognizedException,\
-                   SAXParseException, SAXNotSupportedException
+from handler import ContentHandler, ErrorHandler
+from _exceptions import SAXException, SAXNotRecognizedException,\
+                        SAXParseException, SAXNotSupportedException
 
 from sax2exts import make_parser
 

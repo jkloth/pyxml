@@ -1,10 +1,10 @@
 """
 A module of experimental extensions to the standard SAX interface.
 
-$Id: saxexts.py,v 1.6 2000/09/26 14:43:10 loewis Exp $
+$Id: saxexts.py,v 1.7 2000/09/26 15:45:13 loewis Exp $
 """
 
-import saxlib,sys,string
+import _exceptions,handler,sys,string
 
 try:
     import imp
@@ -82,7 +82,7 @@ class ParserFactory:
                 except ImportError,e:
                     pass
                 except:
-                    raise saxlib.SAXException("Problems during import, gave up"
+                    raise _exceptions.SAXException("Problems during import, gave up"
                                               ,None)
 	    else:
 		import imp
@@ -92,46 +92,46 @@ class ParserFactory:
                 except ImportError,e:
                     pass
 
-        raise saxlib.SAXException("No parsers found",None)  
+        raise _exceptions.SAXException("No parsers found",None)  
 
 # --- Experimental extension to Parser interface
-
+import saxlib
 class ExtendedParser(saxlib.Parser):
     "Experimental unofficial SAX level 2 extended parser interface."
 
     def get_parser_name(self):
         "Returns a single-word parser name."
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
 
     def get_parser_version(self):
         """Returns the version of the imported parser, which may not be the
         one the driver was implemented for."""
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
 
     def get_driver_version(self):
         "Returns the version number of the driver."
-        raise saxlib.SAXException("Method not supported.",None)        
+        raise _exceptions.SAXException("Method not supported.",None)        
     
     def is_validating(self):
         "True if the parser is validating, false otherwise."
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
 
     def is_dtd_reading(self):
         """True if the parser is non-validating, but conforms to the spec by
         reading the DTD."""
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
 
     def reset(self):
         "Makes the parser start parsing afresh."
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
     
     def feed(self,data):
         "Feeds data to the parser."
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
 
     def close(self):
         "Called after the last call to feed, when there are no more data."
-        raise saxlib.SAXException("Method not supported.",None)
+        raise _exceptions.SAXException("Method not supported.",None)
         
 # --- Experimental document handler which does not slice strings
 
@@ -140,7 +140,7 @@ class NosliceDocumentHandler(saxlib.DocumentHandler):
     slice character data strings."""
 
     def __init__(self):
-        saxlib.DocumentHandler.__init__()
+        handler.DocumentHandler.__init__()
         self.characters=self.safe_handler
 
     def safe_handler(self,data,start,length):

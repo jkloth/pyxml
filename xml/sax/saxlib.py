@@ -6,7 +6,7 @@ functionality, from which drivers and applications can be subclassed.
 Many of these classes are empty and are included only as documentation
 of the interfaces.
 
-$Id: saxlib.py,v 1.8 2000/09/26 14:43:10 loewis Exp $
+$Id: saxlib.py,v 1.9 2000/09/26 15:45:13 loewis Exp $
 """
 
 version = '2.0beta'
@@ -17,240 +17,9 @@ version = '2.0beta'
 #
 #============================================================================
 
-# ===== XMLREADER =====
+# ===== ErrorHandler now lives in sax.handler =====
+from handler import ErrorHandler
 
-class XMLReader:
-
-    def __init__(self):
-	self._cont_handler = ContentHandler()
-	self._dtd_handler  = DTDHandler()
-	self._ent_handler  = EntityResolver()
-	self._err_handler  = ErrorHandler()
-
-    def parse(self, source):
-	"Parse an XML document from a system identifier or an InputSource."
-        raise NotImplementedError("This method must be implemented!")
-
-    def getContentHandler(self):
-        "Returns the current ContentHandler."
-        return self._cont_handler
-
-    def setContentHandler(self, handler):
-        "Registers a new object to receive document content events."
-        self._cont_handler = handler
-        
-    def getDTDHandler(self):
-        "Returns the current DTD handler."
-        return self._dtd_handler
-        
-    def setDTDHandler(self, handler):
-	"Register an object to receive basic DTD-related events."
-	self._dtd_handler = handler
-
-    def getEntityResolver(self):
-        "Returns the current EntityResolver."
-        return self._ent_handler
-        
-    def setEntityResolver(self, resolver):
-	"Register an object to resolve external entities."
-	self._ent_handler = resolver
-
-    def getErrorHandler(self):
-        "Returns the current ErrorHandler."
-        return self._err_handler
-        
-    def setErrorHandler(self, handler):
-	"Register an object to receive error-message events."
-	self._err_handler = handler
-
-    def setLocale(self, locale):
-        """Allow an application to set the locale for errors and warnings. 
-   
-        SAX parsers are not required to provide localisation for errors
-        and warnings; if they cannot support the requested locale,
-        however, they must throw a SAX exception. Applications may
-        request a locale change in the middle of a parse."""
-        raise SAXNotSupportedException("Locale support not implemented")
-    
-    def getFeature(self, name):
-        "Looks up and returns the state of a SAX2 feature."
-        raise SAXNotRecognizedException("Feature '%s' not recognized" % name)
-
-    def setFeature(self, name, state):
-        "Sets the state of a SAX2 feature."
-        raise SAXNotRecognizedException("Feature '%s' not recognized" % name)
-
-    def getProperty(self, name):
-        "Looks up and returns the value of a SAX2 property."
-        raise SAXNotRecognizedException("Property '%s' not recognized" % name)
-
-    def setProperty(self, name, value):
-        "Sets the value of a SAX2 property."
-        raise SAXNotRecognizedException("Property '%s' not recognized" % name)
-
-    
-# ===== INPUTSOURCE =====
-
-class InputSource:
-    """Encapsulation of the information needed by the XMLReader to
-    read entities.
-
-    This class may include information about the public identifier,
-    system identifier, byte stream (possibly with character encoding
-    information) and/or the character stream of an entity.
-
-    Applications will create objects of this class for use in the
-    XMLReader.parse method and for returning from
-    EntityResolver.resolveEntity.
-
-    An InputSource belongs to the application, the XMLReader is not
-    allowed to modify InputSource objects passed to it from the
-    application, although it may make copies and modify those."""
-
-    def __init__(self, system_id = None):
-        self.__system_id = system_id
-        self.__public_id = None
-        self.__encoding  = None
-        self.__bytefile  = None
-        self.__charfile  = None
-
-    def setPublicId(self, public_id):
-        "Sets the public identifier of this InputSource."
-        self.__public_id = public_id
-
-    def getPublicId(self):
-        "Returns the public identifier of this InputSource."
-        return self.__public_id
-
-    def setSystemId(self, system_id):
-        "Sets the system identifier of this InputSource."
-        self.__system_id = system_id
-
-    def getSystemId(self):
-        "Returns the system identifier of this InputSource."
-        return self.__system_id
-
-    def setEncoding(self, encoding):
-        """Sets the character encoding of this InputSource.
-
-        The encoding must be a string acceptable for an XML encoding
-        declaration (see section 4.3.3 of the XML recommendation).
-
-        The encoding attribute of the InputSource is ignored if the
-        InputSource also contains a character stream."""
-        self.__encoding = encoding
-
-    def getEncoding(self):
-        "Get the character encoding of this InputSource."
-        return self.__encoding
-
-    def setByteStream(self, bytefile):
-        """Set the byte stream (a Python file-like object which does
-        not perform byte-to-character conversion) for this input
-        source.
-        
-        The SAX parser will ignore this if there is also a character
-        stream specified, but it will use a byte stream in preference
-        to opening a URI connection itself.
-
-        If the application knows the character encoding of the byte
-        stream, it should set it with the setEncoding method."""
-        self.__bytefile = bytefile
-
-    def getByteStream(self):
-        """Get the byte stream for this input source.
-        
-        The getEncoding method will return the character encoding for
-        this byte stream, or None if unknown."""        
-        return self.__bytefile
-        
-    def setCharacterStream(self, charfile):
-        """Set the character stream for this input source. (The stream
-        must be a Python 1.6 Unicode-wrapped file-like that performs
-        conversion to Unicode strings.)
-        
-        If there is a character stream specified, the SAX parser will
-        ignore any byte stream and will not attempt to open a URI
-        connection to the system identifier."""
-        self.__charfile = charfile
-
-    def getCharacterStream(self):
-        "Get the character stream for this input source."
-        return self.__charfile
-    
-        
-# ===== LOCATOR =====
-
-class Locator:
-    """Interface for associating a SAX event with a document
-    location. A locator object will return valid results only during
-    calls to DocumentHandler methods; at any other time, the
-    results are unpredictable."""
-    
-    def getColumnNumber(self):
-	"Return the column number where the current event ends."
-	return -1
-
-    def getLineNumber(self):
-	"Return the line number where the current event ends."
-	return -1
-
-    def getPublicId(self):
-	"Return the public identifier for the current event."
-	return None
-
-    def getSystemId(self):
-	"Return the system identifier for the current event."
-	return None
-
-
-# ===== ErrorHandler =====
-
-class ErrorHandler:
-    """Basic interface for SAX error handlers. If you create an object
-    that implements this interface, then register the object with your
-    Parser, the parser will call the methods in your object to report
-    all warnings and errors. There are three levels of errors
-    available: warnings, (possibly) recoverable errors, and
-    unrecoverable errors. All methods take a SAXParseException as the
-    only parameter."""
-
-    def error(self, exception):
-	"Handle a recoverable error."
-
-    def fatalError(self, exception):
-	"Handle a non-recoverable error."
-
-    def warning(self, exception):
-	"Handle a warning."   
-    
-# ===== XMLFILTER =====
-
-class XMLFilter(XMLReader):
-    """Interface for a SAX2 parser filter.
-
-    A parser filter is an XMLReader that gets its events from another
-    XMLReader (which may in turn also be a filter) rather than from a
-    primary source like a document or other non-SAX data source.
-    Filters can modify a stream of events before passing it on to its
-    handlers."""
-
-    def __init__(self, parent = None):
-        """Creates a filter instance, allowing applications to set the
-        parent on instantiation."""
-        XMLReader.__init__(self)
-        self._parent = parent
-    
-    def setParent(self, parent):        
-        """Sets the parent XMLReader of this filter. The argument may
-        not be None."""
-        self._parent = parent
-
-    def getParent(self):
-        "Returns the parent of this filter."
-        return self._parent
-
-    
 # ===== ATTRIBUTES =====
 
 class Attributes:
@@ -326,116 +95,11 @@ class Attributes:
     
 #============================================================================
 #
-# EXCEPTIONS
+# EXCEPTIONS now live in _exceptions
 #
 #============================================================================
 
-import sys
-if sys.platform[:4] == "java":
-    from java.lang import Exception
-
-
-# ===== SAXEXCEPTION =====
-    
-class SAXException(Exception):
-    """Encapsulate an XML error or warning. This class can contain
-    basic error or warning information from either the XML parser or
-    the application: you can subclass it to provide additional
-    functionality, or to add localization. Note that although you will
-    receive a SAXException as the argument to the handlers in the
-    ErrorHandler interface, you are not actually required to throw
-    the exception; instead, you can simply read the information in
-    it."""
-    
-    def __init__(self, msg, exception = None):
-        """Creates an exception. The message is required, but the exception
-        is optional."""
-        self._msg = msg
-        self._exception = exception
-
-    def getMessage(self):
-	"Return a message for this exception."
-	return self._msg
-
-    def getException(self):
-        "Return the embedded exception, or None if there was none."
-        return self._exception
-
-    def __str__(self):
-        "Create a string representation of the exception."
-        return self._msg
-
-    def __getitem__(self, ix):
-        """Avoids weird error messages if someone does exception[ix] by
-        mistake, since Exception has __getitem__ defined."""
-        raise NameError("__getitem__")
-
-    
-# ===== SAXPARSEEXCEPTION =====
-
-class SAXParseException(SAXException):    
-    """Encapsulate an XML parse error or warning.
-    
-    This exception will include information for locating the error in
-    the original XML document. Note that although the application will
-    receive a SAXParseException as the argument to the handlers in the
-    ErrorHandler interface, the application is not actually required
-    to throw the exception; instead, it can simply read the
-    information in it and take a different action.
-
-    Since this exception is a subclass of SAXException, it inherits
-    the ability to wrap another exception."""
-    
-    def __init__(self, msg, exception, locator):
-        "Creates the exception. The exception parameter is allowed to be None."
-        SAXException.__init__(self, msg, exception)
-        self._locator = locator
-        
-    def getColumnNumber(self):
-	"""The column number of the end of the text where the exception
-	occurred."""
-	return self._locator.getColumnNumber()
-
-    def getLineNumber(self):
-	"The line number of the end of the text where the exception occurred."
-	return self._locator.getLineNumber()
-
-    def getPublicId(self):
-	"Get the public identifier of the entity where the exception occurred."
-	return self._locator.getPublicId()
-
-    def getSystemId(self):
-	"Get the system identifier of the entity where the exception occurred."
-	return self._locator.getSystemId()
-
-    def __str__(self):
-        "Create a string representation of the exception."
-        return "%s at %s:%d:%d" % (self._msg,
-                                   self.getSystemId(),
-                                   self.getLineNumber(),
-                                   self.getColumnNumber())
-
-    
-# ===== SAXNOTRECOGNIZEDEXCEPTION =====
-
-class SAXNotRecognizedException(SAXException):
-    """Exception class for an unrecognized identifier.
-
-    An XMLReader will raise this exception when it is confronted with an
-    unrecognized feature or property. SAX applications and extensions may
-    use this class for similar purposes."""
-
-    
-# ===== SAXNOTSUPPORTEDEXCEPTION =====
-    
-class SAXNotSupportedException(SAXException):
-    """Exception class for an unsupported operation.
-
-    An XMLReader will raise this exception when a service it cannot
-    perform is requested (specifically setting a state or value). SAX
-    applications and extensions may use this class for similar
-    purposes."""
-
+from _exceptions import *
 
 #============================================================================
 #
@@ -443,168 +107,8 @@ class SAXNotSupportedException(SAXException):
 #
 #============================================================================
 
-# ===== CONTENTHANDLER =====
-
-class ContentHandler:
-    """Interface for receiving logical document content events.
-
-    This is the main callback interface in SAX, and the one most
-    important to applications. The order of events in this interface
-    mirrors the order of the information in the document."""
-
-    def __init__(self):
-        self._locator = None
-    
-    def setDocumentLocator(self, locator):
-        """Called by the parser to give the application a locator for
-        locating the origin of document events.
-
-        SAX parsers are strongly encouraged (though not absolutely
-        required) to supply a locator: if it does so, it must supply
-        the locator to the application by invoking this method before
-        invoking any of the other methods in the DocumentHandler
-        interface.
-
-        The locator allows the application to determine the end
-        position of any document-related event, even if the parser is
-        not reporting an error. Typically, the application will use
-        this information for reporting its own errors (such as
-        character content that does not match an application's
-        business rules). The information returned by the locator is
-        probably not sufficient for use with a search engine.
-        
-        Note that the locator will return correct information only
-        during the invocation of the events in this interface. The
-        application should not attempt to use it at any other time."""
-        self._locator = locator        
-
-    def startDocument(self):
-        """Receive notification of the beginning of a document.
-        
-        The SAX parser will invoke this method only once, before any
-        other methods in this interface or in DTDHandler (except for
-        setDocumentLocator)."""
-
-    def endDocument(self):
-        """Receive notification of the end of a document.
-        
-        The SAX parser will invoke this method only once, and it will
-        be the last method invoked during the parse. The parser shall
-        not invoke this method until it has either abandoned parsing
-        (because of an unrecoverable error) or reached the end of
-        input."""
-
-    def startPrefixMapping(self, prefix, uri):
-        """Begin the scope of a prefix-URI Namespace mapping.
-        
-        The information from this event is not necessary for normal
-        Namespace processing: the SAX XML reader will automatically
-        replace prefixes for element and attribute names when the
-        http://xml.org/sax/features/namespaces feature is true (the
-        default).
-        
-        There are cases, however, when applications need to use
-        prefixes in character data or in attribute values, where they
-        cannot safely be expanded automatically; the
-        start/endPrefixMapping event supplies the information to the
-        application to expand prefixes in those contexts itself, if
-        necessary.
-
-        Note that start/endPrefixMapping events are not guaranteed to
-        be properly nested relative to each-other: all
-        startPrefixMapping events will occur before the corresponding
-        startElement event, and all endPrefixMapping events will occur
-        after the corresponding endElement event, but their order is
-        not guaranteed."""
-
-    def endPrefixMapping(self, prefix):
-        """End the scope of a prefix-URI mapping.
-        
-        See startPrefixMapping for details. This event will always
-        occur after the corresponding endElement event, but the order
-        of endPrefixMapping events is not otherwise guaranteed."""
-
-    def startElement(self, name, attrs):
-        """Signals the start of an element, if features_namespace is
-        not active.
-
-        The name parameter contains the name of the element type as
-        the raw XML 1.0 name used in the source document, and the
-        attrs parameter holds an instance of the Attributes class
-        containing the attributes of the element."""
-
-    def startElementNS(self, name, qname, attrs):
-        """Signals the start of an element, if features_namespace is
-        not active.
-
-        The name parameter contains the name of the element type as a
-        (uri ,localname) tuple, the qname parameter the raw XML 1.0
-        name used in the source document, and the attrs parameter
-        holds an instance of the Attributes class containing the
-        attributes of the element."""
-
-    def endElement(self, name):
-        """Signals the end of an element.
-
-        The name parameter contains the name of the element type, just
-        as with the startElement event."""
-
-    def endElementNS(self, name, qname):
-        """Signals the end of an element.
-
-        The name parameter contains the name of the element type, just
-        as with the startElement event."""
-
-    def characters(self, content):
-        """Receive notification of character data.
-        
-        The Parser will call this method to report each chunk of
-        character data. SAX parsers may return all contiguous
-        character data in a single chunk, or they may split it into
-        several chunks; however, all of the characters in any single
-        event must come from the same external entity so that the
-        Locator provides useful information."""
-
-    def ignorableWhitespace(self, chars, start, end):
-        """Receive notification of ignorable whitespace in element content.
-        
-        Validating Parsers must use this method to report each chunk
-        of ignorable whitespace (see the W3C XML 1.0 recommendation,
-        section 2.10): non-validating parsers may also use this method
-        if they are capable of parsing and using content models.
-        
-        SAX parsers may return all contiguous whitespace in a single
-        chunk, or they may split it into several chunks; however, all
-        of the characters in any single event must come from the same
-        external entity, so that the Locator provides useful
-        information.
-        
-        The application must not attempt to read from the array
-        outside of the specified range."""
-
-    def processingInstruction(self, target, data):
-        """Receive notification of a processing instruction.
-        
-        The Parser will invoke this method once for each processing
-        instruction found: note that processing instructions may occur
-        before or after the main document element.
-
-        A SAX parser should never report an XML declaration (XML 1.0,
-        section 2.8) or a text declaration (XML 1.0, section 4.3.1)
-        using this method."""
-
-    def skippedEntity(self, name):
-        """Receive notification of a skipped entity.
-        
-        The Parser will invoke this method once for each entity
-        skipped. Non-validating processors may skip entities if they
-        have not seen the declarations (because, for example, the
-        entity was declared in an external DTD subset). All processors
-        may skip external entities, depending on the values of the
-        http://xml.org/sax/features/external-general-entities and the
-        http://xml.org/sax/features/external-parameter-entities
-        properties."""
-
+# ===== CONTENTHANDLER lives in sax.handler now =====
+from handler import ContentHandler
 
 # ===== DECLHANDLER =====
 
@@ -667,35 +171,11 @@ class DeclHandler:
         None if none were declared."""
 
         
-# ===== DTDHandler =====
-
-class DTDHandler:
-    """Handle DTD events. This interface specifies only those DTD
-    events required for basic parsing (unparsed entities and
-    attributes). If you do not want to implement the entire interface,
-    you can extend HandlerBase, which implements the default
-    behaviour."""
-
-    def notationDecl(self, name, publicId, systemId):
-	"Handle a notation declaration event."
-
-    def unparsedEntityDecl(self, name, publicId, systemId, ndata):
-	"Handle an unparsed entity declaration event."
-
+# ===== DTDHandler lives now in sax.handler =====
+from handler import DTDHandler
         
-# ===== ENTITYRESOLVER =====
-        
-class EntityResolver:
-    """Basic interface for resolving entities. If you create an object
-    implementing this interface, then register the object with your
-    Parser, the parser will call the method in your object to
-    resolve all external entities. Note that HandlerBase implements
-    this interface with the default behaviour."""
-    
-    def resolveEntity(self, publicId, systemId):
-	"Resolve the system identifier of an entity."
-	return systemId
-
+# ===== ENTITYRESOLVER lives now in sax.handler =====
+from handler import EntityResolver
 
 # ===== LEXICALHANDLER =====
 
@@ -763,56 +243,6 @@ class LexicalHandler:
     def endCDATA(self):
         "Reports the end of a CDATA marked section."
 
-
-#============================================================================
-#
-# PYTHON SAX 2.0 EXTENSION INTERFACES
-#
-#============================================================================
-
-class IncrementalParser(XMLReader):
-    """This interface adds three extra methods to the XMLReader
-    interface that allow XML parsers to support incremental
-    parsing. Support for this interface is optional, since not all
-    underlying XML parsers support this functionality.
-
-    When the parser is instantiated it is ready to begin accepting
-    data from the feed method immediately. After parsing has been
-    finished with a call to close the reset method must be called to
-    make the parser ready to accept new data, either from feed or
-    using the parse method.
-
-    Note that these methods must _not_ be called during parsing, that
-    is, after parse has been called and before it returns."""
-
-    def feed(self, data):        
-        """This method gives the raw XML data in the data parameter to
-        the parser and makes it parse the data, emitting the
-        corresponding events. It is allowed for XML constructs to be
-        split across several calls to feed.
-
-        feed may raise SAXException."""
-        raise NotImplementedError("This method must be implemented!")
-
-    def close(self):
-        """This method is called when the entire XML document has been
-        passed to the parser through the feed method, to notify the
-        parser that there are no more data. This allows the parser to
-        do the final checks on the document and empty the internal
-        data buffer.
-
-        The parser will not be ready to parse another document until
-        the reset method has been called.
-
-        close may raise SAXException."""
-        raise NotImplementedError("This method must be implemented!")
-
-    def reset(self):
-        """This method is called after close has been called to reset
-        the parser so that it is ready to parse new documents. The
-        results of calling parse or feed after close without calling
-        reset are undefined."""
-        raise NotImplementedError("This method must be implemented!")
 
 #============================================================================
 #
@@ -972,86 +402,63 @@ class Parser:
         
 #============================================================================
 #
-# CORE FEATURES
+# CORE FEATURES and PROPERTIES are now found in sax.handler
 #
 #============================================================================
 
-feature_namespaces = "http://xml.org/sax/features/namespaces"
-# true: Perform Namespace processing (default).
-# false: Optionally do not perform Namespace processing
-#        (implies namespace-prefixes).
-# access: (parsing) read-only; (not parsing) read/write
+from handler import \
+     feature_namespaces,\
+     feature_namespace_prefixes,\
+     feature_string_interning,\
+     feature_validation,\
+     feature_external_ges,\
+     feature_external_pes,\
+     all_features,\
+     property_lexical_handler,\
+     property_declaration_handler,\
+     property_dom_node,\
+     property_xml_string,\
+     all_properties
 
-feature_namespace_prefixes = "http://xml.org/sax/features/namespace-prefixes"
-# true: Report the original prefixed names and attributes used for Namespace
-#       declarations.
-# false: Do not report attributes used for Namespace declarations, and
-#        optionally do not report original prefixed names (default).
-# access: (parsing) read-only; (not parsing) read/write
+# ===== XMLREADER now lives in sax.xmlreader =====
+from xmlreader import XMLReader
 
-feature_string_interning = "http://xml.org/sax/features/string-interning"
-# true: All element names, prefixes, attribute names, Namespace URIs, and
-#       local names are interned using the built-in intern function.
-# false: Names are not necessarily interned, although they may be (default).
-# access: (parsing) read-only; (not parsing) read/write
+# ===== INPUTSOURCE now lives in sax.xmlreader =====
+from xmlreader import InputSource
+        
+# ===== LOCATOR now lives in sax.xmlreader =====
+from xmlreader import Locator
 
-feature_validation = "http://xml.org/sax/features/validation"
-# true: Report all validation errors (implies external-general-entities and
-#       external-parameter-entities).
-# false: Do not report validation errors.
-# access: (parsing) read-only; (not parsing) read/write
+# ===== XMLFILTER =====
 
-feature_external_ges = "http://xml.org/sax/features/external-general-entities"
-# true: Include all external general (text) entities.
-# false: Do not include external general entities.
-# access: (parsing) read-only; (not parsing) read/write
+class XMLFilter(XMLReader):
+    """Interface for a SAX2 parser filter.
 
-feature_external_pes = "http://xml.org/sax/features/external-parameter-entities"
-# true: Include all external parameter entities, including the external
-#       DTD subset.
-# false: Do not include any external parameter entities, even the external
-#        DTD subset.
-# access: (parsing) read-only; (not parsing) read/write
+    A parser filter is an XMLReader that gets its events from another
+    XMLReader (which may in turn also be a filter) rather than from a
+    primary source like a document or other non-SAX data source.
+    Filters can modify a stream of events before passing it on to its
+    handlers."""
 
-all_features = [feature_namespaces,
-                feature_namespace_prefixes,
-                feature_string_interning,
-                feature_validation,
-                feature_external_ges,
-                feature_external_pes]
+    def __init__(self, parent = None):
+        """Creates a filter instance, allowing applications to set the
+        parent on instantiation."""
+        XMLReader.__init__(self)
+        self._parent = parent
+    
+    def setParent(self, parent):        
+        """Sets the parent XMLReader of this filter. The argument may
+        not be None."""
+        self._parent = parent
 
+    def getParent(self):
+        "Returns the parent of this filter."
+        return self._parent
 
 #============================================================================
 #
-# CORE PROPERTIES
+# PYTHON SAX 2.0 EXTENSION INTERFACES
 #
 #============================================================================
 
-property_lexical_handler = "http://xml.org/sax/properties/lexical-handler"
-# data type: xml.sax.sax2lib.LexicalHandler
-# description: An optional extension handler for lexical events like comments.
-# access: read/write
-
-property_declaration_handler = "http://xml.org/sax/properties/declaration-handler"
-# data type: xml.sax.sax2lib.DeclHandler
-# description: An optional extension handler for DTD-related events other
-#              than notations and unparsed entities.
-# access: read/write
-
-property_dom_node = "http://xml.org/sax/properties/dom-node"
-# data type: org.w3c.dom.Node
-# description: When parsing, the current DOM node being visited if this is
-#              a DOM iterator; when not parsing, the root DOM node for
-#              iteration.
-# access: (parsing) read-only; (not parsing) read/write
-
-property_xml_string = "http://xml.org/sax/properties/xml-string"
-# data type: String
-# description: The literal string of characters that was the source for
-#              the current event.
-# access: read-only
-
-all_properties = [property_lexical_handler,
-                  property_dom_node,
-                  property_declaration_handler,
-                  property_xml_string]
+from xmlreader import IncrementalParser
