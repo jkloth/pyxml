@@ -72,7 +72,7 @@ if __name__ == '__main__':
     import sys, getopt
 
     opts, args = getopt.getopt(sys.argv[1:], '',
-                               ['opera', 'netscape', 'lynx', 'msie', 'xbel'] )
+                               ['opera', 'netscape', 'lynx=', 'msie', 'xbel'] )
     if len(args):
         print 'xbel_parse only reads from standard input'
         sys.exit(1)
@@ -86,9 +86,9 @@ if __name__ == '__main__':
     p.setDocumentHandler( xbel_handler )
     p.parseFile( sys.stdin )
     bms = xbel_handler.bms
-    mode = opts[0][0]
+    mode, arg = opts[0]
     if mode == '--opera': bms.dump_adr()
-    elif mode == '--lynx': bms.dump_lynx()
+    elif mode == '--lynx': bms.dump_lynx(arg)
     elif mode == '--netscape': bms.dump_netscape()
     elif mode == '--msie': bms.dump_msie()
     elif mode == '--xbel': bms.dump_xbel()
