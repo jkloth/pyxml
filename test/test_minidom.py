@@ -14,13 +14,38 @@ import xml.parsers.expat
 from xml.dom.minidom import parse, Node, Document, parseString
 from xml.dom.minidom import getDOMImplementation
 
+try:
+    from os import extsep
+except ImportError:
+    extsep = '.'
 
 if __name__ == "__main__":
     base = sys.argv[0]
 else:
     base = __file__
-tstfile = os.path.join(os.path.dirname(base), "test"+os.extsep+"xml")
+tstfile = os.path.join(os.path.dirname(base), "test"+extsep+"xml")
 del base
+
+# Python 2.1 and earlier does not fully support the NodeList interface
+testlist = xml.dom.minidom.NodeList()
+try:
+    testlist.length
+except AttributeError:
+    def t_length(list, length):
+        return len(list) == length
+    def t_item(list, index, item):
+        if item is None:
+            # .item can go past the end, indexing cannot
+            return 1
+        return list[index] is item
+else:
+    def t_length(list, length):
+        return len(list) == length and list.length == length
+    def t_item(list, index, item):
+        if item is None:
+            return list.item(index) is item
+        return list[index] is item and list.item(index) is item
+del testlist
 
 def confirm(test, testname = "Test"):
     if not test:
@@ -44,36 +69,27 @@ def testInsertBefore():
     elem = root.childNodes[0]
     nelem = dom.createElement("element")
     root.insertBefore(nelem, elem)
-    confirm(len(root.childNodes) == 2
-            and root.childNodes.length == 2
-            and root.childNodes[0] is nelem
-            and root.childNodes.item(0) is nelem
-            and root.childNodes[1] is elem
-            and root.childNodes.item(1) is elem
+    confirm(t_length(root.childNodes, 2)
+            and t_item(root.childNodes, 0, nelem)
+            and t_item(root.childNodes, 1, elem)
             and root.firstChild is nelem
             and root.lastChild is elem
             and root.toxml() == "<doc><element/><foo/></doc>"
             , "testInsertBefore -- node properly placed in tree")
     nelem = dom.createElement("element")
     root.insertBefore(nelem, None)
-    confirm(len(root.childNodes) == 3
-            and root.childNodes.length == 3
-            and root.childNodes[1] is elem
-            and root.childNodes.item(1) is elem
-            and root.childNodes[2] is nelem
-            and root.childNodes.item(2) is nelem
+    confirm(t_length(root.childNodes, 3)
+            and t_item(root.childNodes, 1, elem)
+            and t_item(root.childNodes, 2, nelem)
             and root.lastChild is nelem
             and nelem.previousSibling is elem
             and root.toxml() == "<doc><element/><foo/><element/></doc>"
             , "testInsertBefore -- node properly placed in tree")
     nelem2 = dom.createElement("bar")
     root.insertBefore(nelem2, nelem)
-    confirm(len(root.childNodes) == 4
-            and root.childNodes.length == 4
-            and root.childNodes[2] is nelem2
-            and root.childNodes.item(2) is nelem2
-            and root.childNodes[3] is nelem
-            and root.childNodes.item(3) is nelem
+    confirm(t_length(root.childNodes, 4)
+            and t_item(root.childNodes, 2, nelem2)
+            and t_item(root.childNodes, 3, nelem)
             and nelem2.nextSibling is nelem
             and nelem.previousSibling is nelem2
             and root.toxml() == "<doc><element/><foo/><bar/><element/></doc>"
@@ -527,8 +543,7 @@ def testHasChildNodes(): pass
 
 def testCloneElementShallow():
     dom, clone = _setupCloneElement(0)
-    confirm(len(clone.childNodes) == 0
-            and clone.childNodes.length == 0
+    confirm(t_length(clone.childNodes, 0)
             and clone.parentNode is None
             and clone.toxml() == '<doc attr="value"/>'
             , "testCloneElementShallow")
@@ -536,8 +551,7 @@ def testCloneElementShallow():
 
 def testCloneElementDeep():
     dom, clone = _setupCloneElement(1)
-    confirm(len(clone.childNodes) == 1
-            and clone.childNodes.length == 1
+    confirm(t_length(clone.childNodes, 1)
             and clone.parentNode is None
             and clone.toxml() == '<doc attr="value"><foo/></doc>'
             , "testCloneElementDeep")
@@ -780,11 +794,9 @@ def testNormalize():
     root = doc.documentElement
     root.appendChild(doc.createTextNode("first"))
     root.appendChild(doc.createTextNode("second"))
-    confirm(len(root.childNodes) == 2
-            and root.childNodes.length == 2, "testNormalize -- preparation")
+    confirm(t_length(root.childNodes, 2), "testNormalize -- preparation")
     doc.normalize()
-    confirm(len(root.childNodes) == 1
-            and root.childNodes.length == 1
+    confirm(t_length(root.childNodes, 1)
             and root.firstChild is root.lastChild
             and root.firstChild.data == "firstsecond"
             , "testNormalize -- result")
@@ -794,8 +806,7 @@ def testNormalize():
     root = doc.documentElement
     root.appendChild(doc.createTextNode(""))
     doc.normalize()
-    confirm(len(root.childNodes) == 0
-            and root.childNodes.length == 0,
+    confirm(t_length(root.childNodes, 0),
             "testNormalize -- single empty node removed")
     doc.unlink()
 
@@ -832,11 +843,11 @@ def testNodeListItem():
     doc = parseString("<doc><e/><e/></doc>")
     children = doc.childNodes
     docelem = children[0]
-    confirm(children[0] is children.item(0)
-            and children.item(1) is None
-            and docelem.childNodes.item(0) is docelem.childNodes[0]
-            and docelem.childNodes.item(1) is docelem.childNodes[1]
-            and docelem.childNodes.item(0).childNodes.item(0) is None,
+    confirm(t_item(children, 0, children[0])
+            and t_item(children, 1, None)
+            and t_item(docelem.childNodes, 0, docelem.childNodes[0])
+            and t_item(docelem.childNodes, 1, docelem.childNodes[1])
+            and t_item(docelem.childNodes[0].childNodes, 0, None),
             "test NodeList.item()")
     doc.unlink()
 
