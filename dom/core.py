@@ -189,11 +189,6 @@ class Node:
 
     def _checkChild(self, child, parent):
         "Raise HierarchyRequestException if the child can't be added"
-        for klass in self.childClasses:
-            if isinstance(child, klass): break
-        else:
-            raise HierarchyRequestException, \
-                  "%s cannot be child of %s" % (repr(child), repr(self) )
 
         cn = child._node ; p=self
         while p is not None:
@@ -291,23 +286,48 @@ class Node:
         if newChild.parentNode != None:
             newChild.parentNode.removeChild( newChild )
 
+        if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+            nodelist = newChild._node.children
+        else:
+            nodelist = [ newChild._node ]
+
+        for node in nodelist:
+            if node.type not in self.childNodeTypes:
+                node = NODE_CLASS[ node.type ] (node, self, self._document)
+                raise HierarchyRequestException, \
+                      "%s cannot be child of %s" % (repr(node), repr(self) )
+
         if refChild == None:
-            self._node.children.append( newChild._node )
-            newChild.parentNode = self
+            for node in nodelist:
+                self._node.children.append( node )
+                
+            if newChild._node.type != DOCUMENT_FRAGMENT_NODE:
+                newChild.parentNode = self
             return newChild
 
         L = self._node.children ; n = refChild._node
         for i in range(len(L)):
             if L[i] == n:
-                L[i:i] = [newChild._node]
-                newChild.parentNode = self
+                L[i:i] = nodelist
+                if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+                    newChild._node.children = []
+                else:
+                    newChild.parentNode = self
                 return newChild
+
         raise NotFoundException("refChild not a child in insertBefore()")
 
     def replaceChild(self, newChild, oldChild):
         if self.readonly:
             raise NoModificationAllowedException, "Read-only node "+repr(self)
         self._checkChild(newChild, self)
+
+        if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+            for node in newChild._node.children:
+                if node.type not in self.childNodeTypes:
+                    node = NODE_CLASS[ node.type ] (node, self, self._document)
+                    raise HierarchyRequestException, \
+                          "%s cannot be child of %s" % (repr(node), repr(self) )
 
         o = oldChild._node ; L = self._node.children
         for i in range(len(L)):
@@ -316,10 +336,16 @@ class Node:
                 if newChild.parentNode != None:
                     newChild.parentNode.removeChild( newChild )
 
-                L[i] = newChild._node
-                newChild.parentNode = self
+                if newChild._node.type == DOCUMENT_FRAGMENT_NODE:
+                    L[i:i+1] = newChild._node.children
+                    newChild._node.children = []
+                else:
+                    L[i] = newChild._node
+                    newChild.parentNode = self
+                    
                 oldChild.parentNode = None
                 return oldChild
+
         raise NotFoundException("oldChild not a child of this node")
 
     def removeChild(self, oldChild):
@@ -817,8 +843,13 @@ class Document(Node):
         raise NotFoundException("oldChild not a child of this node")
     
 class DocumentFragment(Node):
-    pass
-
+    def toxml(self):
+        s = ""
+        for child in self._node.children:
+            n = NODE_CLASS[ child.type ] (child, self, self._document)
+            s = s + n.toxml()
+        return s
+    
 # Dictionary mapping types to the corresponding class object
 
 NODE_CLASS = {
@@ -836,24 +867,28 @@ DOCUMENT_FRAGMENT_NODE      : DocumentFragment,
 NOTATION_NODE               : Notation
 }
 
-# Set the childClasses attributes; we need to do this at the end once
+# Set the childNodeTypes attributes; we need to do this at the end once
 # all the classes have been defined.
+# XXX move these into class definitions
 
-Document.childClasses = [Element, ProcessingInstruction, Comment, DocumentType]
-DocumentFragment.childClasses = [Element, ProcessingInstruction, Comment,
-                                 Text, CDATASection, EntityReference]
-DocumentType.childClasses = []
-EntityReference.childClasses = [Element, ProcessingInstruction, Comment,
-                                Text, CDATASection, EntityReference]
-Element.childClasses = [Element, ProcessingInstruction, Comment,
-                        Text, CDATASection, EntityReference]
-Attr.childClasses = [Text, EntityReference]
-ProcessingInstruction.childClasses = []
-Comment.childClasses = []
-Text.childClasses = []
-CDATASection.childClasses = []
-Entity.childClasses = [Element, ProcessingInstruction, Comment,
-                       Text, CDATASection, EntityReference]
-Notation.childClasses = []
+Document.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                         COMMENT_NODE, DOCUMENT_TYPE_NODE]
+DocumentFragment.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                                 COMMENT_NODE, TEXT_NODE, CDATA_SECTION_NODE,
+                                 ENTITY_REFERENCE_NODE]
+DocumentType.childNodeTypes = []
+EntityReference.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE,
+                                COMMENT_NODE,
+                                TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
+Element.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
+                        TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
+Attr.childNodeTypes = [TEXT_NODE, ENTITY_REFERENCE_NODE]
+ProcessingInstruction.childNodeTypes = []
+Comment.childNodeTypes = []
+Text.childNodeTypes = []
+CDATASection.childNodeTypes = []
+Entity.childNodeTypes = [ELEMENT_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE,
+                       TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE]
+Notation.childNodeTypes = []
 
 # vim:ts=2:ai
