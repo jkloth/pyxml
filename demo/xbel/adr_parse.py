@@ -62,11 +62,11 @@ def parse_adr(filename):
         if line[:-1]=="#FOLDER":
             name=readfield(infile,"NAME")
             created=parse_date(readfield(infile,"CREATED"))
-            visited=parse_date(readfield(infile,"VISITED"))
+            parse_date(readfield(infile,"VISITED")) # Just throw this away
             order=readfield(infile,"ORDER")
             swallow_rest(infile)
 
-            bms.add_folder(name,created,visited)
+            bms.add_folder(name,created)
         elif line[:-1]=="#URL":
             name=readfield(infile,"NAME")
             url=readfield(infile,"URL")
@@ -75,7 +75,7 @@ def parse_adr(filename):
             order=readfield(infile,"ORDER")
             swallow_rest(infile)
 
-            bms.add_bookmark(name,created,visited,url)
+            bms.add_bookmark(name,created,visited,None,url)
         elif line[:-1]=="-":
             bms.leave_folder()
 
@@ -84,5 +84,23 @@ def parse_adr(filename):
 # --- Test-program
 
 if __name__ == '__main__':
-    bms=parse_adr(r"c:\programfiler\opera\opera3.adr")
-    bms.dump_xbel()
+    import sys
+
+    if len(sys.argv)<2 or len(sys.argv)>3:
+        print
+        print "A simple utility to convert Opera bookmarks to XBEL."
+        print
+        print "Usage: "        
+        print "  adr_parse.py <adr-file> [<xbel-file>]"
+        sys.exit(1)        
+    
+    bms=parse_adr(sys.argv[1])
+
+    if len(sys.argv)==3:
+        out=open(sys.argv[2],"w")
+        bms.dump_xbel(out)
+        out.close()
+    else:
+        bms.dump_xbel()
+        
+    # Done
