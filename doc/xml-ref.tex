@@ -12,7 +12,8 @@
 \release{0.07}
 
 \author{The Python/XML Special Interest Group}
-\authoraddress{\email{xml-sig@python.org}\break (edited by \email{akuchling@acm.org})}
+\authoraddress{\email{xml-sig@python.org}\break
+               (edited by \email{akuchling@acm.org})}
 
 \begin{document}
 \maketitle
@@ -30,7 +31,6 @@ has to be filled in later, or rewritten, or verified, or something.
 
    THIS DOCUMENT IS SIGNIFICANTLY OUTDATED, DO NOT USE IT AS A BASIS OF
    APPLICATION DEVELOPMENT.
-
 \end{abstract}
 
 \tableofcontents
@@ -400,9 +400,9 @@ used in that standard.
   The URIs provided here are used with the Relax NG schema language.
 
   \begin{memberdesc}{BASE}
-    The namespace URI of the elements defined by the
-    \citetitle[http://www.oasis-open.org/committees/relax-ng/spec-20011203.html]
-    {Relax NG Specification}.
+   The namespace URI of the elements defined by the
+   \citetitle[http://www.oasis-open.org/committees/relax-ng/spec-20011203.html]
+   {Relax NG Specification}.
   \end{memberdesc}
 \end{classdesc*}
 
@@ -571,8 +571,8 @@ one the driver was implemented for.
 \end{methoddesc}
 
 \begin{methoddesc}{is_dtd_reading}{}
-True if the parser is non-validating, but conforms to the XML specification by
-reading the DTD.
+True if the parser is non-validating, but conforms to the XML
+specification by reading the DTD.
 \end{methoddesc}
 
 \begin{methoddesc}{is_validating}{}
@@ -761,8 +761,9 @@ Handle a processing instruction event.
 \end{methoddesc}
 
 \begin{methoddesc}{setDocumentLocator}{locator}
-Receive 
-an object for locating the origin of SAX document events.  You'll probably want to store the value of \var{locator} as an attribute of the handler instance.
+Receive an object for locating the origin of SAX document events.
+You'll probably want to store the value of \var{locator} as an
+attribute of the handler instance.
 \end{methoddesc}
 
 \begin{methoddesc}{startDocument}{}
@@ -931,18 +932,19 @@ single string.
 \end{classdesc}
 
 \begin{classdesc}{ErrorPrinter}{}
-A simple class that just prints error messages to standard error (\code{sys.stderr}).
+A simple class that just prints error messages to standard error
+(\code{sys.stderr}).
 \end{classdesc}
 
 \begin{classdesc}{ESISDocHandler}{writer}
-A SAX document handler that produces naive ESIS output.
-\var{writer} must support a \method{write()} method which accepts a single string. 
+A SAX document handler that produces naive ESIS output.  \var{writer}
+must support a \method{write()} method which accepts a single string.
 \end{classdesc}
 
 \begin{classdesc}{EventBroadcaster}{list}
 Takes a list of objects and forwards any method calls received
-    to all objects in the list. The attribute \member{list} holds the list and
-    can freely be modified by clients.
+to all objects in the list. The attribute \member{list} holds the list and
+can freely be modified by clients.
 \end{classdesc}
 
 \begin{classdesc}{Location}{locator}
@@ -1023,8 +1025,8 @@ equivalent to \samp{tostring(\var{t}, time.timezone)}.
 
 \begin{seealso}
 \seetext{International Organization for Standardization.  \emph{Data
-elements and interchange formats --- Information interchange ---
-Representation of dates and times.}  International Organization for
+elements and interchange formats --- Information interchange
+--- Representation of dates and times.}  International Organization for
 Standardization, 1988.}
 
 \seetext{Gary Houston.  \emph{ISO~8601 date/time representations}.
@@ -1032,7 +1034,7 @@ January 1993.  Available online as compressed PostScript:
 \url{ftp://ftp.informatik.uni-erlangen.de/pub/doc/ISO/ISO8601.ps.Z}.}
 
 \seetext{Markus Kuhn.  \emph{A Summary of the International Standard
-Dateand Time Notation}.  Available online at
+Date and Time Notation}.  Available online at
 \url{http://www.cl.cam.ac.uk/~mgk25/iso-time.html}.}
 
 \seetext{Misha Wolf and Charles Wicksteed.  \emph{Date and Time
