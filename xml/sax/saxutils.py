@@ -2,7 +2,7 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.22 2001/09/04 19:57:34 jhermann Exp $
+$Id: saxutils.py,v 1.23 2001/09/27 21:42:28 jhermann Exp $
 """
 
 import types, sys, urllib, urlparse, os, string
@@ -81,6 +81,11 @@ class Location:
 
     def getSystemId(self):
         return self.__sysid
+
+    def __str__(self):
+        return "%s:%d:%d" % (
+            self.__sysid or self.__pubid or "<unknown>",
+            self.__line, self.__col)
 
 # --- ErrorPrinter
 
