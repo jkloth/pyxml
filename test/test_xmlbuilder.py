@@ -130,6 +130,37 @@ class Tests(unittest.TestCase):
         self.assertEqual(doc.getElementById("foo").getAttribute("name"), "a",
                          "did not get expected node")
 
+    def test_whitespace_in_element_content(self):
+        DTD_PREFIX = "<!DOCTYPE doc [ <!ELEMENT doc (e*)> ]>"
+        doc = self.builder.parse(self.makeSource(
+            DTD_PREFIX + ("<doc id='foo'> <e/><e>  </e></doc>")))
+        docelem = doc.documentElement
+        e1, e2 = docelem.getElementsByTagName("e")
+        ws1 = docelem.firstChild
+        ws2 = e2.firstChild
+
+        # test WS in element content
+        self.assert_(ws1.isWhitespaceInElementContent)
+        ws1.appendData("not-white")
+        self.assert_(not ws1.isWhitespaceInElementContent)
+        ws1.replaceData(0, len(ws1.data), "    ")
+        self.assert_(ws1.isWhitespaceInElementContent)
+        ws1.replaceData(0, len(ws1.data), "not-white")
+        self.assert_(not ws1.isWhitespaceInElementContent)
+        ws1.data = "  "
+        self.assert_(ws1.isWhitespaceInElementContent)
+
+        # test WS not in element content
+        self.assert_(not ws2.isWhitespaceInElementContent)
+        ws2.appendData("not-white")
+        self.assert_(not ws2.isWhitespaceInElementContent)
+        ws2.replaceData(0, len(ws2.data), "    ")
+        self.assert_(not ws2.isWhitespaceInElementContent)
+        ws2.replaceData(0, len(ws2.data), "not-white")
+        self.assert_(not ws2.isWhitespaceInElementContent)
+        ws2.data = "  "
+        self.assert_(not ws2.isWhitespaceInElementContent)
+
     def check_resolver(self, content_type, encoding):
         resolver = TestingResolver(content_type)
         source = resolver.resolveEntity(None, DUMMY_URL)

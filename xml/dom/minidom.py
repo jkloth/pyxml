@@ -187,7 +187,7 @@ class Node(xml.dom.Node, GetattrMagic):
                 if data and L and L[-1].nodeType == child.nodeType:
                     # collapse text node
                     node = L[-1]
-                    node.data = node.nodeValue = node.data + child.data
+                    node.data = node.data + child.data
                     node.nextSibling = child.nextSibling
                     child.unlink()
                 elif data:
@@ -998,9 +998,33 @@ class Text(CharacterData):
         else:
             return None
 
+    def _get_isWhitespaceInElementContent(self):
+        if self.data.strip():
+            return False
+        elem = _get_containing_element(self)
+        if elem is None:
+            return False
+        info = self.ownerDocument._get_elem_info(elem)
+        if info is None:
+            return False
+        else:
+            return info.isElementContent()
 
+defproperty(Text, "isWhitespaceInElementContent",
+            doc="True iff this text node contains only whitespace"
+                " and is in element content.")
 defproperty(Text, "wholeText",
             doc="The text of all logically-adjacent text nodes.")
+
+
+def _get_containing_element(node):
+    c = node.parentNode
+    while c is not None:
+        if c.nodeType == Node.ELEMENT_NODE:
+            return c
+        c = c.parentNode
+    return None
+
 
 class Comment(Childless, CharacterData):
     nodeType = Node.COMMENT_NODE
@@ -1317,6 +1341,9 @@ class ElementInfo(NewStyle):
 
     def getAttributeTypeNS(self, namespaceURI, localName):
         return _no_type
+
+    def isElementContent(self):
+        return False
 
     def isEmpty(self):
         """Returns true iff this element is declared to have an EMPTY

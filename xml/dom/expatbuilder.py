@@ -86,6 +86,14 @@ class ElementInfo(NewStyle):
     def getAttributeTypeNS(self, namespaceURI, localName):
         return minidom._no_type
 
+    def isElementContent(self):
+        if self._model:
+            type = self._model[0]
+            return type not in (expat.model.XML_CTYPE_ANY,
+                                expat.model.XML_CTYPE_MIXED)
+        else:
+            return False
+
     def isEmpty(self):
         if self._model:
             return self._model[0] == expat.model.XML_CTYPE_EMPTY
@@ -389,27 +397,21 @@ class ExpatBuilder:
                 curNode.unlink()
 
     def _handle_white_text_nodes(self, node, info):
-        type = info._model and info._model[0]
-        if type in (expat.model.XML_CTYPE_ANY,
-                    expat.model.XML_CTYPE_MIXED):
+        if (self._options.whitespace_in_element_content
+            or not info.isElementContent()):
             return
-        #
-        # We have element type information; look for text nodes which
-        # contain only whitespace.
-        #
+
+        # We have element type information and should remove ignorable
+        # whitespace; identify for text nodes which contain only
+        # whitespace.
         L = []
         for child in node.childNodes:
             if child.nodeType == TEXT_NODE and not child.data.strip():
                 L.append(child)
-        #
-        # Depending on the options, either mark the nodes as ignorable
-        # whitespace or remove them from the tree.
-        #
+
+        # Remove ignorable whitespace from the tree.
         for child in L:
-            if self._options.whitespace_in_element_content:
-                child.__dict__['isWhitespaceInElementContent'] = True
-            else:
-                node.removeChild(child)
+            node.removeChild(child)
 
     def element_decl_handler(self, name, model):
         info = self._elem_info.get(name)
