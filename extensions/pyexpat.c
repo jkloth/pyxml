@@ -22,6 +22,10 @@
 #define Py_TPFLAGS_GC 0
 #endif
 
+#ifndef PyDoc_STRVAR
+#define PyDoc_STRVAR(name,str) PyDoc_VAR(name) = PyDoc_STR(str)
+#endif
+
 #if (PY_MAJOR_VERSION == 1 && PY_MINOR_VERSION > 5) || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 2)
 /* In Python 1.6, 2.0 and  2.1, disabling Unicode was not possible. */
 #define Py_USING_UNICODE
@@ -1611,7 +1615,7 @@ PyModule_AddStringConstant(PyObject *m, char *name, char *value)
 static PyObject *
 get_version_string(void)
 {
-    static char *rcsid = "#Revision: 2.58 $";
+    static char *rcsid = "#Revision: 2.64 $";
     char *rev = rcsid;
     int i = 0;
 
