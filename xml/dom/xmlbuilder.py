@@ -21,6 +21,7 @@ class Options:
     # Note that the DOMBuilder class in LoadSave constrains which of these
     # values can be set using the DOM Level 3 LoadSave feature.
 
+    namespaces = 1
     namespace_declarations = True
     validation = False
     external_parameter_entities = True
@@ -40,10 +41,6 @@ class Options:
 
     errorHandler = None
     filter = None
-
-    # This was gone from the latest draft, but seems incredibly
-    # useful.  I've sent a query to the appropriate W3C list.
-    namespaces = 1
 
 
 class DOMBuilder:
@@ -157,8 +154,6 @@ class DOMBuilder:
             ("charset_overrides_xml_encoding", 1)],
         ("supported_mediatypes_only", 0): [
             ("supported_mediatypes_only", 0)],
-
-        # No longer part of spec; why?
         ("namespaces", 0): [
             ("namespaces", 0)],
         ("namespaces", 1): [
