@@ -17,23 +17,23 @@ class ConvSpec:
 class SAXObject:
 
     def __init__(self):
-	self._fields={}
+        self._fields={}
 
     def has_field(self,field):
-	return self._fields.has_key(field)
+        return self._fields.has_key(field)
 
     def get_fields(self):
         return self._fields.keys()
     
     def get_field(self,field):
-	return self._fields[field]
-	
+        return self._fields[field]
+        
     def set_field(self,field,value):
-	self._fields[field]=value
-	
+        self._fields[field]=value
+        
     def display(self):
-	for field in self._fields.keys():
-	    print "%s=%s" % (field,self._fields[field])
+        for field in self._fields.keys():
+            print "%s=%s" % (field,self._fields[field])
 
     def __getattr__(self,attr):
         try:
@@ -50,47 +50,47 @@ class SAXObject:
 class DocHandler(saxlib.DocumentHandler):
 
     def __init__(self,target_elem,list_elems,ign_elems,rep_field):
-	self.target_elem=target_elem
-	self.list_elems=list_elems
-	self.ign_elems=ign_elems
+        self.target_elem=target_elem
+        self.list_elems=list_elems
+        self.ign_elems=ign_elems
         self.rep_field=rep_field
 
-	self.ignoring=0
-	self.objects=[]
-	self.current=None
+        self.ignoring=0
+        self.objects=[]
+        self.current=None
         self.cur_data=""
-	self.stack=[]
+        self.stack=[]
 
     def startElement(self,name,attrs):
-	if self.ignoring:
-	    return
-	
-	if name==self.target_elem:
-	    self.current=SAXObject()
-	    for attr in attrs:
-		self.current.set_field(attr,attrs[attr])
-	elif self.list_elems.has_key(name):
-	    if not self.current.has_field(name):
-		self.current.set_field(name,[])
+        if self.ignoring:
+            return
+        
+        if name==self.target_elem:
+            self.current=SAXObject()
+            for attr in attrs:
+                self.current.set_field(attr,attrs[attr])
+        elif self.list_elems.has_key(name):
+            if not self.current.has_field(name):
+                self.current.set_field(name,[])
 
-	    self.stack.append(self.current)
-	    self.current=SAXObject()
+            self.stack.append(self.current)
+            self.current=SAXObject()
         elif self.rep_field.has_key(name) and not self.current.has_field(name):
             self.current.set_field(name,[])
-	else:
-	    if self.ign_elems.has_key(name):
-		self.ignoring=self.ignoring+1
+        else:
+            if self.ign_elems.has_key(name):
+                self.ignoring=self.ignoring+1
 
         self.cur_data=""
 
     def characters(self,data,start,length):
         if self.ignoring or self.current==None:
-	    return
-	
-	data=data[start:start+length]
-	mo=reg_ws.match(data)
-	if mo!=None and mo.end(0)==len(data):
-	    return
+            return
+        
+        data=data[start:start+length]
+        mo=reg_ws.match(data)
+        if mo!=None and mo.end(0)==len(data):
+            return
 
         self.cur_data=self.cur_data+data
 
@@ -114,9 +114,9 @@ class DocHandler(saxlib.DocumentHandler):
             self.current.get_field(name).append(self.cur_data)
         else:
             self.current.set_field(name,self.cur_data)        
-	    
+            
     def get_objects(self):
-	return self.objects
+        return self.objects
 
 def make_objects(url,element,list_elems={},ign_elems={},rep_field={}):
     dh=DocHandler(element,list_elems,ign_elems,rep_field)
@@ -155,11 +155,11 @@ def escape_markup(str):
     out=""
 
     for ch in str:
-	if ch=="<":
-	    out=out+"&lt;"
-	elif ch==">":
-	    out=out+"&gt;"
-	else:
-	    out=out+ch
+        if ch=="<":
+            out=out+"&lt;"
+        elif ch==">":
+            out=out+"&gt;"
+        else:
+            out=out+ch
 
     return out

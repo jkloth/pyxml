@@ -15,10 +15,10 @@ def t1():
     fp = open(FILE)
     parser = sgmllib.SlowSGMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -26,10 +26,10 @@ def t2():
     fp = open(FILE)
     parser = sgmllib.FastSGMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -37,32 +37,32 @@ def t3():
     fp = open(FILE)
     parser = sgmlop.SGMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
 class Dummy:
     def finish_starttag(self, tag, data):
-	pass
+        pass
     def finish_endtag(self, tag):
-	pass
+        pass
     def handle_entityref(self, data):
-	pass
+        pass
     def handle_data(self, data):
-	pass
+        pass
 
 def t4():
     fp = open(FILE)
     parser = sgmlop.SGMLParser()
     parser.register(Dummy())
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 

@@ -32,28 +32,28 @@ import sys,getopt,os,outputters
 class MyErrorHandler(xmlval.ErrorHandler):
 
     def __init__(self,locator):
-	xmlval.ErrorHandler.__init__(self,locator)
+        xmlval.ErrorHandler.__init__(self,locator)
         self.reset()
 
     def get_location(self):
-	return "%s:%d:%d" % (self.locator.get_current_sysid(),\
-			     self.locator.get_line(),
-			     self.locator.get_column())
-	
+        return "%s:%d:%d" % (self.locator.get_current_sysid(),\
+                             self.locator.get_line(),
+                             self.locator.get_column())
+        
     def warning(self,msg):
-	print "WARNING ON %s: %s" % (self.get_location(),msg)
-	self.warnings=self.warnings+1
+        print "WARNING ON %s: %s" % (self.get_location(),msg)
+        self.warnings=self.warnings+1
 
     def error(self,msg):
-	self.fatal(msg)
-	
+        self.fatal(msg)
+        
     def fatal(self,msg):
-	print "%s: %s" % (self.get_location(),msg)
-	self.errors=self.errors+1
+        print "%s: %s" % (self.get_location(),msg)
+        self.errors=self.errors+1
 
     def reset(self):
-	self.errors=0
-	self.warnings=0        
+        self.errors=0
+        self.warnings=0        
 
 # --- MAIN PROGRAM
 

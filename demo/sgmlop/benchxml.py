@@ -22,10 +22,10 @@ def test1():
     fp = open(FILE)
     parser = sgmlop.XMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -34,19 +34,19 @@ def test1():
 
 class sgmlopDummy:
     def finish_starttag(self, tag, data):
-	pass
+        pass
     def finish_endtag(self, tag):
-	pass
+        pass
     def handle_entityref(self, data):
-	pass
+        pass
     def handle_data(self, data):
-	pass
+        pass
     def handle_proc(self, name, data):
-	pass
+        pass
     def handle_cdata(self, data):
-	pass
+        pass
     def handle_charref(self, data):
-	pass 
+        pass 
     def handle_comment(self, data):
         pass
     def handle_special(self, data):
@@ -58,10 +58,10 @@ def test2():
     parser = sgmlop.XMLParser()
     parser.register(out)
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -70,24 +70,24 @@ def test2():
 
 class FastXMLParser(xmllib.FastXMLParser):
     def unknown_starttag(self, tag, data):
-	pass
+        pass
     def unknown_endtag(self, tag):
-	pass
+        pass
     def handle_entityref(self, data):
-	pass
+        pass
     def handle_data(self, data):
-	pass
+        pass
     def handle_cdata(self, data):
-	pass
+        pass
     
 def test3():
     fp = open(FILE)
     parser = FastXMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -96,24 +96,24 @@ def test3():
 
 class SlowXMLParser(xmllib.SlowXMLParser):
     def unknown_starttag(self, tag, data):
-	pass
+        pass
     def unknown_endtag(self, tag):
-	pass
+        pass
     def handle_entityref(self, data):
-	pass
+        pass
     def handle_data(self, data):
-	pass
+        pass
     def handle_cdata(self, data):
-	pass
+        pass
 
 def test4():
     fp = open(FILE)
     parser = SlowXMLParser()
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.feed(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.feed(data)
     parser.close()
     fp.close()
 
@@ -127,13 +127,13 @@ except (ImportError, SystemError):
 
 class xmltokDummy:
     def do_tag(self, tag, data):
-	pass
+        pass
     def do_endtag(self, tag):
-	pass
+        pass
     def do_entity(self, tag, data):
-	pass
+        pass
     def do_data(self, data):
-	pass
+        pass
 
 def test5():
     fp = open(FILE)
@@ -144,10 +144,10 @@ def test5():
     parser.CharacterDataHandler = out.do_data
     parser.ProcessingInstructionHandler = out.do_entity
     while 1:
-	data = fp.read(SIZE)
-	if not data:
-	    break
-	parser.Parse(data)
+        data = fp.read(SIZE)
+        if not data:
+            break
+        parser.Parse(data)
     parser.Parse("", 1)
     fp.close()
 

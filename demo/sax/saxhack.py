@@ -1,11 +1,11 @@
 #
 # 
-# $Id: saxhack.py,v 1.3 1998/12/03 00:42:35 amk Exp $
+# $Id: saxhack.py,v 1.4 1998/12/16 02:41:42 amk Exp $
 #
 # illustrate how a saxlib parser can interface directly to sgmlop
 #
 # history:
-# 98-05-23 fl	created (derived from the coreXML parser)
+# 98-05-23 fl   created (derived from the coreXML parser)
 #
 # Copyright (c) 1998 by Secret Labs AB
 #
@@ -13,18 +13,19 @@
 # http://www.pythonware.com
 #
 
-class DocumentHandler:
+from xml.sax.saxlib import HandlerBase
+class DocumentHandler:#(HandlerBase):
 
     # SAX interface
 
     def startElement(self, tag, attrs):
-	pass # print "start", tag
+        pass # print "start", tag
 
     def endElement(self, tag):
-	pass # print "end", tag
+        pass # print "end", tag
 
     def characters(self, text, start, len):
-	pass # print "data", text[start:start+len]
+        pass # print "data", text[start:start+len]
 
 # --------------------------------------------------------------------
 # sgmlop-based parser
@@ -35,46 +36,46 @@ class Parser:
 
     def setDocumentHandler(self, dh):
 
-	self.parser = sgmlop.XMLParser()
-	self.parser.register(dh, 1)
+        self.parser = sgmlop.XMLParser()
+        self.parser.register(dh, 1)
 
     def parseFile(self, file):
 
-	parser = self.parser
+        parser = self.parser
 
-	while 1:
-	    data = file.read(16384)
-	    if not data:
-		break
-	    parser.feed(data)
+        while 1:
+            data = file.read(16384)
+            if not data:
+                break
+            parser.feed(data)
 
-	parser.close()
+        parser.close()
 
 # --------------------------------------------------------------------
 # xmllib-based parser
 
-import xmllib
+from xml.parsers import xmllib
 
 class xmllibParser(xmllib.XMLParser):
 
     def setDocumentHandler(self, dh):
 
-	self.characters = dh.characters
-	self.unknown_starttag = dh.startElement
-	self.unknown_endtag = dh.endElement
+        self.characters = dh.characters
+        self.unknown_starttag = dh.startElement
+        self.unknown_endtag = dh.endElement
 
     def handle_data(self, data):
-	self.characters(data, 0, len(data))
+        self.characters(data, 0, len(data))
 
     def parseFile(self, file):
 
-	while 1:
-	    data = file.read(16384)
-	    if not data:
-		break
-	    self.feed(data)
+        while 1:
+            data = file.read(16384)
+            if not data:
+                break
+            self.feed(data)
 
-	self.close()
+        self.close()
 
 # --------------------------------------------------------------------
 # original xmllib-based parser
@@ -83,29 +84,33 @@ class slowParser(xmllib.SlowXMLParser):
 
     def setDocumentHandler(self, dh):
 
-	self.characters = dh.characters
-	self.unknown_starttag = dh.startElement
-	self.unknown_endtag = dh.endElement
+        self.characters = dh.characters
+        self.unknown_starttag = dh.startElement
+        self.unknown_endtag = dh.endElement
 
     def handle_data(self, data):
-	self.characters(data, 0, len(data))
+        self.characters(data, 0, len(data))
 
     def parseFile(self, file):
 
-	while 1:
-	    data = file.read(16384)
-	    if not data:
-		break
-	    self.feed(data)
+        while 1:
+            data = file.read(16384)
+            if not data:
+                break
+            self.feed(data)
 
-	file.close()
+        file.close()
 
 # ====================================================================
 # test stuff
 
-import time, os
+import time, os, sys
 
-FILE = "hamlet.xml"
+if len(sys.argv) == 1:
+    print 'Usage: saxhack.py <xml filename>'
+    sys.exit(1)
+
+FILE = sys.argv[1]
 
 size = os.stat(FILE)[6]
 
@@ -119,9 +124,17 @@ p.parseFile(f) # dry run
 t_direct = time.clock() - t
 f.close()
 
+#import sys ; sys.exit(0)
+
+print t_direct
+if t_direct == 0:
+    print 'Measured time was too small; use a larger XML file'
+    sys.exit(1)
+
 print "sgmlop:", int(size / t_direct), "bytes per second"
 
 p = xmllibParser()
+#p=slowParser()
 dh = DocumentHandler()
 p.setDocumentHandler(dh)
 

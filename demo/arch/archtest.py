@@ -23,7 +23,7 @@ def create_hash(optlist):
     # Create hash table out of an item list
     opthash = {}
     for a in optlist:
-	opthash[a[0]] = a[1]
+        opthash[a[0]] = a[1]
     return opthash
 
 # =============================================================================
@@ -37,11 +37,11 @@ try:
     opts = create_hash(optlist)
 
     if len(args) != 2:
-	usage("Please give me two arguments.")
-	
+        usage("Please give me two arguments.")
+        
 # Catch getopt errors and display usage information
 except getopt.error, e:
-	usage(e)
+        usage(e)
 
 # Create Parser factory
 

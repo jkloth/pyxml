@@ -2,7 +2,8 @@
 ?test where="after"
 (biblio
 -
-  
+
+-  
 (firstname
 Anationality norwegian
 -Geir Ove
@@ -18,7 +19,8 @@ Aht address
 -grove@infotek.no
 )note
 -
-  
+
+-  
 -
 
 )biblio

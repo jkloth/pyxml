@@ -19,19 +19,19 @@ def test():
             if r != rune:
                 print "Ouch!",
             print
-	    for n,f in funcs:
-		if f(s)!=s:
-		    print "Ouch! %s failed for %x" %(n,rune)
+            for n,f in funcs:
+                if f(s)!=s:
+                    print "Ouch! %s failed for %x" %(n,rune)
     if runes!=wstring.from_utf8(runes.utf8()):
-	print "Ouch!"
+        print "Ouch!"
     if runes!=wstring.from_utf7(runes.utf7()):
-	print "Ouch!"
+        print "Ouch!"
     if runes!=wstring.from_ucs2(runes.ucs2()):
-	print "Ouch!"
+        print "Ouch!"
     if runes!=wstring.from_ucs4(runes.ucs4()):
-	print "Ouch!"
+        print "Ouch!"
     if runes!=wstring.from_utf16(runes.utf16()):
-	print "Ouch!"
+        print "Ouch!"
     
 test()
 

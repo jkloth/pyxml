@@ -46,9 +46,9 @@ if out_sysID=="":
     out=sys.stdout
 else:
     try:
-	out=urllib.urlopen(out_sysID)
+        out=urllib.urlopen(out_sysID)
     except IOError,e:
-	print out_sysID+": "+str(e)
+        print out_sysID+": "+str(e)
 
 if esis:
     dh=saxutils.ESISDocHandler(out)

@@ -11,12 +11,12 @@ from xml.sax import saxexts
 class SAXtracer:
 
     def __init__(self,objname):
-	self.objname=objname
-	self.met_name=""
+        self.objname=objname
+        self.met_name=""
 
     def __getattr__(self,name):
-	self.met_name=name # UGLY! :)
-	return self.trace
+        self.met_name=name # UGLY! :)
+        return self.trace
 
     def error(self,exception):
         print "err_handler.error(%s)" % str(exception)
@@ -48,7 +48,7 @@ class SAXtracer:
         print "doc_handler.startElement('%s',%s)" % (name,attr_str)
         
     def trace(self,*rest):
-	str="%s.%s(" % (self.objname,self.met_name)
+        str="%s.%s(" % (self.objname,self.met_name)
 
         for param in rest[:-1]:
             str=str+`param`+", "
