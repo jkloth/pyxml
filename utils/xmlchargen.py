@@ -188,8 +188,12 @@ if __name__=='__main__':
     for n in ['BaseChar','Ideographic','CombiningChar','Digit',
               'Extender','Letter','NameChar','Name','Names',
               'Nmtoken','Nmtokens']:
-        print 're_%s = re.compile(%s)' % (n,n)
-
+        print '_re_%s = None' % n
+        print 'def re_%s():' % n
+        print '  global _re_%s' % n
+        print '  if _re_%s is None:' % n
+        print '    _re_%s = re.compile(%s)' % (n,n)
+        print '  return _re_%s' % n
 
 # BEGIN GARBAGE: various data about the XML character classes,
 #                in comparison to the Python 2.0 database

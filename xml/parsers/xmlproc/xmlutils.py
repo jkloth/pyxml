@@ -2,7 +2,7 @@
 Some common declarations for the xmlproc system gathered in one file.
 """
 
-# $Id: xmlutils.py,v 1.30 2001/12/30 12:09:14 loewis Exp $
+# $Id: xmlutils.py,v 1.31 2002/01/13 20:55:03 loewis Exp $
 
 import string,re,urlparse,os,sys,types
 
@@ -872,10 +872,10 @@ reg_enc_name=re.compile("[A-Za-z][-A-Za-z0-9._]*")
 reg_std_alone=re.compile("yes|no")
 if using_unicode:
     from xml.utils import characters
-    reg_name = characters.re_Name
-    reg_names = characters.re_Names
-    reg_nmtoken = characters.re_Nmtoken
-    reg_nmtokens = characters.re_Nmtokens
+    reg_name = characters.re_Name()
+    reg_names = characters.re_Names()
+    reg_nmtoken = characters.re_Nmtoken()
+    reg_nmtokens = characters.re_Nmtokens()
     reg_pe_ref = re.compile("%"+characters.Name+";")
     del characters
 else:
