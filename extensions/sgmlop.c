@@ -1,6 +1,6 @@
 /*
  * SGMLOP
- * $Id: sgmlop.c,v 1.8 2001/12/14 16:36:34 loewis Exp $
+ * $Id: sgmlop.c,v 1.9 2001/12/28 15:50:38 loewis Exp $
  *
  * The sgmlop accelerator module
  *
@@ -24,6 +24,7 @@
  * 2000-05-28 fl  Removed optional close argument (@SGMLOP3)
  * 2000-05-28 fl  Raise exception on recursive feed (@SGMLOP4)
  * 2000-07-05 fl  Fixed attribute handling in empty tags (@SGMLOP6)
+ * 2001-12-28 wd  Add XMLUnicodeParser
  *
  * Copyright (c) 1998-2000 by Secret Labs AB
  * Copyright (c) 1998-2000 by Fredrik Lundh
@@ -97,6 +98,8 @@ typedef struct {
 
     /* mode flags */
     int xml; /* 0=sgml/html 1=xml */
+    int unicode; /* 0=8bit strings 1=unicode objects */
+    char *encoding;
 
     /* state attributes */
     int feed;
@@ -125,14 +128,28 @@ staticforward PyTypeObject FastSGMLParser_Type;
 
 /* forward declarations */
 static int fastfeed(FastSGMLParserObject* self);
-static PyObject* attrparse(const CHAR_T *p, int len, int xml);
+static PyObject* attrparse(FastSGMLParserObject* self, const CHAR_T* p, int len);
+static int fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, int len);
+static PyObject* stringFromData(FastSGMLParserObject* self, const CHAR_T* data, int len);
+static int callWithString(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len);
+static int callWith2Strings(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data1, int len1, const CHAR_T* data2, int len2);
+static int callWithStringAndObj(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len, PyObject* obj);
 
+#define callHandleData(self, data, len) callWithString((self), (self)->handle_data, (data), (len))
+#define callHandleCData(self, data, len) callWithString((self), (self)->handle_cdata, (data), (len))
+#define callHandleComment(self, data, len) callWithString((self), (self)->handle_comment, (data), (len))
+#define callHandleEntityRef(self, data, len) callWithString((self), (self)->handle_entityref, (data), (len))
+#define callHandleCharRef(self, data, len) callWithString((self), (self)->handle_charref, (data), (len))
+#define callHandleSpecial(self, data, len) callWithString((self), (self)->handle_special, (data), (len))
+#define callHandleProc(self, data1, len1, data2, len2) callWith2Strings((self), (self)->handle_proc, (data1), (len1), (data2), (len2))
+#define callFinishStartTag(self, data, len, obj) callWithStringAndObj((self), (self)->finish_starttag, (data), (len), (obj))
+#define callFinishEndTag(self, data, len) callWithString((self), (self)->finish_endtag, (data), (len))
 
 /* -------------------------------------------------------------------- */
 /* create parser */
 
 static PyObject*
-_sgmlop_new(int xml)
+_sgmlop_new(int xml, int unicode)
 {
     FastSGMLParserObject* self;
 
@@ -141,6 +158,8 @@ _sgmlop_new(int xml)
         return NULL;
 
     self->xml = xml;
+    self->unicode = unicode;
+    self->encoding = NULL;
 
     self->feed = 0;
     self->shorttag = 0;
@@ -169,7 +188,7 @@ _sgmlop_sgmlparser(PyObject* self, PyObject* args)
     if (!PyArg_NoArgs(args))
         return NULL;
 
-    return _sgmlop_new(0);
+    return _sgmlop_new(0, 0);
 }
 
 static PyObject*
@@ -178,7 +197,16 @@ _sgmlop_xmlparser(PyObject* self, PyObject* args)
     if (!PyArg_NoArgs(args))
         return NULL;
 
-    return _sgmlop_new(1);
+    return _sgmlop_new(1, 0);
+}
+
+static PyObject*
+_sgmlop_xmlunicodeparser(PyObject* self, PyObject* args)
+{
+    if (!PyArg_NoArgs(args))
+        return NULL;
+
+    return _sgmlop_new(1, 1);
 }
 
 static void
@@ -186,6 +214,8 @@ _sgmlop_dealloc(FastSGMLParserObject* self)
 {
     if (self->buffer)
         free(self->buffer);
+    if (self->encoding)
+        free(self->encoding);
     Py_XDECREF(self->finish_starttag);
     Py_XDECREF(self->finish_endtag);
     Py_XDECREF(self->handle_proc);
@@ -839,6 +869,7 @@ statichere PyTypeObject TreeBuilder_Type = {
 static PyMethodDef _functions[] = {
     {"SGMLParser", _sgmlop_sgmlparser, 0},
     {"XMLParser", _sgmlop_xmlparser, 0},
+    {"XMLUnicodeParser", _sgmlop_xmlunicodeparser, 0},
     {"Element", element_new, 1},
     {"TreeBuilder", treebuilder_new, 0},
     {NULL, NULL}
@@ -1127,82 +1158,62 @@ fastfeed(FastSGMLParserObject* self)
 
         if (q != s && self->handle_data) {
             /* flush any raw data before this tag */
-            PyObject* res;
-            res = PyObject_CallFunction(self->handle_data,
-                                        "s#", s, q-s);
-            if (!res)
+            if (callHandleData(self, s, q-s))
                 return -1;
-            Py_DECREF(res);
         }
 
         /* invoke callbacks */
         if (token & TAG) {
             if (token == TAG_END) {
                 if (self->finish_endtag) {
-                    PyObject* res;
-                    res = PyObject_CallFunction(self->finish_endtag,
-                                                "s#", b, t-b);
-                    if (!res)
+                    if (callFinishEndTag(self, b, t-b))
                         return -1;
-                    Py_DECREF(res);
                 }
             } else if (token == DIRECTIVE || token == DOCTYPE) {
                 if (self->handle_special) {
-                    PyObject* res;
-                    res = PyObject_CallFunction(self->handle_special,
-                                                "s#", b, e-b);
-                    if (!res)
+                    if (callHandleSpecial(self, b, e-b))
                         return -1;
-                    Py_DECREF(res);
                 }
             } else if (token == PI) {
                 if (self->handle_proc) {
-                    PyObject* res;
                     int len = t-b;
                     while (ISSPACE(*t))
                         t++;
-                    res = PyObject_CallFunction(self->handle_proc,
-                                                "s#s#", b, len, t, e-t);
-                    if (!res)
+                    if ((len==3) && (b[0]=='x') && (b[1]=='m') && (b[2]=='l'))
+                        fetchEncoding(self, t, e-t);
+
+                    if (callHandleProc(self, b, len, t, e-t))
                         return -1;
-                    Py_DECREF(res);
                 }
             } else if (self->finish_starttag) {
-                PyObject* res;
                 PyObject* attr;
                 int len = t-b;
                 while (ISSPACE(*t))
                     t++;
-                attr = attrparse(t, e-t, self->xml);
+                attr = attrparse(self, t, e-t);
                 if (!attr)
                     return -1;
-                res = PyObject_CallFunction(self->finish_starttag,
-                                            "s#O", b, len, attr);
-                Py_DECREF(attr);
-                if (!res)
+                if (callFinishStartTag(self, b, len, attr))
+                {
+                    Py_DECREF(attr);
                     return -1;
-                Py_DECREF(res);
+                }
+                Py_DECREF(attr);
                 if (token == TAG_EMPTY && self->finish_endtag) {
-                    res = PyObject_CallFunction(self->finish_endtag,
-                                                "s#", b, len);
-                    if (!res)
-                        return -1;
-                    Py_DECREF(res);
+                    if (callFinishEndTag(self, b, len))
+                       return -1;
                 }
             }
         } else if (token == ENTITYREF && self->handle_entityref) {
-            PyObject* res;
-            res = PyObject_CallFunction(self->handle_entityref,
-                                        "s#", b, e-b);
-            if (!res)
+            if (callHandleEntityRef(self, b, e-b))
                 return -1;
-            Py_DECREF(res);
         } else if (token == CHARREF && (self->handle_charref ||
                                         self->handle_data)) {
-            PyObject* res;
             if (self->handle_charref)
-                res = PyObject_CallFunction(self->handle_charref,
-                                            "s#", b, e-b);
+            {
+                if (callHandleCharRef(self, b, e-b))
+                    return -1;
+            }
             else {
                 /* fallback: handle charref's as data */
                 CHAR_T ch;
@@ -1217,33 +1228,22 @@ fastfeed(FastSGMLParserObject* self)
                     for (p = b; p < e; p++)
                         ch = (CHAR_T) (ch*10 + *p - '0');
                 }
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#", &ch, sizeof(CHAR_T));
+                if (callHandleData(self, &ch, sizeof(CHAR_T)))
+                    return -1;
             }
-            if (!res)
-                return -1;
-            Py_DECREF(res);
         } else if (token == CDATA && (self->handle_cdata ||
                                       self->handle_data)) {
-            PyObject* res;
             if (self->handle_cdata) {
-                    res = PyObject_CallFunction(self->handle_cdata,
-                                                "s#", b, e-b);
+                if (callHandleCData(self, b, e-b))
+                    return -1;
             } else {
                 /* fallback: handle cdata as plain data */
-                res = PyObject_CallFunction(self->handle_data,
-                                            "s#", b, e-b);
+                if (callHandleData(self, b, e-b))
+                    return -1;
             }
-            if (!res)
-                return -1;
-            Py_DECREF(res);
         } else if (token == COMMENT && self->handle_comment) {
-            PyObject* res;
-            res = PyObject_CallFunction(self->handle_comment,
-                                        "s#", b, e-b);
-            if (!res)
+            if (callHandleComment(self, b, e-b))
                 return -1;
-            Py_DECREF(res);
         }
         
         q = p; /* start of token */
@@ -1252,12 +1252,8 @@ fastfeed(FastSGMLParserObject* self)
 
   eol: /* end of line */
     if (q != s && self->handle_data) {
-        PyObject* res;
-        res = PyObject_CallFunction(self->handle_data,
-                                    "s#", s, q-s);
-        if (!res)
+        if (callHandleData(self, s, q-s))
             return -1;
-        Py_DECREF(res);
     }
 
     /* returns the number of bytes consumed in this pass */
@@ -1265,7 +1261,7 @@ fastfeed(FastSGMLParserObject* self)
 }
 
 static PyObject*
-attrparse(const CHAR_T* p, int len, int xml)
+attrparse(FastSGMLParserObject* self, const CHAR_T* p, int len)
 {
     PyObject* attrs;
     PyObject* key = NULL;
@@ -1273,7 +1269,7 @@ attrparse(const CHAR_T* p, int len, int xml)
     const CHAR_T* end = p + len;
     const CHAR_T* q;
 
-    if (xml)
+    if (self->xml)
         attrs = PyDict_New();
     else
         attrs = PyList_New(0);
@@ -1291,11 +1287,11 @@ attrparse(const CHAR_T* p, int len, int xml)
         while (p < end && *p != '=' && !ISSPACE(*p))
             p++;
 
-        key = PyString_FromStringAndSize(q, p-q);
+        key = stringFromData(self, q, p-q);
         if (key == NULL)
             goto err;
 
-        if (xml)
+        if (self->xml)
             value = Py_None;
         else
             value = key; /* in SGML mode, default is same as key */
@@ -1320,13 +1316,13 @@ attrparse(const CHAR_T* p, int len, int xml)
                 p++;
                 while (p < end && *p != *q)
                     p++;
-                value = PyString_FromStringAndSize(q+1, p-q-1);
+                value = stringFromData(self, q+1, p-q-1);
                 if (p < end && *p == *q)
                     p++;
             } else {
                 while (p < end && !ISSPACE(*p))
                     p++;
-                value = PyString_FromStringAndSize(q, p-q);
+                value = stringFromData(self, q, p-q);
             }
 
             if (value == NULL)
@@ -1334,7 +1330,7 @@ attrparse(const CHAR_T* p, int len, int xml)
 
         }
 
-        if (xml) {
+        if (self->xml) {
 
             /* add to dictionary */
 
@@ -1375,3 +1371,177 @@ attrparse(const CHAR_T* p, int len, int xml)
     Py_DECREF(attrs);
     return NULL;
 }
+
+/* this function gets passed the data part of the xml header
+ * and reads and updates the encoding attribute
+ * (this function does not free the original encoding string,
+ * so it can only be called once)
+ *
+ * returns true on error, false on success
+ */
+static int
+fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, int len)
+{
+    const char *found = NULL;
+    char quote;
+
+    for (;len>8;++data, --len)
+    {
+        if (!strncmp(data, "encoding", 8))
+        {
+            found = data;
+            break;
+        }
+
+    }
+    if (!found)
+        return 0;
+
+    data += 8; /* skip "encoding" */
+    len -= 8;
+
+    if ((len==0) || (*data!= '='))
+        return 0;
+
+    ++data; /* skip '=' */
+    --len;
+
+    if ((len==0) || ((*data!= '\'') && (*data!= '"')))
+        return 0;
+
+    quote = *data++; /* skip quote char */
+    --len;
+
+    found = data; /* encoding name starts here */
+    while ((len>0) && (*data != quote))
+    {
+        ++data;
+        --len;
+    }
+
+    if ((len==0) || (*data != quote))
+        return 0;
+
+    /* now we can be sure that we found it */
+    self->encoding = malloc(data-found+1);
+    if (!self->encoding)
+    {
+        PyErr_NoMemory();
+        return -1;
+    }
+    strncpy(self->encoding, found, data-found);
+    self->encoding[data-found] = '\0';
+    printf("'%s'\n", self->encoding);
+    return 0;
+}
+
+static char *defaultEncoding = "utf-8";
+
+/* this function constructs a string or Unicode object
+ * from the passed in character data according to
+ * the unicode parameter of the parser
+ */
+static PyObject*
+stringFromData(FastSGMLParserObject* self, const CHAR_T* data, int len)
+{
+    if (self->unicode)
+        return PyUnicode_Decode(data, len,
+            self->encoding ? self->encoding : defaultEncoding, "strict");
+    else
+        return PyString_FromStringAndSize(data, len);
+}
+
+/* this function constructs a Unicode object from the
+ * characters passed in (if the parser has unicode==1)
+ * or uses the string directly (if the parser
+ * has unicode==0) and calls the callback with it
+ *
+ * returns true on error, false on success
+ */
+static int
+callWithString(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len)
+{
+    PyObject* str = stringFromData(self, data, len);
+    PyObject* res;
+
+    if (!str)
+         return -1;
+
+    res = PyObject_CallFunction(callback, "O", str);
+    Py_DECREF(str);
+
+    if (res)
+    {
+        Py_DECREF(res);
+        return 0;
+    }
+    else
+        return -1;
+}
+
+/* this function constructs 2 Unicode objects from the
+ * characters passed in (if the parser has unicode==1)
+ * or uses the strings directly (if the parser
+ * has unicode==0) and calls the callback with it
+ *
+ * returns true on error, false on success
+ */
+static int
+callWith2Strings(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data1, int len1, const CHAR_T* data2, int len2)
+{
+    PyObject* res;
+     PyObject* str1;
+     PyObject* str2;
+
+     str1 = stringFromData(self, data1, len1);
+
+     if (!str1)
+         return -1;
+
+     str2 = stringFromData(self, data2, len2);
+
+     if (!str2) {
+         Py_DECREF(str1);
+         return -1;
+     }
+
+     res = PyObject_CallFunction(callback, "OO", str1, str2);
+     Py_DECREF(str1);
+     Py_DECREF(str2);
+     if (res)
+     {
+         Py_DECREF(res);
+         return 0;
+     }
+     else
+         return -1;
+}
+
+/* this function constructs a Unicode object from the
+ * characters passed in (if the parser has unicode==1)
+ * or uses the string directly (if the parser
+ * has unicode==0) and calls the callback with it and
+ * the second object
+ *
+ * returns true on error, false on success
+ */
+static int
+callWithStringAndObj(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len, PyObject *obj)
+{
+    PyObject* res;
+    PyObject* str = stringFromData(self, data, len);
+
+    if (!str)
+        return -1;
+
+    res = PyObject_CallFunction(callback, "OO", str, obj);
+    Py_DECREF(str);
+    if (res)
+    {
+        Py_XDECREF(res);
+        return 0;
+    }
+    else
+        return -1;
+}
+
