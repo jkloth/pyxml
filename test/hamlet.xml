@@ -1,15 +1,15 @@
-<?XML version="1.0"?>
-<!DOCTYPE play PUBLIC "-//Free Text Project//DTD Play//EN">
+<?xml version="1.0"?>
+<!DOCTYPE PLAY SYSTEM "play.dtd">
 
 <PLAY>
 <TITLE>The Tragedy of Hamlet, Prince of Denmark</TITLE>
 
-<fm>
-<p>Text placed in the public domain by Moby Lexical Tools, 1992.</p>
-<p>SGML markup by Jon Bosak, 1992-1994.</p>
-<p>XML version by Jon Bosak, 1996-1997.</p>
-<p>This work may be freely copied and distributed worldwide.</p>
-</fm>
+<FM>
+<P>Text placed in the public domain by Moby Lexical Tools, 1992.</P>
+<P>SGML markup by Jon Bosak, 1992-1994.</P>
+<P>XML version by Jon Bosak, 1996-1998.</P>
+<P>This work may be freely copied and distributed worldwide.</P>
+</FM>
 
 
 <PERSONAE>
@@ -9149,4 +9149,3 @@ bodies; after which a peal of ordnance is shot off</STAGEDIR>
 </SCENE>
 </ACT>
 </PLAY>
-
