@@ -2,6 +2,8 @@
 # Some experiments in adding character encoding conversions to xmlproc.
 # This module is not yet used by the released xmlproc, since I'm awaiting
 # a reorganization.
+#
+# $Id: charconv.py,v 1.4 2000/05/12 18:39:58 lars Exp $
 
 import string
 
@@ -40,6 +42,17 @@ iso_cp850_tbl=""
 for chno in iso_cp850:
     iso_cp850_tbl=iso_cp850_tbl+chr(chno)
 
+# Windows CP 1252 to ISO 8859-1
+# Maps characters 128-159, 63 means non-mappable, 127 means unused in 1252
+# Does a fuzzy transform (ndash and mdash both mapped to -, and so on)
+
+cp1252_iso=[127,127,44,63,63,95,63,63,94,63,63,60,198,127,127,127,127,39,39,
+            34,34,183,45,45,126,63,63,62,230,127,127,127]
+
+cp1252_iso_tbl=""
+for char in map(chr,range(128)+cp1252_iso+range(160,256)):
+    cp1252_iso_tbl=cp1252_iso_tbl+char
+
 # --- Conversion functions
 
 def utf8_to_iso8859(data):
@@ -49,8 +62,6 @@ def utf8_to_iso8859(data):
     for ix in range(len(data)):
         chn=ord(data[ix])
         if chn & 224==192: # 110xxxxx
-#             print "%d %d -> %d" % (chn, ord(data[ix+1]),
-#                                    ((chn & 3) << 6) + (ord(data[ix+1]) & 63))
             out=out+chr( ((chn & 3) << 6) + (ord(data[ix+1]) & 63))
         elif chn & 128==0: # 0xxxxxxx
             out=out+data[ix]
@@ -84,6 +95,9 @@ def cp850_to_utf8(data):
 def utf8_to_cp850(data):
     return iso8859_to_cp850(utf8_to_iso8859(data))
 
+def cp1252_to_iso8859(data):
+    return string.translate(data,cp1252_iso_tbl)
+
 # --- Conversion function database
 
 class ConverterDatabase:
@@ -101,8 +115,8 @@ class ConverterDatabase:
     def can_convert(self,from_encoding,to_encoding):
         """Returns true if converters to from from_encoding to to_encoding are
         known. Encoding names follow the syntax specified by the XML rec."""
-        from_encoding=string.lower(from_encoding)
-        to_encoding=string.lower(to_encoding)
+        from_encoding=self._canonize_name(from_encoding)
+        to_encoding=self._canonize_name(to_encoding)
 
         if from_encoding==to_encoding:
             return 1
@@ -168,12 +182,22 @@ convdb.add_alias("IBM850","cp850")
 convdb.add_alias("IBM850","850")
 convdb.add_alias("IBM850","csPC850Multilingual")
 
-convdb.add_converter("UTF-8","ISO-8859-1",utf8_to_iso8859)
-convdb.add_converter("CP850","ISO-8859-1",cp850_to_iso8859)
-convdb.add_converter("ISO-8859-1","CP850",iso8859_to_cp850)
-convdb.add_converter("ISO-8859-1","UTF-8",iso8859_to_utf8)
-convdb.add_converter("US-ASCII","UTF-8",id_conv)
+# converters (foo -> foo case not needed, handled automatically)
+
+convdb.add_converter("IBM850","ISO-8859-1",cp850_to_iso8859)
 convdb.add_converter("US-ASCII","ISO-8859-1",id_conv)
-convdb.add_converter("US-ASCII","CP850",id_conv)
-convdb.add_converter("UTF-8","CP850",utf8_to_cp850)
-convdb.add_converter("CP850","UTF-8",cp850_to_utf8)
+convdb.add_converter("windows-1252","ISO-8859-1",cp1252_to_iso8859)
+
+convdb.add_converter("ISO-8859-1","IBM850",iso8859_to_cp850)
+convdb.add_converter("US-ASCII","IBM850",id_conv)
+
+convdb.add_converter("ISO-8859-1","WINDOWS-1252",id_conv)
+
+convdb.add_converter("US-ASCII","UTF-8",id_conv)
+
+# UTF-8 stuff disabled due to total lack of speed
+
+# convdb.add_converter("UTF-8","ISO-8859-1",utf8_to_iso8859)
+# convdb.add_converter("ISO-8859-1","UTF-8",iso8859_to_utf8)
+# convdb.add_converter("UTF-8","IBM850",utf8_to_cp850)
+# convdb.add_converter("IBM850","UTF-8",cp850_to_utf8)

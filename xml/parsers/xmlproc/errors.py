@@ -12,17 +12,18 @@ def add_error_list(language,list):
 
 def get_error_list(language):
     return error_lists[string.lower(language)]
-    
+
+def get_language_list():
+    return error_lists.keys()
+
 # Errors in English
 
 english={
 
     # --- Warnings: 1000-1999
     1000: "Undeclared namespace prefix '%s'",
-    1001: "Unsupported XML version",
     1002: "Unsupported encoding '%s'",
     1003: "Obsolete namespace syntax",
-    1004: "Processing instruction target names beginning with 'xml' are reserved",
     1005: "Unsupported character number '%d' in character reference",
     1006: "Element '%s' has attribute list, but no element declaration",
     1007: "Attribute '%s' defined more than once",
@@ -32,6 +33,7 @@ english={
     1900: "Namespace prefix names cannot contain ':'s.",
     1901: "Namespace URI cannot be empty",
     1902: "Namespace prefix not declared",
+    1903: "Attribute names not unique after namespace processing",
 
     # --- Validity errors: 2000-2999
     2000: "Actual value of attribute '%s' does not match fixed value",
@@ -57,6 +59,7 @@ english={
     2020: "Value of '%s' attribute not a valid name token sequence",
     2021: "Token '%s' in the value of the '%s' attribute is not a valid name",
     2022: "Notation attribute '%s' uses undeclared notation '%s'",
+    2023: "Unparsed entity '%s' uses undeclared notation '%s'",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -75,7 +78,9 @@ english={
     3010: "Multiple XML declarations in a single document",
     3011: "XML version missing on XML declaration",
     3012: "Standalone declaration on text declaration not allowed",
-
+    3045: "Processing instruction target names beginning with 'xml' are reserved",
+    3046: "Unsupported XML version",
+    
     # From xmlproc.XMLProcessor
     3013: "Illegal construct",
     3014: "Premature document end, element '%s' not closed",
@@ -90,7 +95,6 @@ english={
     3023: "End tag for '%s' seen, but '%s' expected",
     3024: "Element '%s' not open",
     3025: "']]>' must not occur in character data",
-    3026: "Character data not allowed outside root element",
     3027: "Not a valid character number",
     3028: "Character references not allowed outside root element",
     3029: "Character data not allowed outside root element",
@@ -111,10 +115,11 @@ english={
     3041: "Conditional sections not allowed in internal subset",
     3043: "Conditional section not closed",
     3044: "Token '%s' defined more than once",
+    # next: 3047
     
     # From regular expressions that were not matched
     3900: "Not a valid name",
-    3901: "Not a valid version number",
+    3901: "Not a valid version number (%s)",
     3902: "Not a valid encoding name",
     3903: "Not a valid comment",
     3905: "Not a valid hexadecimal number",
@@ -145,10 +150,8 @@ norsk={
 
     # --- Warnings: 1000-1999
     1000: "Navneroms-prefikset '%s' er ikke deklarert",
-    1001: "Denne XML-versjonen er ikke støttet",
     1002: "Tegn-kodingen '%s' er ikke støttet",
     1003: "Denne navnerom-syntaksen er foreldet",
-    1004: "Processing instruction navn som begynner med 'xml' er reservert",
     1005: "Tegn nummer '%d' i tegn-referansen er ikke støttet",
     1006: "Element '%s' har attributt-liste, men er ikke deklarert",
     1007: "Attributt '%s' deklarert flere ganger",
@@ -158,6 +161,7 @@ norsk={
     1900: "Navnerommets prefiks-navn kan ikke inneholde kolon",
     1901: "Navnerommets URI kan ikke være tomt",
     1902: "Navnerommets prefiks er ikke deklarert",
+    1903: "Attributt-navn ikke unike etter navneroms-prosessering",
     
     # --- Validity errors: 2000-2999
     2000: "Faktisk verdi til attributtet '%s' er ikke lik #FIXED-verdien",
@@ -183,6 +187,7 @@ norsk={
     2020: "Verdien til '%s'-attributtet er ikke et gyldig NMTOKENS",
     2021: "Symbolet '%s' i verdien til '%s'-attributtet er ikke et gyldig navn",
     2022: "Notasjons-attributtet '%s' bruker en notasjon '%s' som ikke er deklarert",
+    2023: "Uparsert entitet '%s' bruker en notasjon '%s' som ikke er deklarert",
 
     # --- Well-formedness errors: 3000-3999
     # From xmlutils
@@ -216,7 +221,6 @@ norsk={
     3023: "Slutt-tagg for '%s', men '%s' forventet",
     3024: "Elementet '%s' lukket, men ikke åpent",
     3025: "']]>' ikke tillatt i tekst-data",
-    3026: "Tekst-data er ikke tillatt utenfor rot-elementet",
     3027: "Ikke et gyldig tegn-nummer",
     3028: "Tegn-referanser ikke tillatt utenfor rot-elementet",
     3029: "Tekst-data ikke tillatt utenfor rot-elementet",
@@ -226,6 +230,8 @@ norsk={
     3033: "Dokument-type-deklarasjon kun tillatt før rot-elementet",
     3034: "Det interne DTD-subsettet slutter for tidlig",
     3042: "Element krysset entitets-grense",
+    3045: "Processing instruction navn som begynner med 'xml' er reservert",
+    3046: "Denne XML-versjonen er ikke støttet",
 
     # From xmlproc.DTDParser
     3035: "Parameter-entiteter kan ikke være uparserte",
@@ -240,7 +246,7 @@ norsk={
 
     # From regular expressions that were not matched
     3900: "Ikke et gyldig navn",
-    3901: "Ikke et gyldig versjonsnummer",
+    3901: "Ikke et gyldig versjonsnummer (%s)",
     3902: "Ikke et gyldig tegnkodings-navn",
     3903: "Ikke en gyldig kommentar",
     3905: "Ikke et gyldig heksadesimalt tall",
@@ -248,7 +254,7 @@ norsk={
     3907: "Ikke en gyldig parameter-entitets-referanse",
     3908: "Ikke en gyldig attributt-type",
     3909: "Ikke en gyldig attributt-standard-verdi",
-    3910: "Ikke en gyldig attributt-standard-verdi",
+    3910: "Ikke en gyldig verdi for opprams-attributter",
     3911: "Ikke en gyldig verdi for 'standalone'",
     
     # --- Internal errors: 4000-4999

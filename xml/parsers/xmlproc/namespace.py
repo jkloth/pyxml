@@ -2,7 +2,7 @@
 A parser filter for namespace support. Placed externally to the parser
 for efficiency reasons.
 
-$Id: namespace.py,v 1.2 1999/04/22 01:38:19 amk Exp $
+$Id: namespace.py,v 1.3 2000/05/12 18:39:58 lars Exp $
 """
 
 import string
@@ -114,9 +114,19 @@ class NamespaceFilter(ParserFilter):
         
         # Process elem and attr names
         name=self.__process_name(name)
+
+        parts=string.split(name)
+        if len(parts)>1:
+            ns=parts[0]
+        else:
+            ns=None
+            
         for (a,v) in attrs.items():
             del attrs[a]
-            attrs[self.__process_name(a)]=v
+            aname=self.__process_name(a,ns)
+            if attrs.has_key(aname):
+                    self.parser.report_error(1903)                
+            attrs[aname]=v
         
         # Report event
         self.app.handle_start_tag(name,attrs)
@@ -136,7 +146,7 @@ class NamespaceFilter(ParserFilter):
 
     # --- Internal methods
         
-    def __process_name(self,name):
+    def __process_name(self,name,default_to=None):
         n=string.split(name,":")
         if len(n)>2:
             self.parser.report_error(1900)
@@ -150,6 +160,8 @@ class NamespaceFilter(ParserFilter):
             except KeyError:
                 self.parser.report_error(1902)
                 return name
+        elif default_to!=None:
+            return "%s %s" % (default_to,name)
         elif self.ns_map.has_key("") and name!="xmlns":
             return "%s %s" % (self.ns_map[""],name)
         else:

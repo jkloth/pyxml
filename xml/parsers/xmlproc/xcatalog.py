@@ -1,3 +1,7 @@
+"""
+Support for XCatalog catalog files.
+$Id: xcatalog.py,v 1.6 2000/05/12 18:39:58 lars Exp $
+"""
 
 import catalog,xmlapp,xmlproc
 
