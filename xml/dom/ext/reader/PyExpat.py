@@ -127,7 +127,7 @@ class Reader(reader.Reader):
                     old_nss[prefix] = self._namespaces[prefix]
                 else:
                     del_nss.append(prefix)
-                if prefix is not None or value:
+                if prefix  or value:
                     self._namespaces[prefix] = attribs[curr_attrib_key]
                 else:
                     del self._namespaces[prefix]
