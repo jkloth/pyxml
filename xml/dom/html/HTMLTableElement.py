@@ -6,6 +6,9 @@
 #
 # History:
 # $Log: HTMLTableElement.py,v $
+# Revision 1.4  2000/09/20 16:28:35  loewis
+# Fix syntax errors.
+#
 # Revision 1.3  2000/06/20 16:03:15  uche
 # Put back in the "static" HTML files.
 #
@@ -220,9 +223,9 @@ class HTMLTableElement(HTMLElement):
             ref = None
             child = self.firstChild
             while not ref and child:
-                if child.tagName = 'TFOOT':
+                if child.tagName == 'TFOOT':
                     ref = child
-                elif child.tagName = 'TBODY':
+                elif child.tagName == 'TBODY':
                     ref = child
                 elif child.tagName in ['COL','COLGROUP']:
                     name = child.tagName

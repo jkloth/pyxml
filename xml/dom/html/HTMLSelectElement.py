@@ -6,6 +6,9 @@
 #
 # History:
 # $Log: HTMLSelectElement.py,v $
+# Revision 1.4  2000/09/20 16:28:35  loewis
+# Fix syntax errors.
+#
 # Revision 1.3  2000/06/20 16:03:15  uche
 # Put back in the "static" HTML files.
 #
@@ -85,7 +88,7 @@ class HTMLSelectElement(HTMLElement):
 
     def _get_selectedIndex(self):
         options = self._get_options()
-        for ctr in range(len(options))
+        for ctr in range(len(options)):
             node = options.item(ctr)
             if node._get_selected() == 1:
                 return ctr
@@ -122,7 +125,7 @@ class HTMLSelectElement(HTMLElement):
         
     def _get_options(self):
         children = self.getElementsByTagName('OPTION')
-        return = implementation._4dom_createHTMLCollection(children)
+        return implementation._4dom_createHTMLCollection(children)
 
     def _get_disabled(self):
         if self.getAttributeNode('DISABLED'):

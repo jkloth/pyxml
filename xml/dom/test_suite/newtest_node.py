@@ -9,7 +9,7 @@ class NodeTestCase(TestSuite.TestCase):
     def create(self):
         from xml.dom import implementation
     	dt = implementation.createDocumentType('','','')
-	    doc = implementation.createDocument(None,'ROOT',dt);
+        doc = implementation.createDocument(None,'ROOT',dt)
 
     	#We cannot use just plain old nodes, we need to use Elements
     	self.pNode = doc.createElement('PARENT')
@@ -29,14 +29,14 @@ class NodeTestCase(TestSuite.TestCase):
 
     def testNodeValue(self):
         self.pNode.nodeValue = 'NODE_VALUE'
-        if self.pNode.nodeValue != 'NODE_VALUE'
+        if self.pNode.nodeValue != 'NODE_VALUE':
             raise TestSuiteError('error with get/set nodeVaLue')
 
     def testNodeType(self):
         if self.pNode.nodeType != Node.ELEMENT_NODE:
             raise TestSuiteError('error getting nodeType')
 
-    def test
+    def test(FIXME):
 
 
 
