@@ -73,10 +73,12 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
 #                    return
 #           else:
 #               break
-
-        if not self.parser.Parse(fileobj.read(),1):
+        try:
+            if not self.parser.Parse(fileobj.read(),1):
+                self.__report_error()
+        except pyexpat.error:
             self.__report_error()
-                            
+            
         self.doc_handler.endDocument()
 
     # --- Locator methods. Only usable after errors.

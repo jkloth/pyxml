@@ -62,10 +62,9 @@ parser.ProcessingInstructionHandler = out.inst
 
 data = open(sys.argv[1]).read()
 
-rv = parser.Parse(data, 1)
-
-print 'Parser returned', rv
-if rv == 0:
+try:
+	parser.Parse(data, 1)
+except pyexpat.error:
 	print '** Error', parser.ErrorCode
 	print '** Line', parser.ErrorLineNumber
 	print '** Column', parser.ErrorColumnNumber
