@@ -114,11 +114,53 @@ eg7 = """<!DOCTYPE doc [
    </e1>
 </doc>"""
 
-# Make one-origined.
 examples = [ eg1, eg2, eg3, eg4, eg5, eg6, eg7 ]
+test_results = {
+    eg1: '''PD94bWwtc3R5bGVzaGVldCBocmVmPSJkb2MueHNsIgogICB0eXBlPSJ0ZXh0L3hz
+    bCIgICA/Pgo8ZG9jPkhlbGxvLCB3b3JsZCE8IS0tIENvbW1lbnQgMQotLT48L2Rv
+    Yz4KPD9waS13aXRob3V0LWRhdGE/Pgo8IS0tIENvbW1lbnQgMiAtLT4KPCEtLSBD
+    b21tZW50IDMgLS0+''',
+
+    eg2: '''PGRvYz4KICAgPGNsZWFuPiAgIDwvY2xlYW4+CiAgIDxkaXJ0eT4gICBBICAgQiAg
+    IDwvZGlydHk+CiAgIDxtaXhlZD4KICAgICAgQQogICAgICA8Y2xlYW4+ICAgPC9j
+    bGVhbj4KICAgICAgQgogICAgICA8ZGlydHk+ICAgQSAgIEIgICA8L2RpcnR5Pgog
+    ICAgICBDCiAgIDwvbWl4ZWQ+CjwvZG9jPg==''',
+
+    eg3: '''PGRvYyB4bWxuczpmb289Imh0dHA6Ly93d3cuYmFyLm9yZyI+CiAgIDxlMT48L2Ux
+    PgogICA8ZTI+PC9lMj4KICAgPGUzIGlkPSJlbGVtMyIgbmFtZT0iZWxlbTMiPjwv
+    ZTM+CiAgIDxlNCBpZD0iZWxlbTQiIG5hbWU9ImVsZW00Ij48L2U0PgogICA8ZTUg
+    eG1sbnM9Imh0dHA6Ly9leGFtcGxlLm9yZyIgeG1sbnM6YT0iaHR0cDovL3d3dy53
+    My5vcmciIHhtbG5zOmI9Imh0dHA6Ly93d3cuaWV0Zi5vcmciIGF0dHI9IkknbSIg
+    YXR0cjI9ImFsbCIgYjphdHRyPSJzb3J0ZWQiIGE6YXR0cj0ib3V0Ij48L2U1Pgog
+    ICA8ZTYgeG1sbnM6YT0iaHR0cDovL3d3dy53My5vcmciPgogICAgICAgPGU3IHht
+    bG5zPSJodHRwOi8vd3d3LmlldGYub3JnIj4KICAgICAgICAgICA8ZTggeG1sbnM9
+    IiIgYTpmb289ImJhciI+CiAgICAgICAgICAgICAgIDxlOSB4bWxuczphPSJodHRw
+    Oi8vd3d3LmlldGYub3JnIiBhdHRyPSJkZWZhdWx0Ij48L2U5PgogICAgICAgICAg
+    IDwvZTg+CiAgICAgICA8L2U3PgogICA8L2U2Pgo8L2RvYz4=''',
+
+    eg4: '''PGRvYz4KICAgPHRleHQ+Rmlyc3QgbGluZSYjeEQ7ClNlY29uZCBsaW5lPC90ZXh0
+    PgogICA8dmFsdWU+MjwvdmFsdWU+CiAgIDxjb21wdXRlPnZhbHVlJmd0OyIwIiAm
+    YW1wOyZhbXA7IHZhbHVlJmx0OyIxMCIgPyJ2YWxpZCI6ImVycm9yIjwvY29tcHV0
+    ZT4KICAgPGNvbXB1dGUgZXhwcj0idmFsdWU+JnF1b3Q7MCZxdW90OyAmYW1wOyZh
+    bXA7IHZhbHVlJmx0OyZxdW90OzEwJnF1b3Q7ID8mcXVvdDt2YWxpZCZxdW90Ozom
+    cXVvdDtlcnJvciZxdW90OyI+dmFsaWQ8L2NvbXB1dGU+CiAgIDxub3JtIGF0dHI9
+    IiAnICAgICYjeEQmI3hBJiN4OSAgICcgIj48L25vcm0+CiAgIDxub3JtTmFtZXMg
+    YXR0cj0iQSAmI3hEJiN4QSYjeDkgQiI+PC9ub3JtTmFtZXM+CiAgIDxub3JtSWQg
+    aWQ9IicgJiN4RCYjeEEmI3g5ICciPjwvbm9ybUlkPgo8L2RvYz4=''',
+
+    eg5: '''PGRvYyBhdHRyRXh0RW50PSJlbnRFeHQiPgogICBIZWxsbywgd29ybGQhCjwvZG9j
+    Pg==''',
+
+    eg6: '''PGRvYz7CqTwvZG9jPg==''',
+
+    eg7: '''PGRvYyB4bWxucz0iaHR0cDovL3d3dy5pZXRmLm9yZyIgeG1sbnM6dzNjPSJodHRw
+    Oi8vd3d3LnczLm9yZyI+CiAgIDxlMT4KICAgICAgPGUyIHhtbG5zPSIiIHhtbDpz
+    cGFjZT0icHJlc2VydmUiPgogICAgICAgICA8ZTMgaWQ9IkUzIj48L2UzPgogICAg
+    ICA8L2UyPgogICA8L2UxPgo8L2RvYz4=''',
+}
 
 # Load XPath and Parser
-import codecs, sys, types, traceback
+import codecs, sys, types, traceback, StringIO, base64
 from xml import xpath
 from xml.xpath.Context import Context
 from xml.dom.ext.reader import PyExpat
@@ -176,13 +218,19 @@ def builtin():
 	    pattern = '(//. | //@* | //namespace::*)'
 	nodelist = xpath.Evaluate(pattern, context=con)
 
-	outf = utf8_writer(open(filename, 'w'))
+	s = StringIO.StringIO()
+	outf = utf8_writer(s)
 
 	# Canonicalize a DOM with a document subset list according to XML-C14N
 	Canonicalize(dom, outf, subset=nodelist)
 
-	outf.close()
-	print 'Created ' + filename
+	expected = base64.decodestring(test_results[eg])
+	if s.getvalue() == expected:
+	    print 'Ok'
+	else:
+	    print 'Error!'
+	    print 'Got:\n', s.getvalue()
+	    print 'Expected:\n', expected
 
 def usage():
     print '''Options accepted:
