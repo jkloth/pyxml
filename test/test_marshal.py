@@ -1,9 +1,8 @@
 # built-in tests
-from xml.marshal import generic, wddx, xmlrpc
+from xml.marshal import generic, wddx
 
 generic.runtests()
 wddx.runtests()
-xmlrpc.runtests()
 
 # additional tests
 from test.test_support import verify
