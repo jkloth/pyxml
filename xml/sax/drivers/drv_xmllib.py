@@ -7,8 +7,6 @@ version="0.91"
 from xml.sax import saxutils
 from xml.sax.drivers import pylibs
 
-# from xml.parsers import xmllib2
-# xmllib=xmllib2
 import xmllib
 
 # Make it generate Unicode if possible, UTF-8 else
@@ -21,45 +19,45 @@ except NameError:
 
 # --- SAX_XLParser
 
-class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
+class SAX_XLParser(pylibs.LibParser, xmllib.XMLParser):
     "SAX driver for xmllib.py."
 
     def __init__(self):
         xmllib.XMLParser.__init__(self)
         pylibs.LibParser.__init__(self)
-        self.standalone=0
+        self.standalone = 0
         self.reset()
 
     def _convert(self, str):
         return unicode(str, self.encoding)
 
-    def unknown_starttag(self,tag,attributes):
+    def unknown_starttag(self, tag, attributes):
         tag = unicode(tag, self.encoding)
         newattr = {}
-        for k,v in attributes.items():
-            newattr[unicode(k,self.encoding)] = unicode(v,self.encoding)
-        self.doc_handler.startElement(tag,saxutils.AttributeMap(newattr))
+        for k, v in attributes.items():
+            newattr[unicode(k, self.encoding)] = unicode(v, self.encoding)
+        self.doc_handler.startElement(tag, saxutils.AttributeMap(newattr))
 
-    def handle_endtag(self,tag,method):
+    def handle_endtag(self, tag, method):
         self.doc_handler.endElement(unicode(tag, self.encoding))
 
-    def handle_proc(self,name,data):
-        self.doc_handler.processingInstruction(name,data[1:])
+    def handle_proc(self, name, data):
+        self.doc_handler.processingInstruction(name, data[1:])
 
     def handle_xml(self, encoding, standalone):
-        self.standalone= standalone=="yes"
+        self.standalone = standalone == "yes"
         if encoding is not None:
             self.encoding = encoding
 
-    def handle_data(self,data):
+    def handle_data(self, data):
         "Handles PCDATA."
         data = unicode(data, self.encoding)
-        self.doc_handler.characters(data,0,len(data))
+        self.doc_handler.characters(data, 0, len(data))
 
-    def handle_cdata(self,data):
+    def handle_cdata(self, data):
         "Handles CDATA marked sections."
         data = unicode(data, self.encoding)
-        self.doc_handler.characters(data,0,len(data))
+        self.doc_handler.characters(data, 0, len(data))
 
     def getLineNumber(self):
         return self.lineno
@@ -90,15 +88,15 @@ class SAX_XLParser(pylibs.LibParser,xmllib.XMLParser):
 
     def reset(self):
         xmllib.XMLParser.reset(self)
-        self.unfed_so_far=1
+        self.unfed_so_far = 1
         self.encoding = "utf-8"
 
-    def feed(self,data):
+    def feed(self, data):
         if self.unfed_so_far:
             self.doc_handler.startDocument()
-            self.unfed_so_far=0
+            self.unfed_so_far = 0
 
-        xmllib.XMLParser.feed(self,data)
+        xmllib.XMLParser.feed(self, data)
 
     def close(self):
         xmllib.XMLParser.close(self)
