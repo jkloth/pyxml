@@ -16,6 +16,7 @@ class OutputStream:
 
     def write(self, s):
         #print 'write', `s`
+        self.file.write( s )
         if s and s[-1] == '\n':
             self.new_line = 1
         else:
