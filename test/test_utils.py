@@ -1,6 +1,8 @@
 # Test the modules in the utils/ subpackage
+# FIXME: escape is now in xml.sax.saxutils, need to move testcase as well
 
 from xml.utils import *
+from xml.sax.saxutils import escape
 
 print 'Testing utils.escape'
 print 'These pairs of strings should all be identical'
