@@ -931,9 +931,8 @@ class Document(Node):
         s = '<?xml version="1.0"?>\n'
         if self.documentType:
             s = s + self.documentType
-        if len(self._node.children):
-            n = self._node.children[0]
-            n =  NODE_CLASS[ n.type ] (n, self, self)
+        for n in self._node.children:
+            n = NODE_CLASS[ n.type ] (n, self, self)
             s = s + n.toxml()
         return s
 
