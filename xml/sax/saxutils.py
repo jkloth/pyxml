@@ -2,13 +2,15 @@
 A library of useful helper classes to the saxlib classes, for the
 convenience of application and driver writers.
 
-$Id: saxutils.py,v 1.36 2005/01/29 14:20:07 uche Exp $
+$Id: saxutils.py,v 1.37 2005/04/13 14:02:08 syt Exp $
 """
 
 import os, urlparse, urllib2, types
 import handler
 import xmlreader
 import sys, _exceptions, saxlib
+
+from xml.Uri import Absolutize, MakeUrllibSafe,IsAbsolute
 
 try:
     _StringTypes = [types.StringType, types.UnicodeType]
@@ -510,22 +512,25 @@ def prepare_input_source(source, base = ""):
         source = xmlreader.InputSource()
         source.setByteStream(f)
         if hasattr(f, "name"):
-            source.setSystemId(f.name)
+            source.setSystemId(absolute_system_id(f.name, base))
 
     if source.getByteStream() is None:
-        sysid = source.getSystemId()
-        if os.path.isfile(sysid):
-            basehead = os.path.split(os.path.normpath(base))[0]
-            source.setSystemId(os.path.join(basehead, sysid))
-            f = open(sysid, "rb")
-        else:
-            source.setSystemId(urlparse.urljoin(base, sysid))
-            f = urllib2.urlopen(source.getSystemId())
-
+        sysid = absolute_system_id(source.getSystemId(), base)
+        source.setSystemId(sysid)
+        f = urllib2.urlopen(sysid)
         source.setByteStream(f)
 
     return source
 
+
+def absolute_system_id(sysid, base=''):
+    if os.path.exists(sysid):
+        sysid = 'file:%s' % os.path.abspath(sysid)
+    elif base:        
+        sysid = Absolutize(sysid, base)
+    assert IsAbsolute(sysid)
+    return MakeUrllibSafe(sysid)
+    
 # ===========================================================================
 #
 # DEPRECATED SAX 1.0 CLASSES
