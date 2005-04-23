@@ -208,7 +208,9 @@ class Node(xml.dom.Node, GetattrMagic):
                 L.append(child)
                 if child.nodeType == Node.ELEMENT_NODE:
                     child.normalize()
-        self.childNodes[:] = L
+        if self.childNodes:
+            self.childNodes[:] = L
+        return
 
     def cloneNode(self, deep):
         return _clone_node(self, deep, self.ownerDocument or self)
