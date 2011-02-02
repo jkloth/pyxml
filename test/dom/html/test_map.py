@@ -13,9 +13,9 @@ def test():
     print "testing get/set"
     m.appendChild(a);
     print "get Areas"
-    as = m._get_areas()
+    as_ = m._get_areas()
 
-    if as[0].nodeName != a.nodeName:
+    if as_[0].nodeName != a.nodeName:
         error('getAreas failed')
 
 
